@@ -24,9 +24,30 @@ public class ClubDTO {
     @NotNull(message = "社团英文名称不能为空")
     private String clubNameEn;
 
+
     public String getClubNameEn() {
         return clubNameEn;
     }
+
+    public String video;
+
+    public Integer getVideoLike() {
+        return videoLike;
+    }
+
+    public void setVideoLike(Integer videoLike) {
+        this.videoLike = videoLike;
+    }
+
+    public String getVideo() {
+        return video;
+    }
+
+    public void setVideo(String video) {
+        this.video = video;
+    }
+
+    public Integer videoLike;
 
     public void setClubNameEn(String clubNameEn) {
         this.clubNameEn = clubNameEn;

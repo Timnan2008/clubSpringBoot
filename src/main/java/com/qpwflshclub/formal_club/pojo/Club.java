@@ -1,6 +1,7 @@
 package com.qpwflshclub.formal_club.pojo;
 
 
+import com.qpwflshclub.formal_club.pojo.dto.ClubDTO;
 import jakarta.persistence.*;
 
 @Entity
@@ -48,6 +49,10 @@ public class Club {
 
     public String getClubNameEn() {
         return clubNameEn;
+    }
+
+    public boolean isEmpty() {
+        return clubName == null || clubName.isEmpty();
     }
 
     public void setClubNameEn(String clubNameEn) {
@@ -118,6 +123,21 @@ public class Club {
         this.clubDescription = clubDescription;
     }
 
+    public ClubDTO toDTO() {
+        ClubDTO dto = new ClubDTO();
+        dto.setClubName(this.clubName);
+        dto.setClubItem(this.clubItem);
+        dto.setPresident(this.president);
+        dto.setVicePresident(this.vicePresident);
+        dto.setTeacher(this.teacher);
+        dto.setClubDescription(this.clubDescription);
+        dto.setClubNameEn(this.clubNameEn);
+        dto.setVideo(this.video);
+        dto.setVideoLike(this.videoLike);
+        dto.setClubId(this.id);
+        return dto;
+    }
+
     @Override
     public String toString() {
         return "Club{" +
@@ -130,4 +150,5 @@ public class Club {
                 ", clubDescription='" + clubDescription + '\'' +
                 '}';
     }
+
 }

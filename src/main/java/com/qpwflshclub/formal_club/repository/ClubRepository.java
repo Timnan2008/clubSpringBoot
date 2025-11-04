@@ -4,8 +4,10 @@ import com.qpwflshclub.formal_club.pojo.Club;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface ClubRepository extends CrudRepository<Club, Integer> {
 
-    Club findByClubNameEn(String clubName);
+    Optional<Club> findByClubNameEn(String clubName);
 }

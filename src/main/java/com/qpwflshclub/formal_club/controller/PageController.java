@@ -14,7 +14,7 @@ public class PageController {
     public String clubPage(@PathVariable String clubName, Model model) {
         System.out.println("clubName: " + clubName);
         model.addAttribute("club", clubName);
-        return "club-template.jsp"; // 👈 和上面的路径一致
+        return "page/club-template"; // 👈 和上面的路径一致
     }
 
 

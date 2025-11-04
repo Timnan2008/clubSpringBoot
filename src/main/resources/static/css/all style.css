@@ -1,0 +1,27 @@
+body {
+    font-family: "Microsoft YaHei", sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+}
+.container {
+    max-width: 800px;
+    margin: 50px auto;
+    background-color: #ffffff;
+    padding: 30px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+}
+h1 {
+    text-align: center;
+    color: #2c3e50;
+}
+p {
+    line-height: 1.8;
+    color: #333333;
+    font-size: 16px;
+}
+ul {
+    margin-left: 20px;
+    color: #333333;
+}

@@ -44,15 +44,20 @@ public class ClubService implements IClubService {
 
     @Override
     public Club findByName(String clubName) {
-        return clubRepository.findByClubNameEn(clubName);
+        return clubRepository.findByClubNameEn(clubName).orElseThrow(() -> {
+            throw new ClubNotFoundException("没有找到该社团");
+        });
     }
+
+
 
     @Override
     public Club find(Integer id) {
         return clubRepository.findById(id).orElseThrow(() -> {
-            throw new IllegalArgumentException("没有找到该社团");
+            throw new ClubNotFoundException("没有找到该社团");
         });
     }
+
 
 
 }
