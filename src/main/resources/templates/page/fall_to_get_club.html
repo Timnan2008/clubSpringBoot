@@ -1,8 +1,7 @@
-<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>编程社团介绍</title>
+    <title>未找到网站</title>
     <link rel="stylesheet" href="../../css/all%20style.css">
     <style>
         *{
@@ -172,7 +171,6 @@
         }
     </style>
 </head>
-<body>
 <header class="navbar">
     <div class="navbar-top">
 
@@ -201,138 +199,11 @@
     </div>
 
 </header>
-
-
-
-<script th:inline="javascript">
-    const clubName =[[${clubName}]];
-    console.log("DEBUG 当前社团名:", clubName);
-
-    const apiUrl = `/api/club/name-en/${encodeURIComponent(clubName)}`;
-    console.log("DEBUG 发起请求到:", apiUrl);
-
-    fetch(apiUrl)
-        .then(res => res.json())
-        .then(result => {
-            console.log("DEBUG 返回结果:", result);
-            const club = result.data;
-            console.log("DEBUG 获取的社团信息:", club);
-
-            if (!club) {
-                document.getElementById("club-title").textContent = "未找到该社团";
-                return;
-            }
-
-            // ✅ 这里每个元素都存在
-            document.getElementById("club-title").textContent = club.clubName + "介绍";
-            console.log("DEBUG president:", club.president);
-            document.getElementById("president").textContent = club.president || "暂无";
-            console.log("DEBUG vicePresident:", club.vicePresident);
-            document.getElementById("vicePresident").textContent = club.vicePresident || "暂无";
-            console.log("DEBUG teacher:", club.teacher);
-            document.getElementById("teacher").textContent = club.teacher || "暂无";
-            console.log("DEBUG club-intro:", club.clubDescription);
-            document.getElementById("club-intro").textContent = club.clubDescription || "暂无介绍";
-            document.getElementById("club-intro").style.display = 'block';
-
-
-            console.log("DEBUG club-logo:", club.clubItem);
-            document.getElementById("club-logo").src = club.clubItem;
-
-
-            console.log("DEBUG club-video:", club.video);
-            if (club.video) {
-                document.getElementById("club-video").src = club.video;
-            }
-
-            console.log("DEBUG like-count:", club.videoLike);
-            document.getElementById("like-count").textContent = club.videoLike || "0";
-
-
-        })
-        .catch(err => {
-            console.error("加载社团信息失败：", err);
-            // ✅ 即使失败也不会再出错
-            const titleEl = document.getElementById("club-title");
-            if (titleEl) titleEl.textContent = "加载失败，请稍后重试";
-        });
-
-
-
-</script>
-
-
+<head>
+    <meta charset="UTF-8">
+    <title>Fall to get club</title>
+</head>
 <div class="container">
-    <h1><span id="club-title">未知社团</span></h1>
-    <div class="top-info">
-        <div class="leaders">
-            <p><strong>社长：</strong ><span id="president">加载中</span></p>
-            <p><strong>副社长：</strong><span id="vicePresident">加载中</span></p>
-            <p><strong>指导老师：</strong><span id="teacher">加载中</span></p>
-        </div>
-        <img id="club-logo" class="club-logo">
-    </div>
-
-    <div class="intro">
-        <h2>社团简介</h2>
-        <p id="club-intro">加载中...</p>
-    </div>
-
-    <h1>社团视频展示</h1>
-
-    <div class="video-container">
-        <video id="club-video" width="100%" controls>
-            <source type="video/mp4">
-            您的浏览器不支持 video 标签。
-        </video>
-
-        <!-- 点赞叠加层 -->
-        <div class="like-overlay">
-            <button id="like-btn">点赞</button>
-            <p>点赞：<span id="like-count">加载中...</span></p>
-        </div>
-    </div>
+    <h1><span id="club-title">没有该网页</span></h1>
 </div>
-<a href="https://beian.miit.gov.cn" style="position: absolute; width: 100%; text-align: center; color: #888;">沪ICP备2025137067号</a>
-
-<script th:inline="javascript">
-    const clubName2 = [[${clubName}]];
-    console.log("DEBUG 当前社团名2:", clubName2)
-
-    const likeBtn = document.getElementById("like-btn");
-    const likeCountEl = document.getElementById("like-count");
-
-    const url = `/api/club/name-en/${encodeURIComponent(clubName2)}`;
-    console.log("DEBUG 获取点赞数请求地址:", url);
-
-    // 页面加载时初始化点赞数
-    fetch(url, { method: "GET"})
-        .then(res => res.json())
-        .then(result => {
-            console.log("debug点赞时：" + result);
-            if (result.data) likeCountEl.textContent = result.data.videoLike || "后端加载失败";
-        });
-
-    likeBtn.addEventListener("click", () => {
-        console.log("正在点赞");
-        fetch(`/api/club/like/${encodeURIComponent(clubName2)}`, { method: "PUT" })
-            .then(res => res.json())
-            .then(result => {
-                if (result.code === 200) {
-                    fetch(`/api/club/name-en/${encodeURIComponent(clubName2)}`)
-                        .then(res => res.json())
-                        .then(result => {
-                            if (result.data) likeCountEl.textContent = result.data.videoLike || 0;
-                            console.log("点赞数" + result.data.videoLike);
-                        });
-                    likeBtn.textContent = "已点赞 ❤️";
-                } else {
-                    alert("点赞失败：" + (result.message || "未知错误"));
-                }
-            })
-            .catch(err => console.error("点赞失败：", err));
-    });
-</script>
-
-</body>
 </html>

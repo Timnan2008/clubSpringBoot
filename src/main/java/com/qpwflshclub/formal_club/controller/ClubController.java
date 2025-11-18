@@ -3,11 +3,12 @@ package com.qpwflshclub.formal_club.controller;
 import com.qpwflshclub.formal_club.pojo.Club;
 import com.qpwflshclub.formal_club.pojo.ResponseMessage;
 import com.qpwflshclub.formal_club.pojo.dto.ClubDTO;
-import com.qpwflshclub.formal_club.service.ClubService;
 import com.qpwflshclub.formal_club.service.IClubService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/club")
@@ -15,7 +16,6 @@ public class ClubController {
 
     @Autowired
     IClubService clubService;
-
 
     //增加
     @PostMapping
@@ -31,6 +31,23 @@ public class ClubController {
         Club club = clubService.update(clubDTO);
         return ResponseMessage.success(club);
     }
+
+    @PutMapping("/name-en/{clubName}")
+    public ResponseMessage<Club> updateNameEn(@PathVariable String clubName,@Validated @RequestBody ClubDTO clubDTO){
+        ClubDTO clubDTONameEn = clubService.findByName(clubName).toDTO();
+        Club club = clubService.update(clubDTO);
+        return ResponseMessage.success(club);
+    }
+
+    @PutMapping("/initialize-url/{clubName}")
+    public ResponseMessage<Club> initializeUrl(@PathVariable String clubName){
+        Club club = clubService.findByName(clubName);
+        club.setClubURL("page/club-watch/" + clubName);
+        clubService.update(club.toDTO());
+        return ResponseMessage.success(club);
+    }
+
+
 
     @PutMapping("/like/{clubName}")
     public ResponseMessage<Club> like(@PathVariable String clubName){
@@ -65,6 +82,13 @@ public class ClubController {
         Club club = clubService.findByName(clubName);
 
         return ResponseMessage.success(club);
+    }
+
+    @GetMapping("/all")
+    public ResponseMessage<List<Club>> findAll(){
+        List<Club> clubs = clubService.findAll();
+        System.out.println("clubs: " + clubs);
+        return ResponseMessage.success(clubs);
     }
 
 }

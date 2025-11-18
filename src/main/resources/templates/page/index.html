@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title data-i18n="main:title">首页</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: sans-serif;
+            background-color: #f7f7f7;
+            background-image: url('../../static/other photo/leaves.png');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+        *{
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            text-decoration: none;
+        }
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: white;
+            margin: 0;
+            padding: 10px 30px;
+            height: 100px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+        .navbar-top {
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+        .navbar-left {
+            display: flex;
+            align-items: center;
+        }
+        .navbar-logo {
+            height: 100px;
+            margin-right: 16px;
+        }
+        .school-name-block {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.2;
+        }
+        .school-cn {
+            font-size: 18px;
+            font-weight: bold;
+            color: #444;
+        }
+        .school-en {
+            font-size: 12px;
+            color: #777;
+            text-transform: uppercase;
+        }
+        .navbar-links {
+            display: flex;
+            margin-left: auto;
+        }
+        .navbar-links a {
+            margin-left: 20px;
+            text-decoration: none;
+            color: #242525;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        .navbar-links a:hover {
+            color: #0056b3;
+        }
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        .dropbtn {
+            padding: 10px;
+            color: #242525;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        .dropbtn:hover {
+            color: #0056b3;
+        }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: white;
+            min-width: 180px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            z-index: 1001;
+            border-radius: 8px;
+            overflow: hidden;
+            top: 100%;
+            left: 0;
+        }
+        .dropdown-content a {
+            color: #242525;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            font-size: 14px;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .dropdown-content a:hover {
+            background-color: #f0f0f0;
+            color: #007bff;
+        }
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+        .button {
+            display: inline-block;
+            background-color: #213cf1;
+            color: #fff;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 14px;
+            margin-top: 14px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .button:hover {
+            background-color: #388e3c;
+        }
+        h1 {
+            text-align: center;
+            font-size: 50px;
+            font-weight: bold;
+            color: #333333;
+            margin: 40px 0 20px 0;
+            letter-spacing: 2px;
+        }
+        .notice-board {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            max-width: 1000px;
+            margin: 30px auto;
+            padding: 10px;
+        }
+
+        .notice {
+            background-color: #ffffff;
+            border-left: 5px solid #007bff;
+            padding: 15px;
+            font-size: 14px;
+            color: #333;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s ease;
+            line-height: 1.6;
+            white-space: normal;
+            word-wrap: break-word;
+        }
+        .notice:hover {
+            transform: translateY(-3px);
+        }
+        .notice-important {
+            background-color: #ffffff;
+            border-left: 5px solid #e30808;
+            padding: 15px;
+            font-size: 14px;
+            color: #333;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s ease;
+            line-height: 1.6;
+            white-space: normal;
+            word-wrap: break-word;
+        }
+        .notice-important:hover {
+            transform: translateY(-3px);
+        }
+        .scroll-wrapper {
+            position: relative;
+            overflow: hidden;
+            padding-bottom: 10px;
+        }
+        .scroll-container {
+            display: flex;
+            gap: 20px;
+            padding: 10px 0;
+            animation: marquee 30s linear infinite;
+        }
+        @keyframes marquee {
+            0% { transform: translateX(0%); }
+            100% { transform: translateX(-50%); }
+        }
+        .fade-left, .fade-right {
+            position: absolute;
+            top: 0;
+            width: 60px;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+        .fade-left {
+            left: 0;
+            background: linear-gradient(to right, #f7f7f7, rgba(247, 247, 247, 0));
+        }
+        .fade-right {
+            right: 0;
+            background: linear-gradient(to left, #f7f7f7, rgba(247, 247, 247, 0));
+        }
+        .view-more {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 2;
+            background-color: #007bff;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+        .card {
+            flex: 0 0 auto;
+            width: 250px;
+            background-color: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: transform 0.2s ease;
+        }
+        .card:hover {
+            transform: scale(1.03);
+        }
+        .card img {
+            width: 100%;
+            aspect-ratio: 1/1;
+            object-fit: cover;
+            display: block;
+        }
+        .card-content {
+            padding: 15px;
+        }
+        .card h2 {
+            margin: 0 0 10px;
+            font-size: 18px;
+        }
+        .card p {
+            font-size: 14px;
+            color: #555;
+        }
+        .credit {
+            margin-top: 50px;
+            text-align: center;
+            font-size: 13px;
+            color: #888;
+            font-style: italic;
+        }
+
+        .warning-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #ff4d4f;
+            color: white;
+            text-align: center;
+            padding: 12px 48px 12px 20px; /* 右侧留更宽空间 */
+            font-size: 16px;
+            z-index: 9999;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            display: none;
+            box-sizing: border-box; /* 确保 padding 不导致溢出 */
+        }
+
+        .warning-bar .close-btn {
+            position: absolute;
+            top: 50%;
+            right: 16px;
+            transform: translateY(-50%);
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            line-height: 32px;
+            text-align: center;
+            transition: background 0.2s ease;
+        }
+
+        .warning-bar .close-btn:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+    </style>
+</head>
+<body>
+<header class="navbar">
+    <div class="warning-bar" id="warningBar">
+        ⚠ 从电脑端打开体验更佳
+        <span class="close-btn" onclick="document.getElementById('warningBar').style.display='none'">X</span>
+    </div>
+
+    <div class="navbar-top">
+
+
+        <div class="navbar-left">
+            <a href="https://qphs.shwfl.edu.cn/" target="_blank">
+                <img src="../../other%20photo/WFL-logo.png" alt="WFL Logo" class="navbar-logo">
+            </a>
+            <div class="school-name-block">
+                <div class="school-cn">上 海 青 浦 区 世 外 高 级 中 学</div>
+                <div class="school-en">SHANGHAI QINGPU WORLD FOREIGN LANGUAGE HIGH SCHOOL</div>
+            </div>
+        </div>
+        <nav class="navbar-links">
+            <a href="/page/index">首页</a>
+            <div class="dropdown">
+                <a class="dropbtn">全部社团</a>
+                <div class="dropdown-content">
+                    <a href="/page/club-type/creativity">创意艺术</a>
+                    <a href="/page/club-type/activity">体育活动</a>
+                    <a href="/page/club-type/service">社会服务</a>
+                    <a href="/page/club-type/study">学术类</a>
+                </div>
+            </div>
+
+            <a href="./suggestion/suggestion.html">意见箱</a>
+            <a onclick="window.location.href='index_en.html'">EN/中文</a>
+
+        </nav>
+
+    </div>
+
+</header>
+
+<h1>
+    🪧公告栏
+</h1>
+
+<div class="notice-board">
+    <div class="notice-important">恭喜青浦世外高中社团官网于2025.6.7正式上线1.0版本！！！</div>
+    <div class="notice">本网站目前还处于开发状态，有任何bug或者关于网站外观、内容等设计的想法，请投稿意见箱，欢迎投稿！</div>
+    <div class="notice">请各社团社长尽快提交社团的简介、logo、中英文名等信息，以完善网站内的社团介绍。</div>
+</div>
+
+<h1>
+    优秀社团
+</h1>
+
+<div id="ExClubs" class="tab-content active">
+    <div class="scroll-wrapper">
+        <div class="fade-left"></div>
+        <div class="fade-right"></div>
+        <div class="scroll-container">
+            <div class="card">
+                <img src="加载中" alt="加载中……">
+                <div class="card-content">
+                    <h2>加载中……</h2>
+                    <p>加载中……</p>
+                    <a class="button" target="_blank">无法点击</a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    const apiUrl = `/api/club/all`;
+    fetch(apiUrl)
+        .then(response => response.json())
+        .then(result => {
+            const data = result.data;
+            const container = document.querySelector(`#ExClubs .scroll-container`);
+
+            console.log(container);
+            container.innerHTML = '';
+
+            data.forEach(clubs=>{
+                console.log(clubs);
+                console.log(clubs.greatClub);
+
+                if(clubs.greatClub){
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.innerHTML = `
+                        <img src="${clubs.clubItem}" alt="${clubs.clubName}">
+                        <div class="card-content">
+                          <h2>${clubs.clubName}</h2>
+                          <p>${clubs.clubDescription}</p>
+                          <a class="button" href="../../${clubs.clubURL}" target="_blank">查看详情</a>
+                        </div>
+                      `;
+                    console.log(card);
+                    container.appendChild(card);
+                }
+                console.log(container);
+            });
+
+            data.forEach(clubs=>{
+                console.log(clubs);
+                console.log(clubs.greatClub);
+
+                if(clubs.greatClub){
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.innerHTML = `
+                        <img src="${clubs.clubItem}" alt="${clubs.clubName}">
+                        <div class="card-content">
+                          <h2>${clubs.clubName}</h2>
+                          <p>${clubs.clubDescription}</p>
+                          <a class="button" href="../../${clubs.clubURL}" target="_blank">查看详情</a>
+                        </div>
+                      `;
+                    container.appendChild(card);
+                }
+            });
+        });
+</script>
+
+<!--
+<script>
+    const apiUrl = `/api/club/all`;
+
+    fetch(apiUrl)
+        .then(response => response.json())
+        .then(data => {
+            forEach(type => {
+
+                const container = document.querySelector(`#${type} .scroll-container`);
+                container.innerHTML = '';
+                data[type].forEach(club => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.innerHTML = `
+            <img src="${club.image}" alt="${club.name}">
+            <div class="card-content">
+              <h2>${club.name}</h2>
+              <p>${club.description}</p>
+              <a class="button" href="${club.text_address}" target="_blank">查看详情</a>
+            </div>
+          `;
+                    container.appendChild(card);
+                });
+                data[type].forEach(club => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.innerHTML = `
+            <img src="${club.image}" alt="${club.name}">
+            <div class="card-content">
+              <h2>${club.name}</h2>
+              <p>${club.description}</p>
+              <a class="button" href="${club.text_address}" target="_blank">查看详情</a>
+            </div>
+          `;
+                    container.appendChild(card);
+                });
+            });
+        });
+</script>
+-->
+
+<script>
+    // 检测是否为触摸设备
+    function detectDeviceType() {
+        const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+
+
+        if (/android/i.test(userAgent)) {
+            return "Android";
+        }
+
+
+        if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+            return "iOS";
+        }
+
+        if (/windows phone/i.test(userAgent)) {
+            return "Windows Phone";
+        }
+        return "Desktop";
+    }
+
+    const deviceType = detectDeviceType();
+
+    console.log("Device Type: ", deviceType);
+
+    if (detectDeviceType() != "Desktop") {
+        document.getElementById('warningBar').style.display = 'block';
+    }
+</script>
+
+
+
+<a href="https://beian.miit.gov.cn" style="position: absolute; width: 100%; text-align: center; color: #888;">沪ICP备2025137067号</a>
+
+</body>
+</html>

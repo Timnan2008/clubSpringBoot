@@ -3,6 +3,8 @@ package com.qpwflshclub.formal_club.pojo;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import org.springframework.http.HttpStatus;
 
+import java.util.List;
+
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ResponseMessage <T>{
     private Integer code;
@@ -29,7 +31,18 @@ public class ResponseMessage <T>{
     
     public static <T> ResponseMessage<T> error(T data){
         return  new ResponseMessage<>(HttpStatus.BAD_REQUEST.value(), "错误", data);
+
     }
+
+    // 在 ResponseMessage 类中添加
+    public static <T> ResponseMessage<List<T>> success(List<T> data) {
+        return new ResponseMessage<>(HttpStatus.OK.value(), "请求成功", data);
+    }
+
+    public static <T> ResponseMessage<List<T>> success(List<T> data, String message) {
+        return new ResponseMessage<>(HttpStatus.OK.value(), message, data);
+    }
+
 
     public Integer getCode() {
         return code;

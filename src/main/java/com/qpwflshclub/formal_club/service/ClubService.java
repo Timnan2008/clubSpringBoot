@@ -8,6 +8,9 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Service
 public class ClubService implements IClubService {
 
@@ -49,6 +52,12 @@ public class ClubService implements IClubService {
         });
     }
 
+    @Override
+    public List<Club> findAll() {
+        List<Club> clubs = new ArrayList<>();
+        clubRepository.findAll().forEach(clubs::add);
+        return clubs;
+    }
 
 
     @Override
@@ -57,6 +66,8 @@ public class ClubService implements IClubService {
             throw new ClubNotFoundException("没有找到该社团");
         });
     }
+
+
 
 
 

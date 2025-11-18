@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title id="title">加载中...</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: sans-serif;
+            background-color: #f7f7f7;
+            background-image: url('../../other photo/leaves.png');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+        *{
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            text-decoration: none;
+        }
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: white;
+            margin: 0;
+            padding: 10px 30px;
+            height: 100px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+        .navbar-top {
+            display: flex;
+            align-items: center;
+            width: 100%;
+        }
+        .navbar-left {
+            display: flex;
+            align-items: center;
+        }
+        .navbar-logo {
+            height: 100px;
+            margin-right: 16px;
+        }
+        .school-name-block {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.2;
+        }
+        .school-cn {
+            font-size: 18px;
+            font-weight: bold;
+            color: #444;
+        }
+        .school-en {
+            font-size: 12px;
+            color: #777;
+            text-transform: uppercase;
+        }
+        .navbar-links {
+            display: flex;
+            margin-left: auto;
+        }
+        .navbar-links a {
+            margin-left: 20px;
+            text-decoration: none;
+            color: #242525;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+        .navbar-links a:hover {
+            color: #0056b3;
+        }
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        .dropbtn {
+            padding: 10px;
+            color: #242525;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        .dropbtn:hover {
+            color: #0056b3;
+        }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: white;
+            min-width: 180px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            z-index: 1001;
+            border-radius: 8px;
+            overflow: hidden;
+            top: 100%;
+            left: 0;
+        }
+        .dropdown-content a {
+            color: #242525;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            font-size: 14px;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .dropdown-content a:hover {
+            background-color: #f0f0f0;
+            color: #007bff;
+        }
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+        .tab-buttons {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .tab-button {
+            flex: 1;
+            background-color: transparent;
+            border: none;
+            padding: 10px 0;
+            font-size: 16px;
+            cursor: pointer;
+            color: #333;
+            border-bottom: 3px solid transparent;
+            transition: border-color 0.3s;
+            text-align: center;
+            width: 100%;
+        }
+        .tab-button.active {
+            border-color: #333;
+            font-weight: bold;
+        }
+        .tab-button:hover {
+            background-color: #e0e0e0;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            max-width: 1000px;
+            margin: auto;
+        }
+        .card {
+            background-color: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: transform 0.2s ease;
+        }
+        .card:hover {
+            transform: scale(1.03);
+        }
+        .card img {
+            width: 100%;
+            aspect-ratio: 1/1;
+            object-fit: cover;
+            display: block;
+        }
+        .card-content {
+            padding: 15px;
+        }
+        .card h2 {
+            margin: 0 0 10px;
+            font-size: 18px;
+        }
+        .card p {
+            font-size: 14px;
+            color: #555;
+        }
+        .button {
+            margin-top: 10px;
+            display: inline-block;
+            padding: 8px 12px;
+            background-color: #28a745;
+            color: white;
+            border-radius: 6px;
+            text-align: center;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<header class="navbar">
+    <div class="navbar-top">
+        <div class="navbar-left">
+            <a href="https://qphs.shwfl.edu.cn/" target="_blank">
+                <img src="../../other photo/WFL-logo.png" alt="WFL Logo" class="navbar-logo">
+            </a>
+            <div class="school-name-block">
+                <div class="school-cn">上 海 青 浦 区 世 外 高 级 中 学</div>
+                <div class="school-en">SHANGHAI QINGPU WORLD FOREIGN LANGUAGE HIGH SCHOOL</div>
+            </div>
+        </div>
+        <nav class="navbar-links">
+            <a href="/page/index">首页</a>
+            <div class="dropdown">
+                <a class="dropbtn">全部社团</a>
+                <div class="dropdown-content">
+                    <a href="/page/club-type/creativity">创意艺术</a>
+                    <a href="/page/club-type/activity">体育活动</a>
+                    <a href="/page/club-type/service">社会服务</a>
+                    <a href="/page/club-type/study">学术类</a>
+                </div>
+            </div>
+            <a href="../suggestion/suggestion.html">意见箱</a>
+            <a onclick="window.location.href = 'activity-type_en.html'">EN/中文</a>
+        </nav>
+    </div>
+
+</header>
+
+<div id="Top" class="tab-buttons"></div>
+
+<div class="grid" id="clubGrid">
+    <div class="card">
+        <img src="1" alt="加载中……">
+        <div class="card-content">
+            <h2>加载中……</h2>
+            <p>加载中……</p>
+            <a class="button" target="_blank">无法点击</a>
+        </div>
+    </div>
+</div>
+
+<script  th:inline="javascript" >
+    const type =  /*[[${type}]]*/ 'default';
+    console.log(type);
+
+
+
+    if(type === "activity"){
+        document.getElementById("title").textContent = "体育活动";
+        document.getElementById("Top").innerHTML = `
+            <a href="/page/club-type/creativity" class="tab-button" data-i18n="main:C-type">创意艺术</a>
+            <a class="tab-button active" data-i18n="main:A-type">体育活动</a>
+            <a href="/page/club-type/service" class="tab-button" data-i18n="main:S-type">社会服务</a>
+            <a href="/page/club-type/study" class="tab-button" data-i18n="main:St-type">学术类</a>
+        `
+    }else if(type === "service"){
+        document.getElementById("title").textContent = "社会服务";
+        document.getElementById("Top").innerHTML = `
+            <a href="/page/club-type/creativity" class="tab-button" data-i18n="main:C-type">创意艺术</a>
+            <a href="/page/club-type/activity" class="tab-button" data-i18n="main:A-type">体育活动</a>
+            <a class="tab-button active" data-i18n="main:S-type">社会服务</a>
+            <a href="/page/club-type/study" class="tab-button" data-i18n="main:St-type">学术类</a>`
+    }else if(type === "study"){
+        document.getElementById("title").textContent = "学术类";
+        document.getElementById("Top").innerHTML = `
+            <a href="/page/club-type/creativity" class="tab-button" data-i18n="main:C-type">创意艺术</a>
+            <a href="/page/club-type/activity" class="tab-button" data-i18n="main:A-type">体育活动</a>
+            <a href="/page/club-type/service" class="tab-button" data-i18n="main:S-type">社会服务</a>
+            <a class="tab-button active" data-i18n="main:St-type">学术类</a>`
+    }else{
+        document.getElementById("title").textContent = "创意艺术";
+        document.getElementById("Top").innerHTML = `
+            <a class="tab-button active" data-i18n="main:C-type">创意艺术</a>
+            <a href="/page/club-type/activity" class="tab-button" data-i18n="main:A-type">体育活动</a>
+            <a href="/page/club-type/service" class="tab-button" data-i18n="main:S-type">社会服务</a>
+            <a href="/page/club-type/study" class="tab-button" data-i18n="main:St-type">学习类</a>`
+    }
+
+    //获取数据
+    fetch(`/api/club/all`)
+        .then(response => response.json())
+        .then(result => {
+            const data = result.data;
+
+            console.log(data);
+
+            const container = document.getElementById("clubGrid");
+            container.innerHTML = '';
+            data.forEach(club => {
+                console.log(club);
+                if (club.clubClass === type) {
+                    if(club.clubURL === null){
+                        fetch(`/api/club/initialize-url/` + club.clubNameEn , {
+                            method: 'PUT',
+                        })
+                    }
+                    console.log(club.clubClass);
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.innerHTML = `
+                        <img src="${club.clubItem}" alt="${club.clubName}">
+                        <div class="card-content">
+                          <h2>${club.clubName}</h2>
+                          <p>${club.clubDescription}</p>
+                          <a class="button" href="../../${club.clubURL}" target="_blank">查看详情</a>
+                        </div>
+                      `;
+                    console.log(card);
+                    container.appendChild(card);
+
+                    container.appendChild(card);
+                }
+            })
+            .catch(error => {
+                console.error("加载社团数据失败:", error);
+            });
+
+        })
+
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+
+            button.classList.add('active');
+            document.getElementById(button.dataset.tab).classList.add('active');
+        });
+    });
+
+    const container = document.getElementById("clubGrid");
+
+</script>
+
+
+<!--
+<script>
+
+    fetch('../other/zh_clubs.json')
+        .then(response => response.json())
+        .then(data => {
+            const clubs = data["A"];
+            const container = document.getElementById("clubGrid");
+
+            clubs.forEach(club => {
+                const card = document.createElement("div");
+                card.className = "card";
+                card.innerHTML = `
+          <img src="${club.image}" alt="${club.name}">
+          <div class="card-content">
+            <h2>${club.name}</h2>
+            <p>${club.description}</p>
+            <div class="button" onclick="window.location.href='${club.text_address}'">了解更多</div>
+          </div>
+        `;
+                container.appendChild(card);
+            });
+        })
+        .catch(error => {
+            console.error("加载社团数据失败:", error);
+        });
+
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+
+            button.classList.add('active');
+            document.getElementById(button.dataset.tab).classList.add('active');
+        });
+    });
+
+    const container = document.getElementById("clubGrid");
+
+    clubs.forEach(club => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+      <img src="${club.image}" alt="${club.name}">
+      <div class="card-content">
+        <h2>${club.name}</h2>
+        <p>${club.description}</p>
+        <div class="button" onclick="window.location.href='${club.text_address}'">了解更多</div>
+      </div>
+    `;
+
+        container.appendChild(card);
+    });
+</script>
+--->
+
+<a href="https://beian.miit.gov.cn" style="position: absolute; width: 100%; text-align: center; color: #888;">沪ICP备2025137067号</a>
+</body>
+</html>
