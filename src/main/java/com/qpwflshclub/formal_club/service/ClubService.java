@@ -68,7 +68,4 @@ public class ClubService implements IClubService {
     }
 
 
-
-
-
 }

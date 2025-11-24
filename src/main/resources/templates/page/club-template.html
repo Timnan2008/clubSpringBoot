@@ -172,7 +172,11 @@
         }
     </style>
 </head>
+
+
+
 <body>
+
 <header class="navbar">
     <div class="navbar-top">
 
@@ -202,8 +206,7 @@
 
 </header>
 
-
-
+<!--连接后端内容-->
 <script th:inline="javascript">
     const clubName =[[${clubName}]];
     console.log("DEBUG 当前社团名:", clubName);
@@ -261,7 +264,7 @@
 
 </script>
 
-
+<!-- 主体内容 -->
 <div class="container">
     <h1><span id="club-title">未知社团</span></h1>
     <div class="top-info">
@@ -293,8 +296,10 @@
         </div>
     </div>
 </div>
+
 <a href="https://beian.miit.gov.cn" style="position: absolute; width: 100%; text-align: center; color: #888;">沪ICP备2025137067号</a>
 
+<!-- 点赞功能 -->
 <script th:inline="javascript">
     const clubName2 = [[${clubName}]];
     console.log("DEBUG 当前社团名2:", clubName2)
