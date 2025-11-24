@@ -32,9 +32,25 @@ public class PageController {
 
     }
 
+    @GetMapping("/club-watch/En/{clubName}")
+    public String clubPageEn(@PathVariable String clubName, Model model) {
+        try{
+            Club club = clubService.findByName(clubName);
+            model.addAttribute("club", clubName);
+            return "page/En/club-template-en"; // 👈 和上面的路径一致
+        }catch (ClubNotFoundException e){
+            return "page/fall_to_get_club";
+        }
+    }
+
     @GetMapping("/index")
     public String indexPage(Model model) {
         return "page/index";
+    }
+
+    @GetMapping("/index-en")
+    public String indexPageEn(Model model) {
+        return "page/En/index-en";
     }
 
     @GetMapping("/club-type/{type}")
@@ -44,6 +60,18 @@ public class PageController {
         if(type.equals("activity") || type.equals("creativity") || type.equals("study") || type.equals("service")){
             model.addAttribute("type", type);
             return "page/club-type-template";
+        }else{
+            return "page/fall_to_get_club";
+        }
+    }
+
+    @GetMapping("/club-type/En/{type}")
+    public String clubTypePageEn(@PathVariable String type, Model model) {
+        System.out.println("type: " + type);
+
+        if(type.equals("activity") || type.equals("creativity") || type.equals("study") || type.equals("service")){
+            model.addAttribute("type", type);
+            return "page/En/club-type-template-en";
         }else{
             return "page/fall_to_get_club";
         }

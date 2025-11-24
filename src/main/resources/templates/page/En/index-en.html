@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title data-i18n="main:title">首页</title>
+    <title data-i18n="main:title">Main Page</title>
     <style>
         body {
             margin: 0;
             font-family: sans-serif;
             background-color: #f7f7f7;
-            background-image: url('../../static/other photo/leaves.png');
+            background-image: url('../../../static/other photo/leaves.png');
             background-size: cover;
             background-repeat: no-repeat;
             background-attachment: fixed;
@@ -307,7 +307,7 @@
 <body>
 <header class="navbar">
     <div class="warning-bar" id="warningBar">
-        ⚠ 从电脑端打开体验更佳
+        ⚠ It's better for open in PC
         <span class="close-btn" onclick="document.getElementById('warningBar').style.display='none'">X</span>
     </div>
 
@@ -316,7 +316,7 @@
 
         <div class="navbar-left">
             <a href="https://qphs.shwfl.edu.cn/" target="_blank">
-                <img src="../../other%20photo/WFL-logo.png" alt="WFL Logo" class="navbar-logo">
+                <img src="../../../other%20photo/WFL-logo.png" alt="WFL Logo" class="navbar-logo">
             </a>
             <div class="school-name-block">
                 <div class="school-cn">上 海 青 浦 区 世 外 高 级 中 学</div>
@@ -324,19 +324,19 @@
             </div>
         </div>
         <nav class="navbar-links">
-            <a href="/page/index">首页</a>
+            <a href="/page/index-en">Main Page</a>
             <div class="dropdown">
-                <a class="dropbtn">全部社团</a>
+                <a class="dropbtn">All clubs</a>
                 <div class="dropdown-content">
-                    <a href="/page/club-type/creativity">创意艺术</a>
-                    <a href="/page/club-type/activity">体育活动</a>
-                    <a href="/page/club-type/service">社会服务</a>
-                    <a href="/page/club-type/study">学术类</a>
+                    <a href="/page/club-type/En/creativity">Creativity</a>
+                    <a href="/page/club-type/En/activity">Activity</a>
+                    <a href="/page/club-type/En/service">Service</a>
+                    <a href="/page/club-type/En/study">Study</a>
                 </div>
             </div>
 
-            <a href="./suggestion/suggestion.html">意见箱</a>
-            <a onclick="window.location.href='../page/index-en'">EN/中文</a>
+            <a href="./suggestion/suggestion.html">Suggestion</a>
+            <a onclick="window.location.href='../page/index'">EN/中文</a>
 
         </nav>
 
@@ -345,7 +345,7 @@
 </header>
 
 <h1>
-    🪧公告栏
+    🪧Notice
 </h1>
 
 <div class="notice-board">
@@ -355,7 +355,7 @@
 </div>
 
 <h1>
-    优秀社团
+    Excellent clubs
 </h1>
 
 <div id="ExClubs" class="tab-content active">
@@ -364,10 +364,10 @@
         <div class="fade-right"></div>
         <div class="scroll-container">
             <div class="card">
-                <img src="加载中" alt="加载中……">
+                <img src="wait" alt="wait……">
                 <div class="card-content">
-                    <h2>加载中……</h2>
-                    <p>加载中……</p>
+                    <h2>wait……</h2>
+                    <p>wait……</p>
                     <a class="button" target="_blank">无法点击</a>
                 </div>
             </div>
@@ -392,14 +392,15 @@
                 console.log(clubs.greatClub);
 
                 if(clubs.greatClub){
+                    const EnUrl = "../../../page/club-watch/En/" + clubs.clubNameEn;
                     const card = document.createElement('div');
                     card.className = 'card';
                     card.innerHTML = `
-                        <img src="${clubs.clubItem}" alt="${clubs.clubName}">
+                        <img src="${clubs.clubItem}" alt="${clubs.clubNameEn}">
                         <div class="card-content">
-                          <h2>${clubs.clubName}</h2>
-                          <p>${clubs.clubDescription}</p>
-                          <a class="button" href="../../${clubs.clubURL}" target="_blank">查看详情</a>
+                          <h2>${clubs.clubNameEn}</h2>
+                          <p>${clubs.clubSortDescriptionEn}</p>
+                          <a class="button" href="${EnUrl}" target="_blank">more info</a>
                         </div>
                       `;
                     console.log(card);
@@ -413,14 +414,15 @@
                 console.log(clubs.greatClub);
 
                 if(clubs.greatClub){
+                    const EnUrl = "../../../page/club-watch/En/" + clubs.clubNameEn;
                     const card = document.createElement('div');
                     card.className = 'card';
                     card.innerHTML = `
-                        <img src="${clubs.clubItem}" alt="${clubs.clubName}">
+                        <img src="${clubs.clubItem}" alt="${clubs.clubNameEn}">
                         <div class="card-content">
-                          <h2>${clubs.clubName}</h2>
-                          <p>${clubs.clubDescription}</p>
-                          <a class="button" href="../../${clubs.clubURL}" target="_blank">查看详情</a>
+                          <h2>${clubs.clubNameEn}</h2>
+                          <p>${clubs.clubDescriptionEn}</p>
+                          <a class="button" href="${EnUrl}" target="_blank">more info</a>
                         </div>
                       `;
                     container.appendChild(card);

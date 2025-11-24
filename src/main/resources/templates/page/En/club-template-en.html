@@ -2,8 +2,8 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title it="club-title">社团介绍</title>
-    <link rel="stylesheet" href="../../css/all%20style.css">
+    <title id="club-name">Description</title>
+    <link rel="stylesheet" href="../../../css/all%20style.css">
     <style>
         *{
             margin: 0;
@@ -172,52 +172,43 @@
         }
     </style>
 </head>
-
-
-
 <body>
 
 <header class="navbar">
     <div class="navbar-top">
 
         <div class="navbar-left">
-            <img src="../../other%20photo/WFL-logo.png" alt="WFL Logo" class="navbar-logo">
+            <img src="../../../other%20photo/WFL-logo.png" alt="WFL Logo" class="navbar-logo">
             <div class="school-name-block">
                 <div class="school-cn">上 海 青 浦 区 世 外 高 级 中 学</div>
                 <div class="school-en">SHANGHAI QINGPU WORLD FOREIGN LANGUAGE HIGH SCHOOL</div>
             </div>
         </div>
         <nav class="navbar-links">
-            <a href="/page/index">首页</a>
+            <a href="/page/index-en">Main Page</a>
             <div class="dropdown">
-                <a class="dropbtn">全部社团</a>
+                <a class="dropbtn">All clubs</a>
                 <div class="dropdown-content">
-                    <a href="/page/club-type/creativity">创意艺术</a>
-                    <a href="/page/club-type/activity">体育活动</a>
-                    <a href="/page/club-type/service">社会服务</a>
-                    <a href="/page/club-type/study">学术类</a>
+                    <a href="/page/club-type/En/creativity">Creativity</a>
+                    <a href="/page/club-type/En/activity">Activity</a>
+                    <a href="/page/club-type/En/service">Service</a>
+                    <a href="/page/club-type/En/study">Study</a>
                 </div>
             </div>
-            <a href="../../suggestion/suggestion.html">意见箱</a>
-            <a onclick="window.location.href='En/' + clubName">EN/中文</a>
+            <a href="../../suggestion/suggestion_en.html">Suggestion box</a>
+            <a onclick="window.location.href='../' + clubName">EN/中文</a>
         </nav>
 
     </div>
 
 </header>
 
-<!--连接后端内容-->
 <script th:inline="javascript">
     const clubName =[[${clubName}]];
-
     console.log("DEBUG 当前社团名:", clubName);
 
     const apiUrl = `/api/club/name-en/${encodeURIComponent(clubName)}`;
     console.log("DEBUG 发起请求到:", apiUrl);
-
-    // 从URL参数获取当前语言设置，默认为中文
-    const urlParams = new URLSearchParams(window.location.search);
-    const currentLang = urlParams.get('lang') || 'zh';
 
     fetch(apiUrl)
         .then(res => res.json())
@@ -232,15 +223,15 @@
             }
 
             // ✅ 这里每个元素都存在
-            document.getElementById("club-title").textContent = club.clubName + "介绍";
-            console.log("DEBUG president:", club.president);
-            document.getElementById("president").textContent = club.president || "暂无";
-            console.log("DEBUG vicePresident:", club.vicePresident);
-            document.getElementById("vicePresident").textContent = club.vicePresident || "暂无";
-            console.log("DEBUG teacher:", club.teacher);
-            document.getElementById("teacher").textContent = club.teacher || "暂无";
-            console.log("DEBUG club-intro:", club.clubDescription);
-            document.getElementById("club-intro").textContent = club.clubDescription || "暂无介绍";
+            document.getElementById("club-title").textContent = club.clubNameEn + " Description";
+            console.log("DEBUG president:", club.presidentEn);
+            document.getElementById("president").textContent = club.presidentEn ;
+            console.log("DEBUG vicePresident:", club.vicePresidentEn);
+            document.getElementById("vicePresident").textContent = club.vicePresidentEn ;
+            console.log("DEBUG teacher:", club.teacherEn);
+            document.getElementById("teacher").textContent = club.teacherEn ;
+            console.log("DEBUG club-intro:", club.clubDescriptionEn);
+            document.getElementById("club-intro").textContent = club.clubDescriptionEn ;
             document.getElementById("club-intro").style.display = 'block';
 
 
@@ -259,50 +250,46 @@
 
         })
         .catch(err => {
-            console.error("加载社团信息失败：", err);
+            console.error("No info：", err);
             // ✅ 即使失败也不会再出错
             const titleEl = document.getElementById("club-title");
-            if (titleEl) titleEl.textContent = "加载失败，请稍后重试";
+            if (titleEl) titleEl.textContent = "No info";
         });
 
 
 
 </script>
 
-<!-- 主体内容 -->
 <div class="container">
-    <h1><span id="club-title">未知社团</span></h1>
+    <h1><span id="club-title">Are you looking for?</span></h1>
     <div class="top-info">
         <div class="leaders">
-            <p><strong>社长：</strong ><span id="president">加载中</span></p>
-            <p><strong>副社长：</strong><span id="vicePresident">加载中</span></p>
-            <p><strong>指导老师：</strong><span id="teacher">加载中</span></p>
+            <p><strong>President: </strong ><span id="president">Wait...</span></p>
+            <p><strong>Vice President: </strong><span id="vicePresident">Wait...</span></p>
+            <p><strong>Teacher: </strong><span id="teacher">Wait</span></p>
         </div>
         <img id="club-logo" class="club-logo">
     </div>
 
     <div class="intro">
-        <h2>社团简介</h2>
-        <p id="club-intro">加载中...</p>
+        <h2> Description</h2>
+        <p id="club-intro">Wait...</p>
     </div>
 
-    <h1>社团视频展示</h1>
+    <h1>Video</h1>
 
     <div class="video-container">
         <video id="club-video" width="100%" controls>
             <source type="video/mp4">
-            您的浏览器不支持 video 标签。
+            Your browser does not support the video tag.
         </video>
 
         <!-- 点赞叠加层 -->
         <div class="like-overlay">
-            <button id="like-btn">点赞</button>
-            <p>点赞：<span id="like-count">加载中...</span></p>
+            <button id="like-btn">Like</button>
+            <p>Like: <span id="like-count">Wait...</span></p>
         </div>
     </div>
-</div>
-
-<a href="https://beian.miit.gov.cn" style="position: absolute; width: 100%; text-align: center; color: #888;">沪ICP备2025137067号</a>
 
 <!-- 点赞功能 -->
 <script th:inline="javascript">
@@ -343,6 +330,7 @@
             .catch(err => console.error("点赞失败：", err));
     });
 </script>
-
+</div>
+<a href="https://beian.miit.gov.cn" style="position: absolute; width: 100%; text-align: center; color: #888;">沪ICP备2025137067号</a>
 </body>
 </html>

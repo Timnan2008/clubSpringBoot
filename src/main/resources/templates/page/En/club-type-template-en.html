@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title id="title">加载中...</title>
+    <title id="title">Waiting for the page to load...</title>
     <style>
         body {
             margin: 0;
             font-family: sans-serif;
             background-color: #f7f7f7;
-            background-image: url('../../other photo/leaves.png');
+            background-image: url('../../../other photo/leaves.png');
             background-size: cover;
             background-repeat: no-repeat;
             background-attachment: fixed;
@@ -208,7 +208,7 @@
     <div class="navbar-top">
         <div class="navbar-left">
             <a href="https://qphs.shwfl.edu.cn/" target="_blank">
-                <img src="../../other photo/WFL-logo.png" alt="WFL Logo" class="navbar-logo">
+                <img src="../../../other photo/WFL-logo.png" alt="WFL Logo" class="navbar-logo">
             </a>
             <div class="school-name-block">
                 <div class="school-cn">上 海 青 浦 区 世 外 高 级 中 学</div>
@@ -216,18 +216,18 @@
             </div>
         </div>
         <nav class="navbar-links">
-            <a href="/page/index">首页</a>
+            <a href="/page/index-en">Main Page</a>
             <div class="dropdown">
-                <a class="dropbtn">全部社团</a>
+                <a class="dropbtn">All clubs</a>
                 <div class="dropdown-content">
-                    <a href="/page/club-type/creativity">创意艺术</a>
-                    <a href="/page/club-type/activity">体育活动</a>
-                    <a href="/page/club-type/service">社会服务</a>
-                    <a href="/page/club-type/study">学术类</a>
+                    <a href="/page/club-type/En/creativity">Creativity</a>
+                    <a href="/page/club-type/En/activity">Activity</a>
+                    <a href="/page/club-type/En/service">Service</a>
+                    <a href="/page/club-type/En/study">Study</a>
                 </div>
             </div>
-            <a href="../suggestion/suggestion.html">意见箱</a>
-            <a onclick="window.location.href = 'En/' + typeForUse">EN/中文</a>
+            <a href="../suggestion/suggestion.html">Suggestion</a>
+            <a onclick="window.location.href = '../' + typeForUse">EN/中文</a>
         </nav>
     </div>
 
@@ -250,40 +250,39 @@
     const type =  /*[[${type}]]*/ 'default';
 
     var typeForUse = type;
-
     console.log(type);
 
 
 
     if(type === "activity"){
-        document.getElementById("title").textContent = "体育活动";
+        document.getElementById("title").textContent = "Activity";
         document.getElementById("Top").innerHTML = `
-            <a href="/page/club-type/creativity" class="tab-button" data-i18n="main:C-type">创意艺术</a>
-            <a class="tab-button active" data-i18n="main:A-type">体育活动</a>
-            <a href="/page/club-type/service" class="tab-button" data-i18n="main:S-type">社会服务</a>
-            <a href="/page/club-type/study" class="tab-button" data-i18n="main:St-type">学术类</a>
+            <a href="/page/club-type/En/creativity" class="tab-button" data-i18n="main:C-type">Creativity</a>
+            <a class="tab-button active" data-i18n="main:A-type">Activity</a>
+            <a href="/page/club-type/En/service" class="tab-button" data-i18n="main:S-type">Service</a>
+            <a href="/page/club-type/En/study" class="tab-button" data-i18n="main:St-type">Study</a>
         `
     }else if(type === "service"){
-        document.getElementById("title").textContent = "社会服务";
+        document.getElementById("title").textContent = "Service";
         document.getElementById("Top").innerHTML = `
-            <a href="/page/club-type/creativity" class="tab-button" data-i18n="main:C-type">创意艺术</a>
-            <a href="/page/club-type/activity" class="tab-button" data-i18n="main:A-type">体育活动</a>
-            <a class="tab-button active" data-i18n="main:S-type">社会服务</a>
-            <a href="/page/club-type/study" class="tab-button" data-i18n="main:St-type">学术类</a>`
+            <a href="/page/club-type/En/creativity" class="tab-button" data-i18n="main:C-type">Creativity</a>
+            <a href="/page/club-type/En/activity" class="tab-button" data-i18n="main:A-type">Activity</a>
+            <a class="tab-button active" data-i18n="main:S-type">Service</a>
+            <a href="/page/club-type/En/study" class="tab-button" data-i18n="main:St-type">Study</a>`
     }else if(type === "study"){
-        document.getElementById("title").textContent = "学术类";
+        document.getElementById("title").textContent = "Study";
         document.getElementById("Top").innerHTML = `
-            <a href="/page/club-type/creativity" class="tab-button" data-i18n="main:C-type">创意艺术</a>
-            <a href="/page/club-type/activity" class="tab-button" data-i18n="main:A-type">体育活动</a>
-            <a href="/page/club-type/service" class="tab-button" data-i18n="main:S-type">社会服务</a>
-            <a class="tab-button active" data-i18n="main:St-type">学术类</a>`
+            <a href="/page/club-type/En/creativity" class="tab-button" data-i18n="main:C-type">Creativity</a>
+            <a href="/page/club-type/En/activity" class="tab-button" data-i18n="main:A-type">Study</a>
+            <a href="/page/club-type/En/service" class="tab-button" data-i18n="main:S-type">Service</a>
+            <a class="tab-button active" data-i18n="main:St-type">Study</a>`
     }else{
-        document.getElementById("title").textContent = "创意艺术";
+        document.getElementById("title").textContent = "Creativity";
         document.getElementById("Top").innerHTML = `
-            <a class="tab-button active" data-i18n="main:C-type">创意艺术</a>
-            <a href="/page/club-type/activity" class="tab-button" data-i18n="main:A-type">体育活动</a>
-            <a href="/page/club-type/service" class="tab-button" data-i18n="main:S-type">社会服务</a>
-            <a href="/page/club-type/study" class="tab-button" data-i18n="main:St-type">学术类</a>`
+            <a class="tab-button active" data-i18n="main:C-type">Creativity</a>
+            <a href="/page/club-type/En/activity" class="tab-button" data-i18n="main:A-type">Study</a>
+            <a href="/page/club-type/En/service" class="tab-button" data-i18n="main:S-type">Service</a>
+            <a href="/page/club-type/En/study" class="tab-button" data-i18n="main:St-type">Study</a>`
     }
 
     //获取数据
@@ -304,15 +303,18 @@
                             method: 'PUT',
                         })
                     }
+
+                    const EnUrl = "../../../page/club-watch/En/" + club.clubNameEn;
+                    console.log(EnUrl);
                     console.log(club.clubClass);
                     const card = document.createElement('div');
                     card.className = 'card';
                     card.innerHTML = `
                         <img src="${club.clubItem}" alt="${club.clubName}">
                         <div class="card-content">
-                          <h2>${club.clubName}</h2>
-                          <p>${club.clubSortDescription}</p>
-                          <a class="button" href="../../${club.clubURL}" target="_blank">查看详情</a>
+                          <h2>${club.clubNameEn}</h2>
+                          <p>${club.clubSortDescriptionEn}</p>
+                          <a class="button" href="${EnUrl}"  target="_blank">More Info</a>
                         </div>
                       `;
                     console.log(card);
@@ -322,7 +324,7 @@
                 }
             })
             .catch(error => {
-                console.error("加载社团数据失败:", error);
+                console.error("fail:", error);
             });
 
         })
