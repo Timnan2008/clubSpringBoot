@@ -237,6 +237,12 @@ public class Club {
         dto.setClubClass(this.clubClass);
         dto.setGreatClub(this.isGreatClub);
         dto.setClubURL(this.clubURL);
+        dto.setSortDescription(this.sortDescription);
+        dto.setSortDescriptionEn(this.sortDescriptionEn);
+        dto.setClubDescriptionEn(this.clubDescriptionEn);
+        dto.setPresidentEn(this.presidentEn);
+        dto.setVicePresidentEn(this.vicePresidentEn);
+        dto.setTeacherEn(this.teacherEn);
         return dto;
     }
 
