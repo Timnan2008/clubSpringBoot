@@ -2,6 +2,7 @@ package com.qpwflshclub.formal_club.pojo.dto;
 
 import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 public class ClubDTO {
 
@@ -39,15 +40,19 @@ public class ClubDTO {
     private String clubClass;
 
     @NotNull(message = "简短简介不能为空")
+    @Size(max = 20 , message = "简介不能超过20个字")
     private String sortDescription;
 
     @NotNull(message = "社团描述不能为空")
+    @Size(max = 1000, message = "描述不能超过1000个字")
     private String clubDescription;
 
     @NotNull(message = "社团英文描述不能为空")
+    @Size(max = 1000 , message = "英文简介不能超过1000个字")
     private String clubDescriptionEn;
 
     @NotNull(message = "简介英文不能为空")
+    @Size(max = 20 , message = "英文简介不能超过20个字")
     private String sortDescriptionEn;
 
     public String getPresidentEn() {
