@@ -3,6 +3,7 @@ package com.qpwflshclub.formal_club.pojo;
 
 import com.qpwflshclub.formal_club.pojo.dto.ClubDTO;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 
 @Entity
 @Table(name = "tb_user")
@@ -44,9 +45,11 @@ public class Club {
     private String teacherEn;
 
     @Column(name = "club_description")
+    @Size(max = 1000)
     private String clubDescription;
 
     @Column(name = "club_description_en")
+    @Size(max = 1000)
     private String clubDescriptionEn;
 
     @Column(name = "video_like")
@@ -237,6 +240,12 @@ public class Club {
         dto.setClubClass(this.clubClass);
         dto.setGreatClub(this.isGreatClub);
         dto.setClubURL(this.clubURL);
+        dto.setSortDescription(this.sortDescription);
+        dto.setSortDescriptionEn(this.sortDescriptionEn);
+        dto.setClubDescriptionEn(this.clubDescriptionEn);
+        dto.setPresidentEn(this.presidentEn);
+        dto.setVicePresidentEn(this.vicePresidentEn);
+        dto.setTeacherEn(this.teacherEn);
         return dto;
     }
 
