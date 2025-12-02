@@ -3,7 +3,6 @@ package com.qpwflshclub.formal_club.pojo;
 
 import com.qpwflshclub.formal_club.pojo.dto.ClubDTO;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Size;
 
 @Entity
 @Table(name = "tb_user")
@@ -45,11 +44,9 @@ public class Club {
     private String teacherEn;
 
     @Column(name = "club_description")
-    @Size(max = 1000)
     private String clubDescription;
 
     @Column(name = "club_description_en")
-    @Size(max = 1000)
     private String clubDescriptionEn;
 
     @Column(name = "video_like")
