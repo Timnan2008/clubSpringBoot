@@ -62,6 +62,19 @@ public class ClubController {
         return ResponseMessage.success(club);
     }
 
+    @PutMapping("/dislike/{clubName}")
+    public ResponseMessage<Club> dislike(@PathVariable String clubName){
+        Club club = clubService.findByName(clubName);
+        if(club.isEmpty()){
+            return ResponseMessage.error(club);
+        }
+        club.setVideoLike(club.getVideoLike() - 1);
+        System.out.println("点赞数：" + club.getVideoLike());
+
+        clubService.update(club.toDTO());
+        return ResponseMessage.success(club);
+    }
+
     //删除
     @DeleteMapping("/{clubId}")
     public ResponseMessage<Club> delete(@PathVariable Integer clubId){

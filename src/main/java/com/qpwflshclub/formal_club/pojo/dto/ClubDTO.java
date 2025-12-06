@@ -52,7 +52,7 @@ public class ClubDTO {
     private String clubDescriptionEn;
 
     @NotNull(message = "简介英文不能为空")
-    @Size(max = 20 , message = "英文简介不能超过20个字")
+    @Size(max = 50 , message = "英文简介不能超过50个字")
     private String sortDescriptionEn;
 
     public String getPresidentEn() {
