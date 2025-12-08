@@ -34,7 +34,6 @@
       .row {
         display: flex;
         gap: 20px;
-        margin-bottom: 20px;
       }
 
       .row input {
@@ -45,6 +44,7 @@
       select {
         width: 100%;
         padding: 12px;
+        margin-bottom: 20px;
         border-radius: 6px;
         border: 1px solid #ccc;
         font-size: 15px;
@@ -78,16 +78,30 @@
     <div class="login-container">
       <h1>登录 / 注册</h1>
       <div class="row">
-        <input type="text" placeholder="姓名" />
-        <input type="email" placeholder="邮箱" />
+        <input type="text" placeholder="中文名" />
+        <input type="text" placeholder="英文名" />
       </div>
+      <input type="email" id="email" placeholder="邮箱" />
+      <input type="password" id="password" placeholder="密码" />
       <select>
         <option disabled selected>请选择身份</option>
         <option>老师</option>
         <option>社长</option>
         <option>访客</option>
       </select>
-      <button class="submit-btn">提交</button>
+      <button class="submit-btn" onclick="validateForm()">提交</button>
     </div>
+    <script>
+      function validateForm() {
+        const email = document.getElementById("email").value;
+
+        if (!email.includes("@") || !email.endsWith(".com")) {
+          alert("请输入有效的邮箱地址（必须包含 @ 和以 .com 结尾）");
+          return;
+        }
+
+        alert("提交成功！");
+      }
+    </script>
   </body>
 </html>
