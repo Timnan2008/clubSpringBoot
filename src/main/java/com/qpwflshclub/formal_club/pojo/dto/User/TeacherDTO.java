@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
 
-public class TeacherDTO {
+public class TeacherDTO implements UserBaseDTO{
 
     private Long id;
 
@@ -15,42 +15,10 @@ public class TeacherDTO {
         this.id = id;
     }
 
-    public Long getId() {
-        return id;
+    @Override
+    public long getId() {
+        return this.id;
     }
-
-    @NotNull(message = "教师名称不能为空")
-    private String teacherName;
-
-    @NotNull(message = "教师英文名称不能为空")
-    private String teacherNameEn;
-
-    public String getTeacherNameEn() {
-        return teacherNameEn;
-    }
-
-    public void setTeacherNameEn(String teacherNameEn) {
-        this.teacherNameEn = teacherNameEn;
-    }
-
-    public List<Club> getDirectedClubs() {
-        return directedClubs;
-    }
-
-    public void setDirectedClubs(List<Club> directedClubs) {
-        this.directedClubs = directedClubs;
-    }
-
-    @NotNull(message = "教师密码不能为空")
-    private String teacherPassword;
-    @NotNull(message = "教师邮箱不能为空")
-    private String teacherEmail;
-
-
-    public final static Integer userRight = 2;
-
-    @NotNull(message = "指导的社团不能为空")
-    public List<Club> directedClubs;
 
     public String getTeacherName() {
         return teacherName;
@@ -58,6 +26,14 @@ public class TeacherDTO {
 
     public void setTeacherName(String teacherName) {
         this.teacherName = teacherName;
+    }
+
+    public String getTeacherNameEn() {
+        return teacherNameEn;
+    }
+
+    public void setTeacherNameEn(String teacherNameEn) {
+        this.teacherNameEn = teacherNameEn;
     }
 
     public String getTeacherPassword() {
@@ -75,4 +51,85 @@ public class TeacherDTO {
     public void setTeacherEmail(String teacherEmail) {
         this.teacherEmail = teacherEmail;
     }
+
+    public List<Club> getDirectedClubs() {
+        return directedClubs;
+    }
+
+    public void setDirectedClubs(List<Club> directedClubs) {
+        this.directedClubs = directedClubs;
+    }
+
+    @Override
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    @NotNull(message = "教师名称不能为空")
+    private String teacherName;
+
+    @NotNull(message = "教师英文名称不能为空")
+    private String teacherNameEn;
+
+    @NotNull(message = "教师密码不能为空")
+    private String teacherPassword;
+    @NotNull(message = "教师邮箱不能为空")
+    private String teacherEmail;
+
+    public final static Integer userRight = 2;
+
+    @NotNull(message = "指导的社团不能为空")
+    public List<Club> directedClubs;
+
+    @Override
+    public String getUsername() {
+        return teacherName;
+    }
+
+    @Override
+    public void setUsername(String username) {
+        this.teacherName = username;
+    }
+
+
+    @Override
+    public String getUsernameEn() {
+        return teacherNameEn;
+    }
+
+    @Override
+    public void setUsernameEn(String usernameEn) {
+        this.teacherNameEn = usernameEn;
+    }
+
+    @Override
+    public String getPassword() {
+        return teacherPassword;
+    }
+
+    @Override
+    public void setPassword(String password) {
+        this.teacherPassword = password;
+    }
+
+    @Override
+    public String getEmail() {
+        return teacherEmail;
+    }
+
+    @Override
+    public void setEmail(String email) {
+        this.teacherEmail = email;
+    }
+
+    @Override
+    public List<Club> getClubs() {
+        return  directedClubs;
+    }
+
+    @Override
+    public void setClubs(List<Club> clubs) {
+        this.directedClubs = clubs;
+    }
+
 }

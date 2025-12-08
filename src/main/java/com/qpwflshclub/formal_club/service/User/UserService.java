@@ -31,28 +31,28 @@ public class UserService implements IUserService{
     @Override
     public Teacher addTeacher(TeacherDTO teacherDTO) {
         Teacher teacher = new Teacher();
-        BeanUtils.copyProperties(teacherDTO, teacher);
+        BeanUtils.copyProperties(teacherDTO, teacher, "id");
         return teacherRepository.save(teacher);
     }
 
     @Override
     public User addUser(UserDTO userDTO) {
         User user = new User();
-        BeanUtils.copyProperties(userDTO, user);
+        BeanUtils.copyProperties(userDTO, user, "id");
         return userRepository.save(user);
     }
 
     @Override
     public ClubPresident addClubPresident(ClubPresidentDTO cpDTO) {
         ClubPresident cp = new ClubPresident();
-        BeanUtils.copyProperties(cpDTO, cp);
+        BeanUtils.copyProperties(cpDTO, cp, "id");
         return clubPresidentRepository.save(cp);
     }
 
     @Override
     public Admin addAdmin(AdminDTO adminDTO) {
         Admin admin = new Admin();
-        BeanUtils.copyProperties(adminDTO, admin);
+        BeanUtils.copyProperties(adminDTO, admin, "id");
         return adminRepository.save(admin);
     }
 

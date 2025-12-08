@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
 
-public class UserDTO {
+public class UserDTO implements UserBaseDTO{
 
     private Long id;
 
@@ -20,56 +20,63 @@ public class UserDTO {
     @NotNull(message = "邮箱不能为空")
     private String email;
 
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getUsernameEn() {
-        return usernameEn;
-    }
-
-    public void setUsernameEn(String usernameEn) {
-        this.usernameEn = usernameEn;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public List<Club> getClubs() {
-        return clubs;
-    }
-
-    public void setClubs(List<Club> clubs) {
-        this.clubs = clubs;
-    }
-
     public static final Integer userRight = 0;
 
     @NotNull(message = "用户社团不能为空")
     private List<Club> clubs;
 
+    @Override
     public void setId(Long id) {
         this.id = id;
     }
 
-    public Long getId() {
+    @Override
+    public long getId() {
         return id;
+    }
+    @Override
+    public void setId(long id) {
+        this.id = id;
+    }
+    @Override
+    public String getUsername() {
+        return username;
+    }
+
+    @Override
+    public void setUsername(String username) {
+        this.username = username;
+    }
+    @Override
+    public String getUsernameEn() {
+        return usernameEn;
+    }
+    @Override
+    public void setUsernameEn(String usernameEn) {
+        this.usernameEn = usernameEn;
+    }
+    @Override
+    public String getPassword() {
+        return password;
+    }
+    @Override
+    public void setPassword(String password) {
+        this.password = password;
+    }
+    @Override
+    public String getEmail() {
+        return email;
+    }
+    @Override
+    public void setEmail(String email) {
+        this.email = email;
+    }
+    @Override
+    public List<Club> getClubs() {
+        return clubs;
+    }
+    @Override
+    public void setClubs(List<Club> clubs) {
+        this.clubs = clubs;
     }
 }

@@ -96,4 +96,19 @@ public class Teacher implements UserBase{
         this.clubs = clubs;
     }
 
+    public String getTeacherName() {
+        return teacherName;
+    }
+
+    public void setTeacherName(String teacherName) {
+        this.teacherName = teacherName;
+    }
+
+    public String getTeacherNameEn() {
+        return teacherNameEn;
+    }
+
+    public void setTeacherNameEn(String teacherNameEn) {
+        this.teacherNameEn = teacherNameEn;
+    }
 }

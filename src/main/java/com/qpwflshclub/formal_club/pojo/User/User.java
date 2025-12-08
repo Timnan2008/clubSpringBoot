@@ -86,4 +86,11 @@ public class User implements UserBase{
         this.clubs = clubs;
     }
 
+    public static Integer getUserRight() {
+        return userRight;
+    }
+
+    public static void setUserRight(Integer userRight) {
+        User.userRight = userRight;
+    }
 }

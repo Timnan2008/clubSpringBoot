@@ -59,6 +59,46 @@ public class ClubPresident implements UserBase{
         return isVicePresident;
     }
 
+    public String getClubPresidentName() {
+        return clubPresidentName;
+    }
+
+    public void setClubPresidentName(String clubPresidentName) {
+        this.clubPresidentName = clubPresidentName;
+    }
+
+    public String getClubPresidentNameEn() {
+        return clubPresidentNameEn;
+    }
+
+    public void setClubPresidentNameEn(String clubPresidentNameEn) {
+        this.clubPresidentNameEn = clubPresidentNameEn;
+    }
+
+    public String getClubPresidentPassword() {
+        return clubPresidentPassword;
+    }
+
+    public void setClubPresidentPassword(String clubPresidentPassword) {
+        this.clubPresidentPassword = clubPresidentPassword;
+    }
+
+    public String getClubPresidentEmail() {
+        return clubPresidentEmail;
+    }
+
+    public void setClubPresidentEmail(String clubPresidentEmail) {
+        this.clubPresidentEmail = clubPresidentEmail;
+    }
+
+    public List<Club> getClubPresidentClubs() {
+        return clubPresidentClubs;
+    }
+
+    public void setClubPresidentClubs(List<Club> clubPresidentClubs) {
+        this.clubPresidentClubs = clubPresidentClubs;
+    }
+
     public void setVicePresident(boolean vicePresident) {
         isVicePresident = vicePresident;
     }
