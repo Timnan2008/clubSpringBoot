@@ -170,6 +170,109 @@
         #likeBtn:hover {
             transform: scale(1.2);
         }
+        .button-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .button {
+            cursor: pointer;
+            width: 10em;
+            height: 3em;
+            display: flex;
+            align-items: center;
+            background-color: white;
+            border: none;
+            box-shadow: 0px 5px 0px rgba(45, 45, 45, 0.2);
+            overflow: hidden;
+            border-radius: 0.5em;
+            transition: all 0.2s ease;
+        }
+
+        #fontlikebutton {
+            font-family: "Trebuchet MS", sans-serif;
+            font-weight: 600;
+            font-size: 1.5em;
+            color: #00d5ff;
+            margin-left: 0.2em;
+        }
+
+        .button:hover {
+            background-color: #00d5ff;
+        }
+
+        .button:hover svg {
+            filter: brightness(0) invert(1);
+            transform: scale(1.5) translateX(100%);
+        }
+
+        .button:hover #fontlikebutton {
+            transform: translateX(200%);
+        }
+
+        .button:active {
+            transform: scale(0.95) translateY(10%);
+            box-shadow: 0px 2px 0px 0px rgb(0, 213, 255, 0.5);
+        }
+
+        .button:active svg {
+            margin-bottom: 0.5em;
+            transform: scale(1.5) translateX(85%) rotate(-30deg);
+        }
+
+        .button:active #fontlikebutton {
+            transform: translateX(200%);
+        }
+
+        #likeimg {
+            transition: all 0.2s ease;
+        }
+
+        #rightpart {
+            width: 70%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #leftpart {
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            font-family: "Trebuchet MS", sans-serif;
+            font-weight: 600;
+            font-size: 1.5em;
+            background-color: #00d5ff;
+            width: 30%;
+            height: 100%;
+            transition: all 0.2s ease;
+        }
+
+        .button:hover #leftpart {
+            color: #00d5ff;
+            background: white;
+        }
+
+        #currentnumber {
+            transform: translateY(50%);
+            transition: all 0.2s ease;
+        }
+
+        #movenumber {
+            transform: translateY(-200%);
+            transition: all 0.2s ease;
+        }
+
+        #checknumber:checked ~ .button #currentnumber {
+            transform: translateY(200%);
+        }
+
+        #checknumber:checked ~ .button #movenumber {
+            transform: translateY(-50%);
+        }
     </style>
 </head>
 <body>
@@ -281,55 +384,132 @@
     <div class="video-container">
         <video id="club-video" width="100%" controls>
             <source type="video/mp4">
-            Your browser does not support the video tag.
+            您的浏览器不支持 video 标签。
         </video>
 
-        <!-- 点赞叠加层 -->
-        <div class="like-overlay">
-            <button id="like-btn">Like</button>
-            <p>Like: <span id="like-count">Wait...</span></p>
+        <div class="button-container">
+            <input hidden="" id="checknumber" type="checkbox" />
+            <label for="checknumber" class="button">
+                <div id="leftpart">
+                    <p id="currentnumber">24</p>
+                    <p id="movenumber">25</p>
+                </div>
+
+                <div id="rightpart">
+                    <svg
+                            id="likeimg"
+                            stroke-linejoin="round"
+                            stroke-linecap="round"
+                            stroke-width="3"
+                            stroke="#00d5ff"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            height="24"
+                            width="24"
+                            xmlns="http://www.w3.org/2000/svg"
+                    >
+                        <path
+                                d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"
+                        ></path>
+                    </svg>
+                    <div id="fontlikebutton">Like</div>
+                </div>
+            </label>
         </div>
+
     </div>
 
 <!-- 点赞功能 -->
 <script th:inline="javascript">
-    const clubName2 = [[${clubName}]];
-    console.log("DEBUG 当前社团名2:", clubName2)
+        const clubName2 = [[${clubName}]];
+        console.log("DEBUG 当前社团名2:", clubName2)
 
-    const likeBtn = document.getElementById("like-btn");
-    const likeCountEl = document.getElementById("like-count");
 
-    const url = `/api/club/name-en/${encodeURIComponent(clubName2)}`;
-    console.log("DEBUG 获取点赞数请求地址:", url);
+        const likeToggle = document.getElementById("checknumber");
+        const likeCountEl = document.getElementById("currentnumber");
+        const likeCountElAfter = document.getElementById("movenumber");
 
-    // 页面加载时初始化点赞数
-    fetch(url, { method: "GET"})
-        .then(res => res.json())
-        .then(result => {
-            console.log("debug点赞时：" + result);
-            if (result.data) likeCountEl.textContent = result.data.videoLike || "后端加载失败";
+        likeToggle.addEventListener("change", () =>{
+            if (likeToggle.checked) {
+                console.log("点赞按钮被点击");
+                // 执行点赞逻辑
+                performLike();
+            } else {
+                console.log("取消点赞");
+                // 执行取消点赞逻辑（如果需要）
+                performUnlike();
+            }
         });
 
-    likeBtn.addEventListener("click", () => {
-        console.log("正在点赞");
-        fetch(`/api/club/like/${encodeURIComponent(clubName2)}`, { method: "PUT" })
+        const url = `/api/club/name-en/${encodeURIComponent(clubName2)}`;
+        console.log("DEBUG 获取点赞数请求地址:", url);
+
+        // 页面加载时初始化点赞数
+        fetch(url, { method: "GET"})
             .then(res => res.json())
             .then(result => {
-                if (result.code === 200) {
-                    fetch(`/api/club/name-en/${encodeURIComponent(clubName2)}`)
-                        .then(res => res.json())
-                        .then(result => {
-                            if (result.data) likeCountEl.textContent = result.data.videoLike || 0;
-                            console.log("点赞数" + result.data.videoLike);
-                        });
-                    likeBtn.textContent = "已点赞 ❤️";
-                } else {
-                    alert("点赞失败：" + (result.message || "未知错误"));
+                console.log("debug点赞时：" + result);
+                if (result.data){
+                    likeCountEl.textContent = result.data.videoLike ;
+                    likeCountElAfter.textContent = result.data.videoLike + 1;
                 }
-            })
-            .catch(err => console.error("点赞失败：", err));
-    });
-</script>
+            });
+
+        function performLike(){
+            console.log("正在点赞");
+            fetch(`/api/club/like/${encodeURIComponent(clubName2)}`, { method: "PUT" })
+                .then(res => res.json())
+                .then(result => {
+                    if (result.code === 200) {
+                        fetch(`/api/club/name-en/${encodeURIComponent(clubName2)}`)
+                            .then(res => res.json())
+                            .then(result => {
+
+                                console.log("点赞数" + result.data.videoLike);
+                            });
+                        // 点赞成功后保持选中状态
+                        likeToggle.checked = true;
+                    } else {
+                        alert("点赞失败：" + (result.message || "未知错误"));
+                        // 点赞失败时恢复状态
+                        likeToggle.checked = false;
+                    }
+                })
+                .catch(err => {
+                    console.error("点赞失败：", err);
+                    // 点赞失败时恢复状态
+                    likeToggle.checked = false;
+                });
+        }
+
+        function performUnlike(){
+            console.log("正在取消点赞");
+            fetch(`/api/club/dislike/${encodeURIComponent(clubName2)}`, { method: "PUT" })
+                .then(res => res.json())
+                .then(result => {
+                    if (result.code === 200) {
+                        fetch(`/api/club/name-en/${encodeURIComponent(clubName2)}`)
+                            .then(res => res.json())
+                            .then(result => {
+
+                                console.log("点赞数" + result.data.videoLike);
+                            });
+                        // 取消点赞成功后保持未选中状态
+                        likeToggle.checked = false;
+                    } else {
+                        alert("取消点赞失败：" + (result.message || "未知错误"));
+                        // 失败时恢复状态
+                        likeToggle.checked = true;
+                    }
+                })
+                .catch(err => {
+                    console.error("取消点赞失败：", err);
+                    // 失败时恢复状态
+                    likeToggle.checked = true;
+                });
+        }
+
+    </script>
 </div>
 <a href="https://beian.miit.gov.cn" style="position: absolute; width: 100%; text-align: center; color: #888;">沪ICP备2025137067号</a>
 </body>

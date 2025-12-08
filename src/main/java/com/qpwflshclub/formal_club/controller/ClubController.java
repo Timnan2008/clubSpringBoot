@@ -3,7 +3,7 @@ package com.qpwflshclub.formal_club.controller;
 import com.qpwflshclub.formal_club.pojo.Club;
 import com.qpwflshclub.formal_club.pojo.ResponseMessage;
 import com.qpwflshclub.formal_club.pojo.dto.ClubDTO;
-import com.qpwflshclub.formal_club.service.IClubService;
+import com.qpwflshclub.formal_club.service.Club.IClubService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -47,6 +47,18 @@ public class ClubController {
         return ResponseMessage.success(club);
     }
 
+    @PutMapping("/video-all")
+    public ResponseMessage<List<Club>> updateAll(){
+        List<Club> clubs = clubService.findAll();
+
+        for(Club club : clubs){
+            ClubDTO clubDto = club.toDTO();
+            clubDto.setVideo("http://123.57.189.22/media/video/" + club.getClubClass() + "/" + club.getClubNameEn() + ".mp4");
+            update(clubDto.getClubId(), clubDto);
+        }
+
+        return ResponseMessage.success();
+    }
 
 
     @PutMapping("/like/{clubName}")

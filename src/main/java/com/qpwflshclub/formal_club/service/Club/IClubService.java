@@ -1,4 +1,4 @@
-package com.qpwflshclub.formal_club.service;
+package com.qpwflshclub.formal_club.service.Club;
 
 import com.qpwflshclub.formal_club.pojo.Club;
 import com.qpwflshclub.formal_club.pojo.dto.ClubDTO;
@@ -20,4 +20,6 @@ public interface IClubService {
 
 
     List<Club> findAll();
+
+    void updateVideoAll(List<Club> clubs);
 }

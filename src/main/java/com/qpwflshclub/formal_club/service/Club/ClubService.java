@@ -1,4 +1,4 @@
-package com.qpwflshclub.formal_club.service;
+package com.qpwflshclub.formal_club.service.Club;
 
 
 import com.qpwflshclub.formal_club.pojo.Club;
@@ -57,6 +57,14 @@ public class ClubService implements IClubService {
         List<Club> clubs = new ArrayList<>();
         clubRepository.findAll().forEach(clubs::add);
         return clubs;
+    }
+
+    @Override
+    public void updateVideoAll(List<Club> clubs) {
+
+        clubs.stream().forEach(club -> {
+            club.setVideo("http://123.57.189.22/media/vedio/" + club.getClubClass() + "/" + club.getClubNameEn() + ".mp4");
+        });
     }
 
 
