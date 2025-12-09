@@ -6,71 +6,92 @@
     <title>登录 / 注册</title>
 
     <style>
-      body {
-        margin: 0;
-        padding: 0;
-        font-family: Arial, sans-serif;
-        background-color: #f5f5f7;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-      }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
 
-      .login-container {
-        width: 420px;
-        background-color: white;
-        padding: 30px 40px;
-        border-radius: 12px;
-        box-shadow: 0 0 18px rgba(0, 0, 0, 0.12);
-      }
+        .login-container {
+            width: 420px;
+            background-color: white;
+            padding: 30px 40px;
+            border-radius: 12px;
+            box-shadow: 0 0 18px rgba(0, 0, 0, 0.12);
+            max-height: 90vh;
+            overflow-y: auto; /* 内容过多时出现滚动条 */
+        }
 
-      h1 {
-        text-align: center;
-        margin-bottom: 25px;
-        color: #333;
-      }
+        h1 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #333;
+        }
 
-      .row {
-        display: flex;
-        gap: 20px;
-      }
+        .row {
+            display: flex;
+            gap: 20px;
+        }
 
-      .row input {
-        width: 100%;
-      }
+        input,
+        select {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            font-size: 15px;
+            box-sizing: border-box;
+        }
 
-      input,
-      select {
-        width: 100%;
-        padding: 12px;
-        margin-bottom: 20px;
-        border-radius: 6px;
-        border: 1px solid #ccc;
-        font-size: 15px;
-        box-sizing: border-box;
-      }
+        .submit-btn {
+            width: 100%;
+            margin-top: 25px;
+            padding: 12px;
+            background-color: #4a6fa5;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
 
-      select {
-        cursor: pointer;
-      }
+        .submit-btn:hover {
+            background-color: #355578;
+        }
 
-      .submit-btn {
-        width: 100%;
-        margin-top: 25px;
-        padding: 12px;
-        background-color: #4a6fa5;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        font-size: 16px;
-        cursor: pointer;
-        transition: 0.3s;
-      }
+        /* 动态选项样式 */
+        .select-box {
+            margin-top: 10px;
+            padding: 12px;
+            border: 1px solid #aaa;
+            border-radius: 6px;
+            cursor: pointer;
+            background-color: #fafafa;
+        }
 
-      .submit-btn:hover {
-        background-color: #355578;
-      }
+        .club-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #aaa;
+            padding: 10px;
+            margin-top: 5px;
+            border-radius: 6px;
+            display: none;
+            background-color: #fff;
+        }
+
+        .club-list label {
+            display: block;
+            margin: 5px 0;
+        }
+
     </style>
   </head>
 
@@ -78,19 +99,25 @@
     <div class="login-container">
       <h1>登录 / 注册</h1>
       <div class="row">
-        <input type="text" placeholder="中文名" />
-        <input type="text" placeholder="英文名" />
+        <input id="name" type="text" placeholder="中文名" />
+        <input id="name_en" type="text" placeholder="英文名" />
       </div>
-      <input type="email" id="email" placeholder="邮箱" />
-      <input type="password" id="password" placeholder="密码" />
-      <select>
-        <option disabled selected>请选择身份</option>
-        <option>老师</option>
-        <option>社长</option>
-        <option>访客</option>
-      </select>
+      <input id="email" type="email" placeholder="邮箱" />
+      <input id="password" type="password" placeholder="密码" />
+        <select id="role" onchange="onRoleChange()">
+            <option value="" disabled selected>请选择身份</option>
+            <option value="teacher">老师</option>
+            <option value="club-president">社长</option>
+            <option value="user">访客</option>
+        </select>
+
+        <!-- 下面是隐藏区域 -->
+        <div id="dynamic-area"></div>
+
       <button class="submit-btn" onclick="validateForm()">提交</button>
     </div>
+
+
     <script>
       function validateForm() {
         const email = document.getElementById("email").value;
@@ -102,6 +129,200 @@
 
         alert("提交成功！");
       }
+
+      function getFormData(){
+          const role = document.getElementById("role").value;
+          const name = document.getElementById("name").value;
+          const nameEn = document.getElementById("nameEn").value;
+          const password = document.getElementById("password").value;
+          const email = document.getElementById("email").value;
+
+          let json = {};
+
+          if (role === "president") {
+              json = {
+                  presidentName: name,
+                  presidentNameEn: nameEn,
+                  presidentPassword: password,
+                  presidentEmail: email,
+                  userType: "president"
+              };
+          }
+
+          if (role === "teacher") {
+              json = {
+                  teacherName: name,
+                  teacherNameEn: nameEn,
+                  teacherPassword: password,
+                  teacherEmail: email,
+                  userType: "teacher"
+              };
+          }
+
+          if (role === "visitor") {
+              json = {
+                  visitorName: name,
+                  visitorNameEn: nameEn,
+                  visitorEmail: email,
+                  visitorPassword: password,
+                  userType: "visitor"
+              };
+          }
+
+          return json;
+      }
+      function sendPost() {
+          const json = getFormData();
+          const role = document.getElementById("role").value;
+
+          fetch("/api/user/add/" + role, {
+              method: "POST",
+              headers: {
+                  "Content-Type": "application/json"
+              },
+              body: JSON.stringify(json)
+          })
+              .then(res => res.json())
+              .then(data => {
+                  console.log("返回：", data);
+                  alert("POST 成功");
+              })
+              .catch(err => console.error(err));
+      }
     </script>
+
+  <script type="module">
+
+      // 点击选项显示社团列表（可单选 or 多选）
+      function createSelectBox(title, fieldId, multiple = true) {
+          return `
+    <div class="select-box" onclick="toggleClubList('${fieldId}')">${title}</div>
+    <div id="${fieldId}" class="club-list">
+        ${clubs.map(c => `
+            <label>
+                <input type="${multiple ? "checkbox" : "radio"}"
+                       name="${fieldId}${multiple ? "[]" : ""}"
+                       value="${c.id}">
+                ${c.name}
+            </label>
+        `).join("")}
+    </div>
+    `;
+      }
+
+      function toggleClubList(id) {
+          const box = document.getElementById(id);
+          box.style.display = box.style.display === "block" ? "none" : "block";
+      }
+
+
+      // 提交按钮逻辑（根据需求改）
+      function validateForm() {
+          alert("提交成功（示例）");
+      }
+
+
+
+
+      function onRoleChange() {
+          const role = document.getElementById("role").value;
+          const area = document.getElementById("dynamic-area");
+          area.innerHTML = ""; // 清空
+
+          const dynamicArea = document.getElementById("dynamic-area");
+          const roleSelect = document.getElementById("role");
+
+          roleSelect.addEventListener("change", () => {
+              dynamicArea.innerHTML = ""; // 清空之前内容
+              const role = roleSelect.value;
+
+              if(role === "user"){
+                  dynamicArea.appendChild(createClubButton("参与的社团（可多选）", true));
+              }
+
+              if(role === "club-president"){
+                  dynamicArea.appendChild(createClubButton("管理的社团（必须 1 个）", false));
+                  dynamicArea.appendChild(createClubButton("参与的社团（可多选）", true));
+
+                  // 副社长 Boolean
+                  const viceDiv = document.createElement("div");
+                  viceDiv.innerHTML = `<label>是否为副社长：<input type="checkbox"></label>`;
+                  dynamicArea.appendChild(viceDiv);
+              }
+
+              if(role === "teacher"){
+                  dynamicArea.appendChild(createClubButton("负责的社团（可多选）", true));
+              }
+          });
+      }
+      window.onRoleChange = onRoleChange;
+
+      /** 创建带 club 列表的卡片 */
+      function createClubButton(title, multiple) {
+          const container = document.createElement("div");
+
+          const btn = document.createElement("button");
+          btn.textContent = title;
+          btn.style.marginBottom = "5px";
+          btn.addEventListener("click", ()=>{
+              listDiv.style.display = listDiv.style.display === "block" ? "none" : "block";
+          });
+          container.appendChild(btn);
+
+          const listDiv = document.createElement("div");
+          listDiv.style.display = "none";
+          listDiv.style.border = "1px solid #ccc";
+          listDiv.style.padding = "5px";
+          listDiv.style.marginBottom = "10px";
+
+          fetch(`/api/club/all`)
+              .then((j) => j.json())
+              .then((result) => {
+                  const clubs = result.data;
+                  console.log(clubs)
+                  clubs.forEach(c => {
+                      const item = document.createElement("label");
+                      item.style.display = "flex";
+                      item.style.alignItems = "center";
+                      item.style.marginBottom = "3px";
+
+                      const input = document.createElement("input");
+                      input.type = multiple ? "checkbox" : "radio";
+                      input.name = title;
+                      input.value = c.id;
+                      input.style.marginRight = "5px";
+
+                      const img = document.createElement("img");
+                      img.src = c.clubItem;
+                      img.style.width = "30px";
+                      img.style.height = "30px";
+                      img.style.borderRadius = "4px";
+                      img.style.marginRight = "5px";
+
+                      const textDiv = document.createElement("div");
+                      const cn = document.createElement("div");
+                      cn.textContent = c.clubName;
+                      cn.style.fontWeight = "bold";
+                      const en = document.createElement("div");
+                      en.textContent = c.clubNameEn;
+                      en.style.fontSize = "12px";
+                      en.style.color = "#777";
+                      textDiv.appendChild(cn);
+                      textDiv.appendChild(en);
+
+                      item.appendChild(input);
+                      item.appendChild(img);
+                      item.appendChild(textDiv);
+                      listDiv.appendChild(item);
+                  });
+              })
+
+          container.appendChild(listDiv);
+          return container;
+
+      }
+
+
+  </script>
   </body>
 </html>
