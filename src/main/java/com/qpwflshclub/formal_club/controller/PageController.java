@@ -77,5 +77,8 @@ public class PageController {
         }
     }
 
-
+    @GetMapping("/user/login")
+    public String loginPage(Model model) {
+        return "page/login";
+    }
 }
