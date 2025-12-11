@@ -2,7 +2,9 @@ package com.qpwflshclub.formal_club.service.Club;
 
 
 import com.qpwflshclub.formal_club.pojo.Club;
+import com.qpwflshclub.formal_club.pojo.ClubLikeDevice;
 import com.qpwflshclub.formal_club.pojo.dto.ClubDTO;
+import com.qpwflshclub.formal_club.repository.ClubLikeDeviceRepository;
 import com.qpwflshclub.formal_club.repository.ClubRepository;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,6 +76,28 @@ public class ClubService implements IClubService {
             throw new ClubNotFoundException("没有找到该社团");
         });
     }
+
+    @Autowired
+    private ClubLikeDeviceRepository deviceRepo;
+
+    @Override
+    public boolean hasLiked(String clubName, String deviceId) {
+        return deviceRepo.existsByClubNameEnAndDeviceId(clubName, deviceId);
+    }
+
+    @Override
+    public void addLikeDevice(String clubName, String deviceId) {
+        ClubLikeDevice record = new ClubLikeDevice();
+        record.setClubNameEn(clubName);
+        record.setDeviceId(deviceId);
+        deviceRepo.save(record);
+    }
+
+    @Override
+    public void removeLikeDevice(String clubName, String deviceId) {
+        deviceRepo.deleteByClubNameEnAndDeviceId(clubName, deviceId);
+    }
+
 
 
 }

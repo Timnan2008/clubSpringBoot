@@ -1,8 +1,7 @@
 package com.qpwflshclub.formal_club.pojo;
 
 
-import com.qpwflshclub.formal_club.pojo.User.User;
-import com.qpwflshclub.formal_club.pojo.User.UserBase;
+
 import com.qpwflshclub.formal_club.pojo.dto.ClubDTO;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
@@ -71,8 +70,7 @@ public class Club {
     @Column(name = "is_great_club")
     private boolean isGreatClub;
 
-    @ManyToMany(mappedBy = "clubs")
-    private List<User> users;
+
 
     public String getPresidentEn() {
         return presidentEn;

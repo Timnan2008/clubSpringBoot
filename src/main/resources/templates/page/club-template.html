@@ -364,10 +364,10 @@
                     <a href="/page/club-type/creativity">创意艺术</a>
                     <a href="/page/club-type/activity">体育活动</a>
                     <a href="/page/club-type/service">社会服务</a>
-                    <a href="/page/club-type/study">学术类</a>
+                    <a href="/page/club-type/study">学科竞赛</a>
                 </div>
             </div>
-            <a href="../../suggestion/suggestion.html">意见箱</a>
+            <a title="意见箱将在一月回归" style="color:#ccc;cursor:not-allowed;">意见箱</a>
             <a onclick="window.location.href='En/' + clubName">EN/中文</a>
         </nav>
 
@@ -424,7 +424,8 @@
             }
 
             console.log("DEBUG like-count:", club.videoLike);
-            document.getElementById("like-count").textContent = club.videoLike || "0";
+            document.getElementById("currentnumber").textContent = club.videoLike || "0";
+            document.getElementById("movenumber").textContent = club.videoLike + 1 || "1";
 
 
         })
@@ -496,6 +497,44 @@
 
 <!-- 点赞功能 -->
 <script th:inline="javascript">
+
+    let deviceId;
+
+    window.addEventListener("DOMContentLoaded", () => {
+        function generateUUID() {
+            if (crypto.randomUUID) return crypto.randomUUID();
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+                const r = Math.random() * 16 | 0;
+                const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        if(localStorage.getItem('deviceId') === "undefined"){
+            deviceId = generateUUID();
+            console.log("DEBUG 生成的deviceId:", deviceId);
+        }else{
+            deviceId = localStorage.getItem('deviceId') || generateUUID();
+            console.log("DEBUG 获取的deviceId:", deviceId);
+        }
+
+        localStorage.setItem('deviceId', deviceId);
+
+
+
+        likeToggle.addEventListener("change", () =>{
+            if (likeToggle.checked) {
+                console.log("点赞按钮被点击");
+                // 执行点赞逻辑
+                performLike();
+            } else {
+                console.log("取消点赞");
+                // 执行取消点赞逻辑（如果需要）
+                performUnlike();
+            }
+        });
+    });
+
     const clubName2 = [[${clubName}]];
     console.log("DEBUG 当前社团名2:", clubName2)
 
@@ -504,15 +543,12 @@
     const likeCountEl = document.getElementById("currentnumber");
     const likeCountElAfter = document.getElementById("movenumber");
 
-    likeToggle.addEventListener("change", () =>{
-        if (likeToggle.checked) {
-            console.log("点赞按钮被点击");
-            // 执行点赞逻辑
-            performLike();
-        } else {
-            console.log("取消点赞");
-            // 执行取消点赞逻辑（如果需要）
-            performUnlike();
+
+
+    window.addEventListener("DOMContentLoaded", () => {
+        const key = `liked_${clubName2}`;
+        if (localStorage.getItem(key) === "true") {
+            likeToggle.checked = true;
         }
     });
 
@@ -532,7 +568,13 @@
 
     function performLike(){
         console.log("正在点赞");
-        fetch(`/api/club/like/${encodeURIComponent(clubName2)}`, { method: "PUT" })
+        console.log("DEBUG 设备ID:", deviceId);
+        fetch(`/api/club/like/${encodeURIComponent(clubName2)}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Device-Id": deviceId
+            }})
             .then(res => res.json())
             .then(result => {
                 if (result.code === 200) {
@@ -551,15 +593,22 @@
                 }
             })
             .catch(err => {
-                console.error("点赞失败：", err);
+                console.error("点赞失败：", "禁止刷赞");
                 // 点赞失败时恢复状态
                 likeToggle.checked = false;
             });
     }
 
     function performUnlike(){
+        console.log("DEBUG 设备ID:", deviceId);
         console.log("正在取消点赞");
-        fetch(`/api/club/dislike/${encodeURIComponent(clubName2)}`, { method: "PUT" })
+        fetch(`/api/club/dislike/${encodeURIComponent(clubName2)}`, {
+            method: "PUT" ,
+            headers: {
+                "Content-Type": "application/json",
+                "X-Device-Id": deviceId
+            }
+        })
             .then(res => res.json())
             .then(result => {
                 if (result.code === 200) {

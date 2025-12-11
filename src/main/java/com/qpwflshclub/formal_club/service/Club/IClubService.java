@@ -22,4 +22,10 @@ public interface IClubService {
     List<Club> findAll();
 
     void updateVideoAll(List<Club> clubs);
+
+    boolean hasLiked(String clubName, String deviceId);
+
+    void addLikeDevice(String clubName, String deviceId);
+
+    void removeLikeDevice(String clubName, String deviceId);
 }

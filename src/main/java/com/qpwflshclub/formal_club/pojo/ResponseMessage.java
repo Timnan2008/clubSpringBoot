@@ -31,9 +31,15 @@ public class ResponseMessage <T>{
     
     public static <T> ResponseMessage<T> error(T data){
         return  new ResponseMessage<>(HttpStatus.BAD_REQUEST.value(), "错误", data);
-
     }
 
+    public static <T> ResponseMessage<T> error(){
+        return  new ResponseMessage<>(HttpStatus.BAD_REQUEST.value(), "错误", null);
+    }
+
+    public static <T> ResponseMessage<T> error(String message){
+        return  new ResponseMessage<>(HttpStatus.BAD_REQUEST.value(), message, null);
+    }
     // 在 ResponseMessage 类中添加
     public static <T> ResponseMessage<List<T>> success(List<T> data) {
         return new ResponseMessage<>(HttpStatus.OK.value(), "请求成功", data);

@@ -3,6 +3,7 @@ package com.qpwflshclub.formal_club.controller;
 import com.qpwflshclub.formal_club.pojo.Club;
 import com.qpwflshclub.formal_club.pojo.ResponseMessage;
 import com.qpwflshclub.formal_club.pojo.dto.ClubDTO;
+import com.qpwflshclub.formal_club.service.Club.ClubLikeService;
 import com.qpwflshclub.formal_club.service.Club.IClubService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -60,32 +61,44 @@ public class ClubController {
         return ResponseMessage.success();
     }
 
+    @Autowired
+    private ClubLikeService clubLikeService;
+
 
     @PutMapping("/like/{clubName}")
-    public ResponseMessage<Club> like(@PathVariable String clubName){
-        Club club = clubService.findByName(clubName);
-        if(club.isEmpty()){
-            return ResponseMessage.error(club);
-        }
-        club.setVideoLike(club.getVideoLike() + 1);
-        System.out.println("点赞数：" + club.getVideoLike());
+    public ResponseMessage<Club> like(
+            @PathVariable String clubName,
+            @RequestHeader("Device-Id") String deviceId) {
 
-        clubService.update(club.toDTO());
+        System.out.println("clubName: " + clubName);
+        System.out.println("deviceId: " + deviceId);
+        boolean ok = clubLikeService.like(clubName, deviceId);
+        System.out.println("ok: " + ok);
+        if (!ok) {
+            return ResponseMessage.error("不能刷赞");
+        }
+
+        // 返回最新 club 信息
+        Club club = clubService.findByName(clubName);
         return ResponseMessage.success(club);
     }
+
 
     @PutMapping("/dislike/{clubName}")
-    public ResponseMessage<Club> dislike(@PathVariable String clubName){
-        Club club = clubService.findByName(clubName);
-        if(club.isEmpty()){
-            return ResponseMessage.error(club);
-        }
-        club.setVideoLike(club.getVideoLike() - 1);
-        System.out.println("点赞数：" + club.getVideoLike());
+    public ResponseMessage<Club> dislike(
+            @PathVariable String clubName,
+            @RequestHeader("X-Device-Id") String deviceId) {
 
-        clubService.update(club.toDTO());
+        boolean ok = clubLikeService.dislike(clubName, deviceId);
+        if (!ok) {
+            return ResponseMessage.error("不能刷取消");
+        }
+
+        Club club = clubService.findByName(clubName);
         return ResponseMessage.success(club);
     }
+
+
 
     //删除
     @DeleteMapping("/{clubId}")

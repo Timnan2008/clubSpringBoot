@@ -223,10 +223,10 @@
                     <a href="/page/club-type/creativity">创意艺术</a>
                     <a href="/page/club-type/activity">体育活动</a>
                     <a href="/page/club-type/service">社会服务</a>
-                    <a href="/page/club-type/study">学术类</a>
+                    <a href="/page/club-type/study">学科竞赛</a>
                 </div>
             </div>
-            <a href="../suggestion/suggestion.html">意见箱</a>
+            <a title="意见箱将在一月回归" style="color:#ccc;cursor:not-allowed;">意见箱</a>
             <a onclick="window.location.href = 'En/' + typeForUse">EN/中文</a>
         </nav>
     </div>
@@ -261,7 +261,7 @@
             <a href="/page/club-type/creativity" class="tab-button" data-i18n="main:C-type">创意艺术</a>
             <a class="tab-button active" data-i18n="main:A-type">体育活动</a>
             <a href="/page/club-type/service" class="tab-button" data-i18n="main:S-type">社会服务</a>
-            <a href="/page/club-type/study" class="tab-button" data-i18n="main:St-type">学术类</a>
+            <a href="/page/club-type/study" class="tab-button" data-i18n="main:St-type">学科竞赛</a>
         `
     }else if(type === "service"){
         document.getElementById("title").textContent = "社会服务";
@@ -269,21 +269,21 @@
             <a href="/page/club-type/creativity" class="tab-button" data-i18n="main:C-type">创意艺术</a>
             <a href="/page/club-type/activity" class="tab-button" data-i18n="main:A-type">体育活动</a>
             <a class="tab-button active" data-i18n="main:S-type">社会服务</a>
-            <a href="/page/club-type/study" class="tab-button" data-i18n="main:St-type">学术类</a>`
+            <a href="/page/club-type/study" class="tab-button" data-i18n="main:St-type">学科竞赛</a>`
     }else if(type === "study"){
-        document.getElementById("title").textContent = "学术类";
+        document.getElementById("title").textContent = "学科竞赛";
         document.getElementById("Top").innerHTML = `
             <a href="/page/club-type/creativity" class="tab-button" data-i18n="main:C-type">创意艺术</a>
             <a href="/page/club-type/activity" class="tab-button" data-i18n="main:A-type">体育活动</a>
             <a href="/page/club-type/service" class="tab-button" data-i18n="main:S-type">社会服务</a>
-            <a class="tab-button active" data-i18n="main:St-type">学术类</a>`
+            <a class="tab-button active" data-i18n="main:St-type">学科竞赛</a>`
     }else{
         document.getElementById("title").textContent = "创意艺术";
         document.getElementById("Top").innerHTML = `
             <a class="tab-button active" data-i18n="main:C-type">创意艺术</a>
             <a href="/page/club-type/activity" class="tab-button" data-i18n="main:A-type">体育活动</a>
             <a href="/page/club-type/service" class="tab-button" data-i18n="main:S-type">社会服务</a>
-            <a href="/page/club-type/study" class="tab-button" data-i18n="main:St-type">学术类</a>`
+            <a href="/page/club-type/study" class="tab-button" data-i18n="main:St-type">学科竞赛</a>`
     }
 
     //获取数据
