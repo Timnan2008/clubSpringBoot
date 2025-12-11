@@ -1,7 +1,7 @@
 package com.qpwflshclub.formal_club.service.Club;
 
-import com.qpwflshclub.formal_club.pojo.Club;
-import com.qpwflshclub.formal_club.pojo.ClubLikeDevice;
+import com.qpwflshclub.formal_club.pojo.Club.Club;
+import com.qpwflshclub.formal_club.pojo.Club.ClubLikeDevice;
 import com.qpwflshclub.formal_club.repository.ClubLikeDeviceRepository;
 import com.qpwflshclub.formal_club.repository.ClubRepository;
 import jakarta.transaction.Transactional;

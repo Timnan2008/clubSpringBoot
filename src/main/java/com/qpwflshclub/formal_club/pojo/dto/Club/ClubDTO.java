@@ -1,6 +1,5 @@
-package com.qpwflshclub.formal_club.pojo.dto;
+package com.qpwflshclub.formal_club.pojo.dto.Club;
 
-import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 

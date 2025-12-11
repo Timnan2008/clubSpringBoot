@@ -1,8 +1,8 @@
 package com.qpwflshclub.formal_club.controller;
 
-import com.qpwflshclub.formal_club.pojo.Club;
+import com.qpwflshclub.formal_club.pojo.Club.Club;
 import com.qpwflshclub.formal_club.pojo.ResponseMessage;
-import com.qpwflshclub.formal_club.pojo.dto.ClubDTO;
+import com.qpwflshclub.formal_club.pojo.dto.Club.ClubDTO;
 import com.qpwflshclub.formal_club.service.Club.ClubLikeService;
 import com.qpwflshclub.formal_club.service.Club.IClubService;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,4 +1,4 @@
-package com.qpwflshclub.formal_club.pojo.dto;
+package com.qpwflshclub.formal_club.pojo.dto.Club;
 
 import jakarta.validation.constraints.NotNull;
 

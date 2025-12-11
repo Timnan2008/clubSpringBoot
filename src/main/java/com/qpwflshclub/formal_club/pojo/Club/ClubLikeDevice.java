@@ -1,4 +1,4 @@
-package com.qpwflshclub.formal_club.pojo;
+package com.qpwflshclub.formal_club.pojo.Club;
 
 import jakarta.persistence.*;
 

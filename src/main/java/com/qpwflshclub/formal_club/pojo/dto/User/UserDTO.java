@@ -1,7 +1,6 @@
 package com.qpwflshclub.formal_club.pojo.dto.User;
 
-import com.qpwflshclub.formal_club.pojo.Club;
-import jakarta.persistence.*;
+import com.qpwflshclub.formal_club.pojo.Club.Club;
 import jakarta.validation.constraints.NotNull;
 
 import java.util.List;

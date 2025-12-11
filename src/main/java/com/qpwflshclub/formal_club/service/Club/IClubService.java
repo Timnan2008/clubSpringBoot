@@ -1,7 +1,7 @@
 package com.qpwflshclub.formal_club.service.Club;
 
-import com.qpwflshclub.formal_club.pojo.Club;
-import com.qpwflshclub.formal_club.pojo.dto.ClubDTO;
+import com.qpwflshclub.formal_club.pojo.Club.Club;
+import com.qpwflshclub.formal_club.pojo.dto.Club.ClubDTO;
 
 import java.util.List;
 

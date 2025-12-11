@@ -2,7 +2,7 @@ package com.qpwflshclub.formal_club.pojo.dto.User;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.qpwflshclub.formal_club.pojo.Club;
+import com.qpwflshclub.formal_club.pojo.Club.Club;
 
 import java.util.List;
 

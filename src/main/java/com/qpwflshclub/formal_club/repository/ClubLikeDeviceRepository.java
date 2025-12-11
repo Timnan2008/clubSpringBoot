@@ -1,6 +1,6 @@
 package com.qpwflshclub.formal_club.repository;
 
-import com.qpwflshclub.formal_club.pojo.ClubLikeDevice;
+import com.qpwflshclub.formal_club.pojo.Club.ClubLikeDevice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

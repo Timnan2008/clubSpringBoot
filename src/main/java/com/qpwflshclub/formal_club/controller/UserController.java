@@ -1,14 +1,11 @@
 package com.qpwflshclub.formal_club.controller;
 
-import com.qpwflshclub.formal_club.pojo.Club;
 import com.qpwflshclub.formal_club.pojo.ResponseMessage;
 import com.qpwflshclub.formal_club.pojo.User.*;
 import com.qpwflshclub.formal_club.pojo.User.UserBase;
 import com.qpwflshclub.formal_club.pojo.dto.User.*;
 import com.qpwflshclub.formal_club.service.User.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheConfig;
-import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 

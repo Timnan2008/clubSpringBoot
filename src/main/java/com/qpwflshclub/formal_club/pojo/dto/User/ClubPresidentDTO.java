@@ -1,6 +1,6 @@
 package com.qpwflshclub.formal_club.pojo.dto.User;
 
-import com.qpwflshclub.formal_club.pojo.Club;
+import com.qpwflshclub.formal_club.pojo.Club.Club;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 

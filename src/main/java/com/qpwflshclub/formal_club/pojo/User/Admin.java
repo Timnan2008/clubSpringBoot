@@ -1,6 +1,6 @@
 package com.qpwflshclub.formal_club.pojo.User;
 
-import com.qpwflshclub.formal_club.pojo.Club;
+import com.qpwflshclub.formal_club.pojo.Club.Club;
 import jakarta.persistence.*;
 
 import java.util.List;

@@ -1,12 +1,10 @@
-package com.qpwflshclub.formal_club.pojo;
+package com.qpwflshclub.formal_club.pojo.Club;
 
 
 
-import com.qpwflshclub.formal_club.pojo.dto.ClubDTO;
+import com.qpwflshclub.formal_club.pojo.dto.Club.ClubDTO;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
-
-import java.util.List;
 
 @Entity
 @Table(name = "tb_user")

@@ -1,6 +1,6 @@
 package com.qpwflshclub.formal_club.controller;
 
-import com.qpwflshclub.formal_club.pojo.Club;
+import com.qpwflshclub.formal_club.pojo.Club.Club;
 import com.qpwflshclub.formal_club.service.Club.ClubNotFoundException;
 import com.qpwflshclub.formal_club.service.Club.IClubService;
 import org.springframework.beans.factory.annotation.Autowired;
