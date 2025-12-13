@@ -308,9 +308,29 @@
       .warning-bar .close-btn:hover {
         background: rgba(255, 255, 255, 0.4);
       }
+
+      .notice-critical {
+          background-color: #ffff00; /* 荧光黄 */
+          border-left: 5px solid #ff0000; /* 左侧红色边框增强警示感 */
+          padding: 15px;
+          font-size: 14px;
+          color: #333;
+          border-radius: 8px;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+          transition: transform 0.2s ease;
+          line-height: 1.6;
+          white-space: normal;
+          word-wrap: break-word;
+          font-weight: bold; /* 加粗文字 */
+      }
+
+      .notice-critical:hover {
+          transform: translateY(-3px); /* 悬停时轻微上移 */
+      }
     </style>
   </head>
   <body>
+    <div th:replace="fragments/notice :: notice"></div>
     <header class="navbar">
       <div class="warning-bar" id="warningBar">
         ⚠ 从电脑端打开体验更佳
@@ -351,7 +371,7 @@
 
 
             <a title="意见箱将在一月回归" style="color:#ccc;cursor:not-allowed;">意见箱</a>
-          <a onclick="window.location.href='../page/index-en'">EN/中文</a>
+          <a onclick="window.location.href='/index-en'">EN/中文</a>
         </nav>
       </div>
     </header>
@@ -362,6 +382,9 @@
       <div class="notice-important">
         恭喜青浦世外高中社团官网于2025.12.9正式上线2.0版本！！！
       </div>
+        <div class="notice-critical">
+            由于有刷赞现象，为保证投票公平性，投票于12月11日14:30点全部清零，重新投票，每个设备对每个社团限投1次。给大家带来不便，敬请谅解
+        </div>
       <div class="notice">
         意见箱将在一月回归，请耐心等待
       </div>
@@ -434,7 +457,7 @@
                         <img src="${clubs.clubItem}" alt="${clubs.clubName}">
                         <div class="card-content">
                           <h2>${clubs.clubName}</h2>
-                          <p>${clubs.clubDescription}</p>
+                          <p>${clubs.sortDescription}</p>
                           <a class="button" href="../../${clubs.clubURL}" target="_blank">查看详情</a>
                         </div>
                       `;
