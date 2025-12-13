@@ -1,0 +1,151 @@
+<!-- templates/fragments/notice.html -->
+<div th:fragment="notice">
+
+    <style>
+        /* === iOS 26 / visionOS 风格公告弹窗 === */
+
+        .v26-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            backdrop-filter: blur(20px) saturate(180%);
+            background: rgba(255,255,255,0.18);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .v26-sheet {
+            width: 82%;
+            max-width: 360px;
+            padding: 22px 24px 18px;
+            border-radius: 28px;
+
+            /* 玻璃拟态 */
+            background: rgba(255, 255, 255, 0.55);
+            backdrop-filter: blur(30px) saturate(180%);
+            -webkit-backdrop-filter: blur(30px) saturate(180%);
+
+            /* visionOS 光晕阴影 */
+            box-shadow:
+                    0 8px 25px rgba(0,0,0,0.15),
+                    0 0 40px rgba(255,255,255,0.45) inset;
+
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display",
+            "Segoe UI", Roboto, Helvetica, Arial;
+            color: #111;
+            text-align: center;
+
+            transform: translateY(25px) scale(0.92);
+            opacity: 0;
+            transition: all .35s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .v26-title {
+            font-size: 20px;
+            font-weight: 650;
+            margin-bottom: 12px;
+        }
+
+        .v26-msg {
+            font-size: 15px;
+            line-height: 1.55;
+            color: #222;
+            margin-bottom: 10px;
+        }
+
+        .v26-sub {
+            font-size: 13px;
+            line-height: 1.45;
+            color: #555;
+        }
+
+        .v26-buttons {
+            margin-top: 18px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(200,200,200,0.45);
+        }
+
+        .v26-btn {
+            width: 100%;
+            padding: 11px 0;
+            font-size: 17px;
+            font-weight: 500;
+            border: none;
+            background: none;
+            color: #007aff;
+            cursor: pointer;
+            border-radius: 20px;
+            transition: background .15s;
+        }
+
+        .v26-btn:active {
+            background: rgba(0,0,0,0.06);
+        }
+    </style>
+
+
+    <div id="notice26" class="v26-overlay">
+        <div class="v26-sheet">
+
+            <div class="v26-title">投票公告</div>
+
+            <div class="v26-msg">
+                为保证投票公平性，由于检测到刷赞行为，所有票数将于
+                <b>12 月 11 日 14:30</b> 统一清零并重新开始。
+                每台设备对每个社团仅可投 1 次。
+            </div>
+
+            <div class="v26-sub">
+                Due to detected vote manipulation, all votes will be reset at
+                <b>14:30 on December 11th</b> to ensure fairness.
+                Each device may cast only <b>one vote per club</b>.
+            </div>
+
+            <div class="v26-buttons">
+                <button class="v26-btn" onclick="closeNotice26()">我知道了</button>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        function openNotice26() {
+            const overlay = document.getElementById("notice26");
+            const sheet = document.querySelector(".v26-sheet");
+
+            overlay.style.display = "flex";
+
+            setTimeout(() => {
+                sheet.style.opacity = "1";
+                sheet.style.transform = "translateY(0) scale(1)";
+            }, 10);
+        }
+
+        function closeNotice26() {
+            const overlay = document.getElementById("notice26");
+            const sheet = document.querySelector(".v26-sheet");
+
+            sheet.style.opacity = "0";
+            sheet.style.transform = "translateY(25px) scale(0.92)";
+
+            setTimeout(() => {
+                overlay.style.display = "none";
+            }, 260);
+        }
+
+
+
+
+        // 🔒 每设备只显示一次（修改 KEY 可强制所有用户重新看到）
+        const NOTICE_KEY = "notice_ios26_20241211";
+        window.addEventListener("DOMContentLoaded", () => {
+            if (!localStorage.getItem(NOTICE_KEY)) {
+                openNotice26();
+                localStorage.setItem(NOTICE_KEY, "shown");
+            }
+        });
+    </script>
+
+</div>

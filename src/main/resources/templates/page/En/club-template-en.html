@@ -276,7 +276,8 @@
     </style>
 </head>
 <body>
-
+<div th:replace="fragments/notice :: notice"></div>
+<div th:replace="fragments/notice-repeat :: notice"></div>
 <header class="navbar">
     <div class="navbar-top">
 
@@ -498,7 +499,7 @@
                         // 点赞成功后保持选中状态
                         likeToggle.checked = true;
                     } else {
-                        alert("点赞失败：" + (result.message || "未知错误"));
+                        showNotice("fail: " + "Do not like repeatedly");
                         // 点赞失败时恢复状态
                         likeToggle.checked = false;
                     }
