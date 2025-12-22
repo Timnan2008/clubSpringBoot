@@ -1,4 +1,4 @@
-package com.qpwflshclub.formal_club.repository;
+package com.qpwflshclub.formal_club.repository.Club;
 
 import com.qpwflshclub.formal_club.pojo.Club.ClubLikeDevice;
 import org.springframework.data.jpa.repository.JpaRepository;
