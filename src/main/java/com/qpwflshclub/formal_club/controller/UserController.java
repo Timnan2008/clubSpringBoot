@@ -89,4 +89,22 @@ public class UserController {
         };
         return new ResponseMessage<>(200, "查询成功", user);
     }
+
+    @GetMapping("/find-name/{type}/{name-en}")
+    public ResponseMessage<UserBase> find(@PathVariable String type, @PathVariable String nameEn){
+        if(type.equals("user")){
+            return new ResponseMessage<>(200, "查询成功", userService.findUserById(Long.parseLong(nameEn)));
+        }
+        if(type.equals("admin")){
+            return new ResponseMessage<>(200, "查询成功", userService.findAdminByID(Long.parseLong(nameEn)));
+        }
+        if(type.equals("teacher")){
+            return new ResponseMessage<>(200, "查询成功", userService.findTeacherByID(Long.parseLong(nameEn)));
+
+        }
+        if(type.equals("club-president")){
+            return new ResponseMessage<>(200, "查询成功", userService.findClubPresidentByID(Long.parseLong(nameEn)));
+        }
+        return ResponseMessage.error("查不到");
+    }
 }

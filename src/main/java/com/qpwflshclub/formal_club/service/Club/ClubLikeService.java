@@ -2,8 +2,8 @@ package com.qpwflshclub.formal_club.service.Club;
 
 import com.qpwflshclub.formal_club.pojo.Club.Club;
 import com.qpwflshclub.formal_club.pojo.Club.ClubLikeDevice;
-import com.qpwflshclub.formal_club.repository.ClubLikeDeviceRepository;
-import com.qpwflshclub.formal_club.repository.ClubRepository;
+import com.qpwflshclub.formal_club.repository.Club.ClubLikeDeviceRepository;
+import com.qpwflshclub.formal_club.repository.Club.ClubRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
