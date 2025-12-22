@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>明亮版意见箱（含防刷）</title>
+  <style>
+    body { font-family: system-ui; background:#f5f7fa; margin:0; padding:24px; color:#1f2937; }
+    .container { max-width:900px; margin:0 auto; }
+    h1 { margin:0; font-size:24px; }
+    .card { background:#ffffff; padding:18px; border-radius:12px; box-shadow:0 4px 12px rgba(0,0,0,0.08); margin-top:16px; }
+    label { display:block; margin-bottom:6px; font-size:14px; }
+    input, textarea, select { width:100%; padding:10px; font-size:14px; border-radius:8px; border:1px solid #d1d5db; }
+    textarea { resize:vertical; min-height:100px; }
+    button { padding:10px 14px; border-radius:8px; border:none; cursor:pointer; font-size:16px; }
+    .btn-primary { background:#0ea5e9; color:white; }
+    .btn-ghost { background:#e5e7eb; color:#374151; }
+    table { width:100%; border-collapse:collapse; margin-top:12px; }
+    th,td { padding:8px; border-bottom:1px solid #e5e7eb; font-size:14px; }
+    .empty { padding:16px; text-align:center; color:#6b7280; }
+    .flex { display:flex; gap:12px; }
+    @media(max-width:640px){ .flex{ flex-direction:column; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>意见箱</h1>
+    <div class="card">
+      <form id="form">
+        <div class="flex">
+          <div style="flex:1">
+            <label>姓名</label>
+            <input id="name" type="text" />
+          </div>
+          <div style="flex:1">
+            <label>学号</label>
+            <input id="number" type="number" />
+          </div>
+        </div>
+
+        <label style="margin-top:12px">分类</label>
+        <select id="category">
+          <option value="general">一般建议</option>
+          <option value="bug">错误 / Bug</option>
+          <option value="feature">功能请求</option>
+        </select>
+
+        <label style="margin-top:12px">内容</label>
+        <textarea id="message" maxlength="500"></textarea>
+
+        <label style="margin-top:12px">
+          <input id="anon" type="checkbox" /> 匿名提交
+        </label>
+
+        <!-- 防刷：简单数学题 -->
+        <div class="card" style="margin-top:16px; background:#f9fafb; border:1px solid #e5e7eb;">
+          <strong>防刷验证</strong>
+          <p id="captchaQ" style="margin:8px 0"></p>
+          <input id="captchaAns" type="number" placeholder="请输入答案" />
+        </div>
+
+        <button class="btn-primary" type="submit" style="margin-top:14px">提交</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h3>历史记录</h3>
+      <div id="list"></div>
+    </div>
+  </div>
+
+<script>
+  const SUB_KEY = "submissions_v1";
+
+  // -------- 防刷机制：简单数学验证码 --------
+  let a, b;
+  function makeCaptcha(){
+    a = Math.floor(Math.random()*8)+1;
+    b = Math.floor(Math.random()*8)+1;
+    document.getElementById("captchaQ").textContent = `请回答：${a} + ${b} = ?`;
+  }
+  makeCaptcha();
+
+  function loadSubs(){
+    try { return JSON.parse(localStorage.getItem(SUB_KEY)) || []; }
+    catch { return []; }
+  }
+  function saveSubs(arr){ localStorage.setItem(SUB_KEY, JSON.stringify(arr)); }
+
+  function render(){
+    const arr = loadSubs();
+    if(arr.length === 0){
+      list.innerHTML = '<div class="empty">暂无提交</div>';
+      return;
+    }
+    let html = '<table><tr><th>时间</th><th>分类</th><th>发送者</th><th>内容</th></tr>';
+    arr.forEach(x => {
+      html += `<tr><td>${x.time}</td><td>${x.category}</td><td>${x.who}</td><td>${x.msg}</td></tr>`;
+    });
+    html += '</table>';
+    list.innerHTML = html;
+  }
+  render();
+
+  // -------- 表单提交 --------
+  form.addEventListener("submit", e => {
+    e.preventDefault();
+
+    // 1) 防刷验证
+    const inputVal = Number(document.getElementById("captchaAns").value);
+    if(inputVal !== a + b){
+      alert("防刷验证失败，请重新输入。");
+      makeCaptcha();
+      return;
+    }
+
+    // 2) 内容验证
+    const msg = message.value.trim();
+    if(msg.length < 5){ alert("请至少输入 5 个字。"); return; }
+
+    // 3) 保存
+    const arr = loadSubs();
+    arr.unshift({
+      time: new Date().toLocaleString(),
+      category: category.value,
+      who: anon.checked ? "匿名" : (name.value || email.value || "—"),
+      msg
+    });
+    saveSubs(arr);
+
+    alert("提交成功！");
+    form.reset();
+    makeCaptcha();
+    render();
+  });
+</script>
+</body>
+</html>
