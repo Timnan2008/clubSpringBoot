@@ -6,92 +6,279 @@
     <title>登录 / 注册</title>
 
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-            background-color: #f5f5f7;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+        background-color: #f5f5f7;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
 
-        .login-container {
-            width: 420px;
-            background-color: white;
-            padding: 30px 40px;
-            border-radius: 12px;
-            box-shadow: 0 0 18px rgba(0, 0, 0, 0.12);
-            max-height: 90vh;
-            overflow-y: auto; /* 内容过多时出现滚动条 */
-        }
+      .login-container {
+        width: 420px;
+        background-color: white;
+        padding: 30px 40px;
+        border-radius: 12px;
+        box-shadow: 0 0 18px rgba(0, 0, 0, 0.12);
+        max-height: 90vh;
+        overflow-y: auto; /* 内容过多时出现滚动条 */
+      }
 
-        h1 {
-            text-align: center;
-            margin-bottom: 25px;
-            color: #333;
-        }
+      h1 {
+        text-align: center;
+        margin-bottom: 25px;
+        color: #333;
+      }
 
-        .row {
-            display: flex;
-            gap: 20px;
-        }
+      .row {
+        display: flex;
+        gap: 20px;
+      }
 
-        input,
-        select {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 20px;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-            font-size: 15px;
-            box-sizing: border-box;
-        }
+      input,
+      select {
+        width: 100%;
+        padding: 12px;
+        margin-bottom: 20px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        font-size: 15px;
+        box-sizing: border-box;
+      }
 
-        .submit-btn {
-            width: 100%;
-            margin-top: 25px;
-            padding: 12px;
-            background-color: #4a6fa5;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
+      .submit-btn {
+        width: 100%;
+        margin-top: 25px;
+        padding: 12px;
+        background-color: #4a6fa5;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: 0.3s;
+      }
 
-        .submit-btn:hover {
-            background-color: #355578;
-        }
+      .submit-btn:hover {
+        background-color: #355578;
+      }
 
-        /* 动态选项样式 */
-        .select-box {
-            margin-top: 10px;
-            padding: 12px;
-            border: 1px solid #aaa;
-            border-radius: 6px;
-            cursor: pointer;
-            background-color: #fafafa;
-        }
+      /* 动态选项样式 */
+      .select-box {
+        margin-top: 10px;
+        padding: 12px;
+        border: 1px solid #aaa;
+        border-radius: 6px;
+        cursor: pointer;
+        background-color: #fafafa;
+      }
 
-        .club-list {
-            max-height: 200px;
-            overflow-y: auto;
-            border: 1px solid #aaa;
-            padding: 10px;
-            margin-top: 5px;
-            border-radius: 6px;
-            display: none;
-            background-color: #fff;
-        }
+      .club-list {
+        max-height: 200px;
+        overflow-y: auto;
+        border: 1px solid #aaa;
+        padding: 10px;
+        margin-top: 5px;
+        border-radius: 6px;
+        display: none;
+        background-color: #fff;
+      }
 
-        .club-list label {
-            display: block;
-            margin: 5px 0;
-        }
+      .club-list label {
+        display: block;
+        margin: 5px 0;
+      }
+      .club-select-btn {
+        width: 100%;
+        padding: 14px;
+        font-size: 15px;
+        font-weight: 600;
+        text-align: left;
+        background-color: #f3f6fb;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.25s ease;
+      }
+      .club-select-btn:hover {
+        background-color: #e8eef8;
+        border-color: #94a3b8;
+      }
+      .club-list-container {
+        margin-top: 8px;
+        padding: 10px;
 
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        background-color: #ffffff;
+        max-height: 220px;
+        overflow-y: auto;
+      }
+      .club-item {
+        display: flex;
+        align-items: center;
+
+        padding: 8px 10px;
+        margin-bottom: 6px;
+
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+      }
+
+      .club-item:hover {
+        background-color: #f1f5f9;
+      }
+      .club-checkbox {
+        transform: scale(1.2);
+        margin-right: 10px;
+      }
+      .club-text {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        line-height: 1.2;
+      }
+      .vice-toggle {
+        margin-top: 14px;
+      }
+
+      /* 整体按钮 */
+      .vice-label {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        padding: 14px 18px;
+        border-radius: 10px;
+        background-color: #f8fafc;
+        border: 1px solid #cbd5e1;
+
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+
+        transition: all 0.25s ease;
+      }
+
+      .vice-label:hover {
+        background-color: #eef2f7;
+        border-color: #94a3b8;
+      }
+
+      /* 左侧文字 */
+      .vice-text {
+        color: #334155;
+      }
+
+      /* 隐藏原生 checkbox */
+      .vice-checkbox {
+        display: none;
+      }
+
+      /* 自定义勾选框 */
+      .vice-box {
+        width: 26px;
+        height: 26px;
+        border-radius: 6px;
+
+        border: 2px solid #94a3b8;
+        background-color: white;
+
+        position: relative;
+        transition: all 0.2s ease;
+      }
+
+      /* 打勾状态 */
+      .vice-checkbox:checked + .vice-box {
+        background-color: #4a6fa5;
+        border-color: #4a6fa5;
+      }
+
+      /* 勾号 */
+      .vice-checkbox:checked + .vice-box::after {
+        content: "";
+        position: absolute;
+
+        left: 7px;
+        top: 3px;
+
+        width: 6px;
+        height: 12px;
+
+        border: solid white;
+        border-width: 0 3px 3px 0;
+        transform: rotate(45deg);
+      }
+      .club-list-container {
+        padding: 8px;
+        border-radius: 10px;
+        background-color: #f8fafc;
+        border: 1px solid #e2e8f0;
+      }
+      .club-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+
+        padding: 10px 12px;
+        margin-bottom: 8px;
+
+        border-radius: 10px;
+        background-color: #ffffff;
+        border: 1px solid #e5e7eb;
+
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .club-item:last-child {
+        margin-bottom: 0;
+      }
+
+      .club-item:hover {
+        background-color: #f1f5f9;
+        border-color: #cbd5e1;
+      }
+      .club-checkbox {
+        display: none;
+      }
+      .club-checkbox:checked + .club-avatar + .club-text {
+        color: #1e3a8a;
+      }
+
+      .club-checkbox:checked ~ * {
+        font-weight: 600;
+      }
+
+      .club-checkbox:checked + .club-avatar {
+        outline: 3px solid #4a6fa5;
+      }
+      .club-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        object-fit: cover;
+        flex-shrink: 0;
+      }
+      .club-text {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.2;
+      }
+
+      .club-name-cn {
+        font-size: 15px;
+        color: #111827;
+      }
+
+      .club-name-en {
+        font-size: 12px;
+        color: #6b7280;
+      }
     </style>
   </head>
 
@@ -104,19 +291,18 @@
       </div>
       <input id="email" type="email" placeholder="邮箱" />
       <input id="password" type="password" placeholder="密码" />
-        <select id="role" onchange="onRoleChange()">
-            <option value="" disabled selected>请选择身份</option>
-            <option value="teacher">老师</option>
-            <option value="club-president">社长</option>
-            <option value="user">访客</option>
-        </select>
+      <select id="role" onchange="onRoleChange()">
+        <option value="" disabled selected>请选择身份</option>
+        <option value="teacher">老师</option>
+        <option value="club-president">社长</option>
+        <option value="user">访客</option>
+      </select>
 
-        <!-- 下面是隐藏区域 -->
-        <div id="dynamic-area"></div>
+      <!-- 下面是隐藏区域 -->
+      <div id="dynamic-area"></div>
 
       <button class="submit-btn" onclick="validateForm()">提交</button>
     </div>
-
 
     <script>
       function validateForm() {
@@ -130,200 +316,194 @@
         alert("提交成功！");
       }
 
-      function getFormData(){
-          const role = document.getElementById("role").value;
-          const name = document.getElementById("name").value;
-          const nameEn = document.getElementById("nameEn").value;
-          const password = document.getElementById("password").value;
-          const email = document.getElementById("email").value;
+      function getFormData() {
+        const role = document.getElementById("role").value;
+        const name = document.getElementById("name").value;
+        const nameEn = document.getElementById("nameEn").value;
+        const password = document.getElementById("password").value;
+        const email = document.getElementById("email").value;
 
-          let json = {};
+        let json = {};
 
-          if (role === "president") {
-              json = {
-                  presidentName: name,
-                  presidentNameEn: nameEn,
-                  presidentPassword: password,
-                  presidentEmail: email,
-                  userType: "president",
-                  userClub: clubName
-              };
-          }
+        if (role === "club-president") {
+          json = {
+            presidentName: name,
+            presidentNameEn: nameEn,
+            presidentPassword: password,
+            presidentEmail: email,
+            userType: "club-president",
+            userClub: clubName,
+          };
+        }
 
-          if (role === "teacher") {
-              json = {
-                  teacherName: name,
-                  teacherNameEn: nameEn,
-                  teacherPassword: password,
-                  teacherEmail: email,
-                  userType: "teacher"
-              };
-          }
+        if (role === "teacher") {
+          json = {
+            teacherName: name,
+            teacherNameEn: nameEn,
+            teacherPassword: password,
+            teacherEmail: email,
+            userType: "teacher",
+          };
+        }
 
-          if (role === "visitor") {
-              json = {
-                  visitorName: name,
-                  visitorNameEn: nameEn,
-                  visitorEmail: email,
-                  visitorPassword: password,
-                  userType: "visitor"
-              };
-          }
+        if (role === "user") {
+          json = {
+            visitorName: name,
+            visitorNameEn: nameEn,
+            visitorEmail: email,
+            visitorPassword: password,
+            userType: "user",
+          };
+        }
 
-          return json;
+        return json;
       }
       function sendPost() {
-          const json = getFormData();
-          const role = document.getElementById("role").value;
+        const json = getFormData();
+        const role = document.getElementById("role").value;
 
-          fetch("/api/user/add/" + role, {
-              method: "POST",
-              headers: {
-                  "Content-Type": "application/json"
-              },
-              body: JSON.stringify(json)
+        fetch("/api/user/add/" + role, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(json),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            console.log("返回：", data);
+            alert("POST 成功");
           })
-              .then(res => res.json())
-              .then(data => {
-                  console.log("返回：", data);
-                  alert("POST 成功");
-              })
-              .catch(err => console.error(err));
+          .catch((err) => console.error(err));
       }
     </script>
 
-  <script type="module">
-
+    <script type="module">
       // 点击选项显示社团列表（可单选 or 多选）
       function createSelectBox(title, fieldId, multiple = true) {
-          return `
+        return `
     <div class="select-box" onclick="toggleClubList('${fieldId}')">${title}</div>
     <div id="${fieldId}" class="club-list">
-        ${clubs.map(c => `
+        ${clubs
+          .map(
+            (c) => `
             <label>
                 <input type="${multiple ? "checkbox" : "radio"}"
                        name="${fieldId}${multiple ? "[]" : ""}"
                        value="${c.id}">
                 ${c.name}
             </label>
-        `).join("")}
+        `
+          )
+          .join("")}
     </div>
     `;
       }
 
       function toggleClubList(id) {
-          const box = document.getElementById(id);
-          box.style.display = box.style.display === "block" ? "none" : "block";
+        const box = document.getElementById(id);
+        box.style.display = box.style.display === "block" ? "none" : "block";
       }
-
 
       // 提交按钮逻辑（根据需求改）
       function validateForm() {
-          alert("提交成功（示例）");
+        alert("提交成功（示例）");
       }
 
-
-
-
       function onRoleChange() {
-          const role = document.getElementById("role").value;
-          const area = document.getElementById("dynamic-area");
-          area.innerHTML = ""; // 清空
+        const role = document.getElementById("role").value;
+        const area = document.getElementById("dynamic-area");
+        area.innerHTML = ""; // 清空
 
-          const dynamicArea = document.getElementById("dynamic-area");
-          const roleSelect = document.getElementById("role");
+        if (role === "user") {
+          area.appendChild(createClubButton("参与的社团（可多选）", true));
+        }
 
-          roleSelect.addEventListener("change", () => {
-              dynamicArea.innerHTML = ""; // 清空之前内容
-              const role = roleSelect.value;
+        if (role === "club-president") {
+          area.appendChild(createClubButton("管理的社团（必须 1 个）", false));
+          area.appendChild(createClubButton("参与的社团（可多选）", true));
 
-              if(role === "user"){
-                  dynamicArea.appendChild(createClubButton("参与的社团（可多选）", true));
-              }
+          // 副社长 Boolean
+          const viceDiv = document.createElement("div");
+          viceDiv.className = "vice-toggle";
+          viceDiv.innerHTML = `<label class="vice-label">
+              <span class="vice-text">是否为副社长</span>
+              <input type="checkbox" class="vice-checkbox" />
+              <span class="vice-box"></span>
+              </label>`;
+          area.appendChild(viceDiv);
+        }
 
-              if(role === "club-president"){
-                  dynamicArea.appendChild(createClubButton("管理的社团（必须 1 个）", false));
-                  dynamicArea.appendChild(createClubButton("参与的社团（可多选）", true));
-
-                  // 副社长 Boolean
-                  const viceDiv = document.createElement("div");
-                  viceDiv.innerHTML = `<label>是否为副社长：<input type="checkbox"></label>`;
-                  dynamicArea.appendChild(viceDiv);
-              }
-
-              if(role === "teacher"){
-                  dynamicArea.appendChild(createClubButton("负责的社团（可多选）", true));
-              }
-          });
+        if (role === "teacher") {
+          area.appendChild(createClubButton("负责的社团（可多选）", true));
+        }
       }
       window.onRoleChange = onRoleChange;
 
       /** 创建带 club 列表的卡片 */
       function createClubButton(title, multiple) {
-          const container = document.createElement("div");
+        const container = document.createElement("div");
 
-          const btn = document.createElement("button");
-          btn.textContent = title;
-          btn.style.marginBottom = "5px";
-          btn.addEventListener("click", ()=>{
-              listDiv.style.display = listDiv.style.display === "block" ? "none" : "block";
+        const btn = document.createElement("button");
+        btn.textContent = title;
+        btn.style.marginBottom = "5px";
+        btn.className = "club-select-btn";
+        btn.addEventListener("click", () => {
+          listDiv.style.display =
+            listDiv.style.display === "block" ? "none" : "block";
+        });
+        container.appendChild(btn);
+
+        const listDiv = document.createElement("div");
+        listDiv.className = "club-list-container";
+        listDiv.style.display = "none";
+        listDiv.style.border = "1px solid #ccc";
+        listDiv.style.padding = "5px";
+        listDiv.style.marginBottom = "10px";
+
+        fetch(`/api/club/all`)
+          .then((j) => j.json())
+          .then((result) => {
+            const clubs = result.data;
+            console.log(clubs);
+            clubs.forEach((c) => {
+              const item = document.createElement("label");
+              item.className = "club-item";
+
+              const input = document.createElement("input");
+              input.className = "club-checkbox";
+              input.type = multiple ? "checkbox" : "radio";
+              input.name = title;
+              input.value = c.id;
+
+              const img = document.createElement("img");
+              img.src = c.clubItem;
+              img.className = "club-avatar";
+
+              const textDiv = document.createElement("div");
+              textDiv.className = "club-text";
+
+              const cn = document.createElement("div");
+              cn.className = "club-name-cn";
+              cn.textContent = c.clubName;
+
+              const en = document.createElement("div");
+              en.className = "club-name-en";
+              en.textContent = c.clubNameEn;
+
+              textDiv.appendChild(cn);
+              textDiv.appendChild(en);
+
+              item.appendChild(input);
+              item.appendChild(img);
+              item.appendChild(textDiv);
+              listDiv.appendChild(item);
+            });
           });
-          container.appendChild(btn);
 
-          const listDiv = document.createElement("div");
-          listDiv.style.display = "none";
-          listDiv.style.border = "1px solid #ccc";
-          listDiv.style.padding = "5px";
-          listDiv.style.marginBottom = "10px";
-
-          fetch(`/api/club/all`)
-              .then((j) => j.json())
-              .then((result) => {
-                  const clubs = result.data;
-                  console.log(clubs)
-                  clubs.forEach(c => {
-                      const item = document.createElement("label");
-                      item.style.display = "flex";
-                      item.style.alignItems = "center";
-                      item.style.marginBottom = "3px";
-
-                      const input = document.createElement("input");
-                      input.type = multiple ? "checkbox" : "radio";
-                      input.name = title;
-                      input.value = c.id;
-                      input.style.marginRight = "5px";
-
-                      const img = document.createElement("img");
-                      img.src = c.clubItem;
-                      img.style.width = "30px";
-                      img.style.height = "30px";
-                      img.style.borderRadius = "4px";
-                      img.style.marginRight = "5px";
-
-                      const textDiv = document.createElement("div");
-                      const cn = document.createElement("div");
-                      cn.textContent = c.clubName;
-                      cn.style.fontWeight = "bold";
-                      const en = document.createElement("div");
-                      en.textContent = c.clubNameEn;
-                      en.style.fontSize = "12px";
-                      en.style.color = "#777";
-                      textDiv.appendChild(cn);
-                      textDiv.appendChild(en);
-
-                      item.appendChild(input);
-                      item.appendChild(img);
-                      item.appendChild(textDiv);
-                      listDiv.appendChild(item);
-                  });
-              })
-
-          container.appendChild(listDiv);
-          return container;
-
+        container.appendChild(listDiv);
+        return container;
       }
-
-
-  </script>
+    </script>
   </body>
 </html>
