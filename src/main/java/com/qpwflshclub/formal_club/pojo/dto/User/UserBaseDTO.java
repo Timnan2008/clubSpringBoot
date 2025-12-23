@@ -34,6 +34,6 @@ public interface UserBaseDTO {
     void setPassword(String password);
     String getEmail();
     void setEmail(String email);
-    List<Club> getClubs();
-    void setClubs(List<Club> clubs);
+    List<Long> getClubs();
+    void setClubs(List<Long> clubs);
 }

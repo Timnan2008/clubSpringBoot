@@ -1,7 +1,9 @@
 package com.qpwflshclub.formal_club.service.User;
 
+import com.qpwflshclub.formal_club.pojo.Club.Club;
 import com.qpwflshclub.formal_club.pojo.User.*;
 import com.qpwflshclub.formal_club.pojo.dto.User.*;
+import com.qpwflshclub.formal_club.repository.Club.ClubRepository;
 import com.qpwflshclub.formal_club.repository.User.AdminRepository;
 import com.qpwflshclub.formal_club.repository.User.ClubPresidentRepository;
 import com.qpwflshclub.formal_club.repository.User.TeacherRepository;
@@ -9,6 +11,9 @@ import com.qpwflshclub.formal_club.repository.User.UserRepository;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService implements IUserService{
@@ -25,20 +30,34 @@ public class UserService implements IUserService{
     @Autowired
     UserRepository userRepository;
 
-
+    @Autowired
+    ClubRepository clubRepository;
 
     //增
     @Override
     public Teacher addTeacher(TeacherDTO teacherDTO) {
         Teacher teacher = new Teacher();
-        BeanUtils.copyProperties(teacherDTO, teacher, "id");
+        BeanUtils.copyProperties(teacherDTO, teacher, "id", "clubs");
         return teacherRepository.save(teacher);
     }
 
     @Override
     public User addUser(UserDTO userDTO) {
         User user = new User();
-        BeanUtils.copyProperties(userDTO, user, "id");
+
+        BeanUtils.copyProperties(userDTO, user, "id", "clubs");
+        // 用 id 查 Club
+        if (userDTO.getClubs() != null && !userDTO.getClubs().isEmpty()) {
+            List<Integer> ids = userDTO.getClubs()
+                    .stream()
+                    .map(Long::intValue)
+                    .collect(Collectors.toList());
+
+            List<Club> clubs = (List<Club>) clubRepository.findAllById(ids);
+
+            user.setClubs(clubs);
+        }
+
         return userRepository.save(user);
     }
 
@@ -130,6 +149,26 @@ public class UserService implements IUserService{
     @Override
     public User findUserById(Long id) {
         return userRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("没有找到该用户"));
+    }
+
+    @Override
+    public boolean hasUser(String nameEn){
+        for(User user : userRepository.findAll()){
+            if(user.getUsernameEn().equals(nameEn)){
+                return true;
+            }
+        }
+        for(Teacher teacher : teacherRepository.findAll()){
+            if(teacher.getUsernameEn().equals(nameEn)){
+                return true;
+            }
+        }
+        for (ClubPresident cp : clubPresidentRepository.findAll()){
+            if(cp.getUsernameEn().equals(nameEn)){
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

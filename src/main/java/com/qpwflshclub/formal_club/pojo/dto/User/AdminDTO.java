@@ -35,7 +35,7 @@ public class AdminDTO implements UserBaseDTO{
     @NotNull(message = "管理员邮箱不能为空")
     public String adminEmail;
     @NotNull(message = "管理员的社团不能为空")
-    public List<Club> clubs;
+    public List<Long> clubs;
 
     @Override
     public String getUsername() {
@@ -103,11 +103,11 @@ public class AdminDTO implements UserBaseDTO{
         this.adminEmail = email;
     }
     @Override
-    public List<Club> getClubs() {
+    public List<Long> getClubs() {
         return clubs;
     }
     @Override
-    public void setClubs(List<Club> clubs) {
+    public void setClubs(List<Long> clubs) {
         this.clubs = clubs;
     }
 

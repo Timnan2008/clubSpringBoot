@@ -51,11 +51,11 @@ public class TeacherDTO implements UserBaseDTO{
         this.teacherEmail = teacherEmail;
     }
 
-    public List<Club> getDirectedClubs() {
+    public List<Long> getDirectedClubs() {
         return directedClubs;
     }
 
-    public void setDirectedClubs(List<Club> directedClubs) {
+    public void setDirectedClubs(List<Long> directedClubs) {
         this.directedClubs = directedClubs;
     }
 
@@ -78,7 +78,7 @@ public class TeacherDTO implements UserBaseDTO{
     public final static Integer userRight = 2;
 
     @NotNull(message = "指导的社团不能为空")
-    public List<Club> directedClubs;
+    public List<Long> directedClubs;
 
     @Override
     public String getUsername() {
@@ -122,12 +122,12 @@ public class TeacherDTO implements UserBaseDTO{
     }
 
     @Override
-    public List<Club> getClubs() {
+    public List<Long> getClubs() {
         return  directedClubs;
     }
 
     @Override
-    public void setClubs(List<Club> clubs) {
+    public void setClubs(List<Long> clubs) {
         this.directedClubs = clubs;
     }
 

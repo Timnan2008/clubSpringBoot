@@ -49,19 +49,19 @@ public class ClubPresidentDTO implements UserBaseDTO{
         this.clubPresidentEmail = clubPresidentEmail;
     }
 
-    public List<Club> getClubPresidentClubs() {
+    public List<Long> getClubPresidentClubs() {
         return clubPresidentClubs;
     }
 
-    public void setClubPresidentClubs(List<Club> clubPresidentClubs) {
+        public void setClubPresidentClubs(List<Long> clubPresidentClubs) {
         this.clubPresidentClubs = clubPresidentClubs;
     }
 
-    public Club getClubPresidentMainClub() {
+    public Long getClubPresidentMainClub() {
         return clubPresidentMainClub;
     }
 
-    public void setClubPresidentMainClub(Club clubPresidentMainClub) {
+    public void setClubPresidentMainClub(Long clubPresidentMainClub) {
         this.clubPresidentMainClub = clubPresidentMainClub;
     }
 
@@ -94,11 +94,11 @@ public class ClubPresidentDTO implements UserBaseDTO{
     private String clubPresidentEmail;
 
     @NotNull(message = "社团不能为空")
-    private List<Club> clubPresidentClubs;
+    private List<Long> clubPresidentClubs;
 
     @ManyToOne
     @NotNull(message = "负责社团不能为空")
-    private Club clubPresidentMainClub;
+    private Long clubPresidentMainClub;
 
     @NotNull(message = "是否为副社长不能为空")
     private boolean isVicePresident;
@@ -138,11 +138,11 @@ public class ClubPresidentDTO implements UserBaseDTO{
         this.clubPresidentEmail = email;
     }
     @Override
-    public List<Club> getClubs() {
+    public List<Long> getClubs() {
         return clubPresidentClubs;
     }
     @Override
-    public void setClubs(List<Club> clubs) {
+    public void setClubs(List<Long> clubs) {
         this.clubPresidentClubs = clubs;
     }
 }

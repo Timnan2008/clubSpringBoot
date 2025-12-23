@@ -68,7 +68,7 @@ public class Admin implements UserBase{
     @Column(name = "admin_email")
     public String adminEmail;
 
-    @Column(name = "user_right")
+
     public final static Integer userRight = 3;
 
     @ManyToMany

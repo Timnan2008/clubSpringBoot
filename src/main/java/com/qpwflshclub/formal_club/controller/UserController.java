@@ -42,6 +42,13 @@ public class UserController {
     @PostMapping("/add/user")
     @ResponseBody
     public ResponseMessage<User> add(@Validated @RequestBody UserDTO userDTO){
+
+        String nameEn = userDTO.getUsernameEn();
+
+        if(userService.hasUser(nameEn)){
+            return ResponseMessage.occupied(userDTO.getUsername(), null);
+        }
+
         User user = userService.addUser(userDTO);
         return ResponseMessage.success(user);
     }

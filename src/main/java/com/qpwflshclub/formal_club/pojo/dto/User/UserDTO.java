@@ -22,7 +22,7 @@ public class UserDTO implements UserBaseDTO{
     public static final Integer userRight = 0;
 
     @NotNull(message = "用户社团不能为空")
-    private List<Club> clubs;
+    private List<Long> clubs;
 
     @Override
     public void setId(Long id) {
@@ -71,11 +71,13 @@ public class UserDTO implements UserBaseDTO{
         this.email = email;
     }
     @Override
-    public List<Club> getClubs() {
+    public List<Long> getClubs() {
         return clubs;
     }
     @Override
-    public void setClubs(List<Club> clubs) {
+    public void setClubs(List<Long> clubs) {
         this.clubs = clubs;
     }
+
+
 }

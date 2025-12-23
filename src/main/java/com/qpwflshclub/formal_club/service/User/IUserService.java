@@ -23,6 +23,8 @@ public interface IUserService {
     ClubPresident findClubPresidentByID(Long id);
     User findUserById(Long id);
 
+    boolean hasUser(String nameEn);
+
     <T extends UserBase> T findByNameEn(String nameEn);
 
 }

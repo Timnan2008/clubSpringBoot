@@ -52,7 +52,7 @@ public class ClubPresident implements UserBase{
     @Column(name = "is_vice_president")
     private boolean isVicePresident;
 
-    @Column(name = "user_right")
+
     public final static Integer userRight = 1;
 
     public boolean isVicePresident() {

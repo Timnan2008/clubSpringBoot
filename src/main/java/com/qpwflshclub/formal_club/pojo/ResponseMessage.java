@@ -20,6 +20,10 @@ public class ResponseMessage <T>{
         this.data = data;
     }
 
+    public static <T> ResponseMessage<T> occupied(String name,T data){
+        return new ResponseMessage<>(400,name+"已存在", data);
+    }
+
     //接口请求成功
     public static <T> ResponseMessage<T> success(T data){
         return  new ResponseMessage<>(HttpStatus.OK.value(), "请求成功", data);

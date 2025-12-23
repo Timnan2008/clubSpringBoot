@@ -287,7 +287,7 @@
       <h1>登录 / 注册</h1>
       <div class="row">
         <input id="name" type="text" placeholder="中文名" />
-        <input id="name_en" type="text" placeholder="英文名" />
+        <input id="nameEn" type="text" placeholder="英文名" />
       </div>
       <input id="email" type="email" placeholder="邮箱" />
       <input id="password" type="password" placeholder="密码" />
@@ -313,54 +313,82 @@
           return;
         }
 
-        alert("提交成功！");
+        sendPost();
       }
 
-      function getFormData() {
-        const role = document.getElementById("role").value;
-        const name = document.getElementById("name").value;
-        const nameEn = document.getElementById("nameEn").value;
-        const password = document.getElementById("password").value;
-        const email = document.getElementById("email").value;
+      function getValue(id) {
+        const el = document.getElementById(id);
+        if (!el) return null;
 
-        let json = {};
+        if (el.type === "checkbox") {
+          return el.checked;
+        }
 
-        if (role === "club-president") {
-          json = {
-            presidentName: name,
-            presidentNameEn: nameEn,
-            presidentPassword: password,
-            presidentEmail: email,
-            userType: "club-president",
-            userClub: clubName,
+        return el.value;
+      }
+
+
+      const roleApiMap = {
+        president: `/api/user/add/club-president`,
+        teacher: "/api/user/add/teacher",
+        user: "/api/user/add/user"
+      };
+
+
+      function getFormDataByRole(role) {
+        if (role === "president") {
+          const managedClubIds = getSelectedClubIds("管理的社团（必须 1 个）");
+          if (managedClubIds.length !== 1) {
+            alert("必须且只能选择 1 个管理的社团");
+            return;
+          }
+          const joinedClubIds = getSelectedClubIds("参与的社团（可多选）");
+          return {
+            clubPresidentName: getValue("name"),
+            clubPresidentNameEn: getValue("nameEn"),
+            clubPresidentPassword: getValue("password"),
+            clubPresidentEmail: getValue("email"),
+            clubPresidentMainClub: managedClubIds[0],
+            clubPresidentClubs: joinedClubIds,
+            userType: "president"
           };
         }
 
         if (role === "teacher") {
-          json = {
-            teacherName: name,
-            teacherNameEn: nameEn,
-            teacherPassword: password,
-            teacherEmail: email,
-            userType: "teacher",
+          const responsibleClubIds = getSelectedClubIds("负责的社团（可多选）");
+          return {
+            teacherName: getValue("name"),
+            teacherNameEn: getValue("nameEn"),
+            teacherPassword: getValue("password"),
+            teacherEmail: getValue("email"),
+            clubs: responsibleClubIds,
+            userType: "teacher"
           };
         }
 
         if (role === "user") {
-          json = {
-            visitorName: name,
-            visitorNameEn: nameEn,
-            visitorEmail: email,
-            visitorPassword: password,
-            userType: "user",
+          return {
+            username: getValue("name"),
+            usernameEn: getValue("nameEn"),
+            password: getValue("password"),
+            email: getValue("email"),
+            clubs: getSelectedClubIds("参与的社团（可多选）"),
+            userType: "user"
           };
         }
-
-        return json;
       }
+
+      function getSelectedClubIds(title) {
+        return [...document.querySelectorAll(
+                `input[name="${title}"]:checked`
+        )].map(i => Number(i.value));
+      }
+
       function sendPost() {
-        const json = getFormData();
         const role = document.getElementById("role").value;
+        console.log("role: " +  role);
+        const json = getFormDataByRole(role);
+        console.log(JSON.stringify(json, null, 2));
 
         fetch("/api/user/add/" + role, {
           method: "POST",
@@ -372,44 +400,14 @@
           .then((res) => res.json())
           .then((data) => {
             console.log("返回：", data);
-            alert("POST 成功");
+            alert(data.message);
           })
-          .catch((err) => console.error(err));
+          .catch((err) => console.error(err.message));
       }
     </script>
 
     <script type="module">
       // 点击选项显示社团列表（可单选 or 多选）
-      function createSelectBox(title, fieldId, multiple = true) {
-        return `
-    <div class="select-box" onclick="toggleClubList('${fieldId}')">${title}</div>
-    <div id="${fieldId}" class="club-list">
-        ${clubs
-          .map(
-            (c) => `
-            <label>
-                <input type="${multiple ? "checkbox" : "radio"}"
-                       name="${fieldId}${multiple ? "[]" : ""}"
-                       value="${c.id}">
-                ${c.name}
-            </label>
-        `
-          )
-          .join("")}
-    </div>
-    `;
-      }
-
-      function toggleClubList(id) {
-        const box = document.getElementById(id);
-        box.style.display = box.style.display === "block" ? "none" : "block";
-      }
-
-      // 提交按钮逻辑（根据需求改）
-      function validateForm() {
-        alert("提交成功（示例）");
-      }
-
       function onRoleChange() {
         const role = document.getElementById("role").value;
         const area = document.getElementById("dynamic-area");
