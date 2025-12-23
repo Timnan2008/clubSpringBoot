@@ -77,7 +77,7 @@ public class TeacherDTO implements UserBaseDTO{
 
     public final static Integer userRight = 2;
 
-    @NotNull(message = "指导的社团不能为空")
+
     public List<Long> directedClubs;
 
     @Override

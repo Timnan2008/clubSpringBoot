@@ -328,13 +328,6 @@
       }
 
 
-      const roleApiMap = {
-        president: `/api/user/add/club-president`,
-        teacher: "/api/user/add/teacher",
-        user: "/api/user/add/user"
-      };
-
-
       function getFormDataByRole(role) {
         if (role === "president") {
           const managedClubIds = getSelectedClubIds("管理的社团（必须 1 个）");

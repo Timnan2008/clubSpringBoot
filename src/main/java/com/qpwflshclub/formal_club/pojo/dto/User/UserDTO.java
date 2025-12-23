@@ -21,7 +21,7 @@ public class UserDTO implements UserBaseDTO{
 
     public static final Integer userRight = 0;
 
-    @NotNull(message = "用户社团不能为空")
+    
     private List<Long> clubs;
 
     @Override

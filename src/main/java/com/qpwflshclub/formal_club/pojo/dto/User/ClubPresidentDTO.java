@@ -93,14 +93,14 @@ public class ClubPresidentDTO implements UserBaseDTO{
     @NotNull(message = "社长邮箱不能为空")
     private String clubPresidentEmail;
 
-    @NotNull(message = "社团不能为空")
+
     private List<Long> clubPresidentClubs;
 
     @ManyToOne
-    @NotNull(message = "负责社团不能为空")
+
     private Long clubPresidentMainClub;
 
-    @NotNull(message = "是否为副社长不能为空")
+
     private boolean isVicePresident;
 
     public final static Integer userRight = 1;

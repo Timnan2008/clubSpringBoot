@@ -34,7 +34,7 @@ public class AdminDTO implements UserBaseDTO{
     public String adminPassword;
     @NotNull(message = "管理员邮箱不能为空")
     public String adminEmail;
-    @NotNull(message = "管理员的社团不能为空")
+
     public List<Long> clubs;
 
     @Override
