@@ -8,6 +8,5 @@ import java.util.Optional;
 
 @Repository
 public interface ClubRepository extends CrudRepository<Club, Integer> {
-
     Optional<Club> findByClubNameEn(String clubName);
 }

@@ -21,7 +21,7 @@ public class UserDTO implements UserBaseDTO{
 
     public static final Integer userRight = 0;
 
-    
+
     private List<Long> clubs;
 
     @Override
