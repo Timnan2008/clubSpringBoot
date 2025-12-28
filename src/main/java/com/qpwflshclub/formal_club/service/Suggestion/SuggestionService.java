@@ -5,9 +5,11 @@ import com.qpwflshclub.formal_club.pojo.dto.Suggestion.SuggestionDTO;
 import com.qpwflshclub.formal_club.repository.Suggestion.SuggestionRepository;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Service
 public class SuggestionService implements ISuggestionService{
 
     @Autowired
