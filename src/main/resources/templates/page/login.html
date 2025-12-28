@@ -110,6 +110,7 @@
       .club-list-container {
         margin-top: 8px;
         padding: 10px;
+
         border: 1px solid #d1d5db;
         border-radius: 8px;
         background-color: #ffffff;
@@ -119,8 +120,10 @@
       .club-item {
         display: flex;
         align-items: center;
+
         padding: 8px 10px;
         margin-bottom: 6px;
+
         border-radius: 6px;
         cursor: pointer;
         transition: background-color 0.2s ease;
@@ -148,13 +151,16 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
+
         padding: 14px 18px;
         border-radius: 10px;
         background-color: #f8fafc;
         border: 1px solid #cbd5e1;
+
         font-size: 16px;
         font-weight: 600;
         cursor: pointer;
+
         transition: all 0.25s ease;
       }
 
@@ -178,8 +184,10 @@
         width: 26px;
         height: 26px;
         border-radius: 6px;
+
         border: 2px solid #94a3b8;
         background-color: white;
+
         position: relative;
         transition: all 0.2s ease;
       }
@@ -194,10 +202,13 @@
       .vice-checkbox:checked + .vice-box::after {
         content: "";
         position: absolute;
+
         left: 7px;
         top: 3px;
+
         width: 6px;
         height: 12px;
+
         border: solid white;
         border-width: 0 3px 3px 0;
         transform: rotate(45deg);
@@ -212,11 +223,14 @@
         display: flex;
         align-items: center;
         gap: 12px;
+
         padding: 10px 12px;
         margin-bottom: 8px;
+
         border-radius: 10px;
         background-color: #ffffff;
         border: 1px solid #e5e7eb;
+
         cursor: pointer;
         transition: all 0.2s ease;
       }
@@ -313,25 +327,25 @@
       }
 
       function getFormDataByRole(role) {
-        if (role === "student") {
-          return {
-            name: getValue("name"),
-            nameEn: getValue("nameEn"),
-            password: getValue("password"),
-            email: getValue("email"),
-            userType: "student",
-          };
-        }
-
         if (role === "teacher") {
           const responsibleClubIds = getSelectedClubIds("负责的社团（可多选）");
           return {
-            name: getValue("name"),
-            nameEn: getValue("nameEn"),
-            password: getValue("password"),
-            email: getValue("email"),
+            teacherName: getValue("name"),
+            teacherNameEn: getValue("nameEn"),
+            teacherPassword: getValue("password"),
+            teacherEmail: getValue("email"),
             clubs: responsibleClubIds,
             userType: "teacher",
+          };
+        }
+
+        if (role === "user") {
+          return {
+            username: getValue("name"),
+            usernameEn: getValue("nameEn"),
+            password: getValue("password"),
+            email: getValue("email"),
+            userType: "user",
           };
         }
       }
@@ -365,106 +379,11 @@
     </script>
 
     <script type="module">
-      // 社团数据
-      const clubData = [
-        {
-          id: 1,
-          clubItem: "https://via.placeholder.com/50",
-          clubName: "篮球社",
-          clubNameEn: "Basketball Club",
-        },
-        {
-          id: 2,
-          clubItem: "https://via.placeholder.com/50",
-          clubName: "足球社",
-          clubNameEn: "Football Club",
-        },
-        {
-          id: 3,
-          clubItem: "https://via.placeholder.com/50",
-          clubName: "乒乓球社",
-          clubNameEn: "Table Tennis Club",
-        },
-        {
-          id: 4,
-          clubItem: "https://via.placeholder.com/50",
-          clubName: "羽毛球社",
-          clubNameEn: "Badminton Club",
-        },
-        {
-          id: 5,
-          clubItem: "https://via.placeholder.com/50",
-          clubName: "网球社",
-          clubNameEn: "Tennis Club",
-        },
-        {
-          id: 6,
-          clubItem: "https://via.placeholder.com/50",
-          clubName: "游泳社",
-          clubNameEn: "Swimming Club",
-        },
-        {
-          id: 7,
-          clubItem: "https://via.placeholder.com/50",
-          clubName: "舞蹈社",
-          clubNameEn: "Dance Club",
-        },
-        {
-          id: 8,
-          clubItem: "https://via.placeholder.com/50",
-          clubName: "音乐社",
-          clubNameEn: "Music Club",
-        },
-        {
-          id: 9,
-          clubItem: "https://via.placeholder.com/50",
-          clubName: "美术社",
-          clubNameEn: "Art Club",
-        },
-        {
-          id: 10,
-          clubItem: "https://via.placeholder.com/50",
-          clubName: "摄影社",
-          clubNameEn: "Photography Club",
-        },
-        {
-          id: 11,
-          clubItem: "https://via.placeholder.com/50",
-          clubName: "编程社",
-          clubNameEn: "Programming Club",
-        },
-        {
-          id: 12,
-          clubItem: "https://via.placeholder.com/50",
-          clubName: "机器人社",
-          clubNameEn: "Robotics Club",
-        },
-        {
-          id: 13,
-          clubItem: "https://via.placeholder.com/50",
-          clubName: "戏剧社",
-          clubNameEn: "Drama Club",
-        },
-        {
-          id: 14,
-          clubItem: "https://via.placeholder.com/50",
-          clubName: "文学社",
-          clubNameEn: "Literature Club",
-        },
-        {
-          id: 15,
-          clubItem: "https://via.placeholder.com/50",
-          clubName: "辩论社",
-          clubNameEn: "Debate Club",
-        },
-      ];
-
       // 点击选项显示社团列表（可单选 or 多选）
       function onRoleChange() {
         const role = document.getElementById("role").value;
         const area = document.getElementById("dynamic-area");
         area.innerHTML = ""; // 清空
-
         if (role === "teacher") {
           area.appendChild(createClubButton("负责的社团（可多选）", true));
         }
@@ -492,42 +411,45 @@
         listDiv.style.padding = "5px";
         listDiv.style.marginBottom = "10px";
 
-        // 使用本地数据
-        const clubs = clubData;
-        console.log(clubs);
-        clubs.forEach((c) => {
-          const item = document.createElement("label");
-          item.className = "club-item";
+        fetch(`/api/club/all`)
+          .then((j) => j.json())
+          .then((result) => {
+            const clubs = result.data;
+            console.log(clubs);
+            clubs.forEach((c) => {
+              const item = document.createElement("label");
+              item.className = "club-item";
 
-          const input = document.createElement("input");
-          input.className = "club-checkbox";
-          input.type = multiple ? "checkbox" : "radio";
-          input.name = title;
-          input.value = c.id;
+              const input = document.createElement("input");
+              input.className = "club-checkbox";
+              input.type = multiple ? "checkbox" : "radio";
+              input.name = title;
+              input.value = c.id;
 
-          const img = document.createElement("img");
-          img.src = c.clubItem;
-          img.className = "club-avatar";
+              const img = document.createElement("img");
+              img.src = c.clubItem;
+              img.className = "club-avatar";
 
-          const textDiv = document.createElement("div");
-          textDiv.className = "club-text";
+              const textDiv = document.createElement("div");
+              textDiv.className = "club-text";
 
-          const cn = document.createElement("div");
-          cn.className = "club-name-cn";
-          cn.textContent = c.clubName;
+              const cn = document.createElement("div");
+              cn.className = "club-name-cn";
+              cn.textContent = c.clubName;
 
-          const en = document.createElement("div");
-          en.className = "club-name-en";
-          en.textContent = c.clubNameEn;
+              const en = document.createElement("div");
+              en.className = "club-name-en";
+              en.textContent = c.clubNameEn;
 
-          textDiv.appendChild(cn);
-          textDiv.appendChild(en);
+              textDiv.appendChild(cn);
+              textDiv.appendChild(en);
 
-          item.appendChild(input);
-          item.appendChild(img);
-          item.appendChild(textDiv);
-          listDiv.appendChild(item);
-        });
+              item.appendChild(input);
+              item.appendChild(img);
+              item.appendChild(textDiv);
+              listDiv.appendChild(item);
+            });
+          });
 
         container.appendChild(listDiv);
         return container;
