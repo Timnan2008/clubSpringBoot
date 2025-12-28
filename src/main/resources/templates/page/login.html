@@ -110,7 +110,6 @@
       .club-list-container {
         margin-top: 8px;
         padding: 10px;
-
         border: 1px solid #d1d5db;
         border-radius: 8px;
         background-color: #ffffff;
@@ -120,10 +119,8 @@
       .club-item {
         display: flex;
         align-items: center;
-
         padding: 8px 10px;
         margin-bottom: 6px;
-
         border-radius: 6px;
         cursor: pointer;
         transition: background-color 0.2s ease;
@@ -151,16 +148,13 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-
         padding: 14px 18px;
         border-radius: 10px;
         background-color: #f8fafc;
         border: 1px solid #cbd5e1;
-
         font-size: 16px;
         font-weight: 600;
         cursor: pointer;
-
         transition: all 0.25s ease;
       }
 
@@ -184,10 +178,8 @@
         width: 26px;
         height: 26px;
         border-radius: 6px;
-
         border: 2px solid #94a3b8;
         background-color: white;
-
         position: relative;
         transition: all 0.2s ease;
       }
@@ -202,13 +194,10 @@
       .vice-checkbox:checked + .vice-box::after {
         content: "";
         position: absolute;
-
         left: 7px;
         top: 3px;
-
         width: 6px;
         height: 12px;
-
         border: solid white;
         border-width: 0 3px 3px 0;
         transform: rotate(45deg);
@@ -223,14 +212,11 @@
         display: flex;
         align-items: center;
         gap: 12px;
-
         padding: 10px 12px;
         margin-bottom: 8px;
-
         border-radius: 10px;
         background-color: #ffffff;
         border: 1px solid #e5e7eb;
-
         cursor: pointer;
         transition: all 0.2s ease;
       }
@@ -294,8 +280,7 @@
       <select id="role" onchange="onRoleChange()">
         <option value="" disabled selected>请选择身份</option>
         <option value="teacher">老师</option>
-        <option value="club-president">社长</option>
-        <option value="user">访客</option>
+        <option value="student">学生</option>
       </select>
 
       <!-- 下面是隐藏区域 -->
@@ -327,59 +312,39 @@
         return el.value;
       }
 
-
       function getFormDataByRole(role) {
-        if (role === "president") {
-          const managedClubIds = getSelectedClubIds("管理的社团（必须 1 个）");
-          if (managedClubIds.length !== 1) {
-            alert("必须且只能选择 1 个管理的社团");
-            return;
-          }
-          const joinedClubIds = getSelectedClubIds("参与的社团（可多选）");
+        if (role === "student") {
           return {
-            clubPresidentName: getValue("name"),
-            clubPresidentNameEn: getValue("nameEn"),
-            clubPresidentPassword: getValue("password"),
-            clubPresidentEmail: getValue("email"),
-            clubPresidentMainClub: managedClubIds[0],
-            clubPresidentClubs: joinedClubIds,
-            userType: "president"
+            name: getValue("name"),
+            nameEn: getValue("nameEn"),
+            password: getValue("password"),
+            email: getValue("email"),
+            userType: "student",
           };
         }
 
         if (role === "teacher") {
           const responsibleClubIds = getSelectedClubIds("负责的社团（可多选）");
           return {
-            teacherName: getValue("name"),
-            teacherNameEn: getValue("nameEn"),
-            teacherPassword: getValue("password"),
-            teacherEmail: getValue("email"),
-            clubs: responsibleClubIds,
-            userType: "teacher"
-          };
-        }
-
-        if (role === "user") {
-          return {
-            username: getValue("name"),
-            usernameEn: getValue("nameEn"),
+            name: getValue("name"),
+            nameEn: getValue("nameEn"),
             password: getValue("password"),
             email: getValue("email"),
-            clubs: getSelectedClubIds("参与的社团（可多选）"),
-            userType: "user"
+            clubs: responsibleClubIds,
+            userType: "teacher",
           };
         }
       }
 
       function getSelectedClubIds(title) {
-        return [...document.querySelectorAll(
-                `input[name="${title}"]:checked`
-        )].map(i => Number(i.value));
+        return [
+          ...document.querySelectorAll(`input[name="${title}"]:checked`),
+        ].map((i) => Number(i.value));
       }
 
       function sendPost() {
         const role = document.getElementById("role").value;
-        console.log("role: " +  role);
+        console.log("role: " + role);
         const json = getFormDataByRole(role);
         console.log(JSON.stringify(json, null, 2));
 
@@ -400,30 +365,105 @@
     </script>
 
     <script type="module">
+      // 社团数据
+      const clubData = [
+        {
+          id: 1,
+          clubItem: "https://via.placeholder.com/50",
+          clubName: "篮球社",
+          clubNameEn: "Basketball Club",
+        },
+        {
+          id: 2,
+          clubItem: "https://via.placeholder.com/50",
+          clubName: "足球社",
+          clubNameEn: "Football Club",
+        },
+        {
+          id: 3,
+          clubItem: "https://via.placeholder.com/50",
+          clubName: "乒乓球社",
+          clubNameEn: "Table Tennis Club",
+        },
+        {
+          id: 4,
+          clubItem: "https://via.placeholder.com/50",
+          clubName: "羽毛球社",
+          clubNameEn: "Badminton Club",
+        },
+        {
+          id: 5,
+          clubItem: "https://via.placeholder.com/50",
+          clubName: "网球社",
+          clubNameEn: "Tennis Club",
+        },
+        {
+          id: 6,
+          clubItem: "https://via.placeholder.com/50",
+          clubName: "游泳社",
+          clubNameEn: "Swimming Club",
+        },
+        {
+          id: 7,
+          clubItem: "https://via.placeholder.com/50",
+          clubName: "舞蹈社",
+          clubNameEn: "Dance Club",
+        },
+        {
+          id: 8,
+          clubItem: "https://via.placeholder.com/50",
+          clubName: "音乐社",
+          clubNameEn: "Music Club",
+        },
+        {
+          id: 9,
+          clubItem: "https://via.placeholder.com/50",
+          clubName: "美术社",
+          clubNameEn: "Art Club",
+        },
+        {
+          id: 10,
+          clubItem: "https://via.placeholder.com/50",
+          clubName: "摄影社",
+          clubNameEn: "Photography Club",
+        },
+        {
+          id: 11,
+          clubItem: "https://via.placeholder.com/50",
+          clubName: "编程社",
+          clubNameEn: "Programming Club",
+        },
+        {
+          id: 12,
+          clubItem: "https://via.placeholder.com/50",
+          clubName: "机器人社",
+          clubNameEn: "Robotics Club",
+        },
+        {
+          id: 13,
+          clubItem: "https://via.placeholder.com/50",
+          clubName: "戏剧社",
+          clubNameEn: "Drama Club",
+        },
+        {
+          id: 14,
+          clubItem: "https://via.placeholder.com/50",
+          clubName: "文学社",
+          clubNameEn: "Literature Club",
+        },
+        {
+          id: 15,
+          clubItem: "https://via.placeholder.com/50",
+          clubName: "辩论社",
+          clubNameEn: "Debate Club",
+        },
+      ];
+
       // 点击选项显示社团列表（可单选 or 多选）
       function onRoleChange() {
         const role = document.getElementById("role").value;
         const area = document.getElementById("dynamic-area");
         area.innerHTML = ""; // 清空
-
-        if (role === "user") {
-          area.appendChild(createClubButton("参与的社团（可多选）", true));
-        }
-
-        if (role === "club-president") {
-          area.appendChild(createClubButton("管理的社团（必须 1 个）", false));
-          area.appendChild(createClubButton("参与的社团（可多选）", true));
-
-          // 副社长 Boolean
-          const viceDiv = document.createElement("div");
-          viceDiv.className = "vice-toggle";
-          viceDiv.innerHTML = `<label class="vice-label">
-              <span class="vice-text">是否为副社长</span>
-              <input type="checkbox" class="vice-checkbox" />
-              <span class="vice-box"></span>
-              </label>`;
-          area.appendChild(viceDiv);
-        }
 
         if (role === "teacher") {
           area.appendChild(createClubButton("负责的社团（可多选）", true));
@@ -452,45 +492,42 @@
         listDiv.style.padding = "5px";
         listDiv.style.marginBottom = "10px";
 
-        fetch(`/api/club/all`)
-          .then((j) => j.json())
-          .then((result) => {
-            const clubs = result.data;
-            console.log(clubs);
-            clubs.forEach((c) => {
-              const item = document.createElement("label");
-              item.className = "club-item";
+        // 使用本地数据
+        const clubs = clubData;
+        console.log(clubs);
+        clubs.forEach((c) => {
+          const item = document.createElement("label");
+          item.className = "club-item";
 
-              const input = document.createElement("input");
-              input.className = "club-checkbox";
-              input.type = multiple ? "checkbox" : "radio";
-              input.name = title;
-              input.value = c.id;
+          const input = document.createElement("input");
+          input.className = "club-checkbox";
+          input.type = multiple ? "checkbox" : "radio";
+          input.name = title;
+          input.value = c.id;
 
-              const img = document.createElement("img");
-              img.src = c.clubItem;
-              img.className = "club-avatar";
+          const img = document.createElement("img");
+          img.src = c.clubItem;
+          img.className = "club-avatar";
 
-              const textDiv = document.createElement("div");
-              textDiv.className = "club-text";
+          const textDiv = document.createElement("div");
+          textDiv.className = "club-text";
 
-              const cn = document.createElement("div");
-              cn.className = "club-name-cn";
-              cn.textContent = c.clubName;
+          const cn = document.createElement("div");
+          cn.className = "club-name-cn";
+          cn.textContent = c.clubName;
 
-              const en = document.createElement("div");
-              en.className = "club-name-en";
-              en.textContent = c.clubNameEn;
+          const en = document.createElement("div");
+          en.className = "club-name-en";
+          en.textContent = c.clubNameEn;
 
-              textDiv.appendChild(cn);
-              textDiv.appendChild(en);
+          textDiv.appendChild(cn);
+          textDiv.appendChild(en);
 
-              item.appendChild(input);
-              item.appendChild(img);
-              item.appendChild(textDiv);
-              listDiv.appendChild(item);
-            });
-          });
+          item.appendChild(input);
+          item.appendChild(img);
+          item.appendChild(textDiv);
+          listDiv.appendChild(item);
+        });
 
         container.appendChild(listDiv);
         return container;
