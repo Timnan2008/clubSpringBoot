@@ -19,7 +19,7 @@ public class Suggestion {
     private boolean isAnonymous;
 
     @Column(name = "name")
-    private String Name;
+    private String name;
 
     public String getContext() {
         return context;
@@ -38,11 +38,11 @@ public class Suggestion {
     }
 
     public String getName() {
-        return Name;
+        return name;
     }
 
     public void setName(String name) {
-        Name = name;
+        this.name = name;
     }
 
     public void setId(Long id) {
