@@ -114,6 +114,8 @@ document.getElementById('form').addEventListener('submit', async (e) => {
     isAnonymous: anon,
     Name: anon ? '' : name
   };
+
+  console.log(suggestionData);
   
   try {
     // 4) 发送POST请求到后端

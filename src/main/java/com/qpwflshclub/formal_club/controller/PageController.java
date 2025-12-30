@@ -81,4 +81,9 @@ public class PageController {
     public String loginPage(Model model) {
         return "page/login";
     }
+
+    @GetMapping("/suggestion")
+    public String suggestionPage(Model model) {
+        return "page/advice";
+    }
 }

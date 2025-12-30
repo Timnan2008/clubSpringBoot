@@ -6,6 +6,7 @@ import com.qpwflshclub.formal_club.pojo.dto.Suggestion.SuggestionDTO;
 import com.qpwflshclub.formal_club.repository.Suggestion.SuggestionRepository;
 import com.qpwflshclub.formal_club.service.Suggestion.ISuggestionService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,13 +19,15 @@ public class SuggestionController {
     ISuggestionService suggestionService;
 
     @PostMapping()
-    public ResponseMessage<Suggestion> addSuggestion(SuggestionDTO suggestionDTO) {
+    @ResponseBody
+    public ResponseMessage<Suggestion> addSuggestion(@Validated @RequestBody SuggestionDTO suggestionDTO) {
         Suggestion suggestion = suggestionService.add(suggestionDTO);
         return ResponseMessage.success(suggestion);
     }
 
     @PutMapping()
-    public ResponseMessage<Suggestion> updateSuggestion(SuggestionDTO suggestionDTO) {
+    @ResponseBody
+    public ResponseMessage<Suggestion> updateSuggestion(@Validated @RequestBody SuggestionDTO suggestionDTO) {
         Suggestion suggestion = suggestionService.update(suggestionDTO);
         return ResponseMessage.success(suggestion);
     }
