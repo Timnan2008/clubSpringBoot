@@ -307,8 +307,8 @@
       function validateForm() {
         const email = document.getElementById("email").value;
 
-        if (!email.includes("@") || !email.endsWith(".com")) {
-          alert("请输入有效的邮箱地址（必须包含 @ 和以 .com 结尾）");
+        if (!email.includes("@") || !email.endsWith("shwfl.edu.cn")) {
+          alert("请输入有效的邮箱地址（必须包含 @ 和以 shwfl.edu.cn 结尾）");
           return;
         }
 
@@ -329,6 +329,7 @@
       function getFormDataByRole(role) {
         if (role === "teacher") {
           const responsibleClubIds = getSelectedClubIds("负责的社团（可多选）");
+          console.log(responsibleClubIds);
           return {
             teacherName: getValue("name"),
             teacherNameEn: getValue("nameEn"),
