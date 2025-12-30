@@ -20,6 +20,34 @@
     .empty { padding:16px; text-align:center; color:#6b7280; }
     .flex { display:flex; gap:12px; }
     @media(max-width:640px){ .flex{ flex-direction:column; } }
+        /* 防刷验证 */
+    #captchaQ { margin:12px 0; color:#880e4f; font-size:16px; }
+    
+    h3 { margin-top:0; color:#ad1457; font-size:20px; display:flex; align-items:center; }
+    h3::before { content:"💖"; margin-right:8px; }
+    
+    /* 建议项样式 */
+    .suggestion-item { background: linear-gradient(135deg, #ffffff 0%, #ffebee 100%); border:2px solid #f8bbd0; border-radius:16px; padding:16px; margin-bottom:16px; box-shadow:0 4px 12px rgba(233, 30, 99, 0.08); transition: all 0.3s ease; }
+    .suggestion-item:hover { transform: translateY(-2px); box-shadow:0 6px 16px rgba(233, 30, 99, 0.12); border-color:#e91e63; }
+    
+    /* 建议头部 */
+    .suggestion-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px; }
+    
+    /* 建议标题 */
+    .suggestion-title { font-weight:600; font-size:14px; padding:6px 12px; border-radius:20px; color:rgb(0, 0, 0); }
+    .suggestion-title.general { background: linear-gradient(135deg, #ffb3e5 0%, #ff85c0 100%); }
+    .suggestion-title.bug { background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%); color:#880e4f; }
+    .suggestion-title.feature { background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%); color:#1a237e; }
+    
+    /* 建议元信息 */
+    .suggestion-meta { font-size:12px; color:#ad1457; background:#fce4ec; padding:4px 8px; border-radius:12px; }
+    
+    /* 建议内容 */
+    .suggestion-content { color:#5d4037; line-height:1.6; font-size:14px; padding:8px 0; word-break:break-word; }
+    
+    /* 空状态 */
+    .empty { padding:40px 20px; text-align:center; color:#c2185b; font-size:16px; background:#fff8fa; border:2px dashed #f8bbd0; border-radius:16px; }
+    .empty::before { content:"🌸"; font-size:24px; display:block; margin-bottom:8px; }
   </style>
 </head>
 <body>
@@ -112,7 +140,7 @@ document.getElementById('form').addEventListener('submit', async (e) => {
     title: category, // 使用分类作为标题
     context: msg,
     isAnonymous: anon,
-    Name: anon ? '' : name
+    name: anon ? '' : name
   };
 
   console.log(suggestionData);
@@ -141,6 +169,86 @@ document.getElementById('form').addEventListener('submit', async (e) => {
     alert('操作失败：' + error.message);
   }
 });
+// -------- 获取历史记录 --------
+async function fetchSuggestions() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/all`);
+    if (!response.ok) {
+      throw new Error('获取历史记录失败');
+    }
+    const result = await response.json();
+    if (result.code === 200 && result.data) {
+      renderSuggestions(result.data);
+    } else {
+      renderEmpty();
+    }
+  } catch (error) {
+    console.error('获取历史记录失败:', error);
+    renderEmpty();
+  }
+}
+
+// -------- 渲染历史记录 --------
+function renderSuggestions(suggestions) {
+  const listContainer = document.getElementById('list');
+  listContainer.innerHTML = '';
+  
+  if (suggestions.length === 0) {
+    renderEmpty();
+    return;
+  }
+  
+  // 按ID降序排序，最新的在前面
+  suggestions.sort((a, b) => b.id - a.id);
+  
+  suggestions.forEach(suggestion => {
+    const suggestionItem = document.createElement('div');
+    suggestionItem.className = 'suggestion-item';
+    
+    // 标题和匿名信息
+    const header = document.createElement('div');
+    header.className = 'suggestion-header';
+    
+    const title = document.createElement('span');
+    title.className = 'suggestion-title';
+    title.textContent = getTitleText(suggestion.title);
+    
+    const meta = document.createElement('span');
+    meta.className = 'suggestion-meta';
+    meta.textContent = suggestion.isAnonymous ? '匿名' : (suggestion.name || '未知');
+    
+    header.appendChild(title);
+    header.appendChild(meta);
+    
+    // 内容
+    const content = document.createElement('div');
+    content.className = 'suggestion-content';
+    content.textContent = suggestion.context;
+    
+    suggestionItem.appendChild(header);
+    suggestionItem.appendChild(content);
+    listContainer.appendChild(suggestionItem);
+  });
+}
+
+// -------- 渲染空状态 --------
+function renderEmpty() {
+  const listContainer = document.getElementById('list');
+  listContainer.innerHTML = '<div class="empty">暂无历史记录</div>';
+}
+
+// -------- 获取标题文本 --------
+function getTitleText(title) {
+  const titleMap = {
+    'general': '一般建议',
+    'bug': '错误 / Bug',
+    'feature': '功能请求'
+  };
+  return titleMap[title] || title;
+}
+
+// -------- 页面加载时获取历史记录 --------
+document.addEventListener('DOMContentLoaded', fetchSuggestions);
 </script>
 </body>
 </html>
