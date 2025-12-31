@@ -5,35 +5,126 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title data-i18n="main:title">首页</title>
     <style>
-      body {
-        margin: 0;
-        font-family: sans-serif;
-        background-color: #f7f7f7;
-        background-image: url("../../static/other photo/leaves.png");
-        background-size: cover;
-        background-repeat: no-repeat;
-        background-attachment: fixed;
-      }
+      /* 基础样式重置 */
       * {
         margin: 0;
         padding: 0;
         list-style: none;
         text-decoration: none;
+        box-sizing: border-box;
       }
+
+      /* 柔和的亮色系背景 */
+      body {
+        font-family: 'Segoe UI', 'Roboto', sans-serif;
+        background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 50%, #e8ecff 100%);
+        color: #33384d;
+        min-height: 100vh;
+        padding: 20px;
+        position: relative;
+        overflow-x: hidden;
+      }
+
+      /* 动态网格背景 - 柔和增强效果 */
+      body::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: 
+          linear-gradient(rgba(140, 160, 255, 0.15) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(140, 160, 255, 0.15) 1px, transparent 1px);
+        background-size: 50px 50px;
+        animation: 
+          gridMove 20s linear infinite,
+          gridPulse 3s ease-in-out infinite alternate;
+        z-index: -4;
+      }
+
+      /* 柔和的霓虹光效 */
+      body::after {
+        content: '';
+        position: fixed;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: 
+          radial-gradient(circle, rgba(140, 160, 255, 0.1) 0%, transparent 70%),
+          radial-gradient(circle, rgba(160, 140, 255, 0.08) 0%, transparent 70%),
+          radial-gradient(circle, rgba(120, 180, 255, 0.06) 0%, transparent 70%);
+        background-position: 0% 0%, 50% 50%, 100% 100%;
+        background-size: 100% 100%, 80% 80%, 60% 60%;
+        animation: 
+          pulse 4s ease-in-out infinite,
+          backgroundShift 8s ease-in-out infinite;
+        z-index: -3;
+      }
+
+      /* 网格移动效果 */
+      @keyframes gridMove {
+        0% {
+          background-position: 0px 0px;
+        }
+        100% {
+          background-position: 50px 50px;
+        }
+      }
+
+      /* 网格脉冲效果 */
+      @keyframes gridPulse {
+        0% {
+          opacity: 0.6;
+        }
+        100% {
+          opacity: 1;
+        }
+      }
+
+      /* 脉冲效果 */
+      @keyframes pulse {
+        0%, 100% {
+          opacity: 0.6;
+        }
+        50% {
+          opacity: 1;
+        }
+      }
+
+      /* 背景移动效果 */
+      @keyframes backgroundShift {
+        0%, 100% {
+          background-position: 0% 0%, 50% 50%, 100% 100%;
+        }
+        33% {
+          background-position: 10% 10%, 60% 40%, 90% 90%;
+        }
+        66% {
+          background-position: 20% 0%, 40% 60%, 80% 80%;
+        }
+      }
+      /* 导航栏样式 - 玻璃态效果 */
       .navbar {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        background-color: white;
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
         margin: 0;
         padding: 10px 30px;
         height: 100px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        box-shadow: 
+          0 4px 20px rgba(0, 0, 0, 0.1),
+          inset 0 1px 0 rgba(255, 255, 255, 0.9);
         position: sticky;
         top: 0;
         left: 0;
         right: 0;
         z-index: 1000;
+        border-radius: 16px;
       }
       .navbar-top {
         display: flex;
@@ -56,11 +147,11 @@
       .school-cn {
         font-size: 18px;
         font-weight: bold;
-        color: #444;
+        color: #33384d;
       }
       .school-en {
         font-size: 12px;
-        color: #777;
+        color: #6b7296;
         text-transform: uppercase;
       }
       .navbar-links {
@@ -70,12 +161,12 @@
       .navbar-links a {
         margin-left: 20px;
         text-decoration: none;
-        color: #242525;
+        color: #4a5072;
         font-weight: 500;
         transition: color 0.3s;
       }
       .navbar-links a:hover {
-        color: #0056b3;
+        color: #606ef2;
       }
       .dropdown {
         position: relative;
@@ -83,65 +174,75 @@
       }
       .dropbtn {
         padding: 10px;
-        color: #242525;
+        color: #4a5072;
         font-weight: 500;
         text-decoration: none;
         cursor: pointer;
         transition: color 0.3s;
       }
       .dropbtn:hover {
-        color: #0056b3;
+        color: #606ef2;
       }
       .dropdown-content {
         display: none;
         position: absolute;
-        background-color: white;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
         min-width: 180px;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
         z-index: 1001;
         border-radius: 8px;
         overflow: hidden;
         top: 100%;
         left: 0;
+        border: 1px solid rgba(140, 160, 255, 0.25);
       }
       .dropdown-content a {
-        color: #242525;
+        color: #4a5072;
         padding: 12px 16px;
         text-decoration: none;
         display: block;
         font-size: 14px;
         transition: background-color 0.2s, color 0.2s;
+        margin-left: 0;
       }
       .dropdown-content a:hover {
-        background-color: #f0f0f0;
-        color: #007bff;
+        background: rgba(140, 160, 255, 0.2);
+        color: #606ef2;
       }
       .dropdown:hover .dropdown-content {
         display: block;
       }
+      /* 按钮样式 - 柔和设计 */
       .button {
         display: inline-block;
-        background-color: #213cf1;
+        background: linear-gradient(135deg, rgba(140, 160, 255, 0.8) 0%, rgba(160, 140, 255, 0.8) 100%);
         color: #fff;
         padding: 8px 16px;
         border: none;
-        border-radius: 6px;
+        border-radius: 12px;
         text-decoration: none;
         font-size: 14px;
         margin-top: 14px;
         cursor: pointer;
-        transition: background 0.2s;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        box-shadow: 0 4px 12px rgba(140, 160, 255, 0.2);
       }
       .button:hover {
-        background-color: #388e3c;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(140, 160, 255, 0.3);
       }
       h1 {
         text-align: center;
         font-size: 50px;
         font-weight: bold;
-        color: #333333;
+        color: #e0e6ff;
         margin: 40px 0 20px 0;
         letter-spacing: 2px;
+        text-shadow: 0 0 10px rgba(140, 160, 255, 0.5);
       }
       .notice-board {
         display: grid;
@@ -153,36 +254,52 @@
       }
 
       .notice {
-        background-color: #ffffff;
-        border-left: 5px solid #007bff;
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-left: 5px solid rgba(140, 160, 255, 0.8);
         padding: 15px;
         font-size: 14px;
-        color: #333;
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        transition: transform 0.2s ease;
+        color: #33384d;
+        border-radius: 12px;
+        box-shadow: 
+          0 4px 20px rgba(0, 0, 0, 0.1),
+          inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        transition: all 0.3s ease;
         line-height: 1.6;
         white-space: normal;
         word-wrap: break-word;
+        border: 1px solid rgba(140, 160, 255, 0.25);
       }
       .notice:hover {
         transform: translateY(-3px);
+        box-shadow: 
+          0 8px 32px rgba(0, 0, 0, 0.15),
+          inset 0 1px 0 rgba(255, 255, 255, 0.9);
       }
       .notice-important {
-        background-color: #ffffff;
-        border-left: 5px solid #e30808;
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-left: 5px solid rgba(255, 100, 100, 0.8);
         padding: 15px;
         font-size: 14px;
-        color: #333;
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        transition: transform 0.2s ease;
+        color: #33384d;
+        border-radius: 12px;
+        box-shadow: 
+          0 4px 20px rgba(0, 0, 0, 0.1),
+          inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        transition: all 0.3s ease;
         line-height: 1.6;
         white-space: normal;
         word-wrap: break-word;
+        border: 1px solid rgba(255, 100, 100, 0.25);
       }
       .notice-important:hover {
         transform: translateY(-3px);
+        box-shadow: 
+          0 8px 32px rgba(0, 0, 0, 0.15),
+          inset 0 1px 0 rgba(255, 255, 255, 0.9);
       }
       .scroll-wrapper {
         position: relative;
@@ -234,18 +351,27 @@
         font-size: 14px;
         white-space: nowrap;
       }
+      /* 卡片样式 - 玻璃态效果 */
       .card {
         flex: 0 0 auto;
         width: 250px;
         height: 390px;
-        background-color: white;
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
         border-radius: 16px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        box-shadow: 
+          0 4px 20px rgba(0, 0, 0, 0.1),
+          inset 0 1px 0 rgba(255, 255, 255, 0.9);
         overflow: hidden;
-        transition: transform 0.2s ease;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(140, 160, 255, 0.25);
       }
       .card:hover {
         transform: scale(1.03);
+        box-shadow: 
+          0 8px 32px rgba(0, 0, 0, 0.15),
+          inset 0 1px 0 rgba(255, 255, 255, 0.9);
       }
       .card img {
         width: 100%;
@@ -259,16 +385,17 @@
       .card h2 {
         margin: 0 0 10px;
         font-size: 18px;
+        color: #33384d;
       }
       .card p {
         font-size: 14px;
-        color: #555;
+        color: #6b7296;
       }
       .credit {
         margin-top: 50px;
         text-align: center;
         font-size: 13px;
-        color: #888;
+        color: #9096b0;
         font-style: italic;
       }
 
@@ -277,15 +404,17 @@
         top: 0;
         left: 0;
         width: 100%;
-        background-color: #ff4d4f;
+        background: rgba(255, 100, 100, 0.8);
         color: white;
         text-align: center;
-        padding: 12px 48px 12px 20px; /* 右侧留更宽空间 */
+        padding: 12px 48px 12px 20px;
         font-size: 16px;
         z-index: 9999;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         display: none;
-        box-sizing: border-box; /* 确保 padding 不导致溢出 */
+        box-sizing: border-box;
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
       }
 
       .warning-bar .close-btn {
@@ -310,22 +439,30 @@
       }
 
       .notice-critical {
-          background-color: #ffff00; /* 荧光黄 */
-          border-left: 5px solid #ff0000; /* 左侧红色边框增强警示感 */
+          background: rgba(255, 255, 255, 0.75);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border-left: 5px solid rgba(255, 200, 100, 0.8);
           padding: 15px;
           font-size: 14px;
-          color: #333;
-          border-radius: 8px;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-          transition: transform 0.2s ease;
+          color: #33384d;
+          border-radius: 12px;
+          box-shadow: 
+            0 4px 20px rgba(0, 0, 0, 0.1),
+            inset 0 1px 0 rgba(255, 255, 255, 0.9);
+          transition: all 0.3s ease;
           line-height: 1.6;
           white-space: normal;
           word-wrap: break-word;
-          font-weight: bold; /* 加粗文字 */
+          font-weight: bold;
+          border: 1px solid rgba(255, 200, 100, 0.25);
       }
 
       .notice-critical:hover {
-          transform: translateY(-3px); /* 悬停时轻微上移 */
+          transform: translateY(-3px);
+          box-shadow: 
+            0 8px 32px rgba(0, 0, 0, 0.15),
+            inset 0 1px 0 rgba(255, 255, 255, 0.9);
       }
 
       .search {
@@ -339,9 +476,9 @@
         .search__input {
           font-family: inherit;
           font-size: inherit;
-          background-color: #f4f2f2;
-          border: none;
-          color: #646464;
+          background: rgba(255, 255, 255, 0.75);
+          border: 1px solid rgba(140, 160, 255, 0.25);
+          color: #33384d;
           padding: 0.7rem 1rem;
           border-radius: 30px;
           width: 12em;
@@ -350,26 +487,27 @@
         }
 
         .search__input:hover, .search__input:focus {
-          box-shadow: 0 0 1em #00000013;
+          box-shadow: 0 0 1em rgba(140, 160, 255, 0.3);
+          border-color: rgba(140, 160, 255, 0.4);
         }
 
         .search__input:focus {
           outline: none;
-          background-color: #f0eeee;
+          background: rgba(255, 255, 255, 0.9);
         }
 
         .search__input::-webkit-input-placeholder {
           font-weight: 100;
-          color: #ccc;
+          color: #6b7296;
         }
 
         .search__input:focus + .search__button {
-          background-color: #f0eeee;
+          background: rgba(255, 255, 255, 0.9);
         }
 
         .search__button {
           border: none;
-          background-color: #f4f2f2;
+          background: rgba(255, 255, 255, 0.75);
           margin-top: .1em;
         }
 
@@ -380,11 +518,44 @@
         .search__icon {
           height: 1.3em;
           width: 1.3em;
-          fill: #b4b4b4;
+          fill: #4a5072;
         }
+      /* 粒子效果 */
+      .particle {
+        position: absolute;
+        width: 2px;
+        height: 2px;
+        background: rgba(140, 160, 255, 0.4);
+        border-radius: 50%;
+        box-shadow: 0 0 3px rgba(140, 160, 255, 0.6);
+        animation: particleFloat 6s linear infinite;
+      }
+
+      @keyframes particleFloat {
+        0% {
+          transform: translateY(100vh) translateX(0) scale(0);
+          opacity: 0;
+        }
+        10% {
+          opacity: 1;
+          transform: translateY(90vh) translateX(10px) scale(1);
+        }
+        50% {
+          transform: translateY(50vh) translateX(-15px) scale(1.2);
+        }
+        90% {
+          opacity: 1;
+          transform: translateY(10vh) translateX(10px) scale(1);
+        }
+        100% {
+          transform: translateY(0) translateX(0) scale(0);
+          opacity: 0;
+        }
+      }
     </style>
   </head>
   <body>
+    <div id="particles"></div>
     <div th:replace="fragments/notice :: notice"></div>
     <header class="navbar">
       <div class="warning-bar" id="warningBar">
@@ -606,8 +777,40 @@
 
     <a
       href="https://beian.miit.gov.cn"
-      style="position: absolute; width: 100%; text-align: center; color: #888"
+      style="position: absolute; width: 100%; text-align: center; color: #9096b0"
       >沪ICP备2025137067号</a
     >
+    
+    <script>
+      // 创建更多动态粒子
+      function createParticles() {
+        const particlesContainer = document.getElementById('particles');
+        const particleCount = 100;
+        
+        for (let i = 0; i < particleCount; i++) {
+          const particle = document.createElement('div');
+          particle.className = 'particle';
+          particle.style.left = Math.random() * 100 + '%';
+          particle.style.animationDelay = Math.random() * 6 + 's';
+          particle.style.animationDuration = (4 + Math.random() * 6) + 's';
+          // 随机大小
+          const size = Math.random() * 3 + 1;
+          particle.style.width = size + 'px';
+          particle.style.height = size + 'px';
+          // 随机颜色
+          const colors = [
+            'rgba(140, 160, 255, 0.4)',
+            'rgba(160, 140, 255, 0.4)',
+            'rgba(120, 180, 255, 0.4)'
+          ];
+          particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+          particle.style.boxShadow = '0 0 3px ' + colors[Math.floor(Math.random() * colors.length)];
+          particlesContainer.appendChild(particle);
+        }
+      }
+      
+      // 页面加载完成后创建粒子
+      window.addEventListener('load', createParticles);
+    </script>
   </body>
 </html>
