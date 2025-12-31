@@ -1,6 +1,7 @@
 package com.qpwflshclub.formal_club.pojo.dto.User;
 
 import com.qpwflshclub.formal_club.pojo.Club.Club;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
@@ -73,6 +74,7 @@ public class TeacherDTO implements UserBaseDTO{
     @NotNull(message = "教师密码不能为空")
     private String teacherPassword;
     @NotNull(message = "教师邮箱不能为空")
+    @Email(message = "邮箱格式不正确")
     private String teacherEmail;
 
     public final static Integer userRight = 2;
