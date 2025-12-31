@@ -209,11 +209,11 @@
         }
         .fade-left {
             left: 0;
-            background: linear-gradient(to right, #f7f7f7, rgba(247, 247, 247, 0));
+            background: linear-gradient(to right, rgba(102, 126, 234, 0.8), rgba(102, 126, 234, 0));
         }
         .fade-right {
             right: 0;
-            background: linear-gradient(to left, #f7f7f7, rgba(247, 247, 247, 0));
+            background: linear-gradient(to left, rgba(118, 75, 162, 0.8), rgba(118, 75, 162, 0));
         }
         .view-more {
             position: absolute;
@@ -398,7 +398,7 @@
                 <div class="card-content">
                     <h2>wait……</h2>
                     <p>wait……</p>
-                    <a class="button" target="_blank">无法点击</a>
+                    <a class="button" target="_blank">Cannot click</a>
                 </div>
             </div>
         </div>
@@ -535,7 +535,77 @@
 
 
 
-<a href="https://beian.miit.gov.cn" style="position: absolute; width: 100%; text-align: center; color: #888;">沪ICP备2025137067号</a>
+<a href="https://beian.miit.gov.cn" style="position: absolute; width: 100%; text-align: center; color: rgba(255, 255, 255, 0.7); padding: 20px;">沪ICP备2025137067号</a>
+
+<!-- 粒子背景效果 -->
+<div id="particles-container"></div>
+
+<script>
+  // 创建粒子效果
+  function createParticles() {
+    const container = document.getElementById('particles-container');
+    const particleCount = 50;
+
+    for (let i = 0; i < particleCount; i++) {
+      const particle = document.createElement('div');
+      particle.style.position = 'absolute';
+      particle.style.width = Math.random() * 6 + 2 + 'px';
+      particle.style.height = particle.style.width;
+      particle.style.background = 'rgba(255, 255, 255, 0.6)';
+      particle.style.borderRadius = '50%';
+      particle.style.top = Math.random() * 100 + '%';
+      particle.style.left = Math.random() * 100 + '%';
+      particle.style.opacity = Math.random() * 0.5 + 0.3;
+      particle.style.pointerEvents = 'none';
+      particle.style.zIndex = '0';
+
+      // 添加浮动动画
+      const duration = Math.random() * 20 + 10;
+      const delay = Math.random() * 5;
+
+      particle.style.animation = `float ${duration}s ease-in-out infinite ${delay}s`;
+
+      container.appendChild(particle);
+    }
+  }
+
+  // 添加CSS动画
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes float {
+      0%, 100% {
+        transform: translateY(0) translateX(0);
+        opacity: 0.3;
+      }
+      25% {
+        transform: translateY(-20px) translateX(${Math.random() * 10 - 5}px);
+        opacity: 0.6;
+      }
+      50% {
+        transform: translateY(-10px) translateX(${Math.random() * 10 - 5}px);
+        opacity: 0.8;
+      }
+      75% {
+        transform: translateY(-15px) translateX(${Math.random() * 10 - 5}px);
+        opacity: 0.5;
+      }
+    }
+
+    #particles-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: 0;
+    }
+  `;
+  document.head.appendChild(style);
+
+  // 初始化粒子效果
+  document.addEventListener('DOMContentLoaded', createParticles);
+</script>
 
 </body>
 </html>
