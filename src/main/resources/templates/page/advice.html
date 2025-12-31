@@ -20,7 +20,7 @@
     .empty { padding:16px; text-align:center; color:#6b7280; }
     .flex { display:flex; gap:12px; }
     @media(max-width:640px){ .flex{ flex-direction:column; } }
-        /* 防刷验证 */
+    /* 防刷验证 */
     #captchaQ { margin:12px 0; color:#880e4f; font-size:16px; }
     
     h3 { margin-top:0; color:#ad1457; font-size:20px; display:flex; align-items:center; }
@@ -48,6 +48,58 @@
     /* 空状态 */
     .empty { padding:40px 20px; text-align:center; color:#c2185b; font-size:16px; background:#fff8fa; border:2px dashed #f8bbd0; border-radius:16px; }
     .empty::before { content:"🌸"; font-size:24px; display:block; margin-bottom:8px; }
+    
+    /* 增强型防刷样式 */
+    #captcha-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 15px 0;
+    }
+    
+    #captcha {
+      width: 200px;
+      height: 60px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 8px rgba(233, 30, 99, 0.1);
+      background-color: #fff;
+    }
+    
+    #captcha:hover {
+      box-shadow: 0 6px 12px rgba(233, 30, 99, 0.2);
+    }
+    
+    #refresh-captcha {
+      background-color: #880e4f;
+      color: white;
+      padding: 8px 12px;
+      font-size: 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    
+    #refresh-captcha:hover {
+      background-color: #ad1457;
+    }
+    
+    #anti-spam-tip {
+      margin-top: 10px;
+      color: #dc3545;
+      font-size: 14px;
+      display: none;
+      padding: 10px;
+      background-color: #fff5f5;
+      border-radius: 8px;
+      border-left: 4px solid #dc3545;
+    }
+    
+    #submit-btn:disabled {
+      background-color: #6c757d;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 <body>
@@ -80,14 +132,23 @@
           <input id="anon" type="checkbox" /> 匿名提交
         </label>
 
-        <!-- 防刷：简单数学题 -->
-        <div class="card" style="margin-top:16px; background:#f9fafb; border:1px solid #e5e7eb;">
-          <strong>防刷验证</strong>
-          <p id="captchaQ" style="margin:8px 0"></p>
-          <input id="captchaAns" type="number" placeholder="请输入答案" />
+        <div class="card" style="margin-top:20px; background:#16213e; border:2px solid #0f3460;">
+          <strong style="color:#e94560; text-transform:uppercase; letter-spacing:0.5px;">防刷验证</strong>
+          <!-- CSRF令牌 -->
+          <input type="hidden" id="csrfToken" value="${csrfToken}">
+          <!-- Honeypot字段 -->
+          <input type="text" id="honeypot" style="display:none;" placeholder="请不要填写此字段">
+          
+          <!-- 增强型验证码 -->
+          <div id="captcha-container">
+            <canvas id="captcha" width="200" height="60"></canvas>
+            <button type="button" id="refresh-captcha" class="btn-ghost">刷新</button>
+          </div>
+          <input id="captchaAns" type="text" placeholder="请输入验证码" style="margin-bottom:10px;" />
+          <div id="anti-spam-tip"></div>
         </div>
 
-        <button class="btn-primary" type="submit" style="margin-top:14px">提交</button>
+        <button class="btn-primary" type="submit" id="submit-btn" style="margin-top:14px">提交</button>
       </form>
     </div>
 
@@ -103,35 +164,156 @@
 // API基础URL
 const API_BASE_URL = '/api/suggestion';
 
-// -------- 防刷机制：简单数学验证码 --------
-let a, b;
-function makeCaptcha() {
-  a = Math.floor(Math.random() * 8) + 1;
-  b = Math.floor(Math.random() * 8) + 1;
-  document.getElementById("captchaQ").textContent = `请回答：${a} + ${b} = ?`;
+// -------- 防刷机制：增强型验证码 --------
+let captchaText = '';
+let lastSubmitTime = 0;
+let submitAttempts = 0;
+const MIN_SUBMIT_INTERVAL = 60000; // 60秒提交间隔
+const MAX_ATTEMPTS = 3; // 最大尝试次数
+
+// 生成复杂图形验证码
+function generateCaptcha() {
+  const canvas = document.getElementById('captcha');
+  const ctx = canvas.getContext('2d');
+  
+  // 使用字母和数字，排除容易混淆的字符
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  captchaText = '';
+  
+  // 生成随机背景色
+  const bgColor = getRandomColor(200, 255);
+  ctx.fillStyle = bgColor;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  
+  // 添加噪点
+  for (let i = 0; i < 200; i++) {
+    ctx.fillStyle = getRandomColor(100, 200);
+    ctx.beginPath();
+    ctx.arc(Math.random() * canvas.width, Math.random() * canvas.height, Math.random() * 2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  
+  // 添加干扰线
+  for (let i = 0; i < 5; i++) {
+    ctx.strokeStyle = getRandomColor(100, 180);
+    ctx.lineWidth = Math.random() * 2 + 1;
+    ctx.beginPath();
+    ctx.moveTo(Math.random() * canvas.width, Math.random() * canvas.height);
+    ctx.lineTo(Math.random() * canvas.width, Math.random() * canvas.height);
+    ctx.stroke();
+  }
+  
+  // 生成并绘制字符
+  const fontSize = 24 + Math.random() * 8;
+  const fontFamilies = ['Arial', 'Verdana', 'Courier New', 'Georgia', 'Times New Roman'];
+  
+  for (let i = 0; i < 6; i++) {
+    const char = chars.charAt(Math.floor(Math.random() * chars.length));
+    captchaText += char;
+    
+    ctx.fillStyle = getRandomColor(50, 150);
+    ctx.font = fontSize + 'px ' + fontFamilies[Math.floor(Math.random() * fontFamilies.length)];
+    ctx.textBaseline = 'middle';
+    
+    // 字符旋转、缩放、位移
+    const x = 30 + i * 28 + Math.random() * 10 - 5;
+    const y = canvas.height / 2 + Math.random() * 10 - 5;
+    const rotation = (Math.random() - 0.5) * 0.6; // 旋转角度
+    const scale = 0.8 + Math.random() * 0.4; // 缩放比例
+    
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(rotation);
+    ctx.scale(scale, scale);
+    ctx.fillText(char, 0, 0);
+    ctx.restore();
+  }
+  
+  // 添加波浪干扰
+  ctx.strokeStyle = getRandomColor(100, 180);
+  ctx.lineWidth = Math.random() * 2;
+  ctx.beginPath();
+  for (let x = 0; x < canvas.width; x++) {
+    const y = Math.sin(x / 20 + Math.random() * 2) * 10 + canvas.height / 2;
+    if (x === 0) {
+      ctx.moveTo(x, y);
+    } else {
+      ctx.lineTo(x, y);
+    }
+  }
+  ctx.stroke();
 }
-makeCaptcha();
+
+// 生成随机颜色
+function getRandomColor(min, max) {
+  const r = Math.floor(Math.random() * (max - min) + min);
+  const g = Math.floor(Math.random() * (max - min) + min);
+  const b = Math.floor(Math.random() * (max - min) + min);
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
+generateCaptcha();
+
+// 刷新验证码
+document.getElementById('refresh-captcha').addEventListener('click', generateCaptcha);
+
+// 点击验证码也可刷新
+document.getElementById('captcha').addEventListener('click', generateCaptcha);
 
 // -------- 表单提交 --------
 document.getElementById('form').addEventListener('submit', async (e) => {
   e.preventDefault();
   
-  // 1) 防刷验证
-  const inputVal = Number(document.getElementById('captchaAns').value);
-  if (inputVal !== a + b) {
-    alert('防刷验证失败，请重新输入。');
-    makeCaptcha();
+  const submitBtn = document.getElementById('submit-btn');
+  const antiSpamTip = document.getElementById('anti-spam-tip');
+  
+  // 1) 检查蜜罐字段（防止自动机器人）
+  const honeypot = document.getElementById('honeypot').value;
+  if (honeypot.trim() !== '') {
+    alert('防刷验证失败');
     return;
   }
   
-  // 2) 内容验证
+  // 2) 检查提交间隔
+  const now = Date.now();
+  if (now - lastSubmitTime < MIN_SUBMIT_INTERVAL) {
+    const remainingTime = Math.ceil((MIN_SUBMIT_INTERVAL - (now - lastSubmitTime)) / 1000);
+    antiSpamTip.textContent = `提交过于频繁，请等待 ${remainingTime} 秒后再试。`;
+    antiSpamTip.style.display = 'block';
+    return;
+  }
+  
+  // 3) 检查尝试次数
+  if (submitAttempts >= MAX_ATTEMPTS) {
+    antiSpamTip.textContent = `尝试次数过多，请 ${Math.ceil(MIN_SUBMIT_INTERVAL / 1000)} 秒后再试。`;
+    antiSpamTip.style.display = 'block';
+    submitBtn.disabled = true;
+    setTimeout(() => {
+      submitBtn.disabled = false;
+      submitAttempts = 0;
+      antiSpamTip.style.display = 'none';
+    }, MIN_SUBMIT_INTERVAL);
+    return;
+  }
+  
+  // 4) 验证码验证
+  const inputVal = document.getElementById('captchaAns').value.trim().toUpperCase();
+  if (inputVal !== captchaText) {
+    antiSpamTip.textContent = '验证码错误，请重新输入。';
+    antiSpamTip.style.display = 'block';
+    generateCaptcha();
+    submitAttempts++;
+    return;
+  }
+  
+  // 5) 内容验证
   const msg = document.getElementById('message').value.trim();
   if (msg.length < 5) {
     alert('请至少输入 5 个字。');
     return;
   }
   
-  // 3) 准备提交数据
+  // 6) 准备提交数据
   const name = document.getElementById('name').value.trim();
   const category = document.getElementById('category').value;
   const anon = document.getElementById('anon').checked;
@@ -145,8 +327,13 @@ document.getElementById('form').addEventListener('submit', async (e) => {
 
   console.log(suggestionData);
   
+  // 7) 禁用提交按钮，显示加载状态
+  submitBtn.disabled = true;
+  submitBtn.textContent = '提交中...';
+  antiSpamTip.style.display = 'none';
+  
   try {
-    // 4) 发送POST请求到后端
+    // 8) 发送POST请求到后端
     const response = await fetch(`${API_BASE_URL}`, {
       method: 'POST',
       headers: {
@@ -163,12 +350,23 @@ document.getElementById('form').addEventListener('submit', async (e) => {
     
     alert('提交成功！');
     document.getElementById('form').reset();
-    makeCaptcha();
+    generateCaptcha();
+    // 重置防刷机制
+    lastSubmitTime = now;
+    submitAttempts = 0;
+    // 刷新历史记录
+    fetchSuggestions();
   } catch (error) {
     console.error('提交失败:', error);
     alert('操作失败：' + error.message);
+    submitAttempts++;
+  } finally {
+    // 恢复提交按钮状态
+    submitBtn.disabled = false;
+    submitBtn.textContent = '提交';
   }
 });
+
 // -------- 获取历史记录 --------
 async function fetchSuggestions() {
   try {
@@ -193,7 +391,7 @@ function renderSuggestions(suggestions) {
   const listContainer = document.getElementById('list');
   listContainer.innerHTML = '';
   
-  if (suggestions.length === 0) {
+  if (!suggestions || suggestions.length === 0) {
     renderEmpty();
     return;
   }
@@ -240,7 +438,7 @@ function renderEmpty() {
 // -------- 获取标题文本 --------
 function getTitleText(title) {
   const titleMap = {
-    'general': '⚔️ 战术建议',
+    'general': '⚔️ 一般建议',
     'bug': '🐛 BUG举报',
     'feature': '🌟 新内容请求'
   };
