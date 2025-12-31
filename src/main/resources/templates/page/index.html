@@ -37,9 +37,6 @@
           linear-gradient(rgba(140, 160, 255, 0.15) 1px, transparent 1px),
           linear-gradient(90deg, rgba(140, 160, 255, 0.15) 1px, transparent 1px);
         background-size: 50px 50px;
-        animation: 
-          gridMove 20s linear infinite,
-          gridPulse 3s ease-in-out infinite alternate;
         z-index: -4;
       }
 
@@ -57,9 +54,6 @@
           radial-gradient(circle, rgba(120, 180, 255, 0.06) 0%, transparent 70%);
         background-position: 0% 0%, 50% 50%, 100% 100%;
         background-size: 100% 100%, 80% 80%, 60% 60%;
-        animation: 
-          pulse 4s ease-in-out infinite,
-          backgroundShift 8s ease-in-out infinite;
         z-index: -3;
       }
 
@@ -782,10 +776,10 @@
     >
     
     <script>
-      // 创建更多动态粒子
+      // 创建动态粒子
       function createParticles() {
         const particlesContainer = document.getElementById('particles');
-        const particleCount = 100;
+        const particleCount = 30; // 减少粒子数量以提高性能
         
         for (let i = 0; i < particleCount; i++) {
           const particle = document.createElement('div');
@@ -803,8 +797,9 @@
             'rgba(160, 140, 255, 0.4)',
             'rgba(120, 180, 255, 0.4)'
           ];
-          particle.style.background = colors[Math.floor(Math.random() * colors.length)];
-          particle.style.boxShadow = '0 0 3px ' + colors[Math.floor(Math.random() * colors.length)];
+          const randomColor = colors[Math.floor(Math.random() * colors.length)];
+          particle.style.background = randomColor;
+          particle.style.boxShadow = '0 0 3px ' + randomColor;
           particlesContainer.appendChild(particle);
         }
       }
