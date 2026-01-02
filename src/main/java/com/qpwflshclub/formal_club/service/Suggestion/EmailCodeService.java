@@ -17,10 +17,10 @@ public class EmailCodeService {
     private StringRedisTemplate redisTemplate;
 
     // 发件邮箱配置（可改成配置文件或环境变量）
-    private final String SMTP_HOST = "smtp.qq.com";
+    private final String SMTP_HOST = "smtp.office365.com";
     private final int SMTP_PORT = 587;
-    private final String SMTP_USER = "123456789@qq.com";
-    private final String SMTP_PASS = "xxxx授权码xxxx";
+    private final String SMTP_USER = "codecraftvery@outlook.com";
+    private final String SMTP_PASS = "rfblbbewanngurjs";
 
     /**
      * 发送验证码

@@ -18,6 +18,7 @@ public class EmailController {
 
     @PostMapping("/send")
     public ResponseMessage<?> send(@RequestParam String email) {
+        System.out.println(email);
         emailCodeService.sendCode(email);
         return ResponseMessage.success("验证码已发送");
     }
