@@ -1,52 +1,65 @@
-<!-- templates/fragments/notice.html -->
-<!-- i18n -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
 <div th:fragment="navbar">
-
     <header class="navbar">
-        <div class="navbar-top">
-            <div class="navbar-left">
-                <a href="https://qphs.shwfl.edu.cn/" target="_blank">
-                    <img
-                            src="../../other%20photo/WFL-logo.png"
-                            alt="WFL Logo"
-                            class="navbar-logo"
-                    />
-                </a>
-                <div class="school-name-block">
-                    <div class="school-cn">上 海 青 浦 区 世 外 高 级 中 学</div>
-                    <div class="school-en">
-                        SHANGHAI QINGPU WORLD FOREIGN LANGUAGE HIGH SCHOOL
-                    </div>
-                </div>
-            </div>
-            <div class="search">
-                <input type="text" class="search__input" placeholder="Type your text">
-                <button class="search__button">
-                    <svg class="search__icon" aria-hidden="true" viewBox="0 0 24 24">
-                        <g>
-                            <path d="M21.53 20.47l-3.66-3.66C19.195 15.24 20 13.214 20 11c0-4.97-4.03-9-9-9s-9 4.03-9 9 4.03 9 9 9c2.215 0 4.24-.804 5.808-2.13l3.66 3.66c.147.146.34.22.53.22s.385-.073.53-.22c.295-.293.295-.767.002-1.06zM3.5 11c0-4.135 3.365-7.5 7.5-7.5s7.5 3.365 7.5 7.5-3.365 7.5-7.5 7.5-7.5-3.365-7.5-7.5z"></path>
-                        </g>
-                    </svg>
-                </button>
-            </div>
-            <nav class="navbar-links">
-                <a href="/page/index">首页/Main Page</a>
-                <div class="dropdown">
-                    <a class="dropbtn">全部社团/All Clubs</a>
-                    <div class="dropdown-content">
-                        <a href="/page/club-type/creativity">创意艺术/Creativity</a>
-                        <a href="/page/club-type/activity">体育活动/Activity</a>
-                        <a href="/page/club-type/service">社会服务/Service</a>
-                        <a href="/page/club-type/study">学科竞赛/Study</a>
-                    </div>
-                </div>
 
+        <!-- 左侧：学校名 -->
+        <div class="navbar-left">
+            <img src="/images/logo.png" class="navbar-logo" alt="logo">
 
-                <a href="/page/suggestion">意见箱/Suggestion box</a>
-                <a onclick="window.location.href='/page/index-en'">EN/中文</a>
-                <a href="/page/user/login" class="login-btn">登录Sign in/注册Sign up</a>
-            </nav>
+            <div class="school-name-block">
+                <div class="school-cn" th:text="#{school.cn}"></div>
+                <div class="school-en" th:text="#{school.en}"></div>
+            </div>
         </div>
-    </header>
 
+        <!-- 右侧：导航链接 -->
+        <nav class="navbar-links">
+
+            <a th:href="@{/page/index}"
+               th:text="#{nav.home}"></a>
+
+            <div class="dropdown">
+                <a class="dropbtn"
+                   th:text="#{nav.allClubs}"></a>
+
+                <div class="dropdown-content">
+                    <a th:href="@{/page/clubs/academic}">Academic</a>
+                    <a th:href="@{/page/clubs/sports}">Sports</a>
+                </div>
+            </div>
+
+            <a th:href="@{/page/suggestion}"
+               th:text="#{nav.suggestion}"></a>
+
+            <a th:href="@{/page/user/login}"
+               th:text="#{nav.login}"></a>
+
+            <!-- 搜索框 -->
+            <div class="search">
+                <input class="search__input"
+                       type="text"
+                       th:placeholder="#{nav.search.placeholder}">
+            </div>
+
+            <!-- 语言切换 -->
+            <div class="dropdown">
+                <a class="dropbtn">🌐</a>
+                <div class="dropdown-content">
+                    <a th:href="@{__${#httpServletRequest.requestURI}__(lang='zh')}"
+                       th:text="#{nav.lang.zh}"></a>
+
+                    <a th:href="@{__${#httpServletRequest.requestURI}__(lang='en')}"
+                       th:text="#{nav.lang.en}"></a>
+                </div>
+            </div>
+
+        </nav>
+
+    </header>
 </div>
+
+</body>
+</html>
