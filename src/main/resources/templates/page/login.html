@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="/css/login_style.css">
-    <title>登录 / 注册</title>
+    <title th:text="#{page.title.login}">登录 / 注册</title>
 
     <style>
       h1 {
@@ -20,27 +20,27 @@
     <div th:replace="fragments/navbar :: navbar"></div>
     <div th:replace="fragments/particle :: particle"></div>
     <div class="login-container">
-      <h1>登录 / 注册</h1>
+      <h1 th:text="#{login.title}">登录 / 注册</h1>
       <div class="row">
-        <input id="name" type="text" placeholder="中文名" />
-        <input id="nameEn" type="text" placeholder="英文名" />
+        <input id="name" type="text" th:placeholder="#{login.namePlaceholder}" />
+        <input id="nameEn" type="text" th:placeholder="#{login.nameEnPlaceholder}" />
       </div>
       <div class="row email-row">
-        <input id="email" type="email" placeholder="邮箱" />
-        <button id="sendCodeBtn" class="send-code-btn" onclick="sendEmailCode()">发送验证码</button>
+        <input id="email" type="email" th:placeholder="#{login.emailPlaceholder}" />
+        <button id="sendCodeBtn" class="send-code-btn" onclick="sendEmailCode()" th:text="#{login.sendCode}">发送验证码</button>
       </div>
-      <input id="code" type="text" placeholder="输入验证码（6位）" maxlength="6" />
-      <input id="password" type="password" placeholder="密码" />
+      <input id="code" type="text" th:placeholder="#{login.codePlaceholder}" maxlength="6" />
+      <input id="password" type="password" th:placeholder="#{login.passwordPlaceholder}" />
       <select id="role" onchange="onRoleChange()">
-        <option value="" disabled selected>请选择身份</option>
-        <option value="teacher">老师</option>
-        <option value="student">学生</option>
+        <option value="" disabled selected th:text="#{login.selectRole}">请选择身份</option>
+        <option value="teacher" th:text="#{login.role.teacher}">老师</option>
+        <option value="student" th:text="#{login.role.student}">学生</option>
       </select>
 
       <!-- 下面是隐藏区域 -->
       <div id="dynamic-area"></div>
 
-      <button class="submit-btn" onclick="validateForm()">提交</button>
+      <button class="submit-btn" onclick="validateForm()" th:text="#{login.submit}">提交</button>
     </div>
 
     <script>

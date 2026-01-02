@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <link rel="stylesheet" href="/css/club-type-template_style.css">
-    <title id="title">加载中...</title>
+    <title th:text="#{page.title.clubType}">社团分类</title>
 </head>
 <body>
 <div id="particles"></div>
@@ -18,51 +18,47 @@
     <div class="card">
         <img src="1" alt="加载中……">
         <div class="card-content">
-            <h2>加载中……</h2>
-            <p>加载中……</p>
-            <a class="button" target="_blank">无法点击</a>
+            <h2 th:text="#{common.loading}">加载中……</h2>
+            <p th:text="#{common.loading}">加载中……</p>
+            <a class="button" target="_blank" th:text="#{common.viewDetails}">查看详情</a>
         </div>
     </div>
 </div>
 
-<script  th:inline="javascript" >
-    const type =  /*[[${type}]]*/ 'default';
-
-    var typeForUse = type;
+<script th:inline="javascript">
+    const type = /*[[${type}]]*/ 'default';
 
     console.log(type);
 
-
-
     if(type === "activity"){
-        document.getElementById("title").textContent = "体育活动";
+        document.getElementById("title").textContent = /*[[#{clubType.activity}]]*/ '体育活动';
         document.getElementById("Top").innerHTML = `
-            <a href="/page/club-type/creativity" class="tab-button" data-i18n="main:C-type">创意艺术</a>
-            <a class="tab-button active" data-i18n="main:A-type">体育活动</a>
-            <a href="/page/club-type/service" class="tab-button" data-i18n="main:S-type">社会服务</a>
-            <a href="/page/club-type/study" class="tab-button" data-i18n="main:St-type">学科竞赛</a>
-        `
+            <a th:href="@{/page/club-type/creativity}" class="tab-button" th:text="#{common.creativity}">创意艺术</a>
+            <a class="tab-button active" th:text="#{common.activity}">体育活动</a>
+            <a th:href="@{/page/club-type/service}" class="tab-button" th:text="#{common.service}">社会服务</a>
+            <a th:href="@{/page/club-type/study}" class="tab-button" th:text="#{common.study}">学科竞赛</a>
+        `;
     }else if(type === "service"){
-        document.getElementById("title").textContent = "社会服务";
+        document.getElementById("title").textContent = /*[[#{clubType.service}]]*/ '社会服务';
         document.getElementById("Top").innerHTML = `
-            <a href="/page/club-type/creativity" class="tab-button" data-i18n="main:C-type">创意艺术</a>
-            <a href="/page/club-type/activity" class="tab-button" data-i18n="main:A-type">体育活动</a>
-            <a class="tab-button active" data-i18n="main:S-type">社会服务</a>
-            <a href="/page/club-type/study" class="tab-button" data-i18n="main:St-type">学科竞赛</a>`
+            <a th:href="@{/page/club-type/creativity}" class="tab-button" th:text="#{common.creativity}">创意艺术</a>
+            <a th:href="@{/page/club-type/activity}" class="tab-button" th:text="#{common.activity}">体育活动</a>
+            <a class="tab-button active" th:text="#{common.service}">社会服务</a>
+            <a th:href="@{/page/club-type/study}" class="tab-button" th:text="#{common.study}">学科竞赛</a>`;
     }else if(type === "study"){
-        document.getElementById("title").textContent = "学科竞赛";
+        document.getElementById("title").textContent = /*[[#{clubType.study}]]*/ '学科竞赛';
         document.getElementById("Top").innerHTML = `
-            <a href="/page/club-type/creativity" class="tab-button" data-i18n="main:C-type">创意艺术</a>
-            <a href="/page/club-type/activity" class="tab-button" data-i18n="main:A-type">体育活动</a>
-            <a href="/page/club-type/service" class="tab-button" data-i18n="main:S-type">社会服务</a>
-            <a class="tab-button active" data-i18n="main:St-type">学科竞赛</a>`
+            <a th:href="@{/page/club-type/creativity}" class="tab-button" th:text="#{common.creativity}">创意艺术</a>
+            <a th:href="@{/page/club-type/activity}" class="tab-button" th:text="#{common.activity}">体育活动</a>
+            <a th:href="@{/page/club-type/service}" class="tab-button" th:text="#{common.service}">社会服务</a>
+            <a class="tab-button active" th:text="#{common.study}">学科竞赛</a>`;
     }else{
-        document.getElementById("title").textContent = "创意艺术";
+        document.getElementById("title").textContent = /*[[#{clubType.creativity}]]*/ '创意艺术';
         document.getElementById("Top").innerHTML = `
-            <a class="tab-button active" data-i18n="main:C-type">创意艺术</a>
-            <a href="/page/club-type/activity" class="tab-button" data-i18n="main:A-type">体育活动</a>
-            <a href="/page/club-type/service" class="tab-button" data-i18n="main:S-type">社会服务</a>
-            <a href="/page/club-type/study" class="tab-button" data-i18n="main:St-type">学科竞赛</a>`
+            <a class="tab-button active" th:text="#{common.creativity}">创意艺术</a>
+            <a th:href="@{/page/club-type/activity}" class="tab-button" th:text="#{common.activity}">体育活动</a>
+            <a th:href="@{/page/club-type/service}" class="tab-button" th:text="#{common.service}">社会服务</a>
+            <a th:href="@{/page/club-type/study}" class="tab-button" th:text="#{common.study}">学科竞赛</a>`;
     }
 
     //获取数据
@@ -70,7 +66,6 @@
         .then(response => response.json())
         .then(result => {
             const data = result.data;
-
             console.log(data);
 
             const container = document.getElementById("clubGrid");
@@ -81,7 +76,7 @@
                     if(club.clubURL === null){
                         fetch(`/api/club/initialize-url/` + club.clubNameEn , {
                             method: 'PUT',
-                        })
+                        });
                     }
                     console.log(club.clubClass);
                     const card = document.createElement('div');
@@ -91,41 +86,19 @@
                         <div class="card-content">
                           <h2>${club.clubName}</h2>
                           <p>${club.sortDescription}</p>
-                          <a class="button" href="../../${club.clubURL}" target="_blank">查看详情</a>
+                          <a class="button" href="../../${club.clubURL}" target="_blank" th:text="#{common.viewDetails}">查看详情</a>
                         </div>
                       `;
                     console.log(card);
                     container.appendChild(card);
-
-                    container.appendChild(card);
                 }
-            })
-            .catch(error => {
-                console.error("加载社团数据失败:", error);
             });
-
         })
-
-    const tabButtons = document.querySelectorAll('.tab-button');
-    const tabContents = document.querySelectorAll('.tab-content');
-
-    tabButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            tabButtons.forEach(btn => btn.classList.remove('active'));
-            tabContents.forEach(content => content.classList.remove('active'));
-
-            button.classList.add('active');
-            document.getElementById(button.dataset.tab).classList.add('active');
+        .catch(error => {
+            console.error("加载社团数据失败:", error);
         });
-    });
-
-    const container = document.getElementById("clubGrid");
-
 </script>
 
-
-
 <a href="https://beian.miit.gov.cn" style="position: absolute; width: 100%; text-align: center; color: #9096b0;">沪ICP备2025137067号</a>
-
 </body>
 </html>

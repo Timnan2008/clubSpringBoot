@@ -1,6 +1,6 @@
 <!-- templates/fragments/notice.html -->
 <!-- i18n -->
-<div th:fragment="navbar">
+<div th:fragment="navbar" xmlns:th="http://www.thymeleaf.org">
 
     <header class="navbar">
         <div class="navbar-top">
@@ -30,21 +30,28 @@
                 </button>
             </div>
             <nav class="navbar-links">
-                <a href="/page/index">首页/Main Page</a>
+                <a th:href="@{/page/index}" th:text="#{common.mainPage}">首页/Main Page</a>
                 <div class="dropdown">
-                    <a class="dropbtn">全部社团/All Clubs</a>
+                    <a class="dropbtn" th:text="#{common.allClubs}">全部社团/All Clubs</a>
                     <div class="dropdown-content">
-                        <a href="/page/club-type/creativity">创意艺术/Creativity</a>
-                        <a href="/page/club-type/activity">体育活动/Activity</a>
-                        <a href="/page/club-type/service">社会服务/Service</a>
-                        <a href="/page/club-type/study">学科竞赛/Study</a>
+                        <a th:href="@{/page/club-type/creativity}" th:text="#{common.creativity}">创意艺术/Creativity</a>
+                        <a th:href="@{/page/club-type/activity}" th:text="#{common.activity}">体育活动/Activity</a>
+                        <a th:href="@{/page/club-type/service}" th:text="#{common.service}">社会服务/Service</a>
+                        <a th:href="@{/page/club-type/study}" th:text="#{common.study}">学科竞赛/Study</a>
                     </div>
                 </div>
 
-
-                <a href="/page/suggestion">意见箱/Suggestion box</a>
-                <a onclick="window.location.href='/page/index-en'">EN/中文</a>
-                <a href="/page/user/login" class="login-btn">登录Sign in/注册Sign up</a>
+                <a th:href="@{/page/suggestion}" th:text="#{common.suggestionBox}">意见箱/Suggestion box</a>
+                
+                <!-- Dynamic Language Switch -->
+                <a th:if="${#strings.equals(lang, 'zh')}" 
+                   th:href="@{/page/switch-lang(lang='en', redirect=${#httpServletRequest.requestURI + (param.redirect != null ? param.redirect.get(0) : '')})}" 
+                   style="cursor: pointer;">EN/中文</a>
+                <a th:if="${#strings.equals(lang, 'en')}" 
+                   th:href="@{/page/switch-lang(lang='zh', redirect=${#httpServletRequest.requestURI + (param.redirect != null ? param.redirect.get(0) : '')})}" 
+                   style="cursor: pointer;">中文/EN</a>
+                
+                <a th:href="@{/page/user/login}" class="login-btn" th:text="#{common.login} + '/' + #{common.register}">登录Sign in/注册Sign up</a>
             </nav>
         </div>
     </header>

@@ -1,22 +1,17 @@
-<html lang="zh-CN">
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>未找到网站</title>
+    <title th:text="#{page.title.notFound}">未找到页面</title>
     <link rel="stylesheet" href="/css/fall_to_get_club_style.css">
 </head>
 <body>
 <div id="particles"></div>
 <div th:replace="fragments/navbar :: navbar"></div>
 <div th:replace="fragments/particle :: particle"></div>
-
-<head>
-    <meta charset="UTF-8">
-    <title>Fall to get club</title>
-</head>
 <div class="container">
-    <h1><span id="club-title">没有该网页</span></h1>
-    <h1>No Such Page</h1>
-    <a href="/page/index" class="back-home-btn">返回首页</a>
+    <h1><span id="club-title" th:text="#{notFound.pageNotFound}">没有该网页</span></h1>
+    <h1 th:text="#{notFound.noSuchPage}">No Such Page</h1>
+    <a href="/page/index" class="back-home-btn" th:text="#{notFound.backToHome}">返回首页</a>
 </div>
 
 <script>
