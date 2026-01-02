@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="/css/index_style.css">
-    <title th:text="#{page.title.index}">首页</title>
+    <title data-i18n="main:title">首页</title>
   </head>
   <body>
     <div id="particles"></div>
@@ -12,7 +12,7 @@
     <div th:replace="fragments/navbar :: navbar"></div>
     <div th:replace="fragments/particle :: particle"></div>
 
-    <div class="warning-bar" id="warningBar" th:text="#{index.warningBarText}">
+    <div class="warning-bar" id="warningBar">
         ⚠ 从电脑端打开体验更佳
         <span
                 class="close-btn"
@@ -21,24 +21,24 @@
         >
     </div>
 
-    <h1 th:text="#{index.noticeBoard}">🪧公告栏</h1>
+    <h1>🪧公告栏</h1>
 
     <div class="notice-board">
-      <div class="notice-important" th:text="#{index.notice1}">
+      <div class="notice-important">
         恭喜青浦世外高中社团官网于2025.12.9正式上线2.0版本！！！
       </div>
-        <div class="notice-critical" th:text="#{index.notice2}">
+        <div class="notice-critical">
             由于有刷赞现象，为保证投票公平性，投票于12月11日14:30点全部清零，重新投票，每个设备对每个社团限投1次。给大家带来不便，敬请谅解
         </div>
-      <div class="notice" th:text="#{index.notice3}">
+      <div class="notice">
         意见箱将在一月回归，请耐心等待
       </div>
-      <div class="notice" th:text="#{index.notice4}">
+      <div class="notice">
         登录注册功能即将完成，敬请期待
       </div>
     </div>
 
-    <h1 th:text="#{index.excellentClubs}">优秀社团</h1>
+    <h1>优秀社团</h1>
 
     <div id="ExClubs" class="tab-content active">
       <div class="scroll-wrapper">
@@ -48,9 +48,9 @@
           <div class="card">
             <img src="加载中" alt="加载中……" />
             <div class="card-content">
-              <h2 th:text="#{common.loading}">加载中……</h2>
-              <p th:text="#{common.loading}">加载中……</p>
-              <a class="button" target="_blank" th:text="#{common.viewDetails}">查看详情</a>
+              <h2>加载中……</h2>
+              <p>加载中……</p>
+              <a class="button" target="_blank">无法点击</a>
             </div>
           </div>
         </div>
@@ -82,7 +82,7 @@
                         <div class="card-content">
                           <h2>${clubs.clubName}</h2>
                           <p>${clubs.sortDescription}</p>
-                          <a class="button" href="../../${clubs.clubURL}" target="_blank" th:text="#{common.viewDetails}">查看详情</a>
+                          <a class="button" href="../../${clubs.clubURL}" target="_blank">查看详情</a>
                         </div>
                       `;
               console.log(card);
@@ -103,7 +103,7 @@
                         <div class="card-content">
                           <h2>${clubs.clubName}</h2>
                           <p>${clubs.sortDescription}</p>
-                          <a class="button" href="../../${clubs.clubURL}" target="_blank" th:text="#{common.viewDetails}">查看详情</a>
+                          <a class="button" href="../../${clubs.clubURL}" target="_blank">查看详情</a>
                         </div>
                       `;
               container.appendChild(card);

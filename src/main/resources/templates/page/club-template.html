@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title th:text="#{page.title.clubTemplate}">社团介绍</title>
+    <title it="club-title">社团介绍</title>
     <link rel="stylesheet" href="/css/club-template_style.css">
+
 </head>
 
 <body>
@@ -13,13 +14,18 @@
 <div th:replace="fragments/navbar :: navbar"></div>
 <div th:replace="fragments/particle :: particle"></div>
 
+
 <script th:inline="javascript">
-    const clubName = /*[[${club}]]*/ 'default';
+    const clubName =[[${clubName}]];
 
     console.log("DEBUG 当前社团名:", clubName);
 
     const apiUrl = `/api/club/name-en/${encodeURIComponent(clubName)}`;
     console.log("DEBUG 发起请求到:", apiUrl);
+
+    // 从URL参数获取当前语言设置，默认为中文
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentLang = urlParams.get('lang') || 'zh';
 
     fetch(apiUrl)
         .then(res => res.json())
@@ -35,7 +41,7 @@
 
             // ✅ 这里每个元素都存在
             console.log("DEBUG club-name:", club.clubName);
-            document.getElementById("club-title").textContent = club.clubName;
+            document.getElementById("club-title").textContent = club.clubName + "介绍";
             console.log("DEBUG president:", club.president);
             document.getElementById("president").textContent = club.president || "暂无";
             console.log("DEBUG vicePresident:", club.vicePresident);
@@ -46,8 +52,10 @@
             document.getElementById("club-intro").textContent = club.clubDescription || "暂无介绍";
             document.getElementById("club-intro").style.display = 'block';
 
+
             console.log("DEBUG club-logo:", club.clubItem);
             document.getElementById("club-logo").src = club.clubItem;
+
 
             console.log("DEBUG club-video:", club.video);
             if (club.video) {
@@ -57,32 +65,36 @@
             console.log("DEBUG like-count:", club.videoLike);
             document.getElementById("currentnumber").textContent = club.videoLike || "0";
             document.getElementById("movenumber").textContent = club.videoLike + 1 || "1";
-        });
+
+
+        })
+
+
 </script>
 
 <!-- 主体内容 -->
 <div class="container">
-    <h1><span id="club-title" th:text="#{clubDetail.clubName}">社团名称</span></h1>
+    <h1><span id="club-title">未知社团</span></h1>
     <div class="top-info">
         <div class="leaders">
-            <p><strong th:text="#{clubDetail.clubPresident} + '：'">社长：</strong><span id="president">加载中</span></p>
-            <p><strong th:text="#{clubDetail.vicePresident} + '：'">副社长：</strong><span id="vicePresident">加载中</span></p>
-            <p><strong th:text="#{clubDetail.teacher} + '：'">指导老师：</strong><span id="teacher">加载中</span></p>
+            <p><strong>社长：</strong ><span id="president">加载中</span></p>
+            <p><strong>副社长：</strong><span id="vicePresident">加载中</span></p>
+            <p><strong>指导老师：</strong><span id="teacher">加载中</span></p>
         </div>
         <img id="club-logo" class="club-logo">
     </div>
 
     <div class="intro">
-        <h2 th:text="#{clubDetail.clubDescription}">社团简介</h2>
+        <h2>社团简介</h2>
         <p id="club-intro">加载中...</p>
     </div>
 
-    <h1 th:text="#{clubDetail.clubActivities}">社团视频展示</h1>
+    <h1>社团视频展示</h1>
 
     <div class="video-container">
         <video id="club-video" width="100%" controls>
             <source type="video/mp4">
-            <span th:text="#{common.browserNotSupport}">您的浏览器不支持 video 标签。</span>
+            您的浏览器不支持 video 标签。
         </video>
 
         <div class="button-container">
@@ -114,13 +126,16 @@
                 </div>
             </label>
         </div>
+
     </div>
 </div>
 
 <a href="https://beian.miit.gov.cn" style="position: absolute; width: 100%; text-align: center; color: #9096b0;">沪ICP备2025137067号</a>
 
+
 <!-- 点赞功能 -->
 <script th:inline="javascript">
+
     let deviceId;
 
     window.addEventListener("DOMContentLoaded", () => {
@@ -143,23 +158,30 @@
 
         localStorage.setItem('deviceId', deviceId);
 
+
+
         likeToggle.addEventListener("change", () =>{
             if (likeToggle.checked) {
                 console.log("点赞按钮被点击");
+                // 执行点赞逻辑
                 performLike();
             } else {
                 console.log("取消点赞");
+                // 执行取消点赞逻辑（如果需要）
                 performUnlike();
             }
         });
     });
 
-    const clubName2 = /*[[${club}]]*/ 'default';
-    console.log("DEBUG 当前社团名2:", clubName2);
+    const clubName2 = [[${clubName}]];
+    console.log("DEBUG 当前社团名2:", clubName2)
+
 
     const likeToggle = document.getElementById("checknumber");
     const likeCountEl = document.getElementById("currentnumber");
     const likeCountElAfter = document.getElementById("movenumber");
+
+
 
     window.addEventListener("DOMContentLoaded", () => {
         const key = `liked_${clubName2}`;
@@ -197,16 +219,20 @@
                     fetch(`/api/club/name-en/${encodeURIComponent(clubName2)}`)
                         .then(res => res.json())
                         .then(result => {
+
                             console.log("点赞数" + result.data.videoLike);
                         });
+                    // 点赞成功后保持选中状态
                     likeToggle.checked = true;
                 } else {
                     showNotice("点赞失败：" + (result.message || "未知错误"));
+                    // 点赞失败时恢复状态
                     likeToggle.checked = false;
                 }
             })
             .catch(err => {
                 showNotice("点赞失败：" + "你不可以刷赞");
+                // 点赞失败时恢复状态
                 likeToggle.checked = false;
             });
     }
@@ -227,19 +253,24 @@
                     fetch(`/api/club/name-en/${encodeURIComponent(clubName2)}`)
                         .then(res => res.json())
                         .then(result => {
+
                             console.log("点赞数" + result.data.videoLike);
                         });
+                    // 取消点赞成功后保持未选中状态
                     likeToggle.checked = false;
                 } else {
                     alert("取消点赞失败：" + (result.message || "未知错误"));
+                    // 失败时恢复状态
                     likeToggle.checked = true;
                 }
             })
             .catch(err => {
                 console.error("取消点赞失败：", err);
+                // 失败时恢复状态
                 likeToggle.checked = true;
             });
     }
+
 </script>
 
 </body>

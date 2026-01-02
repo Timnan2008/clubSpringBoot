@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<html lang="zh-CN">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <link rel="stylesheet" href="/css/advice_style.css">
-  <title th:text="#{page.title.advice}">意见箱</title>
+  <title>意见箱（含防刷）</title>
 </head>
 <body>
    <div th:replace="fragments/navbar :: navbar"></div>
@@ -12,62 +12,62 @@
   <div class="particles" id="particles"></div>
   
   <div class="container">
-    <h1 style="color: #e0e0ff; text-shadow: 0 0 10px rgba(150, 180, 255, 0.3);">✨ <span th:text="#{suggestion.title}">意见箱</span> ✨</h1>
+    <h1 style="color: #e0e0ff; text-shadow: 0 0 10px rgba(150, 180, 255, 0.3);">✨ 意见箱 ✨</h1>
     
     <div class="card">
       <form id="form">
         <div class="flex">
           <div>
-            <label for="name" th:text="#{suggestion.name}">姓名</label>
-            <input id="name" type="text" th:placeholder="#{suggestion.namePlaceholder}" />
+            <label for="name">姓名</label>
+            <input id="name" type="text" placeholder="请输入您的姓名" />
           </div>
           <div>
-            <label for="number" th:text="#{suggestion.studentId}">学号</label>
-            <input id="number" type="number" th:placeholder="#{suggestion.studentIdPlaceholder}" />
+            <label for="number">学号</label>
+            <input id="number" type="number" placeholder="请输入您的学号" />
           </div>
         </div>
 
-        <label for="category" style="margin-top: 16px;" th:text="#{suggestion.category}">分类</label>
+        <label for="category" style="margin-top: 16px;">分类</label>
         <select id="category">
-          <option value="general" th:text="#{suggestion.category.general}">一般建议</option>
-          <option value="bug" th:text="#{suggestion.category.bug}">错误 / Bug</option>
-          <option value="feature" th:text="#{suggestion.category.feature}">功能请求</option>
+          <option value="general">一般建议</option>
+          <option value="bug">错误 / Bug</option>
+          <option value="feature">功能请求</option>
         </select>
 
-        <label for="message" style="margin-top: 16px;" th:text="#{suggestion.content}">内容</label>
-        <textarea id="message" maxlength="500" th:placeholder="#{suggestion.contentPlaceholder}"></textarea>
+        <label for="message" style="margin-top: 16px;">内容</label>
+        <textarea id="message" maxlength="500" placeholder="请输入您的建议或反馈..."></textarea>
         <div id="charCount">0/500</div>
 
         <label style="margin-top: 16px;">
-          <input id="anon" type="checkbox" th:text="' ' + #{suggestion.anonymousSubmit}" /> 匿名提交
+          <input id="anon" type="checkbox" /> 匿名提交
         </label>
 
         <!-- 防刷验证区域 -->
         <div style="margin-top: 24px; padding: 20px; border-radius: 16px; background: rgba(10, 14, 39, 0.8); border: 1px solid rgba(255, 0, 255, 0.3);">
-          <strong style="color: #00ffff; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 16px;">🔒 <span th:text="#{suggestion.securityVerification}">防刷验证</span></strong>
+          <strong style="color: #00ffff; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 16px;">🔒 防刷验证</strong>
           
           <!-- CSRF令牌 -->
           <input type="hidden" id="csrfToken" value="${csrfToken}">
           
           <!-- Honeypot字段 -->
-          <input type="text" id="honeypot" style="display: none;" th:placeholder="#{suggestion.honeypotPlaceholder}">
+          <input type="text" id="honeypot" style="display: none;" placeholder="请不要填写此字段">
           
           <!-- 增强型验证码 -->
           <div id="captcha-container">
             <canvas id="captcha" width="220" height="80"></canvas>
-            <button type="button" id="refresh-captcha" class="btn-ghost" th:text="#{suggestion.refreshCaptcha}">刷新</button>
+            <button type="button" id="refresh-captcha" class="btn-ghost">刷新</button>
           </div>
           
-          <input id="captchaAns" type="text" th:placeholder="#{suggestion.captchaPlaceholder}" style="margin-top: 12px; margin-bottom: 12px;" />
+          <input id="captchaAns" type="text" placeholder="请输入验证码" style="margin-top: 12px; margin-bottom: 12px;" />
           <div id="anti-spam-tip"></div>
         </div>
 
-        <button class="btn-primary" type="submit" id="submit-btn" style="margin-top: 20px; width: 100%;" th:text="#{suggestion.submit}">提交</button>
+        <button class="btn-primary" type="submit" id="submit-btn" style="margin-top: 20px; width: 100%;">提交</button>
       </form>
     </div>
 
     <div class="card">
-      <h3 th:text="#{suggestion.history}">历史记录</h3>
+      <h3>历史记录</h3>
       <div id="list"></div>
     </div>
   </div>
