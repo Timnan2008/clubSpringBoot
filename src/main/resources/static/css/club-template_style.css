@@ -1,0 +1,620 @@
+
+    /* 基础样式重置 */
+*{
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    text-decoration: none;
+    box-sizing: border-box;
+}
+
+/* 柔和的未来感背景 - 亮色系 */
+body {
+    font-family: 'Segoe UI', 'Roboto', sans-serif;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 50%, #eef2ff 100%);
+    color: #333344;
+    min-height: 100vh;
+    padding: 20px;
+    position: relative;
+    overflow-x: hidden;
+    padding-top: 120px;
+}
+
+/* 动态网格背景 - 柔和增强效果 - 亮色系 */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image:
+            linear-gradient(rgba(140, 160, 255, 0.15) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(140, 160, 255, 0.15) 1px, transparent 1px);
+    background-size: 50px 50px;
+    animation:
+            gridMove 20s linear infinite,
+            gridPulse 3s ease-in-out infinite alternate;
+    z-index: -4;
+}
+
+/* 柔和的霓虹光效 - 亮色系 */
+body::after {
+    content: '';
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background:
+            radial-gradient(circle, rgba(140, 160, 255, 0.1) 0%, transparent 70%),
+            radial-gradient(circle, rgba(160, 140, 255, 0.08) 0%, transparent 70%),
+            radial-gradient(circle, rgba(120, 180, 255, 0.06) 0%, transparent 70%);
+    background-position: 0% 0%, 50% 50%, 100% 100%;
+    background-size: 100% 100%, 80% 80%, 60% 60%;
+    animation:
+            pulse 4s ease-in-out infinite,
+            backgroundShift 8s ease-in-out infinite;
+    z-index: -3;
+}
+
+/* 网格移动效果 */
+@keyframes gridMove {
+    0% {
+        background-position: 0px 0px;
+    }
+    100% {
+        background-position: 50px 50px;
+    }
+}
+
+/* 网格脉冲效果 */
+@keyframes gridPulse {
+    0% {
+        opacity: 0.6;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+/* 脉冲效果 */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 0.6;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
+/* 背景移动效果 */
+@keyframes backgroundShift {
+    0%, 100% {
+        background-position: 0% 0%, 50% 50%, 100% 100%;
+    }
+    33% {
+        background-position: 10% 10%, 60% 40%, 90% 90%;
+    }
+    66% {
+        background-position: 20% 0%, 40% 60%, 80% 80%;
+    }
+}
+/* 导航栏样式 - 玻璃态效果 - 亮色系 */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    margin: 0;
+    padding: 10px 30px;
+    height: 100px;
+    box-shadow:
+            0 4px 20px rgba(0, 0, 0, 0.1),
+            inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    border-radius: 16px;
+}
+.navbar-top {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+.navbar-left {
+    display: flex;
+    align-items: center;
+}
+.navbar-logo {
+    height: 100px;
+    margin-right: 16px;
+
+}
+.school-name-block {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+.school-cn {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333344;
+}
+.school-en {
+    font-size: 12px;
+    color: #666688;
+    text-transform: uppercase;
+}
+.navbar-links {
+    display: flex;
+    margin-left: auto;
+}
+.navbar-links a {
+    margin-left: 20px;
+    text-decoration: none;
+    color: #333344;
+    font-weight: 500;
+    transition: color 0.3s;
+}
+.navbar-links a:hover {
+    color: #5060ff;
+}
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+.dropbtn {
+    padding: 10px;
+    color: #333344;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+.dropbtn:hover {
+    color: #5060ff;
+}
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    min-width: 180px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    z-index: 1001;
+    border-radius: 8px;
+    overflow: hidden;
+    top: 100%;
+    left: 0;
+    border: 1px solid rgba(140, 160, 255, 0.25);
+}
+.dropdown-content a {
+    color: #333344;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    font-size: 14px;
+    transition: background-color 0.2s, color 0.2s;
+    margin-left: 0;
+}
+.dropdown-content a:hover {
+    background: rgba(140, 160, 255, 0.2);
+    color: #5060ff;
+}
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+.top-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 20px 0;
+}
+.leaders {
+    flex: 1;
+}
+.club-logo {
+    width: 120px;
+    height: auto;
+    margin-left: 20px;
+    border-radius: 8px;
+}
+.photo-horizon {
+    width: 99%;
+}
+.photo-verticle {
+    width: 49%;
+}
+
+.video-section {
+    margin-top: 40px;
+    text-align: center;
+}
+
+.video-container {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    max-width: 720px;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow:
+            0 4px 20px rgba(0, 0, 0, 0.15),
+            inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(140, 160, 255, 0.25);
+    background: rgba(255, 255, 255, 0.85);
+}
+.like-wrapper {
+    --gap: 0.5em;
+    --radius: 0.35em;
+    display: flex;
+    align-items: center;
+    text-align: center;
+    justify-content: center;
+    --dot-bg: rgba(255, 255, 255, 0.8);
+    --dot-color: rgba(140, 160, 255, 0.3);
+    --dot-size: 1px;
+    --dot-space: 22px;
+    background: linear-gradient(
+            90deg,
+            var(--dot-bg) calc(var(--dot-space) - var(--dot-size)),
+            transparent 1%
+    )
+    center / var(--dot-space) var(--dot-space),
+    linear-gradient(
+            var(--dot-bg) calc(var(--dot-space) - var(--dot-size)),
+            transparent 1%
+    )
+    center / var(--dot-space) var(--dot-space),
+    var(--dot-color);
+    border: 0.1em solid rgba(140, 160, 255, 0.4);
+    padding: 0.5em;
+    border-radius: var(--radius);
+    box-shadow: 0 0 1em 0.5em rgba(140, 160, 255, 0.15);
+    cursor: pointer;
+}
+
+.check[type="checkbox"] {
+    display: none;
+}
+
+.vedioContainer {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    margin-top: -0.25em;
+    margin-bottom: -0.25em;
+}
+
+.icon {
+    width: 1.5em;
+    height: 1.5em;
+    margin-left: 0.5em;
+    fill: #5060ff;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.icon.active {
+    display: none;
+    fill: #f52121;
+}
+
+.check[type="checkbox"]:checked + .vedioContainer .icon.active {
+    display: inline-block;
+    animation: wiggle 0.5s ease-in-out;
+}
+
+.check[type="checkbox"]:checked + .vedioContainer .icon.inactive {
+    display: none;
+}
+
+.like-text {
+    margin-left: 0.5em;
+    padding: 0.5em;
+    color: #333344;
+    font-family: Arial, sans-serif;
+    font-weight: bolder;
+}
+
+@keyframes wiggle {
+    0%,
+    100% {
+        transform: rotate(0deg);
+    }
+    25% {
+        transform: rotate(-10deg);
+    }
+    50% {
+        transform: rotate(10deg);
+    }
+    75% {
+        transform: rotate(-10deg);
+    }
+}
+.button-container {
+    position: relative;
+    display: inline-block;
+}
+
+.button {
+    cursor: pointer;
+    width: 10em;
+    height: 3em;
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(140, 160, 255, 0.25);
+    box-shadow: 0px 5px 0px rgba(140, 160, 255, 0.3);
+    overflow: hidden;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+}
+
+#fontlikebutton {
+    font-family: "Trebuchet MS", sans-serif;
+    font-weight: 600;
+    font-size: 1.5em;
+    color: #5060ff;
+    margin-left: 0.2em;
+}
+
+.button:hover {
+    background: rgba(140, 160, 255, 0.8);
+}
+
+.button:hover svg {
+    filter: brightness(0) invert(1);
+    transform: scale(1.5) translateX(100%);
+}
+
+.button:hover #fontlikebutton {
+    transform: translateX(200%);
+}
+
+.button:active {
+    transform: scale(0.95) translateY(10%);
+    box-shadow: 0px 2px 0px 0px rgba(140, 160, 255, 0.5);
+}
+
+.button:active svg {
+    margin-bottom: 0.5em;
+    transform: scale(1.5) translateX(85%) rotate(-30deg);
+}
+
+.button:active #fontlikebutton {
+    transform: translateX(200%);
+}
+
+#likeimg {
+    transition: all 0.2s ease;
+}
+
+#rightpart {
+    width: 70%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#leftpart {
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    font-family: "Trebuchet MS", sans-serif;
+    font-weight: 600;
+    font-size: 1.5em;
+    background: linear-gradient(135deg, rgba(140, 160, 255, 0.8) 0%, rgba(160, 140, 255, 0.8) 100%);
+    width: 30%;
+    height: 100%;
+    transition: all 0.2s ease;
+}
+
+.button:hover #leftpart {
+    color: #90a0ff;
+    background: rgba(30, 35, 65, 0.65);
+}
+
+#currentnumber {
+    transform: translateY(50%);
+    transition: all 0.2s ease;
+}
+
+#movenumber {
+    transform: translateY(-200%);
+    transition: all 0.2s ease;
+}
+
+#checknumber:checked ~ .button #currentnumber {
+    transform: translateY(200%);
+}
+
+#checknumber:checked ~ .button #movenumber {
+    transform: translateY(-50%);
+}
+
+
+/* 容器样式 */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* 标题样式 */
+h1 {
+    text-align: center;
+    font-size: 50px;
+    font-weight: bold;
+    color: #000000;
+    margin: 40px 0 20px 0;
+    letter-spacing: 2px;
+    text-shadow: 0 0 10px rgba(140, 160, 255, 0.5);
+}
+
+/* 顶部信息样式 */
+.top-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 20px 0;
+    background: rgba(30, 35, 65, 0.65);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow:
+            0 8px 32px rgba(0, 0, 0, 0.2),
+            inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(140, 160, 255, 0.15);
+}
+
+/* 社团信息样式 */
+.leaders {
+    flex: 1;
+}
+
+.leaders p {
+    font-size: 18px;
+    margin-bottom: 10px;
+    color: #000000;
+}
+
+/* 社团LOGO样式 */
+.club-logo {
+    width: 120px;
+    height: auto;
+    margin-left: 20px;
+    border-radius: 12px;
+    border: 1px solid rgba(140, 160, 255, 0.3);
+    box-shadow: 0 4px 12px rgba(140, 160, 255, 0.2);
+}
+
+/* 社团介绍样式 */
+.intro {
+    background: rgba(30, 35, 65, 0.65);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow:
+            0 8px 32px rgba(0, 0, 0, 0.2),
+            inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(140, 160, 255, 0.15);
+    margin: 20px 0;
+}
+
+.intro h2 {
+    color: #e0e6ff;
+    margin-bottom: 15px;
+    font-size: 24px;
+}
+
+.intro p {
+    color: #d0d6ff;
+    line-height: 1.6;
+    font-size: 16px;
+}
+
+/* 视频区域样式 */
+.video-section {
+    margin-top: 40px;
+    text-align: center;
+}
+
+/* 粒子效果 */
+.particle {
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: rgba(140, 160, 255, 0.4);
+    border-radius: 50%;
+    box-shadow: 0 0 3px rgba(140, 160, 255, 0.6);
+    animation: particleFloat 6s linear infinite;
+}
+
+@keyframes particleFloat {
+    0% {
+        transform: translateY(100vh) translateX(0) scale(0);
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+        transform: translateY(90vh) translateX(10px) scale(1);
+    }
+    50% {
+        transform: translateY(50vh) translateX(-15px) scale(1.2);
+    }
+    90% {
+        opacity: 1;
+        transform: translateY(10vh) translateX(10px) scale(1);
+    }
+    100% {
+        transform: translateY(0) translateX(0) scale(0);
+        opacity: 0;
+    }
+}
+
+    .search {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        text-align: center;
+        margin-left: 20px
+    }
+
+    .search__input {
+        font-family: inherit;
+        font-size: inherit;
+        background: rgba(255, 255, 255, 0.75);
+        border: 1px solid rgba(140, 160, 255, 0.25);
+        color: #33384d;
+        padding: 0.7rem 1rem;
+        border-radius: 30px;
+        width: 12em;
+        transition: all ease-in-out .5s;
+        margin-right: -2rem;
+    }
+
+    .search__input:hover, .search__input:focus {
+        box-shadow: 0 0 1em rgba(140, 160, 255, 0.3);
+        border-color: rgba(140, 160, 255, 0.4);
+    }
+
+    .search__input:focus {
+        outline: none;
+        background: rgba(255, 255, 255, 0.9);
+    }
+
+    .search__input::-webkit-input-placeholder {
+        font-weight: 100;
+        color: #6b7296;
+    }
+
+    .search__input:focus + .search__button {
+        background: rgba(255, 255, 255, 0.9);
+    }
+
+    .search__button {
+        border: none;
+        background: rgba(255, 255, 255, 0.75);
+        margin-top: .1em;
+    }
+
+    .search__button:hover {
+        cursor: pointer;
+    }
+
+    .search__icon {
+        height: 1.3em;
+        width: 1.3em;
+        fill: #4a5072;
+    }
