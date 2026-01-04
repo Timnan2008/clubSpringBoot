@@ -118,6 +118,17 @@ body::after {
     align-items: center;
     width: 100%;
 }
+/* 中间区域：搜索框 */
+.navbar-center {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+/* 搜索框样式调整 */
+.navbar-center .search {
+    margin: 0;
+}
 .navbar-left {
     display: flex;
     align-items: center;
