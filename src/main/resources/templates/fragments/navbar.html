@@ -15,6 +15,15 @@
             </div>
         </div>
 
+        <!-- 中间：搜索框 -->
+        <div class="navbar-center">
+            <div class="search">
+                <input class="search__input"
+                       type="text"
+                       th:placeholder="#{nav.search.placeholder}">
+            </div>
+        </div>
+
         <!-- 右侧：导航链接 -->
         <nav class="navbar-links">
 
@@ -39,13 +48,6 @@
 
             <a th:href="@{/page/user/login}"
                th:text="#{nav.login}"></a>
-
-            <!-- 搜索框 -->
-            <div class="search">
-                <input class="search__input"
-                       type="text"
-                       th:placeholder="#{nav.search.placeholder}">
-            </div>
 
             <!-- 语言切换 -->
             <div class="dropdown">

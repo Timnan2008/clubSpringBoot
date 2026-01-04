@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -22,7 +22,7 @@
 </script>
 
 <script th:inline="javascript">
-    const clubName =[[${clubName}]];
+    const clubName = [[${clubName}]];
 
     console.log("DEBUG 当前社团名:", clubName);
 
@@ -47,7 +47,7 @@
 
             // ✅ 这里每个元素都存在
             console.log("DEBUG club-name:", club.clubName);
-            document.getElementById("club-title").textContent = club.clubName + i18n.info;
+            document.getElementById("club-title").textContent = club.clubName + "介绍";
             console.log("DEBUG president:", club.president);
             document.getElementById("president").textContent = club.president || "暂无";
             console.log("DEBUG vicePresident:", club.vicePresident);
@@ -83,19 +83,19 @@
     <h1><span id="club-title">未知社团</span></h1>
     <div class="top-info">
         <div class="leaders">
-            <p><strong><span th:text="#{club.president}"></span></strong ><span id="president">加载中</span></p>
-            <p><strong><span th:text="#{club.vice_president}"></span></strong><span id="vicePresident">加载中</span></p>
-            <p><strong><span th:text="#{club.teacher}"></span></strong><span id="teacher">加载中</span></p>
+            <p><strong>社长：</strong ><span id="president">加载中</span></p>
+            <p><strong>副社长：</strong><span id="vicePresident">加载中</span></p>
+            <p><strong>指导老师：</strong><span id="teacher">加载中</span></p>
         </div>
         <img id="club-logo" class="club-logo">
     </div>
 
     <div class="intro">
-        <h2><span th:text="#{club.club_info}"></span></h2>
+        <h2>社团简介</h2>
         <p id="club-intro">加载中...</p>
     </div>
 
-    <h1><span th:text="#{club.video}"></span></h1>
+    <h1>社团视频展示</h1>
 
     <div class="video-container">
         <video id="club-video" width="100%" controls>
