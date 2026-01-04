@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -535,6 +535,17 @@
             text-align: center;
         }
 
+        .video-container {
+            position: relative;
+            width: 100%;
+            max-width: 720px;
+            margin: 0 auto;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
         /* 粒子效果 */
         .particle {
             position: absolute;
@@ -608,7 +619,7 @@
 
 <!--连接后端内容-->
 <script th:inline="javascript">
-    const clubName =[[${clubName}]];
+    const clubName = [[${clubName}]];
 
     console.log("DEBUG 当前社团名:", clubName);
 
@@ -681,44 +692,45 @@
         <p id="club-intro">加载中...</p>
     </div>
 
-    <h1>社团视频展示</h1>
+    <div class="video-section">
+        <h1>社团视频展示</h1>
 
-    <div class="video-container">
-        <video id="club-video" width="100%" controls>
-            <source type="video/mp4">
-            您的浏览器不支持 video 标签。
-        </video>
+        <div class="video-container">
+            <video id="club-video" width="100%" controls>
+                <source type="video/mp4">
+                您的浏览器不支持 video 标签。
+            </video>
 
-        <div class="button-container">
-            <input hidden="" id="checknumber" type="checkbox" />
-            <label for="checknumber" class="button">
-                <div id="leftpart">
-                    <p id="currentnumber">24</p>
-                    <p id="movenumber">25</p>
-                </div>
+            <div class="button-container">
+                <input hidden="" id="checknumber" type="checkbox" />
+                <label for="checknumber" class="button">
+                    <div id="leftpart">
+                        <p id="currentnumber">24</p>
+                        <p id="movenumber">25</p>
+                    </div>
 
-                <div id="rightpart">
-                    <svg
-                            id="likeimg"
-                            stroke-linejoin="round"
-                            stroke-linecap="round"
-                            stroke-width="3"
-                            stroke="#00d5ff"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            height="24"
-                            width="24"
-                            xmlns="http://www.w3.org/2000/svg"
-                    >
-                        <path
-                                d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"
-                        ></path>
-                    </svg>
-                    <div id="fontlikebutton">Like</div>
-                </div>
-            </label>
+                    <div id="rightpart">
+                        <svg
+                                id="likeimg"
+                                stroke-linejoin="round"
+                                stroke-linecap="round"
+                                stroke-width="3"
+                                stroke="#00d5ff"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                height="24"
+                                width="24"
+                                xmlns="http://www.w3.org/2000/svg"
+                        >
+                            <path
+                                    d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"
+                            ></path>
+                        </svg>
+                        <div id="fontlikebutton">Like</div>
+                    </div>
+                </label>
+            </div>
         </div>
-
     </div>
 </div>
 
