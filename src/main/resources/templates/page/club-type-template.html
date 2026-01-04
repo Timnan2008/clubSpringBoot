@@ -25,6 +25,15 @@
     </div>
 </div>
 
+<script th:inline="javascript">
+    const messages = {
+        "nav.club.creativity": /*[[#{nav.club.creativity}]]*/'creativity',
+        "nav.club.activity": /*[[#{nav.club.activity}]]*/'activity',
+        "nav.club.service": /*[[#{nav.club.service}]]*/'service',
+        "nav.club.study": /*[[#{nav.club.study}]]*/'study'
+    };
+</script>
+
 <script  th:inline="javascript" >
     const type =  /*[[${type}]]*/ 'default';
 
@@ -32,9 +41,52 @@
 
     console.log(type);
 
+    const clubTypes = {
+        creativity: "nav.club.creativity",
+        activity: "nav.club.activity",
+        service: "nav.club.service",
+        study: "nav.club.study"
+    };
+
+    const topTabs = document.getElementById("Top");
+
+    const title = document.getElementById("title");
+
+    topTabs.innerHTML = "";
+
+    // 遍历生成 tabs
+    Object.entries(clubTypes).forEach(([key, i18nKey]) => {
+        const a = document.createElement("a");
+        a.className = "tab-button";
+        a.dataset.i18n = i18nKey;
+
+        if (key === type) {
+            a.classList.add("active");
+            title.dataset.i18n = i18nKey; // 当前页面标题也 i18n
+        } else {
+            a.href = `/page/club-type/${key}`;
+        }
+
+        topTabs.appendChild(a);
+    });
+
+    console.log(topTabs);
+
+    function applyI18n(messages) {
+        document.querySelectorAll("[data-i18n]").forEach(el => {
+            const key = el.dataset.i18n;
+            if (messages[key]) {
+                el.textContent = messages[key];
+            }
+        });
+    }
+
+    // ✅ DOM 生成完毕后再 i18n
+    applyI18n(messages);
 
 
-    if(type === "activity"){
+
+    /*if(type === "activity"){
         document.getElementById("title").textContent = "体育活动";
         document.getElementById("Top").innerHTML = `
             <a href="/page/club-type/creativity" class="tab-button" data-i18n="main:C-type">创意艺术</a>
@@ -63,7 +115,7 @@
             <a href="/page/club-type/activity" class="tab-button" data-i18n="main:A-type">体育活动</a>
             <a href="/page/club-type/service" class="tab-button" data-i18n="main:S-type">社会服务</a>
             <a href="/page/club-type/study" class="tab-button" data-i18n="main:St-type">学科竞赛</a>`
-    }
+    }*/
 
     //获取数据
     fetch(`/api/club/all`)
@@ -97,14 +149,12 @@
                     console.log(card);
                     container.appendChild(card);
 
-                    container.appendChild(card);
                 }
-            })
-            .catch(error => {
-                console.error("加载社团数据失败:", error);
             });
-
         })
+        .catch(error => {
+            console.error("加载社团数据失败:", error);
+        });
 
     const tabButtons = document.querySelectorAll('.tab-button');
     const tabContents = document.querySelectorAll('.tab-content');

@@ -1,15 +1,20 @@
 package com.qpwflshclub.formal_club.controller;
 
 import com.qpwflshclub.formal_club.pojo.Club.Club;
+import com.qpwflshclub.formal_club.pojo.Club.ClubVO;
 import com.qpwflshclub.formal_club.pojo.ResponseMessage;
 import com.qpwflshclub.formal_club.pojo.dto.Club.ClubDTO;
 import com.qpwflshclub.formal_club.service.Club.ClubLikeService;
 import com.qpwflshclub.formal_club.service.Club.IClubService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/club")
@@ -123,10 +128,32 @@ public class ClubController {
     }
 
     @GetMapping("/all")
-    public ResponseMessage<List<Club>> findAll(){
+    public ResponseMessage<List<ClubVO>> findAll(){
+        Locale locale = LocaleContextHolder.getLocale();
+        boolean isEn = locale.getLanguage().equals("en");
+        System.out.println("isEn: " + isEn);
+
         List<Club> clubs = clubService.findAll();
-        System.out.println("clubs: " + clubs);
-        return ResponseMessage.success(clubs);
+
+        List<ClubVO> list = clubs.stream().map(c -> {
+            ClubVO vo = new ClubVO();
+
+            vo.setClubName(isEn ? c.getClubNameEn() : c.getClubName());
+            vo.setSortDescription(isEn ? c.getSortDescriptionEn() : c.getSortDescription());
+            vo.setClubItem(c.getClubItem());
+            vo.setGreatClub(c.isGreatClub());
+            vo.setClubURL(isEn
+                    ? "page/club-watch/En/" + c.getClubNameEn()
+                    : "page/club-watch/" + c.getClubName()
+            );
+            vo.setClubClass(c.getClubClass());
+
+            return vo;
+        }).toList();
+
+        System.out.println(list);
+
+        return ResponseMessage.success(list);
     }
 
 }
