@@ -3,6 +3,7 @@ package com.qpwflshclub.formal_club.controller;
 import com.qpwflshclub.formal_club.pojo.Club.Club;
 import com.qpwflshclub.formal_club.service.Club.ClubNotFoundException;
 import com.qpwflshclub.formal_club.service.Club.IClubService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -44,7 +45,8 @@ public class PageController {
     }
 
     @GetMapping("/index")
-    public String indexPage(Model model) {
+    public String index(HttpServletRequest request, Model model) {
+        model.addAttribute("currentUri", request.getRequestURI());
         return "page/index";
     }
 

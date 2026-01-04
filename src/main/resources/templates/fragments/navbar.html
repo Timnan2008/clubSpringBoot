@@ -7,7 +7,7 @@
 
         <!-- 左侧：学校名 -->
         <div class="navbar-left">
-            <img src="/images/logo.png" class="navbar-logo" alt="logo">
+            <img src="/other%20photo/WFL-logo.png" class="navbar-logo" alt="logo">
 
             <div class="school-name-block">
                 <div class="school-cn" th:text="#{school.cn}"></div>
@@ -18,16 +18,19 @@
         <!-- 右侧：导航链接 -->
         <nav class="navbar-links">
 
-            <a th:href="@{/page/index}"
-               th:text="#{nav.home}"></a>
+            <a th:href="@{/page/index}">
+                <span th:text="#{nav.home}"></span>
+            </a>
 
             <div class="dropdown">
                 <a class="dropbtn"
                    th:text="#{nav.allClubs}"></a>
 
                 <div class="dropdown-content">
-                    <a th:href="@{/page/clubs/academic}">Academic</a>
-                    <a th:href="@{/page/clubs/sports}">Sports</a>
+                    <a th:href="@{/page/club-type/creativity}"><span th:text="#{nav.club.creativity}"></span></a>
+                    <a th:href="@{/page/club-type/activity}"><span th:text="#{nav.club.activity}"></span></a>
+                    <a th:href="@{/page/club-type/service}"><span th:text="#{nav.club.service}"></span></a>
+                    <a th:href="@{/page/club-type/study}"><span th:text="#{nav.club.study}"></span></a>
                 </div>
             </div>
 
@@ -48,10 +51,10 @@
             <div class="dropdown">
                 <a class="dropbtn">🌐</a>
                 <div class="dropdown-content">
-                    <a th:href="@{__${#httpServletRequest.requestURI}__(lang='zh')}"
+                    <a th:href="@{${currentUri}(lang='zh')}"
                        th:text="#{nav.lang.zh}"></a>
 
-                    <a th:href="@{__${#httpServletRequest.requestURI}__(lang='en')}"
+                    <a th:href="@{${currentUri}(lang='en')}"
                        th:text="#{nav.lang.en}"></a>
                 </div>
             </div>
