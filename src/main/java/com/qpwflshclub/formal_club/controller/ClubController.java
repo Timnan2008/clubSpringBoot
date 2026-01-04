@@ -1,6 +1,7 @@
 package com.qpwflshclub.formal_club.controller;
 
 import com.qpwflshclub.formal_club.pojo.Club.Club;
+import com.qpwflshclub.formal_club.pojo.Club.ClubInfoVO;
 import com.qpwflshclub.formal_club.pojo.Club.ClubVO;
 import com.qpwflshclub.formal_club.pojo.ResponseMessage;
 import com.qpwflshclub.formal_club.pojo.dto.Club.ClubDTO;
@@ -120,11 +121,22 @@ public class ClubController {
     }
 
     @GetMapping("/name-en/{clubName}")
-    public ResponseMessage<Club> findByName(@PathVariable String clubName){
+    public <ClubInfoVo> ResponseMessage<ClubInfoVo> findByName(@PathVariable String clubName){
+        Locale locale = LocaleContextHolder.getLocale();
+        boolean isEn = locale.getLanguage().equals("en");
         System.out.println("clubName: " + clubName);
         Club club = clubService.findByName(clubName);
+        ClubInfoVO clubInfoVO = new ClubInfoVO();
+        clubInfoVO.setClubDescription(isEn? club.getClubDescriptionEn() : club.getClubDescription());
+        clubInfoVO.setClubName(isEn? club.getClubNameEn() : club.getClubName());
+        clubInfoVO.setClubItem(club.getClubItem());
+        clubInfoVO.setVideo(club.getVideo());
+        clubInfoVO.setVideoLike(club.getVideoLike());
+        clubInfoVO.setPresident(isEn? club.getPresidentEn() : club.getPresident());
+        clubInfoVO.setVicePresident(isEn? club.getVicePresidentEn() : club.getVicePresident());
+        clubInfoVO.setTeacher(isEn? club.getTeacherEn() : club.getTeacher());
 
-        return ResponseMessage.success(club);
+        return (ResponseMessage<ClubInfoVo>) ResponseMessage.success(clubInfoVO);
     }
 
     @GetMapping("/all")
@@ -139,13 +151,13 @@ public class ClubController {
             ClubVO vo = new ClubVO();
 
             vo.setClubName(isEn ? c.getClubNameEn() : c.getClubName());
+            vo.setClubItem(c.getClubNameEn());
             vo.setSortDescription(isEn ? c.getSortDescriptionEn() : c.getSortDescription());
             vo.setClubItem(c.getClubItem());
             vo.setGreatClub(c.isGreatClub());
             vo.setClubURL(isEn
-                    ? "page/club-watch/En/" + c.getClubNameEn()
-                    : "page/club-watch/" + c.getClubName()
-            );
+                    ? "page/club-watch/" + c.getClubNameEn() + "?lang=en"
+                    : "page/club-watch/" + c.getClubNameEn() + "?lang=zh");
             vo.setClubClass(c.getClubClass());
 
             return vo;

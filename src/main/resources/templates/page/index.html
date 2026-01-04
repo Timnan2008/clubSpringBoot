@@ -58,6 +58,12 @@
       </div>
     </div>
 
+    <script th:inline="javascript">
+      const i18n = {
+        viewDetail: /*[[#{button.viewDetail}]]*/
+      };
+    </script>
+
     <script>
       const apiUrl = `/api/club/all`;
       fetch(apiUrl)
@@ -76,6 +82,7 @@
             console.log(clubs.greatClub);
 
             if (clubs.greatClub) {
+              console.log(clubs.clubURL);
               const card = document.createElement("div");
               card.className = "card";
               card.innerHTML = `
@@ -83,7 +90,7 @@
                         <div class="card-content">
                           <h2>${clubs.clubName}</h2>
                           <p>${clubs.sortDescription}</p>
-                          <a class="button" href="../../${clubs.clubURL}" target="_blank">查看详情</a>
+                          <a class="button" href="../../${clubs.clubURL}" target="_blank">${i18n.viewDetail}</a>
                         </div>
                       `;
               console.log(card);
@@ -104,7 +111,7 @@
                         <div class="card-content">
                           <h2>${clubs.clubName}</h2>
                           <p>${clubs.sortDescription}</p>
-                          <a class="button" href="../../${clubs.clubURL}" target="_blank">查看详情</a>
+                          <a class="button" href="../../${clubs.clubURL}" target="_blank">${i18n.viewDetail}</a>
                         </div>
                       `;
               container.appendChild(card);

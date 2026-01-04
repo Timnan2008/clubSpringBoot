@@ -34,6 +34,13 @@
     };
 </script>
 
+<script th:inline="javascript">
+    const i18n = {
+        viewDetail: /*[[#{button.viewDetail}]]*/
+    };
+</script>
+
+
 <script  th:inline="javascript" >
     const type =  /*[[${type}]]*/ 'default';
 
@@ -117,6 +124,7 @@
             <a href="/page/club-type/study" class="tab-button" data-i18n="main:St-type">学科竞赛</a>`
     }*/
 
+
     //获取数据
     fetch(`/api/club/all`)
         .then(response => response.json())
@@ -143,7 +151,7 @@
                         <div class="card-content">
                           <h2>${club.clubName}</h2>
                           <p>${club.sortDescription}</p>
-                          <a class="button" href="../../${club.clubURL}" target="_blank">查看详情</a>
+                          <a class="button" href="../../${club.clubURL}" target="_blank">${i18n.viewDetail}</a>
                         </div>
                       `;
                     console.log(card);

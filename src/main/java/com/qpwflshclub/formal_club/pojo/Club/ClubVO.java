@@ -5,6 +5,7 @@ import lombok.Data;
 @Data
 public class ClubVO {
     private String clubName;
+    private String clubNameEn;
     private String sortDescription;
     private String clubURL;
     private String clubItem;
