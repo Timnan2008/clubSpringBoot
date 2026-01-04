@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="navbar">
+    <header class="navbar">
+
+        <!-- 左侧：学校名 -->
+        <div class="navbar-left">
+            <img src="/images/logo.png" class="navbar-logo" alt="logo">
+
+            <div class="school-name-block">
+                <div class="school-cn" th:text="#{school.cn}"></div>
+                <div class="school-en" th:text="#{school.en}"></div>
+            </div>
+        </div>
+
+        <!-- 右侧：导航链接 -->
+        <nav class="navbar-links">
+
+            <a th:href="@{/page/index}"
+               th:text="#{nav.home}"></a>
+
+            <div class="dropdown">
+                <a class="dropbtn"
+                   th:text="#{nav.allClubs}"></a>
+
+                <div class="dropdown-content">
+                    <a th:href="@{/page/clubs/academic}">Academic</a>
+                    <a th:href="@{/page/clubs/sports}">Sports</a>
+                </div>
+            </div>
+
+            <a th:href="@{/page/suggestion}"
+               th:text="#{nav.suggestion}"></a>
+
+            <a th:href="@{/page/user/login}"
+               th:text="#{nav.login}"></a>
+
+            <!-- 搜索框 -->
+            <div class="search">
+                <input class="search__input"
+                       type="text"
+                       th:placeholder="#{nav.search.placeholder}">
+            </div>
+
+            <!-- 语言切换 -->
+            <div class="dropdown">
+                <a class="dropbtn">🌐</a>
+                <div class="dropdown-content">
+                    <a th:href="@{__${#httpServletRequest.requestURI}__(lang='zh')}"
+                       th:text="#{nav.lang.zh}"></a>
+
+                    <a th:href="@{__${#httpServletRequest.requestURI}__(lang='en')}"
+                       th:text="#{nav.lang.en}"></a>
+                </div>
+            </div>
+
+        </nav>
+
+    </header>
+</div>
+
+</body>
+</html>

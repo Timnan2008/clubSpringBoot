@@ -2,6 +2,7 @@ package com.qpwflshclub.formal_club.pojo.dto.User;
 
 import com.qpwflshclub.formal_club.pojo.Club.Club;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
@@ -91,6 +92,7 @@ public class ClubPresidentDTO implements UserBaseDTO{
     @NotNull(message = "社长密码不能为空")
     private String clubPresidentPassword;
     @NotNull(message = "社长邮箱不能为空")
+    @Email(message = "邮箱格式不正确")
     private String clubPresidentEmail;
 
 
