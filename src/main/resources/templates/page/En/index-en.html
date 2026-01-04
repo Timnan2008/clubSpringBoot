@@ -5,20 +5,105 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title data-i18n="main:title">Main Page</title>
     <style>
-        body {
-            margin: 0;
-            font-family: sans-serif;
-            background-color: #f7f7f7;
-            background-image: url('../../../static/other photo/leaves.png');
-            background-size: cover;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
-        }
-        *{
+        /* 基础样式重置 */
+        * {
             margin: 0;
             padding: 0;
             list-style: none;
             text-decoration: none;
+            box-sizing: border-box;
+        }
+
+        /* 柔和的亮色系背景 */
+        body {
+            font-family: 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 50%, #e8ecff 100%);
+            color: #33384d;
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* 动态网格背景 - 柔和增强效果 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+              linear-gradient(rgba(140, 160, 255, 0.15) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(140, 160, 255, 0.15) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: 
+              gridMove 20s linear infinite,
+              gridPulse 3s ease-in-out infinite alternate;
+            z-index: -4;
+        }
+
+        /* 柔和的霓虹光效 */
+        body::after {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+              radial-gradient(circle, rgba(140, 160, 255, 0.1) 0%, transparent 70%),
+              radial-gradient(circle, rgba(160, 140, 255, 0.08) 0%, transparent 70%),
+              radial-gradient(circle, rgba(120, 180, 255, 0.06) 0%, transparent 70%);
+            background-position: 0% 0%, 50% 50%, 100% 100%;
+            background-size: 100% 100%, 80% 80%, 60% 60%;
+            animation: 
+              pulse 4s ease-in-out infinite,
+              backgroundShift 8s ease-in-out infinite;
+            z-index: -3;
+        }
+
+        /* 网格移动效果 */
+        @keyframes gridMove {
+            0% {
+                background-position: 0px 0px;
+            }
+            100% {
+                background-position: 50px 50px;
+            }
+        }
+
+        /* 网格脉冲效果 */
+        @keyframes gridPulse {
+            0% {
+                opacity: 0.6;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+
+        /* 脉冲效果 */
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 0.6;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
+
+        /* 背景移动效果 */
+        @keyframes backgroundShift {
+            0%, 100% {
+                background-position: 0% 0%, 50% 50%, 100% 100%;
+            }
+            33% {
+                background-position: 10% 10%, 60% 40%, 90% 90%;
+            }
+            66% {
+                background-position: 20% 0%, 40% 60%, 80% 80%;
+            }
         }
         .navbar {
             display: flex;
@@ -66,31 +151,37 @@
         .navbar-links {
             display: flex;
             margin-left: auto;
+            align-items: center;
         }
         .navbar-links a {
             margin-left: 20px;
             text-decoration: none;
-            color: #242525;
+            color: rgba(0, 0, 0, 0.8);
             font-weight: 500;
-            transition: color 0.3s;
+            transition: all 0.3s;
+            padding: 8px 15px;
+            border-radius: 20px;
         }
         .navbar-links a:hover {
-            color: #0056b3;
+            color: #333;
+            background: rgba(102, 126, 234, 0.1);
         }
         .dropdown {
             position: relative;
             display: inline-block;
         }
         .dropbtn {
-            padding: 10px;
-            color: #242525;
+            padding: 8px 15px;
+            color: rgba(0, 0, 0, 0.8);
             font-weight: 500;
             text-decoration: none;
             cursor: pointer;
-            transition: color 0.3s;
+            transition: all 0.3s;
+            border-radius: 20px;
         }
         .dropbtn:hover {
-            color: #0056b3;
+            color: #333;
+            background: rgba(102, 126, 234, 0.1);
         }
         .dropdown-content {
             display: none;
@@ -324,6 +415,7 @@
     </style>
 </head>
 <body>
+        <div id="particles"></div>
 <div th:replace="fragments/notice :: notice"></div>
 
 <header class="navbar">
@@ -578,17 +670,50 @@
         opacity: 0.3;
       }
       25% {
-        transform: translateY(-20px) translateX(${Math.random() * 10 - 5}px);
+        transform: translateY(-20px) translateX(0px);
         opacity: 0.6;
       }
       50% {
-        transform: translateY(-10px) translateX(${Math.random() * 10 - 5}px);
+        transform: translateY(-10px) translateX(0px);
         opacity: 0.8;
       }
       75% {
-        transform: translateY(-15px) translateX(${Math.random() * 10 - 5}px);
+        transform: translateY(-15px) translateX(0px);
         opacity: 0.5;
       }
+    }
+
+    /* 粒子效果 */
+    .particle {
+        position: absolute;
+        width: 2px;
+        height: 2px;
+        background: rgba(140, 160, 255, 0.4);
+        border-radius: 50%;
+        box-shadow: 0 0 3px rgba(140, 160, 255, 0.6);
+        animation: particleFloat 6s linear infinite;
+    }
+
+    @keyframes particleFloat {
+        0% {
+            transform: translateY(100vh) translateX(0) scale(0);
+            opacity: 0;
+        }
+        10% {
+            opacity: 1;
+            transform: translateY(90vh) translateX(10px) scale(1);
+        }
+        50% {
+            transform: translateY(50vh) translateX(-15px) scale(1.2);
+        }
+        90% {
+            opacity: 1;
+            transform: translateY(10vh) translateX(10px) scale(1);
+        }
+        100% {
+            transform: translateY(0) translateX(0) scale(0);
+            opacity: 0;
+        }
     }
 
     #particles-container {
@@ -607,5 +732,37 @@
   document.addEventListener('DOMContentLoaded', createParticles);
 </script>
 
-</body>
+<script>
+            // 创建动态粒子
+            function createParticles() {
+                const particlesContainer = document.getElementById('particles');
+                const particleCount = 30; // 减少粒子数量以提高性能
+                
+                for (let i = 0; i < particleCount; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    particle.style.left = Math.random() * 100 + '%';
+                    particle.style.animationDelay = Math.random() * 6 + 's';
+                    particle.style.animationDuration = (4 + Math.random() * 6) + 's';
+                    // 随机大小
+                    const size = Math.random() * 3 + 1;
+                    particle.style.width = size + 'px';
+                    particle.style.height = size + 'px';
+                    // 随机颜色
+                    const colors = [
+                        'rgba(140, 160, 255, 0.4)',
+                        'rgba(160, 140, 255, 0.4)',
+                        'rgba(120, 180, 255, 0.4)'
+                    ];
+                    const randomColor = colors[Math.floor(Math.random() * colors.length)];
+                    particle.style.background = randomColor;
+                    particle.style.boxShadow = '0 0 3px ' + randomColor;
+                    particlesContainer.appendChild(particle);
+                }
+            }
+            
+            // 页面加载完成后创建粒子
+            window.addEventListener('load', createParticles);
+        </script>
+    </body>
 </html>
