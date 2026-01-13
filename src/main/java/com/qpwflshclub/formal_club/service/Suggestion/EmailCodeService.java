@@ -17,10 +17,10 @@ public class EmailCodeService {
     private StringRedisTemplate redisTemplate;
 
     // 发件邮箱配置（可改成配置文件或环境变量）
-    private final String SMTP_HOST = "smtp.office365.com";
-    private final int SMTP_PORT = 587;
-    private final String SMTP_USER = "codecraftvery@outlook.com";
-    private final String SMTP_PASS = "rfblbbewanngurjs";
+    private final String SMTP_HOST = "smtp.qiye.aliyun.com";
+    private final int SMTP_PORT = 465;
+    private final String SMTP_USER = "qpwflhs_cs@shwfl.edu.cn";
+    private final String SMTP_PASS = "ympkVwWEJCTKlk4A";
 
     /**
      * 发送验证码
@@ -36,6 +36,8 @@ public class EmailCodeService {
 
         // 调用 MailService 发送
         mailService.sendCode(SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, email, code);
+
+        System.out.println("已发送");
     }
 
     /**

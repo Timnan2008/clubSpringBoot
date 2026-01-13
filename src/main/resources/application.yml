@@ -1,2 +1,14 @@
-test:
-  value: hello
+spring:
+  mail:
+    host: smtp.qiye.aliyun.com
+    port: 465
+    username: qpwflhs_cs@shwfl.edu.cn
+    password: ympkVwWEJCTKlk4A
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl:
+            enable: true
+          socketFactory:
+            class: javax.net.ssl.SSLSocketFactory

@@ -392,3 +392,11 @@ h1 {
     width: 1.3em;
     fill: #4a5072;
 }
+.nav-disabled {
+    opacity: 0.45;            /* 整体变淡 */
+    color: #666;
+    cursor: not-allowed;      /* 禁止点击样式 */
+    pointer-events: none;     /* 完全点不了 */
+    user-select: none;        /* 不能选中文字 */
+    text-decoration: none;
+}
