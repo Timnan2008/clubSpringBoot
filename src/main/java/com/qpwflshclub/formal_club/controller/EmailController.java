@@ -19,8 +19,13 @@ public class EmailController {
     @PostMapping("/send")
     public ResponseMessage<?> send(@RequestParam String email) {
         System.out.println(email);
-        emailCodeService.sendCode(email);
-        return ResponseMessage.success("验证码已发送");
+        try {
+            emailCodeService.sendCode(email);
+            return ResponseMessage.success("验证码已发送");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseMessage.error("邮件发送失败：" + e.getMessage());
+        }
     }
 
     @PostMapping("/verify")

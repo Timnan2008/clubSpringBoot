@@ -30,7 +30,13 @@ public class MailService {
 
         Properties props = sender.getJavaMailProperties();
         props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.starttls.enable", "true"); // 对应 587
+        if (smtpPort == 465) {
+            // 端口 465 使用 SSL
+            props.put("mail.smtp.ssl.enable", "true");
+        } else {
+            // 端口 587 使用 STARTTLS
+            props.put("mail.smtp.starttls.enable", "true");
+        }
         props.put("mail.smtp.ssl.trust", "*"); // 信任所有 SSL/TLS 证书
 
         // 构建邮件
