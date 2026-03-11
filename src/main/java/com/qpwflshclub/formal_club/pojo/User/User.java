@@ -1,5 +1,6 @@
 package com.qpwflshclub.formal_club.pojo.User;
 
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.qpwflshclub.formal_club.pojo.Club.Club;
 import jakarta.persistence.*;
 
@@ -7,6 +8,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "user")
+
 public class User implements UserBase{
 
     @Id

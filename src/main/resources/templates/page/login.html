@@ -35,7 +35,7 @@
       <select id="role" onchange="onRoleChange()">
         <option value="" disabled selected>请选择身份</option>
         <option value="teacher">老师</option>
-        <option value="student">学生</option>
+        <option value="user">学生</option>
       </select>
 
       <!-- 下面是隐藏区域 -->
@@ -198,9 +198,7 @@
         const json = getFormDataByRole(role);
         console.log(JSON.stringify(json, null, 2));
 
-        if(role === "student"){
-          role = "user";
-        }
+        
 
         fetch("/api/user/add/" + role, {
           method: "POST",
@@ -212,7 +210,11 @@
           .then((res) => res.json())
           .then((data) => {
             console.log("返回：", data);
-            alert(data.message);
+            openNotice26(false, {
+              title : "已请求",
+              msg : "正在请求",
+              subMsg : data.message
+            })
           })
           .catch((err) => console.error(err.message));
       }

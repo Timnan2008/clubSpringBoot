@@ -70,6 +70,22 @@ public class ClubController {
     @Autowired
     private ClubLikeService clubLikeService;
 
+    @PutMapping("/reverse")
+    public ResponseMessage<List<Club>> reverse(){
+        List<Club> clubs = clubService.findAll();
+        clubs.forEach(n -> {
+            String ClubPresident = n.getVicePresident();
+            String ClubPresidentEn = n.getVicePresidentEn();
+            String ClubVicePresident = n.getPresident();
+            String ClubVicePresidentEn = n.getPresidentEn();
+            n.setPresident(ClubPresident);
+            n.setPresidentEn(ClubPresidentEn);
+            n.setVicePresident(ClubVicePresident);
+            n.setVicePresidentEn(ClubVicePresidentEn);
+        });
+        return ResponseMessage.success(clubs);
+    }
+
 
     @PutMapping("/like/{clubName}")
     public ResponseMessage<Club> like(

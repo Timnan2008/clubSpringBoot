@@ -1,12 +1,13 @@
 package com.qpwflshclub.formal_club.pojo.dto.User;
 
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.qpwflshclub.formal_club.pojo.Club.Club;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
 
-
+@JsonTypeName("User")
 public class UserDTO implements UserBaseDTO{
 
     private Long id;

@@ -1,5 +1,6 @@
 package com.qpwflshclub.formal_club.pojo.dto.User;
 
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.qpwflshclub.formal_club.pojo.Club.Club;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
@@ -7,7 +8,7 @@ import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
 
-
+@JsonTypeName("clubPresident")
 public class ClubPresidentDTO implements UserBaseDTO{
 
     private Long id;
