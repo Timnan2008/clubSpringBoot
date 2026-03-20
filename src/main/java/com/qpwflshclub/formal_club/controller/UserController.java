@@ -114,4 +114,33 @@ public class UserController {
         }
         return ResponseMessage.error("查不到");
     }
+    @PostMapping("/login")
+    @ResponseBody
+    public ResponseMessage<?> login(@RequestParam String email, @RequestParam String password) {
+        try {
+            UserBase user = userService.findByEmail(email);
+
+            if (user == null) {
+                return ResponseMessage.error("未找到该用户");
+            }
+
+            if (!user.getPassword().equals(password)) {
+                return ResponseMessage.error("密码错误");
+            }
+
+            if (user instanceof User) {
+                return ResponseMessage.success((User) user);
+            } else if (user instanceof Teacher) {
+                return ResponseMessage.success((Teacher) user);
+            } else if (user instanceof ClubPresident) {
+                return ResponseMessage.success((ClubPresident) user);
+            } else if (user instanceof Admin) {
+                return ResponseMessage.success((Admin) user);
+            } else {
+                return ResponseMessage.error("未找到该用户或类型异常");
+            }
+        } catch (Exception e) {
+            return ResponseMessage.error("登录异常");
+        }
+    }
 }
