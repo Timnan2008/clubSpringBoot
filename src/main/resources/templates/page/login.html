@@ -1,291 +1,301 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/png" href="/other%20photo/WFL-logo.png">
-    <link rel="stylesheet" href="/css/common.css">
-    <link rel="stylesheet" href="/css/login_style.css">
-    <title>登录 / 注册</title>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="/css/login_style.css">
+  <title>登录 / 注册</title>
 
-    <style>
-      h1 {
-        text-align: center;
-        margin-bottom: 25px;
-        color: #333344;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      }
-    </style>
-  </head>
+  <style>
+    h1 {
+      text-align: center;
+      margin-bottom: 25px;
+      color: #333344;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
 
-  <body>
-    <div th:replace="fragments/navbar :: navbar"></div>
-    <div th:replace="fragments/particle :: particle"></div>
-    <div class="login-container">
-      <h1>登录 / 注册</h1>
-      <div class="row">
-        <input id="name" type="text" placeholder="中文名" />
-        <input id="nameEn" type="text" placeholder="英文名" />
-      </div>
-      <div class="row email-row">
-        <input id="email" type="email" placeholder="邮箱" />
-        <button id="sendCodeBtn" class="send-code-btn" onclick="sendEmailCode()">发送验证码</button>
-      </div>
-      <input id="code" type="text" placeholder="输入验证码（6位）" maxlength="6" />
-      <input id="password" type="password" placeholder="密码" />
-      <select id="role" onchange="onRoleChange()">
-        <option value="" disabled selected>请选择身份</option>
-        <option value="teacher">老师</option>
-        <option value="student">学生</option>
-      </select>
+<body>
+<div th:replace="fragments/navbar :: navbar"></div>
+<div th:replace="fragments/particle :: particle"></div>
+<div th:replace="fragments/notice-alarm :: notice26"></div>
+<div class="login-container">
+  <h1>登录 / 注册</h1>
+  <div class="row">
+    <input id="name" type="text" placeholder="中文名" />
+    <input id="nameEn" type="text" placeholder="英文名" />
+  </div>
+  <div class="row email-row">
+    <input id="email" type="email" placeholder="邮箱" />
+    <button id="sendCodeBtn" class="send-code-btn" onclick="sendEmailCode()">发送验证码</button>
+  </div>
+  <input id="code" type="text" placeholder="输入验证码（6位）" maxlength="6" />
+  <input id="password" type="password" placeholder="密码" />
+  <select id="role" onchange="onRoleChange()">
+    <option value="" disabled selected>请选择身份</option>
+    <option value="teacher">老师</option>
+    <option value="user">学生</option>
+  </select>
 
-      <!-- 下面是隐藏区域 -->
-      <div id="dynamic-area"></div>
+  <!-- 下面是隐藏区域 -->
+  <div id="dynamic-area"></div>
 
-      <button class="submit-btn" onclick="validateForm()">提交</button>
-    </div>
+  <button class="submit-btn" onclick="validateForm()">提交</button>
+</div>
 
-    <script>
-      let countdown = 60; // 全局变量
-      let countdownInterval; // 保存 setInterval 引用
-      // 校验邮箱格式（不限制域名）
-      function isValidEmail(email) {
-        const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return regex.test(email);
-      }
+<script>
+  let countdown = 60; // 全局变量
+  let countdownInterval; // 保存 setInterval 引用
+  // 校验邮箱格式（不限制域名）
+  function isValidEmail(email) {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
+  }
 
-      function sendEmailCode() {
-        const email = document.getElementById("email").value;
-        if (!email.includes("@")) {
-          alert("请输入有效邮箱");
-          return;
-        }
+  function sendEmailCode() {
+    const email = document.getElementById("email").value;
+    if (!email.includes("@")) {
+      alert("请输入有效邮箱");
+      return;
+    }
 
-        console.log(email);
+    console.log(email);
 
-        const btn = document.getElementById("sendCodeBtn");
-        btn.disabled = true; // 禁用按钮防滥用
+    const btn = document.getElementById("sendCodeBtn");
+    btn.disabled = true; // 禁用按钮防滥用
 
-        fetch("/api/email/send?email=" + encodeURIComponent(email), {
-          method: "POST",
-        })
-                .then(res => res.json())
-                .then(data => {
-                  alert(data.message);
-                  // 倒计时
-                  countdown = 60; // 重置倒计时
-                  btn.textContent = `重新发送(${countdown})`;
-                  countdownInterval = setInterval(() => {
-                    countdown--;
-                    btn.textContent = `重新发送(${countdown})`;
-                    if (countdown <= 0) {
-                      clearInterval(countdownInterval);
-                      btn.textContent = "发送验证码";
-                      btn.disabled = false;
-                    }
-                  }, 1000);
-                })
-                .catch(err => {
-                  alert("发送失败");
+    fetch("/api/email/send?email=" + encodeURIComponent(email), {
+      method: "POST",
+    })
+            .then(res => res.json())
+            .then(data => {
+              alert(data.message);
+// 倒计时
+              countdown = 60; // 重置倒计时
+              btn.textContent = `重新发送(${countdown})`;
+              countdownInterval = setInterval(() => {
+                countdown--;
+                btn.textContent = `重新发送(${countdown})`;
+                if (countdown <= 0) {
+                  clearInterval(countdownInterval);
+                  btn.textContent = "发送验证码";
                   btn.disabled = false;
-                });
-      }
-
-
-      function startCountdown(seconds) {
-        countdown = seconds;
-        const btn = document.getElementById("sendCodeBtn");
-        btn.classList.add("disabled");
-        btn.disabled = true;
-        btn.textContent = `重新发送(${countdown})`;
-
-        timer = setInterval(() => {
-          countdown--;
-          btn.textContent = countdown > 0 ? `重新发送(${countdown})` : "发送验证码";
-          if (countdown <= 0) {
-            clearInterval(timer);
-            btn.classList.remove("disabled");
-            btn.disabled = false;
-          }
-        }, 1000);
-      }
-
-      function validateForm() {
-        const email = document.getElementById("email").value;
-        const code = document.getElementById("code").value;
-
-        if (!isValidEmail(email)) {
-          alert("请输入有效邮箱");
-          return;
-        }
-
-        if (code.length !== 6) {
-          alert("请输入6位验证码");
-          return;
-        }
-
-        // 验证验证码
-        fetch(`/api/email/verify?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`, { method:"POST" })
-                .then(res => res.json())
-                .then(data => {
-                  if (data.success || data.message === "验证成功") {
-                    sendPost();
-                  } else {
-                    alert("验证码错误或已过期");
-                  }
-                })
-                .catch(err => console.error(err));
-      }
-
-      function getValue(id) {
-        const el = document.getElementById(id);
-        if (!el) return null;
-        return el.value;
-      }
-
-      function getValue(id) {
-        const el = document.getElementById(id);
-        if (!el) return null;
-
-        if (el.type === "checkbox") {
-          return el.checked;
-        }
-
-        return el.value;
-      }
-
-      function getFormDataByRole(role) {
-        if (role === "teacher") {
-          const responsibleClubIds = getSelectedClubIds("负责的社团（可多选）");
-          console.log(responsibleClubIds);
-          return {
-            teacherName: getValue("name"),
-            teacherNameEn: getValue("nameEn"),
-            teacherPassword: getValue("password"),
-            teacherEmail: getValue("email"),
-            clubs: responsibleClubIds,
-            userType: "teacher",
-          };
-        }
-
-        if (role === "user") {
-          return {
-            username: getValue("name"),
-            usernameEn: getValue("nameEn"),
-            password: getValue("password"),
-            email: getValue("email"),
-            userType: "user",
-          };
-        }
-      }
-
-      function getSelectedClubIds(title) {
-        return [
-          ...document.querySelectorAll(`input[name="${title}"]:checked`),
-        ].map((i) => Number(i.value));
-      }
-
-      function sendPost() {
-        const role = document.getElementById("role").value;
-        console.log("role: " + role);
-        const json = getFormDataByRole(role);
-        console.log(JSON.stringify(json, null, 2));
-
-        
-
-        fetch("/api/user/add/" + role, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(json),
-        })
-          .then((res) => res.json())
-          .then((data) => {
-            console.log("返回：", data);
-            alert(data.message);
-          })
-          .catch((err) => console.error(err.message));
-      }
-    </script>
-
-
-    <script type="module">
-      // 点击选项显示社团列表（可单选 or 多选）
-      function onRoleChange() {
-        const role = document.getElementById("role").value;
-        const area = document.getElementById("dynamic-area");
-        area.innerHTML = ""; // 清空
-        if (role === "teacher") {
-          area.appendChild(createClubButton("负责的社团（可多选）", true));
-        }
-      }
-      window.onRoleChange = onRoleChange;
-
-      /** 创建带 club 列表的卡片 */
-      function createClubButton(title, multiple) {
-        const container = document.createElement("div");
-
-        const btn = document.createElement("button");
-        btn.textContent = title;
-        btn.style.marginBottom = "5px";
-        btn.className = "club-select-btn";
-        btn.addEventListener("click", () => {
-          listDiv.style.display =
-            listDiv.style.display === "block" ? "none" : "block";
-        });
-        container.appendChild(btn);
-
-        const listDiv = document.createElement("div");
-        listDiv.className = "club-list-container";
-        listDiv.style.display = "none";
-        listDiv.style.border = "1px solid #ccc";
-        listDiv.style.padding = "5px";
-        listDiv.style.marginBottom = "10px";
-
-        fetch(`/api/club/all`)
-          .then((j) => j.json())
-          .then((result) => {
-            const clubs = result.data;
-            console.log(clubs);
-            clubs.forEach((c) => {
-              const item = document.createElement("label");
-              item.className = "club-item";
-
-              const input = document.createElement("input");
-              input.className = "club-checkbox";
-              input.type = multiple ? "checkbox" : "radio";
-              input.name = title;
-              input.value = c.id;
-
-              const img = document.createElement("img");
-              img.src = c.clubItem;
-              img.className = "club-avatar";
-
-              const textDiv = document.createElement("div");
-              textDiv.className = "club-text";
-
-              const cn = document.createElement("div");
-              cn.className = "club-name-cn";
-              cn.textContent = c.clubName;
-
-              const en = document.createElement("div");
-              en.className = "club-name-en";
-              en.textContent = c.clubNameEn;
-
-              textDiv.appendChild(cn);
-              textDiv.appendChild(en);
-
-              item.appendChild(input);
-              item.appendChild(img);
-              item.appendChild(textDiv);
-              listDiv.appendChild(item);
+                }
+              }, 1000);
+            })
+            .catch(err => {
+              alert("发送失败");
+              btn.disabled = false;
             });
-          });
+  }
 
-        container.appendChild(listDiv);
-        return container;
+
+  function startCountdown(seconds) {
+    countdown = seconds;
+    const btn = document.getElementById("sendCodeBtn");
+    btn.classList.add("disabled");
+    btn.disabled = true;
+    btn.textContent = `重新发送(${countdown})`;
+
+    timer = setInterval(() => {
+      countdown--;
+      btn.textContent = countdown > 0 ? `重新发送(${countdown})` : "发送验证码";
+      if (countdown <= 0) {
+        clearInterval(timer);
+        btn.classList.remove("disabled");
+        btn.disabled = false;
       }
-    </script>
-  </body>
-</html>
+    }, 1000);
+  }
+
+  function validateForm() {
+    const email = document.getElementById("email").value;
+    const code = document.getElementById("code").value;
+
+    console.log(email + "\n" + code);
+
+    if (!isValidEmail(email)) {
+      alert("请输入有效邮箱");
+      return;
+    }
+
+    if (code.length !== 6) {
+      alert("请输入6位验证码");
+      return;
+    }
+
+
+// 验证验证码
+    fetch(`/api/email/verify?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`, { method:"POST" })
+            .then(res => res.json())
+            .then(data => {
+
+              const code = data.code;
+              console.log(code)
+              if(code === 200){
+                sendPost();
+              }else{
+                openNotice26(false,
+                        {
+                          title: "验证码未通过",
+                          msg:"验证码过期或错误",
+                          subMsg:"请重新输入你的验证码或者确保自己收到了最新的验证码邮箱。如果没有收到验证码，你需查看你的垃圾邮箱。"
+                        }
+                );
+              }
+            })
+            .catch(err => console.error(err));
+  }
+
+
+
+  function getValue(id) {
+    const el = document.getElementById(id);
+    if (!el) return null;
+
+    if (el.type === "checkbox") {
+      return el.checked;
+    }
+
+    return el.value;
+  }
+
+  function getFormDataByRole(role) {
+    if (role === "teacher") {
+      const responsibleClubIds = getSelectedClubIds("负责的社团（可多选）");
+      console.log(responsibleClubIds);
+      return {
+        teacherName: getValue("name"),
+        teacherNameEn: getValue("nameEn"),
+        teacherPassword: getValue("password"),
+        teacherEmail: getValue("email"),
+        clubs: responsibleClubIds,
+        userType: "teacher",
+      };
+    }
+
+    if (role === "user") {
+      return {
+        username: getValue("name"),
+        usernameEn: getValue("nameEn"),
+        password: getValue("password"),
+        email: getValue("email"),
+        userType: "user",
+      };
+    }
+  }
+
+  function getSelectedClubIds(title) {
+    return [
+      ...document.querySelectorAll(`input[name="${title}"]:checked`),
+    ].map((i) => Number(i.value));
+  }
+
+  function sendPost() {
+    let role = document.getElementById("role").value;
+    console.log("role: " + role);
+    const json = getFormDataByRole(role);
+    console.log(JSON.stringify(json, null, 2));
+
+
+
+    fetch("/api/user/add/" + role, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(json),
+    })
+            .then((res) => res.json())
+            .then((data) => {
+              console.log("返回：", data);
+              openNotice26(false, {
+                title : "已请求",
+                msg : "正在请求",
+                subMsg : data.message
+              })
+            })
+            .catch((err) => console.error(err.message));
+  }
+</script>
+
+
+<script type="module">
+  // 点击选项显示社团列表（可单选 or 多选）
+  function onRoleChange() {
+    const role = document.getElementById("role").value;
+    const area = document.getElementById("dynamic-area");
+    area.innerHTML = ""; // 清空
+    if (role === "teacher") {
+      area.appendChild(createClubButton("负责的社团（可多选）", true));
+    }
+  }
+  window.onRoleChange = onRoleChange;
+
+  /** 创建带 club 列表的卡片 */
+  function createClubButton(title, multiple) {
+    const container = document.createElement("div");
+
+    const btn = document.createElement("button");
+    btn.textContent = title;
+    btn.style.marginBottom = "5px";
+    btn.className = "club-select-btn";
+    btn.addEventListener("click", () => {
+      listDiv.style.display =
+              listDiv.style.display === "block" ? "none" : "block";
+    });
+    container.appendChild(btn);
+
+    const listDiv = document.createElement("div");
+    listDiv.className = "club-list-container";
+    listDiv.style.display = "none";
+    listDiv.style.border = "1px solid #ccc";
+    listDiv.style.padding = "5px";
+    listDiv.style.marginBottom = "10px";
+
+    fetch(`/api/club/all`)
+            .then((j) => j.json())
+            .then((result) => {
+              const clubs = result.data;
+              console.log(clubs);
+              clubs.forEach((c) => {
+                const item = document.createElement("label");
+                item.className = "club-item";
+
+                const input = document.createElement("input");
+                input.className = "club-checkbox";
+                input.type = multiple ? "checkbox" : "radio";
+                input.name = title;
+                input.value = c.id;
+
+                const img = document.createElement("img");
+                img.src = c.clubItem;
+                img.className = "club-avatar";
+
+                const textDiv = document.createElement("div");
+                textDiv.className = "club-text";
+
+                const cn = document.createElement("div");
+                cn.className = "club-name-cn";
+                cn.textContent = c.clubName;
+
+                const en = document.createElement("div");
+                en.className = "club-name-en";
+                en.textContent = c.clubNameEn;
+
+                textDiv.appendChild(cn);
+                textDiv.appendChild(en);
+
+                item.appendChild(input);
+                item.appendChild(img);
+                item.appendChild(textDiv);
+                listDiv.appendChild(item);
+              });
+            });
+
+    container.appendChild(listDiv);
+    return container;
+  }
+</script>
+</body>
