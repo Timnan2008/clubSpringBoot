@@ -195,6 +195,8 @@ public class UserService implements IUserService{
         }
         return null;
     }
+
+    @Override
     public <T extends UserBase> T findByEmail(String email) {
         for (User user : userRepository.findAll()) {
             if (user.getEmail().equals(email)) {
