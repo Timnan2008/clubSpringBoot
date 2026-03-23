@@ -3,6 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="/other%20photo/WFL-logo.png">
+    <link rel="stylesheet" href="/css/common.css">
     <link rel="stylesheet" href="/css/login_style.css">
     <title>登录 / 注册</title>
 
@@ -19,7 +21,6 @@
   <body>
     <div th:replace="fragments/navbar :: navbar"></div>
     <div th:replace="fragments/particle :: particle"></div>
-    <div th:replace="fragments/notice-alarm :: notice26"></div>
     <div class="login-container">
       <h1>登录 / 注册</h1>
       <div class="row">
@@ -35,7 +36,7 @@
       <select id="role" onchange="onRoleChange()">
         <option value="" disabled selected>请选择身份</option>
         <option value="teacher">老师</option>
-        <option value="user">学生</option>
+        <option value="student">学生</option>
       </select>
 
       <!-- 下面是隐藏区域 -->
@@ -113,8 +114,6 @@
         const email = document.getElementById("email").value;
         const code = document.getElementById("code").value;
 
-        console.log(email + "\n" + code);
-
         if (!isValidEmail(email)) {
           alert("请输入有效邮箱");
           return;
@@ -125,30 +124,24 @@
           return;
         }
 
-
         // 验证验证码
         fetch(`/api/email/verify?email=${encodeURIComponent(email)}&code=${encodeURIComponent(code)}`, { method:"POST" })
                 .then(res => res.json())
                 .then(data => {
-
-                  const code = data.code;
-                  console.log(code)
-                  if(code === 200){
+                  if (data.success || data.message === "验证成功") {
                     sendPost();
-                  }else{
-                    openNotice26(false,
-                            {
-                              title: "验证码未通过",
-                              msg:"验证码过期或错误",
-                              subMsg:"请重新输入你的验证码或者确保自己收到了最新的验证码邮箱。如果没有收到验证码，你需查看你的垃圾邮箱。"
-                            }
-                    );
+                  } else {
+                    alert("验证码错误或已过期");
                   }
                 })
                 .catch(err => console.error(err));
       }
 
-      
+      function getValue(id) {
+        const el = document.getElementById(id);
+        if (!el) return null;
+        return el.value;
+      }
 
       function getValue(id) {
         const el = document.getElementById(id);
@@ -193,12 +186,12 @@
       }
 
       function sendPost() {
-        let role = document.getElementById("role").value;
+        const role = document.getElementById("role").value;
         console.log("role: " + role);
         const json = getFormDataByRole(role);
         console.log(JSON.stringify(json, null, 2));
 
-
+        
 
         fetch("/api/user/add/" + role, {
           method: "POST",
@@ -210,11 +203,7 @@
           .then((res) => res.json())
           .then((data) => {
             console.log("返回：", data);
-            openNotice26(false, {
-              title : "已请求",
-              msg : "正在请求",
-              subMsg : data.message
-            })
+            alert(data.message);
           })
           .catch((err) => console.error(err.message));
       }

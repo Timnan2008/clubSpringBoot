@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /page/user/login
+Disallow: /page/suggestion/history
+
+Sitemap: https://qpwflhsclub.com/sitemap.xml

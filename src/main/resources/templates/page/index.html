@@ -1,160 +1,84 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-  <head>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="/other%20photo/WFL-logo.png">
+    <meta name="description" content="QPWFLHS Club - Discover and explore campus clubs at Shanghai Qingpu World Foreign Language High School.">
+    <link rel="stylesheet" href="/css/common.css">
     <link rel="stylesheet" href="/css/index_style.css">
-    <title data-i18n="main:title">首页</title>
-  </head>
-  <body>
-    <div id="particles"></div>
-    <div th:replace="fragments/notice :: notice"></div>
+    <title th:text="#{nav.home}">首页</title>
+</head>
+<body>
     <div th:replace="fragments/navbar :: navbar"></div>
-    <div th:replace="fragments/particle :: particle"></div>
+    <div th:replace="fragments/notice :: notice"></div>
 
+    <!-- Ultra-Glass Parallax Matrix background -->
+    <div class="bg-viewport" aria-hidden="true"></div>
+    <script src="/javascript/ibm-background.js"></script>
 
-    <div class="warning-bar" id="warningBar">
-        ⚠ 从电脑端打开体验更佳
-        <span
-                class="close-btn"
-                onclick="document.getElementById('warningBar').style.display='none'"
-        >X</span
-        >
-    </div>
+    <!-- Scrollable page content -->
+    <div class="page-content">
 
-    <h1 style="color: #33384d; font-weight: bold; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);">🪧公告栏</h1>
+        <!-- Hero -->
+        <section class="hero-section">
+            <div class="eyebrow">QPWFLHS CLUBS</div>
+            <h1 th:text="#{index.title}">发现你真正想加入的社团</h1>
+            <p class="hero-subtitle" th:text="#{index.subtitle}">探索丰富的校园社团活动，找到属于你的热爱与归属。</p>
+            <a href="/page/club-type/creativity" class="hero-btn" th:text="#{index.btn}">浏览全部社团</a>
+        </section>
 
-    <div class="notice-board">
-      <div class="notice-important">
-        恭喜青浦世外高中社团官网于2025.1.6正式上线2.1版本！！！
-      </div>
-        <div class="notice-critical">
-            由于有刷赞现象，为保证投票公平性，投票于12月11日14:30点全部清零，重新投票，每个设备对每个社团限投1次。给大家带来不便，敬请谅解
-        </div>
-      <div class="notice">
-        意见箱已经回归，可直接使用
-      </div>
-      <div class="notice">
-        登录注册功能即将完成，敬请期待
-      </div>
-    </div>
-
-    <h1 style="color: #33384d; font-weight: bold; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);">优秀社团</h1>
-
-    <div id="ExClubs" class="tab-content active">
-      <div class="scroll-wrapper">
-        <div class="fade-left"></div>
-        <div class="fade-right"></div>
-        <div class="scroll-container">
-          <div class="card">
-            <img src="加载中" alt="加载中……" />
-            <div class="card-content">
-              <h2>加载中……</h2>
-              <p>加载中……</p>
-              <a class="button" target="_blank">无法点击</a>
+        <!-- Notice Board -->
+        <section class="notice-section glass-card">
+            <h2 class="section-title">📋 <span th:text="#{index.notice.title}">公告栏</span></h2>
+            <div class="notice-board">
+                <div class="notice-important" th:text="#{index.notice.1}">恭喜青浦世外高中社团官网正式上线新版本！</div>
+                <div class="notice" th:text="#{index.notice.2}">意见箱已上线，欢迎提交建议</div>
+                <div class="notice" th:text="#{index.notice.3}">登录注册功能暂不开放</div>
             </div>
-          </div>
-        </div>
-      </div>
+        </section>
+
+        <!-- Excellent Clubs -->
+        <section class="clubs-section glass-card">
+            <h2 class="section-title">⭐ <span th:text="#{index.clubs.title}">优秀社团展示</span></h2>
+            <div class="scroll-wrapper">
+                <div class="fade-left"></div>
+                <div class="fade-right"></div>
+                <div id="club-scroll" class="scroll-container"></div>
+            </div>
+        </section>
+
+        <footer class="site-footer">
+            <a href="https://beian.miit.gov.cn">沪ICP备2025137067号</a>
+        </footer>
     </div>
 
     <script th:inline="javascript">
-      const i18n = {
-        viewDetail: /*[[#{button.viewDetail}]]*/
-      };
+        const btnText = /*[[#{button.viewDetail}]]*/ '查看详情';
     </script>
-
     <script>
-      const apiUrl = `/api/club/all`;
-      fetch(apiUrl)
-        .then((response) => response.json())
-        .then((result) => {
-          const data = result.data;
-          const container = document.querySelector(
-            `#ExClubs .scroll-container`
-          );
-
-          console.log(container);
-          container.innerHTML = "";
-
-          data.forEach((clubs) => {
-            console.log(clubs);
-            console.log(clubs.greatClub);
-
-            if (clubs.greatClub) {
-              console.log(clubs.clubURL);
-              const card = document.createElement("div");
-              card.className = "card";
-              card.innerHTML = `
-                        <img src="${clubs.clubItem}" alt="${clubs.clubName}">
-                        <div class="card-content">
-                          <h2>${clubs.clubName}</h2>
-                          <p>${clubs.sortDescription}</p>
-                          <a class="button" href="../../${clubs.clubURL}" target="_blank">${i18n.viewDetail}</a>
-                        </div>
-                      `;
-              console.log(card);
-              container.appendChild(card);
-            }
-            console.log(container);
-          });
-
-          data.forEach((clubs) => {
-            console.log(clubs);
-            console.log(clubs.greatClub);
-
-            if (clubs.greatClub) {
-              const card = document.createElement("div");
-              card.className = "card";
-              card.innerHTML = `
-                        <img src="${clubs.clubItem}" alt="${clubs.clubName}">
-                        <div class="card-content">
-                          <h2>${clubs.clubName}</h2>
-                          <p>${clubs.sortDescription}</p>
-                          <a class="button" href="../../${clubs.clubURL}" target="_blank">${i18n.viewDetail}</a>
-                        </div>
-                      `;
-              container.appendChild(card);
-            }
-          });
-        });
+        fetch('/api/club/all')
+            .then(r => r.json())
+            .then(result => {
+                const data = Array.isArray(result.data) ? result.data : [];
+                const container = document.getElementById('club-scroll');
+                const greats = data.filter(c => c.greatClub);
+                const source = greats.length > 0 ? greats : data;
+                const items = [...source, ...source];
+                container.innerHTML = '';
+                items.forEach(c => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.innerHTML =
+                        '<img src="' + c.clubItem + '" alt="' + c.clubName + '">' +
+                        '<div class="card-content">' +
+                        '<h2>' + c.clubName + '</h2>' +
+                        '<p>' + c.sortDescription + '</p>' +
+                        '<a class="button" href="/' + c.clubURL + '">' + btnText + '</a>' +
+                        '</div>';
+                    container.appendChild(card);
+                });
+            });
     </script>
-
-
-    <script>
-      // 检测是否为触摸设备
-      function detectDeviceType() {
-        const userAgent =
-          navigator.userAgent || navigator.vendor || window.opera;
-
-        if (/android/i.test(userAgent)) {
-          return "Android";
-        }
-
-        if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
-          return "iOS";
-        }
-
-        if (/windows phone/i.test(userAgent)) {
-          return "Windows Phone";
-        }
-        return "Desktop";
-      }
-
-      const deviceType = detectDeviceType();
-
-      console.log("Device Type: ", deviceType);
-
-      if (detectDeviceType() != "Desktop") {
-        document.getElementById("warningBar").style.display = "block";
-      }
-    </script>
-
-    <a
-      href="https://beian.miit.gov.cn"
-      style="position: absolute; width: 100%; text-align: center; color: #9096b0"
-      >沪ICP备2025137067号</a
-    >
-
-  </body>
+</body>
 </html>
