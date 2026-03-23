@@ -7,7 +7,7 @@
 
         <!-- 左侧：学校名 -->
         <div class="navbar-left">
-            <img src="/other%20photo/WFL-logo.png" class="navbar-logo" alt="logo">
+            <img src="/other%20photo/WFL-logo.png" class="navbar-logo" id="navbar-logo-img" alt="logo">
 
             <div class="school-name-block">
                 <div class="school-cn" th:text="#{school.cn}"></div>
@@ -32,8 +32,8 @@
             </a>
 
             <div class="dropdown">
-                <a class="dropbtn"
-                   th:text="#{nav.allClubs}"></a>
+                <button type="button" class="dropbtn" aria-expanded="false"
+                        th:text="#{nav.allClubs}"></button>
 
                 <div class="dropdown-content">
                     <a th:href="@{/page/club-type/creativity}"><span th:text="#{nav.club.creativity}"></span></a>
@@ -46,24 +46,113 @@
             <a th:href="@{/page/suggestion}"
                th:text="#{nav.suggestion}"></a>
 
-            <a th:href="@{/page/user/login}"
-               th:text="#{nav.login}"></a>
-
             <!-- 语言切换 -->
             <div class="dropdown">
-                <a class="dropbtn">🌐</a>
+                <button type="button" class="dropbtn" aria-expanded="false">🌐</button>
                 <div class="dropdown-content">
-                    <a th:href="@{${currentUri}(lang='zh')}"
-                       th:text="#{nav.lang.zh}"></a>
-
-                    <a th:href="@{${currentUri}(lang='en')}"
-                       th:text="#{nav.lang.en}"></a>
+                    <a href="?lang=zh" th:text="#{nav.lang.zh}"></a>
+                    <a href="?lang=en" th:text="#{nav.lang.en}"></a>
                 </div>
             </div>
 
         </nav>
 
     </header>
+
+    <script>
+        (function () {
+            const logo = document.getElementById('navbar-logo-img');
+            if (!logo || logo.dataset.processed === 'true') return;
+
+            function stripBackground() {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const w = logo.naturalWidth;
+                const h = logo.naturalHeight;
+                if (!w || !h) return;
+
+                canvas.width = w;
+                canvas.height = h;
+                ctx.drawImage(logo, 0, 0);
+
+                const imageData = ctx.getImageData(0, 0, w, h);
+                const d = imageData.data;
+                for (let i = 0; i < d.length; i += 4) {
+                    const r = d[i], g = d[i + 1], b = d[i + 2];
+                    if (r > 210 && g > 210 && b > 210 && (Math.max(r, g, b) - Math.min(r, g, b)) < 26) {
+                        d[i + 3] = 0;
+                    }
+                }
+
+                ctx.putImageData(imageData, 0, 0);
+                logo.src = canvas.toDataURL('image/png');
+                logo.dataset.processed = 'true';
+            }
+
+            if (logo.complete) {
+                stripBackground();
+            } else {
+                logo.addEventListener('load', stripBackground, { once: true });
+            }
+        })();
+
+        (function () {
+            const dropdowns = Array.from(document.querySelectorAll('.navbar .dropdown'));
+
+            if (!dropdowns.length) return;
+
+            function closeAll(except) {
+                dropdowns.forEach(dropdown => {
+                    const button = dropdown.querySelector('.dropbtn');
+                    if (dropdown !== except) {
+                        dropdown.classList.remove('open');
+                        if (button) {
+                            button.setAttribute('aria-expanded', 'false');
+                        }
+                    }
+                });
+            }
+
+            dropdowns.forEach(dropdown => {
+                const button = dropdown.querySelector('.dropbtn');
+                const menu = dropdown.querySelector('.dropdown-content');
+
+                if (!button || !menu) return;
+
+                button.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const isOpen = dropdown.classList.contains('open');
+                    closeAll(dropdown);
+                    dropdown.classList.toggle('open', !isOpen);
+                    button.setAttribute('aria-expanded', String(!isOpen));
+                });
+
+                menu.querySelectorAll('a').forEach(link => {
+                    link.addEventListener('click', function () {
+                        dropdown.classList.remove('open');
+                        button.setAttribute('aria-expanded', 'false');
+                    });
+                });
+            });
+
+            document.addEventListener('click', function () {
+                closeAll();
+            });
+
+            document.addEventListener('touchstart', function (event) {
+                if (!event.target.closest('.navbar .dropdown')) {
+                    closeAll();
+                }
+            }, { passive: true });
+
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape') {
+                    closeAll();
+                }
+            });
+        })();
+    </script>
 </div>
 
 </body>

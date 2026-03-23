@@ -1,0 +1,183 @@
+/* ============================================
+   Suggestion History — iOS 26 Liquid Glass
+   ============================================ */
+
+.sh-main {
+    max-width: 700px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+    padding-bottom: 48px;
+}
+
+/* --- Hero --- */
+.sh-hero {
+    text-align: center;
+    margin-bottom: 28px;
+}
+
+.sh-back {
+    font-size: 13px;
+    padding: 7px 18px;
+    margin-bottom: 16px;
+}
+
+.sh-title {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--text-primary);
+    letter-spacing: -0.5px;
+    margin-bottom: 4px;
+}
+
+.sh-subtitle {
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+/* --- Filters --- */
+.sh-filters {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.sh-filter {
+    padding: 7px 18px;
+    font-size: 13px;
+    border-radius: var(--radius-pill);
+    background: rgba(255,255,255,.72);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-light);
+    box-shadow: none;
+}
+
+.sh-filter:hover {
+    transform: none;
+    box-shadow: none;
+    border-color: var(--primary);
+    color: var(--primary);
+    background: rgba(255,255,255,.9);
+}
+
+.sh-filter.active {
+    background: linear-gradient(135deg, #1E2340, #3a3f5c);
+    color: #fff;
+    border-color: transparent;
+}
+
+/* --- List --- */
+.sh-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* --- Item --- */
+.sh-item {
+    padding: 20px 24px;
+    background: rgba(255,255,255,.72);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    animation: shFadeIn 0.35s ease both;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.sh-item:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255,255,255,0.4);
+}
+
+@keyframes shFadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.sh-item-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    gap: 8px;
+}
+
+/* --- Badge --- */
+.sh-badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 12px;
+    border-radius: var(--radius-pill);
+    letter-spacing: 0.3px;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+}
+
+.sh-badge--general {
+    background: rgba(26,26,46,0.08);
+    color: var(--text-secondary);
+}
+
+.sh-badge--bug {
+    background: rgba(231,76,60,0.1);
+    color: #c0392b;
+}
+
+.sh-badge--feature {
+    background: rgba(39,174,96,0.1);
+    color: #1e8449;
+}
+
+.sh-author {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.sh-body {
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    margin: 0;
+    word-break: break-word;
+}
+
+/* --- Empty --- */
+.sh-empty {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--text-muted);
+    font-size: 15px;
+    background: rgba(255,255,255,.6);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+}
+
+/* --- Skeleton --- */
+.sh-skeleton {
+    height: 80px;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(90deg,
+        rgba(255,255,255,0.3) 25%,
+        rgba(255,255,255,0.5) 50%,
+        rgba(255,255,255,0.3) 75%);
+    background-size: 200% 100%;
+    animation: shShimmer 1.5s ease infinite;
+}
+
+@keyframes shShimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* --- Responsive --- */
+@media (max-width: 640px) {
+    .sh-item { padding: 16px 18px; }
+    .sh-title { font-size: 24px; }
+    .sh-filters { gap: 6px; }
+    .sh-filter { font-size: 12px; padding: 6px 14px; }
+}

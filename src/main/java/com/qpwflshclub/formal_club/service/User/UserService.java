@@ -193,7 +193,7 @@ public class UserService implements IUserService{
                 return (T) admin;
             }
         }
-        throw new IllegalArgumentException("没有找到该用户");
+        return null;
     }
     public <T extends UserBase> T findByEmail(String email) {
         for (User user : userRepository.findAll()) {

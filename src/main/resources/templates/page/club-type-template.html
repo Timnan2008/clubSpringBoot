@@ -3,6 +3,8 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="icon" type="image/png" href="/other%20photo/WFL-logo.png">
+    <link rel="stylesheet" href="/css/common.css">
     <link rel="stylesheet" href="/css/club-type-template_style.css">
     <title id="title">加载中...</title>
 </head>
@@ -20,7 +22,7 @@
         <div class="card-content">
             <h2>加载中……</h2>
             <p>加载中……</p>
-            <a class="button" target="_blank">无法点击</a>
+            <a class="button">无法点击</a>
         </div>
     </div>
 </div>
@@ -45,8 +47,6 @@
     const type =  /*[[${type}]]*/ 'default';
 
     var typeForUse = type;
-
-    console.log(type);
 
     const clubTypes = {
         creativity: "nav.club.creativity",
@@ -77,8 +77,6 @@
         topTabs.appendChild(a);
     });
 
-    console.log(topTabs);
-
     function applyI18n(messages) {
         document.querySelectorAll("[data-i18n]").forEach(el => {
             const key = el.dataset.i18n;
@@ -88,7 +86,7 @@
         });
     }
 
-    // ✅ DOM 生成完毕后再 i18n
+    // DOM 生成完毕后再 i18n
     applyI18n(messages);
 
 
@@ -131,19 +129,15 @@
         .then(result => {
             const data = result.data;
 
-            console.log(data);
-
             const container = document.getElementById("clubGrid");
             container.innerHTML = '';
             data.forEach(club => {
-                console.log(club);
                 if (club.clubClass === type) {
                     if(club.clubURL === null){
                         fetch(`/api/club/initialize-url/` + club.clubNameEn , {
                             method: 'PUT',
                         })
                     }
-                    console.log(club.clubClass);
                     const card = document.createElement('div');
                     card.className = 'card';
                     card.innerHTML = `
@@ -151,10 +145,9 @@
                         <div class="card-content">
                           <h2>${club.clubName}</h2>
                           <p>${club.sortDescription}</p>
-                          <a class="button" href="../../${club.clubURL}" target="_blank">${i18n.viewDetail}</a>
+                          <a class="button" href="/${club.clubURL}">${i18n.viewDetail}</a>
                         </div>
                       `;
-                    console.log(card);
                     container.appendChild(card);
 
                 }

@@ -1,301 +1,207 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <link rel="stylesheet" href="/css/advice_style.css">
-  <title>意见箱（含防刷）</title>
+  <link rel="icon" type="image/png" href="/other%20photo/WFL-logo.png">
+  <link rel="stylesheet" href="/css/common.css">
+  <link rel="stylesheet" href="/css/advice_style.css?v=5">
+  <title th:text="#{advice.title}">意见箱</title>
 </head>
 <body>
-   <div th:replace="fragments/navbar :: navbar"></div>
-  <!-- 动态粒子背景 -->
-  <div class="particles" id="particles"></div>
-  
-  <div class="container">
-    <h1 style="color: #e0e0ff; text-shadow: 0 0 10px rgba(150, 180, 255, 0.3);">✨ 意见箱 ✨</h1>
-    
-    <div class="card">
+  <div th:replace="fragments/navbar :: navbar"></div>
+
+  <div class="advice-page">
+
+    <div class="advice-header">
+      <img class="advice-icon-img" src="/other%20photo/advice-logo.png" alt="青源智造" />
+      <h1 th:text="#{advice.title}">意见箱</h1>
+      <p th:text="#{advice.subtitle}">你的声音，是我们前进的方向</p>
+    </div>
+
+    <div class="advice-card">
       <form id="form">
-        <div class="flex">
-          <div>
-            <label for="name">姓名</label>
-            <input id="name" type="text" placeholder="请输入您的姓名" />
+        <div class="form-row" id="identity-row">
+          <div class="form-group">
+            <label for="name" th:text="#{advice.name}">姓名</label>
+            <input id="name" type="text" th:placeholder="#{advice.name.placeholder}" placeholder="请输入姓名" />
           </div>
-          <div>
-            <label for="number">学号</label>
-            <input id="number" type="number" placeholder="请输入您的学号" />
+          <div class="form-group">
+            <label for="number" th:text="#{advice.student_id}">学号</label>
+            <input id="number" type="number" th:placeholder="#{advice.student_id.placeholder}" placeholder="请输入学号" />
           </div>
         </div>
 
-        <label for="category" style="margin-top: 16px;">分类</label>
-        <select id="category">
-          <option value="general">一般建议</option>
-          <option value="bug">错误 / Bug</option>
-          <option value="feature">功能请求</option>
-        </select>
+        <div class="form-group">
+          <label th:text="#{advice.category}">分类</label>
+          <div class="category-tags">
+            <input type="radio" name="cat" id="cat-general" value="general" checked hidden />
+            <label for="cat-general" class="tag tag-general">💡 <span th:text="#{advice.category.general}">一般建议</span></label>
+            <input type="radio" name="cat" id="cat-bug" value="bug" hidden />
+            <label for="cat-bug" class="tag tag-bug">🐛 <span th:text="#{advice.category.bug}">Bug</span></label>
+            <input type="radio" name="cat" id="cat-feature" value="feature" hidden />
+            <label for="cat-feature" class="tag tag-feature">✨ <span th:text="#{advice.category.feature}">功能请求</span></label>
+          </div>
+        </div>
 
-        <label for="message" style="margin-top: 16px;">内容</label>
-        <textarea id="message" maxlength="500" placeholder="请输入您的建议或反馈..."></textarea>
-        <div id="charCount">0/500</div>
+        <div class="form-group">
+          <label for="message" th:text="#{advice.message}">内容</label>
+          <textarea id="message" maxlength="500" th:placeholder="#{advice.message.placeholder}" placeholder="请输入您的建议或反馈..."></textarea>
+          <div class="char-bar"><div class="char-progress" id="charProgress"></div></div>
+          <div class="char-count" id="charCount">0 / 500</div>
+        </div>
 
-        <label style="margin-top: 16px;">
-          <input id="anon" type="checkbox" /> 匿名提交
+        <label class="anon-check">
+          <input id="anon" type="checkbox" />
+          <span th:text="#{advice.anonymous}">匿名提交</span>
         </label>
 
-        <!-- 防刷验证区域 -->
-        <div style="margin-top: 24px; padding: 20px; border-radius: 16px; background: rgba(10, 14, 39, 0.8); border: 1px solid rgba(255, 0, 255, 0.3);">
-          <strong style="color: #00ffff; text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 16px;">🔒 防刷验证</strong>
-          
-          <!-- CSRF令牌 -->
-          <input type="hidden" id="csrfToken" value="${csrfToken}">
-          
-          <!-- Honeypot字段 -->
-          <input type="text" id="honeypot" style="display: none;" placeholder="请不要填写此字段">
-          
-          <!-- 增强型验证码 -->
-          <div id="captcha-container">
-            <canvas id="captcha" width="220" height="80"></canvas>
-            <button type="button" id="refresh-captcha" class="btn-ghost">刷新</button>
+        <div class="captcha-section">
+          <div class="captcha-label">🔒 <span th:text="#{advice.verify.title}">人机验证</span></div>
+          <input type="hidden" id="csrfToken" value="${csrfToken}" />
+          <input type="text" id="honeypot" style="display:none" tabindex="-1" autocomplete="off" />
+          <div class="captcha-row">
+            <div class="verify-shell">
+              <div id="verify-equation" class="verify-equation">3 + 4 = ?</div>
+              <button type="button" id="refresh-captcha" class="btn-refresh" th:title="#{advice.verify.refresh}" title="刷新验证码">↻</button>
+            </div>
           </div>
-          
-          <input id="captchaAns" type="text" placeholder="请输入验证码" style="margin-top: 12px; margin-bottom: 12px;" />
-          <div id="anti-spam-tip"></div>
+          <input id="captchaAns" type="text" inputmode="numeric" th:placeholder="#{advice.verify.placeholder}" placeholder="请输入答案" />
+          <div id="anti-spam-tip" class="error-tip"></div>
         </div>
 
-        <button class="btn-primary" type="submit" id="submit-btn" style="margin-top: 20px; width: 100%;">提交</button>
+        <div class="form-actions">
+          <a class="btn-secondary" th:href="@{/page/suggestion/history}" th:text="#{advice.history.link}">查看历史记录</a>
+          <button class="btn-submit" type="submit" id="submit-btn" th:text="#{advice.submit}">提交反馈</button>
+        </div>
       </form>
     </div>
 
-    <div class="card">
-      <h3>历史记录</h3>
-      <div id="list"></div>
-    </div>
   </div>
 
+<div id="advice-toast" class="advice-toast"></div>
+
+<script th:inline="javascript">
+const i18n = {
+  submitting: /*[[#{advice.submitting}]]*/ '正在提交...',
+  submit: /*[[#{advice.submit}]]*/ '提交反馈',
+  verifyBot: /*[[#{advice.validation.bot}]]*/ '验证失败。',
+  verifyFrequent: /*[[#{advice.validation.frequent}]]*/ '提交过于频繁，请等待 {0} 秒后再试。',
+  verifyTooMany: /*[[#{advice.validation.too_many}]]*/ '尝试次数过多，请稍后再试。',
+  verifyWrong: /*[[#{advice.validation.wrong}]]*/ '验证答案错误，请重试。',
+  short: /*[[#{advice.validation.short}]]*/ '请至少输入 5 个字。',
+  success: /*[[#{advice.validation.success}]]*/ '提交成功！',
+  error: /*[[#{advice.validation.error}]]*/ '操作失败：'
+};
+</script>
 <script>
-// 意见反馈表单提交处理
-
-// API基础URL
 const API_BASE_URL = '/api/suggestion';
-
-// -------- 防刷机制：增强型验证码 --------
-let captchaText = '';
+let verifyAnswer = 0;
 let lastSubmitTime = 0;
 let submitAttempts = 0;
-const MIN_SUBMIT_INTERVAL = 60000; // 60秒提交间隔
-const MAX_ATTEMPTS = 3; // 最大尝试次数
+const MIN_SUBMIT_INTERVAL = 60000;
+const MAX_ATTEMPTS = 3;
 
-// 生成复杂图形验证码
-  function generateCaptcha() {
-    const canvas = document.getElementById('captcha');
-    const ctx = canvas.getContext('2d');
-    
-    // 使用字母和数字，排除容易混淆的字符
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    captchaText = '';
-    
-    // 清空画布
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // 生成深色背景
-    const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-    gradient.addColorStop(0, 'rgba(10, 14, 39, 0.9)');
-    gradient.addColorStop(0.5, 'rgba(26, 31, 58, 0.9)');
-    gradient.addColorStop(1, 'rgba(10, 14, 39, 0.9)');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // 添加适量噪点
-    for (let i = 0; i < 300; i++) {
-      ctx.fillStyle = Math.random() > 0.5 ? 'rgba(0, 255, 255, 0.2)' : 'rgba(255, 0, 255, 0.2)';
-      ctx.beginPath();
-      ctx.arc(Math.random() * canvas.width, Math.random() * canvas.height, Math.random() * 2, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    
-    // 添加网格线
-    ctx.strokeStyle = 'rgba(0, 255, 255, 0.1)';
-    ctx.lineWidth = 0.3;
-    for (let i = 0; i < canvas.width; i += 15) {
-      ctx.beginPath();
-      ctx.moveTo(i, 0);
-      ctx.lineTo(i, canvas.height);
-      ctx.stroke();
-    }
-    for (let i = 0; i < canvas.height; i += 15) {
-      ctx.beginPath();
-      ctx.moveTo(0, i);
-      ctx.lineTo(canvas.width, i);
-      ctx.stroke();
-    }
-    
-    // 生成并绘制字符
-    const fontSize = 28 + Math.random() * 8;
-    const fontFamilies = ['Arial Black', 'Impact', 'Verdana', 'Courier New'];
-    
-    for (let i = 0; i < 6; i++) {
-      const char = chars.charAt(Math.floor(Math.random() * chars.length));
-      captchaText += char;
-      
-      // 提高字符亮度和对比度
-      const colors = ['rgba(0, 255, 255, 0.9)', 'rgba(255, 0, 255, 0.9)', 'rgba(255, 255, 0, 0.9)', 'rgba(0, 255, 0, 0.9)'];
-      ctx.fillStyle = colors[Math.floor(Math.random() * colors.length)];
-      ctx.font = fontSize + 'px ' + fontFamilies[Math.floor(Math.random() * fontFamilies.length)];
-      ctx.textBaseline = 'middle';
-      
-      // 增强发光效果
-      ctx.shadowColor = ctx.fillStyle;
-      ctx.shadowBlur = 5;
-      
-      // 字符旋转、缩放、位移 - 优化位置避免重叠
-      const x = 35 + i * 30 + Math.random() * 8 - 4;
-      const y = canvas.height / 2 + Math.random() * 15 - 7.5;
-      const rotation = (Math.random() - 0.5) * 0.4;
-      const scale = 0.8 + Math.random() * 0.2;
-      
-      ctx.save();
-      ctx.translate(x, y);
-      ctx.rotate(rotation);
-      ctx.scale(scale, scale);
-      
-      // 绘制字符
-      ctx.fillText(char, 0, 0);
-      ctx.restore();
-    }
-    
-    // 添加适量干扰线
-    for (let i = 0; i < 5; i++) {
-      ctx.strokeStyle = Math.random() > 0.5 ? 'rgba(0, 255, 255, 0.5)' : 'rgba(255, 0, 255, 0.5)';
-      ctx.lineWidth = Math.random() * 1.5 + 0.5;
-      ctx.beginPath();
-      ctx.moveTo(Math.random() * canvas.width, Math.random() * canvas.height);
-      ctx.lineTo(Math.random() * canvas.width, Math.random() * canvas.height);
-      ctx.stroke();
-    }
-    
-    // 添加适量波浪干扰线
-    for (let i = 0; i < 2; i++) {
-      ctx.strokeStyle = Math.random() > 0.5 ? 'rgba(0, 255, 255, 0.3)' : 'rgba(255, 0, 255, 0.3)';
-      ctx.lineWidth = Math.random() * 1.5 + 0.5;
-      ctx.beginPath();
-      for (let x = 0; x < canvas.width; x++) {
-        const y = Math.sin(x / 15 + Math.random() * 3) * (10 + Math.random() * 10) + canvas.height / 2;
-        if (x === 0) {
-          ctx.moveTo(x, y);
-        } else {
-          ctx.lineTo(x, y);
-        }
-      }
-      ctx.stroke();
-    }
-    
-    // 减少遮罩层透明度
-    ctx.fillStyle = 'rgba(10, 14, 39, 0.1)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // 重置阴影
-    ctx.shadowBlur = 0;
-  }
+function showToast(message, type) {
+  const el = document.getElementById('advice-toast');
+  el.textContent = (type === 'success' ? '✅ ' : type === 'error' ? '❌ ' : '⚠️ ') + message;
+  el.className = 'advice-toast ' + type;
+  void el.offsetWidth;
+  el.classList.add('show');
+  clearTimeout(el._timer);
+  el._timer = setTimeout(function () { el.classList.remove('show'); }, 3000);
+}
 
-generateCaptcha();
+function setTip(message) {
+  const antiSpamTip = document.getElementById('anti-spam-tip');
+  antiSpamTip.textContent = message;
+  antiSpamTip.style.display = message ? 'block' : 'none';
+}
 
-// 刷新验证码
+function generateCaptcha() {
+  const left = Math.floor(Math.random() * 8) + 2;
+  const right = Math.floor(Math.random() * 8) + 2;
+  verifyAnswer = left + right;
+  document.getElementById('verify-equation').textContent = left + ' + ' + right + ' = ?';
+}
+
 document.getElementById('refresh-captcha').addEventListener('click', generateCaptcha);
 
-// 点击验证码也可刷新
-document.getElementById('captcha').addEventListener('click', generateCaptcha);
-
-
-// 字符计数功能
 document.getElementById('message').addEventListener('input', function() {
-  const message = this.value;
-  const count = message.length;
-  const charCount = document.getElementById('charCount');
-  charCount.textContent = count + '/500';
-  
+  const count = this.value.length;
+  document.getElementById('charCount').textContent = count + ' / 500';
+  const progress = document.getElementById('charProgress');
+  progress.style.width = (count / 500 * 100) + '%';
   if (count > 450) {
-    charCount.style.color = '#ff6b6b';
+    progress.style.background = '#ef4444';
+    document.getElementById('charCount').style.color = '#ef4444';
   } else {
-    charCount.style.color = '#b0b0ff';
+    progress.style.background = '';
+    document.getElementById('charCount').style.color = '';
   }
 });
 
-
-// -------- 表单提交 --------
 document.getElementById('form').addEventListener('submit', async (e) => {
   e.preventDefault();
-  
+
   const submitBtn = document.getElementById('submit-btn');
-  const antiSpamTip = document.getElementById('anti-spam-tip');
-  
-  // 1) 检查蜜罐字段（防止自动机器人）
   const honeypot = document.getElementById('honeypot').value;
+
   if (honeypot.trim() !== '') {
-    alert('防刷验证失败');
+    showToast(i18n.verifyBot, 'error');
     return;
   }
-  
-  // 2) 检查提交间隔
+
   const now = Date.now();
   if (now - lastSubmitTime < MIN_SUBMIT_INTERVAL) {
     const remainingTime = Math.ceil((MIN_SUBMIT_INTERVAL - (now - lastSubmitTime)) / 1000);
-    antiSpamTip.textContent = `提交过于频繁，请等待 ${remainingTime} 秒后再试。`;
-    antiSpamTip.style.display = 'block';
+    setTip(i18n.verifyFrequent.replace('{0}', remainingTime));
     return;
   }
-  
-  // 3) 检查尝试次数
+
   if (submitAttempts >= MAX_ATTEMPTS) {
-    antiSpamTip.textContent = `尝试次数过多，请 ${Math.ceil(MIN_SUBMIT_INTERVAL / 1000)} 秒后再试。`;
-    antiSpamTip.style.display = 'block';
+    setTip(i18n.verifyTooMany);
     submitBtn.disabled = true;
     setTimeout(() => {
       submitBtn.disabled = false;
       submitAttempts = 0;
-      antiSpamTip.style.display = 'none';
+      setTip('');
     }, MIN_SUBMIT_INTERVAL);
     return;
   }
-  
-  // 4) 验证码验证
-  const inputVal = document.getElementById('captchaAns').value.trim().toUpperCase();
-  if (inputVal !== captchaText) {
-    antiSpamTip.textContent = '验证码错误，请重新输入。';
-    antiSpamTip.style.display = 'block';
+
+  const answer = document.getElementById('captchaAns').value.trim();
+  if (Number(answer) !== verifyAnswer) {
+    setTip(i18n.verifyWrong);
     generateCaptcha();
     submitAttempts++;
     return;
   }
-  
-  // 5) 内容验证
+
   const msg = document.getElementById('message').value.trim();
   if (msg.length < 5) {
-    alert('请至少输入 5 个字。');
+    showToast(i18n.short, 'warn');
     return;
   }
-  
-  // 6) 准备提交数据
+
   const name = document.getElementById('name').value.trim();
-  const category = document.getElementById('category').value;
+  const category = document.querySelector('input[name="cat"]:checked').value;
   const anon = document.getElementById('anon').checked;
-  
+
   const suggestionData = {
-    title: category, // 使用分类作为标题
+    title: category,
     context: msg,
     isAnonymous: anon,
     name: anon ? '' : name
   };
 
-  console.log(suggestionData);
-  
-  // 7) 禁用提交按钮，显示加载状态
   submitBtn.disabled = true;
-  submitBtn.textContent = '提交中...';
+  submitBtn.textContent = i18n.submitting;
+  submitBtn.style.pointerEvents = 'none';
   submitBtn.classList.add('loading');
-  antiSpamTip.style.display = 'none';
-  
+  setTip('');
+
   try {
-    // 8) 发送POST请求到后端
     const response = await fetch(`${API_BASE_URL}`, {
       method: 'POST',
       headers: {
@@ -303,117 +209,42 @@ document.getElementById('form').addEventListener('submit', async (e) => {
       },
       body: JSON.stringify(suggestionData)
     });
-    
+
     const result = await response.json();
-    
     if (!response.ok) {
-      throw new Error(result.message || '提交失败');
+      throw new Error(result.message || 'submit failed');
     }
-    
-    alert('提交成功！');
+
+    showToast(i18n.success, 'success');
     document.getElementById('form').reset();
-    document.getElementById('charCount').textContent = '0/500';
+    document.getElementById('charCount').textContent = '0 / 500';
+    document.getElementById('charProgress').style.width = '0';
     generateCaptcha();
-    // 重置防刷机制
     lastSubmitTime = now;
     submitAttempts = 0;
-    // 刷新历史记录
-    fetchSuggestions();
   } catch (error) {
-    console.error('提交失败:', error);
-    alert('操作失败：' + error.message);
+    showToast(i18n.error + error.message, 'error');
     submitAttempts++;
   } finally {
-    // 恢复提交按钮状态
     submitBtn.disabled = false;
-    submitBtn.textContent = '提交';
+    submitBtn.textContent = i18n.submit;
+    submitBtn.style.pointerEvents = '';
     submitBtn.classList.remove('loading');
   }
 });
 
-// -------- 获取历史记录 --------
-async function fetchSuggestions() {
-  const listContainer = document.getElementById('list');
-  listContainer.innerHTML = '<div class="empty">加载中...</div>';
-  
-  try {
-    const response = await fetch(`${API_BASE_URL}/all`);
-    if (!response.ok) {
-      throw new Error('获取历史记录失败');
-    }
-    const result = await response.json();
-    if (result.code === 200 && result.data) {
-      renderSuggestions(result.data);
-    } else {
-      renderEmpty();
-    }
-  } catch (error) {
-    console.error('获取历史记录失败:', error);
-    renderEmpty();
+document.getElementById('anon').addEventListener('change', function() {
+  const row = document.getElementById('identity-row');
+  if (this.checked) {
+    row.style.display = 'none';
+    document.getElementById('name').value = '';
+    document.getElementById('number').value = '';
+  } else {
+    row.style.display = '';
   }
-}
+});
 
-// -------- 渲染历史记录 --------
-function renderSuggestions(suggestions) {
-  const listContainer = document.getElementById('list');
-  listContainer.innerHTML = '';
-  
-  if (!suggestions || suggestions.length === 0) {
-    renderEmpty();
-    return;
-  }
-  
-  // 按ID降序排序，最新的在前面
-  suggestions.sort((a, b) => b.id - a.id);
-  
-  suggestions.forEach(suggestion => {
-    const suggestionItem = document.createElement('div');
-    suggestionItem.className = 'suggestion-item';
-    
-    // 标题和匿名信息
-    const header = document.createElement('div');
-    header.className = 'suggestion-header';
-    
-    const title = document.createElement('span');
-    title.className = `suggestion-title ${suggestion.title}`;
-    title.textContent = getTitleText(suggestion.title);
-    
-    const meta = document.createElement('span');
-    meta.className = 'suggestion-meta';
-    meta.textContent = suggestion.isAnonymous ? '匿名' : (suggestion.name || '未知');
-    
-    header.appendChild(title);
-    header.appendChild(meta);
-    
-    // 内容
-    const content = document.createElement('div');
-    content.className = 'suggestion-content';
-    content.textContent = suggestion.context;
-    
-    suggestionItem.appendChild(header);
-    suggestionItem.appendChild(content);
-    listContainer.appendChild(suggestionItem);
-  });
-}
-
-// -------- 渲染空状态 --------
-function renderEmpty() {
-  const listContainer = document.getElementById('list');
-  listContainer.innerHTML = '<div class="empty">暂无历史记录</div>';
-}
-
-// -------- 获取标题文本 --------
-function getTitleText(title) {
-  const titleMap = {
-    'general': '⚔️ 一般建议',
-    'bug': '🐛 BUG举报',
-    'feature': '🌟 新内容请求'
-  };
-  return titleMap[title] || title;
-}
-
-// -------- 页面加载时获取历史记录 --------
-document.addEventListener('DOMContentLoaded', fetchSuggestions);
+document.addEventListener('DOMContentLoaded', generateCaptcha);
 </script>
 </body>
 </html>

@@ -1,0 +1,449 @@
+/* ============================================
+   COMMON.CSS — Abstract Fluid & Ultra-fine Geometry
+   Single source of truth for background, navbar,
+   search, dropdown, particles, footer, buttons.
+   Every page links this + its own page CSS.
+   ============================================ */
+
+/* ── Design Tokens ── */
+:root {
+    /* palette — clean teal-blue */
+    --fluid-a: rgba(14,165,233,0.07);
+    --fluid-b: rgba(6,182,212,0.055);
+    --fluid-c: rgba(56,189,248,0.04);
+    --fluid-d: rgba(34,211,238,0.035);
+
+    --line-a: rgba(14,165,233,0.032);
+    --line-b: rgba(6,182,212,0.024);
+    --line-c: rgba(56,189,248,0.018);
+
+    --primary: #0EA5E9;
+    --primary-light: #38BDF8;
+    --primary-dark: #0284C7;
+    --primary-bg: rgba(14,165,233,0.06);
+    --primary-border: rgba(14,165,233,0.18);
+    --primary-shadow: rgba(14,165,233,0.12);
+
+    --accent: #06B6D4;
+
+    --text-primary: #1E2340;
+    --text-secondary: #5A6180;
+    --text-muted: #8B91B0;
+
+    --bg-body: #F6F7FC;
+    --bg-card: rgba(255,255,255,0.72);
+    --bg-white: #FFFFFF;
+
+    --border-light: rgba(14,165,233,0.10);
+    --border-medium: rgba(14,165,233,0.18);
+
+    --shadow-xs: 0 1px 3px rgba(0,0,0,0.04);
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.05);
+    --shadow-md: 0 6px 24px rgba(0,0,0,0.06);
+    --shadow-lg: 0 12px 48px rgba(0,0,0,0.08);
+
+    --radius-sm: 8px;
+    --radius-md: 14px;
+    --radius-lg: 20px;
+    --radius-xl: 28px;
+    --radius-pill: 999px;
+
+    --font-sans: 'Inter','Segoe UI','Roboto',-apple-system,BlinkMacSystemFont,sans-serif;
+    --navbar-height: 64px;
+
+    --ease-fluid: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Reset ── */
+*,*::before,*::after { margin:0; padding:0; box-sizing:border-box; }
+a { text-decoration:none; color:inherit; }
+ul,ol { list-style:none; }
+
+/* ── HTML base ── */
+html {
+    background: var(--bg-body);
+    min-height: 100vh;
+}
+
+/* ── Body ── */
+body {
+    font-family: var(--font-sans);
+    color: var(--text-primary);
+    background: transparent;
+    min-height: 100vh;
+    padding: 20px;
+    padding-top: calc(var(--navbar-height) + 28px);
+    position: relative;
+    overflow-x: hidden;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ── Layer 1 — Ultra-fine contour / topographic rings ──
+   Concentric ring clusters at scattered origins.
+   1px strokes, opacity 0.018–0.032. Ghost-like elevation
+   lines that drift imperceptibly. */
+body::before {
+    content: '';
+    position: fixed;
+    inset: -25%;
+    width: 150%;
+    height: 150%;
+    background:
+        repeating-radial-gradient(circle at 22% 26%,
+            transparent 0 41px, var(--line-a) 42px, transparent 43px),
+        repeating-radial-gradient(circle at 74% 70%,
+            transparent 0 53px, var(--line-b) 54px, transparent 55px),
+        repeating-radial-gradient(circle at 50% 8%,
+            transparent 0 63px, var(--line-c) 64px, transparent 65px),
+        repeating-radial-gradient(circle at 88% 38%,
+            transparent 0 47px, var(--line-c) 48px, transparent 49px),
+        repeating-radial-gradient(circle at 10% 82%,
+            transparent 0 37px, var(--line-b) 38px, transparent 39px);
+    z-index: -4;
+    pointer-events: none;
+    animation: contourDrift 120s var(--ease-fluid) infinite alternate;
+}
+
+/* ── Layer 2 — Slow liquid-ink fluid gradients ──
+   Large, heavily blurred ellipses in muted indigo / violet.
+   They drift like ink diffusing in still water:
+   breathing, alive, absolutely never rushed. */
+body::after {
+    content: '';
+    position: fixed;
+    inset: -40%;
+    width: 180%;
+    height: 180%;
+    background:
+        radial-gradient(ellipse 700px 520px at 20% 25%,
+            var(--fluid-a) 0%, transparent 70%),
+        radial-gradient(ellipse 520px 680px at 80% 74%,
+            var(--fluid-b) 0%, transparent 70%),
+        radial-gradient(ellipse 480px 420px at 54% 42%,
+            var(--fluid-c) 0%, transparent 65%),
+        radial-gradient(ellipse 380px 540px at 14% 62%,
+            var(--fluid-d) 0%, transparent 60%);
+    z-index: -3;
+    pointer-events: none;
+    filter: blur(60px);
+    animation: fluidFlow 90s var(--ease-fluid) infinite alternate;
+}
+
+/* ── Background Keyframes ── */
+@keyframes contourDrift {
+    0%   { transform: translate(0,0) rotate(0deg) scale(1); }
+    100% { transform: translate(18px,-12px) rotate(0.6deg) scale(1.02); }
+}
+@keyframes fluidFlow {
+    0%   { transform: translate(0,0) rotate(0deg); opacity:.65; }
+    50%  { transform: translate(35px,-20px) rotate(1deg); opacity:1; }
+    100% { transform: translate(-25px,30px) rotate(-0.6deg); opacity:.8; }
+}
+
+/* ── Entrance micro-animations ── */
+@keyframes fadeInUp {
+    from { opacity:0; transform:translateY(20px); }
+    to   { opacity:1; transform:translateY(0); }
+}
+@keyframes fadeIn {
+    from { opacity:0; }
+    to   { opacity:1; }
+}
+@keyframes scaleIn {
+    from { opacity:0; transform:scale(0.97); }
+    to   { opacity:1; transform:scale(1); }
+}
+
+/* ============================================
+   Navbar — frosted glass, minimal
+   ============================================ */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255,255,255,0.68);
+    backdrop-filter: blur(14px) saturate(160%);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+    padding: 0 28px;
+    height: var(--navbar-height);
+    box-shadow: 0 1px 0 var(--border-light), var(--shadow-xs);
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 1000;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.navbar-top {
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.navbar-left {
+    display: flex;
+    align-items: center;
+}
+
+.navbar-logo {
+    height: 42px;
+    margin-right: 10px;
+    mix-blend-mode: multiply;
+    filter: contrast(1.06) saturate(1.08);
+    background: transparent;
+}
+
+.school-name-block {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.2;
+}
+.school-cn {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+.school-en {
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: .6px;
+}
+
+/* ── Search ── */
+.navbar-center {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.search {
+    display: flex;
+    align-items: center;
+}
+.search__input {
+    font-family: inherit;
+    font-size: 13px;
+    background: rgba(14,165,233,0.03);
+    border: 1px solid var(--border-light);
+    color: var(--text-primary);
+    padding: 7px 16px;
+    border-radius: var(--radius-pill);
+    width: 200px;
+    transition: all .35s var(--ease-fluid);
+    margin-right: -2rem;
+}
+.search__input:hover,
+.search__input:focus {
+    border-color: var(--primary-border);
+    box-shadow: 0 0 0 3px rgba(14,165,233,0.06);
+    background: var(--bg-white);
+}
+.search__input:focus {
+    outline: none;
+    width: 250px;
+}
+.search__input::placeholder,
+.search__input::-webkit-input-placeholder {
+    color: var(--text-muted);
+    font-weight: 400;
+}
+.search__button {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 4px;
+}
+.search__icon {
+    height: 1.15em;
+    width: 1.15em;
+    fill: var(--text-muted);
+}
+
+/* ── Nav Links ── */
+.navbar-links {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+    gap: 2px;
+}
+.navbar-links > a {
+    padding: 7px 13px;
+    color: var(--text-secondary);
+    font-weight: 500;
+    font-size: 13px;
+    border-radius: var(--radius-sm);
+    transition: color .2s, background .2s;
+}
+.navbar-links > a:hover {
+    color: var(--primary);
+    background: var(--primary-bg);
+}
+
+/* ── Dropdown ── */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+.dropbtn {
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    padding: 7px 13px;
+    color: var(--text-secondary);
+    font-weight: 500;
+    font-size: 13px;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: color .2s, background .2s;
+}
+.dropbtn:hover {
+    color: var(--primary);
+    background: var(--primary-bg);
+}
+.dropdown::after {
+    content: '';
+    position: absolute;
+    top: 100%; left: 0;
+    width: 100%; height: 8px;
+    display: none;
+}
+.dropdown:hover::after { display: block; }
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    min-width: 164px;
+    box-shadow: var(--shadow-md);
+    z-index: 1001;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    top: calc(100% + 4px);
+    left: 0;
+    border: 1px solid var(--border-light);
+    padding: 4px;
+    animation: scaleIn .16s ease-out;
+    transform-origin: top center;
+}
+.dropdown-content a {
+    color: var(--text-secondary);
+    padding: 9px 14px;
+    display: block;
+    font-size: 13px;
+    border-radius: var(--radius-sm);
+    transition: background .15s, color .15s;
+}
+.dropdown-content a:hover {
+    background: var(--primary-bg);
+    color: var(--primary);
+}
+.dropdown.open .dropdown-content { display: block; }
+.dropdown:hover .dropdown-content { display: block; }
+
+/* ============================================
+   Shared Button
+   ============================================ */
+.btn, .button {
+    display: inline-block;
+    background: linear-gradient(135deg, rgba(14,165,233,.78), rgba(6,182,212,.72));
+    color: #fff;
+    padding: 8px 18px;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: .3px;
+    cursor: pointer;
+    transition: transform .25s var(--ease-fluid), box-shadow .25s var(--ease-fluid);
+    box-shadow: 0 4px 14px var(--primary-shadow);
+}
+.btn:hover, .button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(14,165,233,.18);
+}
+
+/* ============================================
+   Particles — tiny dots that float up slowly
+   ============================================ */
+.particle {
+    position: absolute;
+    width: 1.5px;
+    height: 1.5px;
+    background: rgba(14,165,233,0.18);
+    border-radius: 50%;
+    box-shadow: 0 0 3px rgba(14,165,233,0.22);
+    animation: particleFloat 12s linear infinite;
+    pointer-events: none;
+}
+@keyframes particleFloat {
+    0%   { transform:translateY(100vh) translateX(0) scale(0); opacity:0; }
+    10%  { opacity:.6; transform:translateY(90vh) translateX(6px) scale(1); }
+    50%  { transform:translateY(50vh) translateX(-10px) scale(1.05); }
+    90%  { opacity:.6; transform:translateY(10vh) translateX(6px) scale(1); }
+    100% { transform:translateY(0) translateX(0) scale(0); opacity:0; }
+}
+
+/* ============================================
+   Footer
+   ============================================ */
+.site-footer {
+    display: block;
+    width: 100%;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 12px;
+    padding: 28px 0 14px;
+    margin-top: 40px;
+}
+.site-footer:hover { color: var(--primary); }
+
+/* ============================================
+   Mobile Warning Bar
+   ============================================ */
+.warning-bar {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%;
+    background: linear-gradient(135deg,#FF6B6B,#EE5A24);
+    color: white;
+    text-align: center;
+    padding: 9px 48px 9px 20px;
+    font-size: 13px;
+    font-weight: 500;
+    z-index: 9999;
+    box-shadow: 0 2px 12px rgba(238,90,36,.25);
+    display: none;
+}
+.warning-bar .close-btn {
+    position: absolute;
+    top: 50%; right: 14px;
+    transform: translateY(-50%);
+    font-size: 14px;
+    cursor: pointer;
+    background: rgba(255,255,255,.2);
+    border-radius: 50%;
+    width: 26px; height: 26px;
+    line-height: 26px;
+    text-align: center;
+    transition: background .2s;
+}
+.warning-bar .close-btn:hover {
+    background: rgba(255,255,255,.35);
+}
+
+/* ============================================
+   Responsive
+   ============================================ */
+@media (max-width: 768px) {
+    :root { --navbar-height: auto; }
+    .navbar { padding:10px 14px; flex-wrap:wrap; }
+    .navbar-center { order:3; width:100%; justify-content:stretch; margin-top:6px; }
+    .search__input { width:100%; }
+    .search__input:focus { width:100%; }
+    .navbar-links { gap:1px; }
+    .navbar-links > a, .dropbtn { padding:5px 9px; font-size:12px; }
+    body { padding:10px; padding-top:110px; }
+}

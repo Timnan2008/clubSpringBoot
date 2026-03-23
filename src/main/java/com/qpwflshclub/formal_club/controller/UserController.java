@@ -114,6 +114,29 @@ public class UserController {
         }
         return ResponseMessage.error("查不到");
     }
+    @GetMapping("/find-name-directly/{nameEn}")
+    public ResponseMessage<?> findNameDirectly(@PathVariable String nameEn){
+        // 假设返回类型为 UserBase
+        UserBase user = userService.findByNameEn(nameEn);
+
+        // 判断实际的类型并进行相应的处理
+        if (user instanceof User) {
+            // 处理 User 类型
+            return ResponseMessage.success((User) user); // 或者返回相关的 DTO
+        } else if (user instanceof Teacher) {
+            // 处理 Teacher 类型
+            return ResponseMessage.success((Teacher) user);
+        } else if (user instanceof ClubPresident) {
+            // 处理 ClubPresident 类型
+            return ResponseMessage.success((ClubPresident) user);
+        } else if (user instanceof Admin) {
+            // 处理 Admin 类型
+            return ResponseMessage.success((Admin) user);
+        } else {
+            return ResponseMessage.error("未找到该用户");
+        }
+    }
+
     @PostMapping("/login")
     @ResponseBody
     public ResponseMessage<?> login(@RequestParam String email, @RequestParam String password) {

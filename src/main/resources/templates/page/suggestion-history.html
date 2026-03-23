@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="icon" type="image/png" href="/other%20photo/WFL-logo.png">
+  <link rel="stylesheet" href="/css/common.css">
+  <link rel="stylesheet" href="/css/suggestion-history_style.css">
+  <title th:text="#{advice.history.title}">历史记录</title>
+</head>
+<body>
+  <div th:replace="fragments/navbar :: navbar"></div>
+
+  <main class="sh-main">
+    <section class="sh-hero">
+      <a class="btn sh-back" th:href="@{/page/suggestion}" th:text="#{advice.history.back}">返回意见箱</a>
+      <h1 class="sh-title" th:text="#{advice.history.title}">历史记录</h1>
+      <p class="sh-subtitle" th:text="#{advice.history.subtitle}">查看之前提交的意见与反馈。</p>
+    </section>
+
+    <section class="sh-filters">
+      <button class="btn sh-filter active" type="button" data-filter="all" th:text="#{advice.history.filter.all}">全部</button>
+      <button class="btn sh-filter" type="button" data-filter="general" th:text="#{advice.history.filter.general}">一般建议</button>
+      <button class="btn sh-filter" type="button" data-filter="bug" th:text="#{advice.history.filter.bug}">Bug</button>
+      <button class="btn sh-filter" type="button" data-filter="feature" th:text="#{advice.history.filter.feature}">功能请求</button>
+    </section>
+
+    <section id="sh-list" class="sh-list"></section>
+  </main>
+
+  <script th:inline="javascript">
+    const historyI18n = {
+      loading: /*[[#{advice.history.loading}]]*/ '加载中...',
+      empty: /*[[#{advice.history.empty}]]*/ '暂无历史记录',
+      anonymous: /*[[#{advice.history.anonymous}]]*/ '匿名',
+      unknown: /*[[#{advice.history.unknown}]]*/ '未知',
+      general: /*[[#{advice.history.filter.general}]]*/ '一般建议',
+      bug: /*[[#{advice.history.filter.bug}]]*/ 'Bug',
+      feature: /*[[#{advice.history.filter.feature}]]*/ '功能请求'
+    };
+  </script>
+  <script>
+    const listEl = document.getElementById('sh-list');
+    const filterEls = Array.from(document.querySelectorAll('.sh-filter'));
+    let allSuggestions = [];
+    let currentFilter = 'all';
+
+    function badgeText(type) {
+      if (type === 'general') return historyI18n.general;
+      if (type === 'bug') return historyI18n.bug;
+      if (type === 'feature') return historyI18n.feature;
+      return type;
+    }
+
+    function renderEmpty(message) {
+      listEl.innerHTML = '<div class="sh-empty">' + message + '</div>';
+    }
+
+    function renderList() {
+      const data = currentFilter === 'all'
+        ? allSuggestions
+        : allSuggestions.filter(item => item.title === currentFilter);
+
+      if (!data.length) {
+        renderEmpty(historyI18n.empty);
+        return;
+      }
+
+      listEl.innerHTML = '';
+      data.forEach((item, index) => {
+        const card = document.createElement('article');
+        card.className = 'sh-item';
+        card.style.animationDelay = (index * 0.04) + 's';
+        card.innerHTML =
+          '<div class="sh-item-top">' +
+            '<span class="sh-badge sh-badge--' + item.title + '">' + badgeText(item.title) + '</span>' +
+            '<span class="sh-author">' + (item.isAnonymous ? historyI18n.anonymous : (item.name || historyI18n.unknown)) + '</span>' +
+          '</div>' +
+          '<p class="sh-body"></p>';
+        card.querySelector('.sh-body').textContent = item.context || '';
+        listEl.appendChild(card);
+      });
+    }
+
+    async function fetchHistory() {
+      renderEmpty(historyI18n.loading);
+      try {
+        const response = await fetch('/api/suggestion/all');
+        const result = await response.json();
+        if (!response.ok || !Array.isArray(result.data)) {
+          throw new Error('fetch failed');
+        }
+        allSuggestions = result.data.sort((a, b) => (b.id || 0) - (a.id || 0));
+        renderList();
+      } catch (error) {
+        renderEmpty(historyI18n.empty);
+      }
+    }
+
+    filterEls.forEach((button) => {
+      button.addEventListener('click', () => {
+        currentFilter = button.dataset.filter;
+        filterEls.forEach(el => el.classList.remove('active'));
+        button.classList.add('active');
+        renderList();
+      });
+    });
+
+    document.addEventListener('DOMContentLoaded', fetchHistory);
+  </script>
+</body>
+</html>

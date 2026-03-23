@@ -1,53 +1,24 @@
-﻿<html lang="zh-CN">
+﻿<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>未找到网站</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404</title>
+    <link rel="icon" type="image/png" href="/other%20photo/WFL-logo.png">
+    <link rel="stylesheet" href="/css/common.css">
     <link rel="stylesheet" href="/css/fall_to_get_club_style.css">
 </head>
 <body>
-<div id="particles"></div>
 <div th:replace="fragments/navbar :: navbar"></div>
-<div th:replace="fragments/particle :: particle"></div>
 
-<head>
-    <meta charset="UTF-8">
-    <title>Fall to get club</title>
-</head>
-<div class="container">
-    <h1><span id="club-title">没有该网页</span></h1>
-    <h1>No Such Page</h1>
+<div class="bg-viewport" aria-hidden="true"></div>
+<script src="/javascript/ibm-background.js"></script>
+
+<main class="fall-content">
+    <div class="eyebrow">404</div>
+    <h1>没有该网页</h1>
+    <p class="fall-subtitle">No such page. The page you are looking for may have been moved or does not exist.</p>
     <a href="/page/index" class="back-home-btn">返回首页</a>
-</div>
-
-<script>
-    // 创建更多动态粒子
-    function createParticles() {
-        const particlesContainer = document.getElementById('particles');
-        const particleCount = 100;
-        
-        for (let i = 0; i < particleCount; i++) {
-            const particle = document.createElement('div');
-            particle.className = 'particle';
-            particle.style.left = Math.random() * 100 + '%';
-            particle.style.animationDelay = Math.random() * 6 + 's';
-            particle.style.animationDuration = (4 + Math.random() * 6) + 's';
-            // 随机大小
-            const size = Math.random() * 3 + 1;
-            particle.style.width = size + 'px';
-            particle.style.height = size + 'px';
-            // 随机颜色
-            const colors = [
-                'rgba(140, 160, 255, 0.4)',
-                'rgba(160, 140, 255, 0.4)',
-                'rgba(120, 180, 255, 0.4)'
-            ];
-            particle.style.background = colors[Math.floor(Math.random() * colors.length)];
-            particle.style.boxShadow = '0 0 3px ' + colors[Math.floor(Math.random() * colors.length)];
-            particlesContainer.appendChild(particle);
-        }
-    }
-    
-    // 页面加载完成后创建粒子
-    window.addEventListener('load', createParticles);
-</script>
+</main>
+</body>
 </html>
