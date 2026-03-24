@@ -94,4 +94,9 @@ public class PageController {
         model.addAttribute("currentUri", "/page/suggestion/history");
         return "page/suggestion-history";
     }
+    @GetMapping("/suggestion/manage")
+    public String suggestionManagePage(Model model) {
+        model.addAttribute("currentUri", "/page/suggestion/manage");
+        return "page/manager of advice";
+    }
 }

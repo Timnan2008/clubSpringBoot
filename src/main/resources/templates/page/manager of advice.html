@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/png" href="/otherX28photo/WF-logo.png" />
+    <link rel="stylesheet" href="/css/common.css" />
+    <title>意见箱 - 管理员审核后台</title>
+    <style>
+        /* 基础变量（复用原有设计） */
+        :root {
+            --text-primary: #1a1a2e;
+            --text-secondary: #4a4a68;
+            --text-muted: #8a8a9c;
+            --border-light: #e0e0e8;
+            --primary: #2563eb;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --warning: #f59e0b;
+            --radius-pill: 9999px;
+            --radius-lg: 12px;
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.04);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        /* 重置样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        /* 权限不足提示 */
+        .permission-denied {
+            max-width: 500px;
+            margin: 100px auto;
+            text-align: center;
+            padding: 40px;
+            background: rgba(255,255,255,.72);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+        }
+        .permission-denied h2 {
+            color: var(--danger);
+            margin-bottom: 16px;
+        }
+        .permission-denied p {
+            color: var(--text-muted);
+            margin-bottom: 24px;
+        }
+
+        /* 管理员后台容器 */
+        .admin-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: none; /* 默认隐藏，权限验证通过后显示 */
+        }
+
+        /* 顶部导航 */
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .admin-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .admin-title-icon {
+            color: var(--primary);
+        }
+        .admin-user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+        .admin-logout {
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: var(--radius-pill);
+            background: rgba(220, 38, 38, 0.1);
+            color: var(--danger);
+            border: 1px solid var(--danger);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .admin-logout:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        /* 筛选工具栏 */
+        .admin-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .admin-filters {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .admin-filter-btn {
+            padding: 8px 16px;
+            font-size: 13px;
+            border-radius: var(--radius-pill);
+            background: rgba(255,255,255,.72);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-light);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .admin-filter-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        .admin-filter-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        .admin-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .admin-action-btn {
+            padding: 8px 16px;
+            font-size: 13px;
+            border-radius: var(--radius-pill);
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-approve-all {
+            background: var(--success);
+            color: white;
+        }
+        .btn-reject-all {
+            background: var(--danger);
+            color: white;
+        }
+        .btn-refresh {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* 意见列表 */
+        .suggestion-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* 意见项 */
+        .suggestion-item {
+            padding: 20px;
+            background: rgba(255,255,255,.72);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s ease;
+            position: relative;
+        }
+        .suggestion-item:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+        /* 状态标签 */
+        .status-tag {
+            position: absolute;
+            top: 40px;
+            padding: 3px 10px;
+            right: 20px;
+            font-size: 10px;
+            border-radius: var(--radius-pill);
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        .status-pending {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+        .status-approved {
+            background: rgba(22, 163, 74, 0.1);
+            color: var(--success);
+        }
+        .status-rejected {
+            background: rgba(220, 38, 38, 0.1);
+            color: var(--danger);
+        }
+
+        /* 意见项内容 */
+        .suggestion-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .suggestion-type {
+            padding: 4px 12px;
+            font-size: 11px;
+            border-radius: var(--radius-pill);
+            font-weight: 600;
+        }
+        .type-general {
+            background: rgba(26,26,46,0.08);
+            color: var(--text-secondary);
+        }
+        .type-bug {
+            background: rgba(231,76,60,0.1);
+            color: #c0392b;
+        }
+        .type-feature {
+            background: rgba(39,174,96,0.1);
+            color: #1e8449;
+        }
+        .suggestion-meta {
+            font-size: 12px;
+            color: var(--text-muted);
+            display: flex;
+            gap: 16px;
+        }
+        .suggestion-content {
+            font-size: 14px;
+            line-height: 1.7;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .suggestion-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+        .suggestion-btn {
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: var(--radius-pill);
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: var(--text-muted);
+            font-size: 15px;
+            background: rgba(255,255,255,.6);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+        }
+
+        /* 响应式适配 */
+        @media (max-width: 768px) {
+            .admin-toolbar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .suggestion-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .suggestion-meta {
+                flex-direction: column;
+                gap: 4px;
+            }
+            .status-tag {
+                position: static;
+                margin-top: 10px;
+                display: inline-block;
+            }
+        }
+    </style>
+</head>
+<body>
+<!-- 权限不足提示（默认隐藏） -->
+<div id="permission-denied" class="permission-denied">
+    <h2>🚫 权限不足</h2>
+    <p>你没有访问该页面的权限，请使用管理员账号登录</p>
+    <a href="/page/login" class="admin-action-btn btn-approve-all">前往登录</a>
+</div>
+
+<!-- 管理员审核后台（默认隐藏） -->
+<div id="admin-panel" class="admin-container">
+    <!-- 顶部导航 -->
+    <div class="admin-header">
+        <h1 class="admin-title">
+            <span class="admin-title-icon">🔧</span>
+            意见箱 - 管理员审核后台
+        </h1>
+        <div class="admin-user-info">
+            <span id="current-admin-name">管理员</span>
+            <button class="admin-logout" onclick="logout()">退出登录</button>
+        </div>
+    </div>
+
+    <!-- 筛选工具栏 -->
+    <div class="admin-toolbar">
+        <div class="admin-filters">
+            <button class="admin-filter-btn active" data-status="all">全部意见</button>
+            <button class="admin-filter-btn" data-status="pending">待审核</button>
+            <button class="admin-filter-btn" data-status="approved">已通过</button>
+            <button class="admin-filter-btn" data-status="rejected">已驳回</button>
+        </div>
+        <div class="admin-actions">
+            <button class="admin-action-btn btn-approve-all" onclick="batchApprove()">批量通过</button>
+            <button class="admin-action-btn btn-reject-all" onclick="batchReject()">批量驳回</button>
+            <button class="admin-action-btn btn-refresh" onclick="fetchSuggestions()">刷新列表</button>
+        </div>
+    </div>
+
+    <!-- 意见列表 -->
+    <div id="suggestion-list" class="suggestion-list"></div>
+</div>
+
+<script th:inline="javascript">
+    // ====================== 核心：权限验证 ======================
+    // 1. 从后端获取当前登录用户信息（实际项目从Token/Cookie解析）
+    // 示例：从后端接口获取用户信息
+    async function getUserInfo() {
+        try {
+            // 实际项目替换为真实接口
+            // const res = await fetch('/api/user/current');
+            // const data = await res.json();
+            // return data;
+
+            // 模拟数据：管理员账号
+            return {
+                id: 1,
+                username: "admin",
+                nickname: "管理员",
+                role: "admin" // admin=管理员，user=普通用户
+            };
+
+            // 模拟普通用户（测试权限拦截）
+            // return {
+            //     id: 2,
+            //     username: "user1",
+            //     nickname: "普通用户",
+            //     role: "user"
+            // };
+        } catch (error) {
+            console.error("获取用户信息失败：", error);
+            return { role: "guest" }; // 未登录
+        }
+    }
+
+    // 2. 权限验证逻辑
+    let currentUser = null;
+    let allSuggestions = [];
+    let currentFilter = "all"; // all/pending/approved/rejected
+
+    // 初始化页面
+    async function initPage() {
+        currentUser = await getUserInfo();
+
+        // 权限判断：仅管理员可访问
+        if (currentUser.role !== "admin") {
+            document.getElementById("permission-denied").style.display = "block";
+            document.getElementById("admin-panel").style.display = "none";
+            return;
+        }
+
+        // 管理员：显示后台界面
+        document.getElementById("permission-denied").style.display = "none";
+        document.getElementById("admin-panel").style.display = "block";
+        document.getElementById("current-admin-name").textContent = currentUser.nickname;
+
+        // 获取意见列表并渲染
+        await fetchSuggestions();
+
+        // 绑定筛选按钮事件
+        bindFilterEvents();
+    }
+
+    // ====================== 数据获取与渲染 ======================
+    // 获取意见列表（模拟接口请求）
+    async function fetchSuggestions() {
+        const listEl = document.getElementById("suggestion-list");
+        listEl.innerHTML = '<div class="empty-state">加载中...</div>';
+
+        try {
+            // 实际项目替换为真实接口
+            // const res = await fetch('/api/suggestion/admin/list');
+            // allSuggestions = await res.json();
+
+            // 模拟意见数据
+            allSuggestions = [
+                {
+                    id: 1,
+                    type: "general",
+                    content: "建议优化网站加载速度，现在打开有点慢",
+                    author: "张三",
+                    isAnonymous: false,
+                    createTime: "2026-03-01 10:20:30",
+                    auditStatus: 0, // 0=待审核，1=已通过，2=已驳回
+                    auditTime: "",
+                    auditor: ""
+                },
+                {
+                    id: 2,
+                    type: "bug",
+                    content: "提交意见后点击返回按钮会出现空白页",
+                    author: "",
+                    isAnonymous: true,
+                    createTime: "2026-03-02 14:15:22",
+                    auditStatus: 0,
+                    auditTime: "",
+                    auditor: ""
+                },
+                {
+                    id: 3,
+                    type: "feature",
+                    content: "希望增加意见导出Excel的功能，方便统计",
+                    author: "李四",
+                    isAnonymous: false,
+                    createTime: "2026-03-03 09:40:15",
+                    auditStatus: 1,
+                    auditTime: "2026-03-03 10:00:00",
+                    auditor: "超级管理员"
+                },
+                {
+                    id: 4,
+                    type: "bug",
+                    content: "移动端页面适配有问题，部分按钮被遮挡",
+                    author: "",
+                    isAnonymous: true,
+                    createTime: "2026-03-04 16:25:40",
+                    auditStatus: 2,
+                    auditTime: "2026-03-04 17:00:00",
+                    auditor: "超级管理员"
+                }
+            ];
+
+            renderSuggestionList();
+        } catch (error) {
+            console.error("获取意见列表失败：", error);
+            listEl.innerHTML = '<div class="empty-state">加载失败，请点击刷新重试</div>';
+        }
+    }
+
+    // 渲染意见列表
+    function renderSuggestionList() {
+        const listEl = document.getElementById("suggestion-list");
+        // 筛选数据
+        let filteredList = [...allSuggestions];
+        if (currentFilter === "pending") {
+            filteredList = allSuggestions.filter(item => item.auditStatus === 0);
+        } else if (currentFilter === "approved") {
+            filteredList = allSuggestions.filter(item => item.auditStatus === 1);
+        } else if (currentFilter === "rejected") {
+            filteredList = allSuggestions.filter(item => item.auditStatus === 2);
+        }
+
+        // 空状态处理
+        if (filteredList.length === 0) {
+            listEl.innerHTML = '<div class="empty-state">暂无符合条件的意见</div>';
+            return;
+        }
+
+        // 渲染列表
+        listEl.innerHTML = "";
+        filteredList.forEach(item => {
+            const itemEl = document.createElement("div");
+            itemEl.className = "suggestion-item";
+
+            // 状态标签
+            let statusTag = "";
+            if (item.auditStatus === 0) {
+                statusTag = '<span class="status-tag status-pending">待审核</span>';
+            } else if (item.auditStatus === 1) {
+                statusTag = '<span class="status-tag status-approved">已通过</span>';
+            } else if (item.auditStatus === 2) {
+                statusTag = '<span class="status-tag status-rejected">已驳回</span>';
+            }
+
+            // 意见类型样式
+            let typeClass = "";
+            let typeText = "";
+            if (item.type === "general") {
+                typeClass = "type-general";
+                typeText = "一般建议";
+            } else if (item.type === "bug") {
+                typeClass = "type-bug";
+                typeText = "Bug/问题";
+            } else if (item.type === "feature") {
+                typeClass = "type-feature";
+                typeText = "功能请求";
+            }
+
+            // 作者显示
+            let authorText = item.isAnonymous || !item.author ? "匿名用户" : item.author;
+
+            // 审核操作按钮（仅待审核显示）
+            let actionBtns = "";
+            if (item.auditStatus === 0) {
+                actionBtns = `
+                        <button class="suggestion-btn btn-approve-all" onclick="approveSuggestion(${item.id})">通过</button>
+                        <button class="suggestion-btn btn-reject-all" onclick="rejectSuggestion(${item.id})">驳回</button>
+                    `;
+            } else {
+                // 已审核显示审核信息
+                actionBtns = `<span style="font-size:12px;color:var(--text-muted)">审核人：${item.auditor} | 审核时间：${item.auditTime}</span>`;
+            }
+
+            // 组装HTML
+            itemEl.innerHTML = `
+                    ${statusTag}
+                    <div class="suggestion-header">
+                        <span class="suggestion-type ${typeClass}">${typeText}</span>
+                        <div class="suggestion-meta">
+                            <span>提交人：${authorText}</span>
+                            <span>提交时间：${item.createTime}</span>
+                        </div>
+                    </div>
+                    <div class="suggestion-content">${item.content}</div>
+                    <div class="suggestion-actions">
+                        ${actionBtns}
+                    </div>
+                `;
+
+            listEl.appendChild(itemEl);
+        });
+    }
+
+    // ====================== 事件绑定 ======================
+    // 绑定筛选按钮事件
+    function bindFilterEvents() {
+        const filterBtns = document.querySelectorAll(".admin-filter-btn");
+        filterBtns.forEach(btn => {
+            btn.addEventListener("click", () => {
+                // 移除所有active
+                filterBtns.forEach(b => b.classList.remove("active"));
+                // 添加当前active
+                btn.classList.add("active");
+                // 更新筛选条件
+                currentFilter = btn.dataset.status;
+                // 重新渲染
+                renderSuggestionList();
+            });
+        });
+    }
+
+    // ====================== 审核操作 ======================
+    // 单个通过
+    async function approveSuggestion(id) {
+        if (!confirm("确定要通过这条意见吗？")) return;
+
+        try {
+            // 实际项目调用后端接口
+            // const res = await fetch(`/api/suggestion/audit/${id}`, {
+            //     method: "POST",
+            //     headers: { "Content-Type": "application/json" },
+            //     body: JSON.stringify({ auditStatus: 1, auditor: currentUser.nickname })
+            // });
+
+            // 前端更新数据
+            const targetItem = allSuggestions.find(item => item.id === id);
+            if (targetItem) {
+                targetItem.auditStatus = 1;
+                targetItem.auditTime = new Date().toLocaleString();
+                targetItem.auditor = currentUser.nickname;
+            }
+
+            // 重新渲染
+            renderSuggestionList();
+            alert("操作成功！");
+        } catch (error) {
+            console.error("审核失败：", error);
+            alert("操作失败，请重试！");
+        }
+    }
+
+    // 单个驳回
+    async function rejectSuggestion(id) {
+        if (!confirm("确定要驳回这条意见吗？")) return;
+
+        try {
+            // 实际项目调用后端接口
+            // const res = await fetch(`/api/suggestion/audit/${id}`, {
+            //     method: "POST",
+            //     headers: { "Content-Type": "application/json" },
+            //     body: JSON.stringify({ auditStatus: 2, auditor: currentUser.nickname })
+            // });
+
+            // 前端更新数据
+            const targetItem = allSuggestions.find(item => item.id === id);
+            if (targetItem) {
+                targetItem.auditStatus = 2;
+                targetItem.auditTime = new Date().toLocaleString();
+                targetItem.auditor = currentUser.nickname;
+            }
+
+            // 重新渲染
+            renderSuggestionList();
+            alert("操作成功！");
+        } catch (error) {
+            console.error("驳回失败：", error);
+            alert("操作失败，请重试！");
+        }
+    }
+
+    // 批量通过
+    function batchApprove() {
+        const pendingList = allSuggestions.filter(item => item.auditStatus === 0);
+        if (pendingList.length === 0) {
+            alert("暂无待审核意见");
+            return;
+        }
+        if (!confirm(`确定要批量通过${pendingList.length}条待审核意见吗？`)) return;
+
+        // 批量更新状态
+        pendingList.forEach(item => {
+            item.auditStatus = 1;
+            item.auditTime = new Date().toLocaleString();
+            item.auditor = currentUser.nickname;
+        });
+
+        renderSuggestionList();
+        alert(`已成功通过${pendingList.length}条意见！`);
+    }
+
+    // 批量驳回
+    function batchReject() {
+        const pendingList = allSuggestions.filter(item => item.auditStatus === 0);
+        if (pendingList.length === 0) {
+            alert("暂无待审核意见");
+            return;
+        }
+        if (!confirm(`确定要批量驳回${pendingList.length}条待审核意见吗？`)) return;
+
+        // 批量更新状态
+        pendingList.forEach(item => {
+            item.auditStatus = 2;
+            item.auditTime = new Date().toLocaleString();
+            item.auditor = currentUser.nickname;
+        });
+
+        renderSuggestionList();
+        alert(`已成功驳回${pendingList.length}条意见！`);
+    }
+
+    // 退出登录
+    function logout() {
+        if (confirm("确定要退出登录吗？")) {
+            // 实际项目清除Token/Cookie
+            // document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            window.location.href = "/page/login";
+        }
+    }
+
+    // 页面加载初始化
+    window.onload = initPage;
+</script>
+</body>
+</html>
