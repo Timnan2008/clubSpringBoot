@@ -16,6 +16,8 @@ public class SuggestionDTO {
     @NotNull(message = "标题不能为空")
     private String title;
 
+    private boolean isPass = false;
+
     private String name;
 
     public Long getId() {
@@ -56,5 +58,13 @@ public class SuggestionDTO {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public boolean isPass() {
+        return isPass;
+    }
+
+    public void setPass(boolean pass) {
+        isPass = pass;
     }
 }
