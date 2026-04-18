@@ -88,4 +88,14 @@ public class PageController {
     public String suggestionPage(Model model) {
         return "page/advice";
     }
+
+    @GetMapping("/suggestion/history")
+    public String suggestionHistoryPage(Model model) {
+        model.addAttribute("currentUri", "/page/suggestion/history");
+        return "page/suggestion-history";
+    }
+    @GetMapping("/suggestion/manage")
+    public String suggestionManagePage() {
+        return "page/manager of advice";
+    }
 }

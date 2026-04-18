@@ -1,13 +1,30 @@
 package com.qpwflshclub.formal_club.controller;
 
-import com.qpwflshclub.formal_club.pojo.ResponseMessage;
-import com.qpwflshclub.formal_club.pojo.User.*;
-import com.qpwflshclub.formal_club.pojo.User.UserBase;
-import com.qpwflshclub.formal_club.pojo.dto.User.*;
-import com.qpwflshclub.formal_club.service.User.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.qpwflshclub.formal_club.pojo.ResponseMessage;
+import com.qpwflshclub.formal_club.pojo.User.Admin;
+import com.qpwflshclub.formal_club.pojo.User.ClubPresident;
+import com.qpwflshclub.formal_club.pojo.User.Teacher;
+import com.qpwflshclub.formal_club.pojo.User.User;
+import com.qpwflshclub.formal_club.pojo.User.UserBase;
+import com.qpwflshclub.formal_club.pojo.dto.User.AdminDTO;
+import com.qpwflshclub.formal_club.pojo.dto.User.ClubPresidentDTO;
+import com.qpwflshclub.formal_club.pojo.dto.User.LoginDTO;
+import com.qpwflshclub.formal_club.pojo.dto.User.TeacherDTO;
+import com.qpwflshclub.formal_club.pojo.dto.User.UserBaseDTO;
+import com.qpwflshclub.formal_club.pojo.dto.User.UserDTO;
+import com.qpwflshclub.formal_club.service.User.IUserService;
 
 @RestController
 @RequestMapping("/api/user")
@@ -15,6 +32,8 @@ public class UserController {
 
     @Autowired
     IUserService userService;
+    @Autowired
+    com.qpwflshclub.formal_club.repository.User.UserRepository userRepository;
 
     //添加用户
 
@@ -114,4 +133,45 @@ public class UserController {
         }
         return ResponseMessage.error("查不到");
     }
+    @GetMapping("/find-name-directly/{nameEn}")
+    public ResponseMessage<?> findNameDirectly(@PathVariable String nameEn){
+        // 假设返回类型为 UserBase
+        UserBase user = userService.findByNameEn(nameEn);
+
+        // 判断实际的类型并进行相应的处理
+        if (user instanceof User) {
+            // 处理 User 类型
+            return ResponseMessage.success((User) user); // 或者返回相关的 DTO
+        } else if (user instanceof Teacher) {
+            // 处理 Teacher 类型
+            return ResponseMessage.success((Teacher) user);
+        } else if (user instanceof ClubPresident) {
+            // 处理 ClubPresident 类型
+            return ResponseMessage.success((ClubPresident) user);
+        } else if (user instanceof Admin) {
+            // 处理 Admin 类型
+            return ResponseMessage.success((Admin) user);
+        } else {
+            return ResponseMessage.error("未找到该用户");
+        }
+    }
+
+    @PostMapping("/login")
+    @ResponseBody
+    public ResponseMessage<UserBase> login(@RequestBody LoginDTO loginDTO) {
+    // 按 email 在 user / teacher 表查找（可按需扩展）
+        try {
+            Iterable<com.qpwflshclub.formal_club.pojo.User.User> users =
+                userRepository.findAll();
+            for (com.qpwflshclub.formal_club.pojo.User.User u : users) {
+                if (loginDTO.getEmail().equals(u.getEmail())
+                        && loginDTO.getPassword().equals(u.getPassword())) {
+                    return ResponseMessage.success(u);
+                }
+            }
+            return ResponseMessage.error("邮箱或密码错误");
+        } catch (Exception e) {
+            return ResponseMessage.error("登录失败：" + e.getMessage());
+        }
+}
 }

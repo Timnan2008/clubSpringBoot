@@ -1,7 +1,31 @@
+:root {
+    --text-primary: #1a1a2e;
+    --text-secondary: #4a4a68;
+    --text-muted: #8a8a9c;
+    --border-light: #e0e0e8;
+    --primary: #2563eb;
+    --radius-pill: 9999px;
+    --radius-lg: 12px;
+    --shadow-sm: 0 2px 4px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+/* 重置样式 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+body {
+    background-color: #f8f9fa;
+    padding: 20px;
+}
+
 /* ============================================
    Suggestion History — iOS 26 Liquid Glass
    ============================================ */
-
 .sh-main {
     max-width: 700px;
     margin: 0 auto;
@@ -16,10 +40,32 @@
     margin-bottom: 28px;
 }
 
+/* 新增：返回按钮液态玻璃效果（和筛选按钮风格统一） */
 .sh-back {
     font-size: 13px;
     padding: 7px 18px;
     margin-bottom: 16px;
+    display: inline-block;
+    cursor: pointer;
+    text-decoration: none;
+    color: var(--text-secondary);
+    border-radius: var(--radius-pill);
+    background: rgba(255,255,255,.72);
+    border: 1px solid var(--border-light);
+    transition: all 0.2s ease;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+}
+.sh-back:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: rgba(255,255,255,.9);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+.sh-back:active {
+    transform: translateY(0);
+    box-shadow: none;
 }
 
 .sh-title {
@@ -52,6 +98,8 @@
     color: var(--text-secondary);
     border: 1px solid var(--border-light);
     box-shadow: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
 
 .sh-filter:hover {
@@ -162,9 +210,9 @@
     height: 80px;
     border-radius: var(--radius-lg);
     background: linear-gradient(90deg,
-        rgba(255,255,255,0.3) 25%,
-        rgba(255,255,255,0.5) 50%,
-        rgba(255,255,255,0.3) 75%);
+    rgba(255,255,255,0.3) 25%,
+    rgba(255,255,255,0.5) 50%,
+    rgba(255,255,255,0.3) 75%);
     background-size: 200% 100%;
     animation: shShimmer 1.5s ease infinite;
 }
@@ -180,4 +228,10 @@
     .sh-title { font-size: 24px; }
     .sh-filters { gap: 6px; }
     .sh-filter { font-size: 12px; padding: 6px 14px; }
+    .sh-back { font-size: 12px; padding: 6px 14px; }
+}
+
+/* 审核提示样式（复用empty样式） */
+.audit-prompt {
+    margin-top: 20px;
 }

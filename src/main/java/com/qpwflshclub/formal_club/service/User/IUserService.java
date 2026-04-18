@@ -26,5 +26,6 @@ public interface IUserService {
     boolean hasUser(String nameEn);
 
     <T extends UserBase> T findByNameEn(String nameEn);
+    <T extends UserBase> T findByEmail(String email);
 
 }
