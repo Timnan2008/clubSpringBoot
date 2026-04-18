@@ -99,16 +99,20 @@ public class ClubPresident implements UserBase{
         this.clubPresidentClubs = clubPresidentClubs;
     }
 
-    public void setVicePresident(boolean vicePresident) {
-        isVicePresident = vicePresident;
-    }
-
     public Club getClubPresidentMainClub() {
         return clubPresidentMainClub;
     }
 
     public void setClubPresidentMainClub(Club clubPresidentMainClub) {
         this.clubPresidentMainClub = clubPresidentMainClub;
+    }
+
+    public void setIsVicePresident(boolean isVicePresident) {
+        this.isVicePresident = isVicePresident;
+    }
+
+    public void setVicePresident(boolean vicePresident) {
+        isVicePresident = vicePresident;
     }
 
     @Override
