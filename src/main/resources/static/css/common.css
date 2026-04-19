@@ -654,6 +654,9 @@ body::after {
   align-items: center;
   margin-left: auto;
   gap: 2px;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  white-space: nowrap;
 }
 .navbar-links > a {
   padding: 7px 13px;
@@ -888,6 +891,8 @@ body::after {
   }
   .navbar-links {
     gap: 1px;
+    flex-wrap: nowrap;
+    justify-content: flex-end;
   }
   .navbar-links > a,
   .dropbtn {
