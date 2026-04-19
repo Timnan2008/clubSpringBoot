@@ -53,7 +53,10 @@
         </dependency>
 
         <!-- 校验 -->
-        <!-- 已在上面声明 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>com.mysql</groupId>

@@ -2,6 +2,7 @@ package com.qpwflshclub.formal_club.controller;
 
 import com.qpwflshclub.formal_club.pojo.Club.Club;
 import com.qpwflshclub.formal_club.pojo.Club.ClubInfoVO;
+import com.qpwflshclub.formal_club.pojo.Club.ClubVO;
 import com.qpwflshclub.formal_club.pojo.Club.SearchResultVO;
 import com.qpwflshclub.formal_club.pojo.ResponseMessage;
 import com.qpwflshclub.formal_club.pojo.dto.Club.ClubDTO;
@@ -189,7 +190,7 @@ public class ClubController {
         List<Club> clubs = clubService.search(keyword);
         List<SearchResultVO> results = clubs.stream().map(c -> {
             SearchResultVO vo = new SearchResultVO();
-            vo.setId(c.getClubId());
+            vo.setId(c.getId());
             vo.setName(c.getClubName());
             vo.setNameEn(c.getClubNameEn());
             vo.setDescription(c.getClubDescription());
