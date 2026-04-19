@@ -337,6 +337,37 @@ body::after {
   width: 1.15em;
   fill: var(--text-muted);
 }
+.search-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 1000;
+  display: none;
+}
+.search-dropdown .search-item {
+  padding: 10px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border-light);
+  transition: background 0.2s;
+}
+.search-dropdown .search-item:hover {
+  background: var(--primary-bg);
+}
+.search-dropdown .search-item:last-child {
+  border-bottom: none;
+}
+.search-dropdown .no-results {
+  padding: 16px;
+  text-align: center;
+  color: var(--text-muted);
+}
 
 /* ── Nav Links ── */
 .navbar-links {

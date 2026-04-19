@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="/other%20photo/WFL-logo.png">
+    <meta name="description" content="QPWFLHS Club Search Results">
+    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/index_style.css">
+    <title>搜索结果</title>
+</head>
+<body>
+    <div th:replace="fragments/navbar :: navbar"></div>
+    <div th:replace="fragments/notice :: notice"></div>
+
+    <!-- Ultra-Glass Parallax Matrix background -->
+    <div class="bg-viewport" aria-hidden="true"></div>
+    <script src="/javascript/ibm-background.js"></script>
+
+    <!-- Scrollable page content -->
+    <div class="page-content">
+        <!-- Search Results -->
+        <section class="search-results-section glass-card">
+            <h2 class="section-title">🔍 搜索结果</h2>
+            <div id="search-results" class="clubs-grid">
+                <!-- Results will be loaded here -->
+            </div>
+            <div id="no-results" class="no-results-message" style="display: none;">
+                <p>没有找到匹配的社团</p>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Get keyword from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const keyword = urlParams.get('keyword');
+
+        if (keyword) {
+            fetch(`/api/clubs/search?keyword=${encodeURIComponent(keyword)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.code === 200 && data.data && data.data.length > 0) {
+                        renderResults(data.data);
+                    } else {
+                        document.getElementById('no-results').style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    console.error('Search error:', error);
+                    document.getElementById('no-results').style.display = 'block';
+                });
+        } else {
+            document.getElementById('no-results').style.display = 'block';
+        }
+
+        function renderResults(clubs) {
+            const container = document.getElementById('search-results');
+            container.innerHTML = clubs.map(club => `
+                <div class="club-card glass-card" onclick="window.location.href='/page/club/${club.id}'">
+                    <div class="club-logo">
+                        <img src="${club.logo || '/other%20photo/default-logo.png'}" alt="${club.name}" />
+                    </div>
+                    <div class="club-info">
+                        <h3 class="club-name">${club.name}</h3>
+                        <p class="club-description">${club.description || ''}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+</html>

@@ -27,5 +27,5 @@ public interface IClubService {
 
     void addLikeDevice(String clubName, String deviceId);
 
-    void removeLikeDevice(String clubName, String deviceId);
+    List<Club> search(String keyword);
 }

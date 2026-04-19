@@ -2,7 +2,7 @@ package com.qpwflshclub.formal_club.controller;
 
 import com.qpwflshclub.formal_club.pojo.Club.Club;
 import com.qpwflshclub.formal_club.pojo.Club.ClubInfoVO;
-import com.qpwflshclub.formal_club.pojo.Club.ClubVO;
+import com.qpwflshclub.formal_club.pojo.Club.SearchResultVO;
 import com.qpwflshclub.formal_club.pojo.ResponseMessage;
 import com.qpwflshclub.formal_club.pojo.dto.Club.ClubDTO;
 import com.qpwflshclub.formal_club.service.Club.ClubLikeService;
@@ -182,6 +182,23 @@ public class ClubController {
         System.out.println(list);
 
         return ResponseMessage.success(list);
+    }
+
+    @GetMapping("/search")
+    public ResponseMessage<List<SearchResultVO>> search(@RequestParam String keyword) {
+        List<Club> clubs = clubService.search(keyword);
+        List<SearchResultVO> results = clubs.stream().map(c -> {
+            SearchResultVO vo = new SearchResultVO();
+            vo.setId(c.getClubId());
+            vo.setName(c.getClubName());
+            vo.setNameEn(c.getClubNameEn());
+            vo.setDescription(c.getClubDescription());
+            vo.setDescriptionEn(c.getClubDescriptionEn());
+            // Assuming logo is stored in clubItem or another field
+            vo.setLogo(c.getClubItem()); // Adjust if logo field exists
+            return vo;
+        }).toList();
+        return ResponseMessage.success(results);
     }
 
 }

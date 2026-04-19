@@ -98,4 +98,10 @@ public class PageController {
     public String suggestionManagePage() {
         return "page/manager of advice";
     }
+
+    @GetMapping("/search")
+    public String searchPage(Model model) {
+        return "page/search";
+    }
+
 }

@@ -24,8 +24,15 @@
             <input
               class="search__input"
               type="text"
+              id="search-input"
               th:placeholder="#{nav.search.placeholder}"
             />
+            <button class="search__button" id="search-button" type="button">
+              <svg class="search__icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M21 21L16.5 16.5M19 11C19 15.4183 15.4183 19 11 19C6.58172 19 3 15.4183 3 11C3 6.58172 6.58172 3 11 3C15.4183 3 19 6.58172 19 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <div class="search-dropdown" id="search-dropdown"></div>
           </div>
         </div>
 
@@ -184,6 +191,97 @@
           document.addEventListener("keydown", function (event) {
             if (event.key === "Escape") {
               closeAll();
+            }
+          });
+        })();
+
+        // Search functionality
+        (function () {
+          const searchInput = document.getElementById('search-input');
+          const searchButton = document.getElementById('search-button');
+          const searchDropdown = document.getElementById('search-dropdown');
+
+          if (!searchInput || !searchButton || !searchDropdown) return;
+
+          let debounceTimer;
+
+          function performSearch(keyword) {
+            if (!keyword.trim()) {
+              searchDropdown.style.display = 'none';
+              return;
+            }
+
+            fetch(`/api/clubs/search?keyword=${encodeURIComponent(keyword)}`)
+              .then(response => response.json())
+              .then(data => {
+                if (data.code === 200 && data.data && data.data.length > 0) {
+                  renderDropdown(data.data);
+                  searchDropdown.style.display = 'block';
+                } else {
+                  searchDropdown.innerHTML = '<div class="no-results">没有找到匹配的社团</div>';
+                  searchDropdown.style.display = 'block';
+                }
+              })
+              .catch(error => {
+                console.error('Search error:', error);
+                searchDropdown.style.display = 'none';
+              });
+          }
+
+          function renderDropdown(clubs) {
+            const html = clubs.map(club => `
+              <div class="search-item" data-id="${club.id}">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <img src="${club.logo || '/other%20photo/default-logo.png'}" alt="${club.name}" style="width: 40px; height: 40px; border-radius: 8px; object-fit: cover;">
+                  <div>
+                    <div style="font-weight: 500; color: var(--text-primary);">${club.name}</div>
+                    <div style="font-size: 12px; color: var(--text-muted);">${club.description || ''}</div>
+                  </div>
+                </div>
+              </div>
+            `).join('');
+            searchDropdown.innerHTML = html;
+
+            // Add click handlers
+            searchDropdown.querySelectorAll('.search-item').forEach(item => {
+              item.addEventListener('click', function() {
+                const clubId = this.dataset.id;
+                window.location.href = `/page/club/${clubId}`;
+              });
+            });
+          }
+
+          function debounceSearch() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+              const keyword = searchInput.value;
+              performSearch(keyword);
+            }, 300);
+          }
+
+          searchInput.addEventListener('input', debounceSearch);
+
+          searchInput.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+              event.preventDefault();
+              const keyword = searchInput.value.trim();
+              if (keyword) {
+                window.location.href = `/page/search?keyword=${encodeURIComponent(keyword)}`;
+              }
+            }
+          });
+
+          searchButton.addEventListener('click', function() {
+            const keyword = searchInput.value.trim();
+            if (keyword) {
+              window.location.href = `/page/search?keyword=${encodeURIComponent(keyword)}`;
+            }
+          });
+
+          // Hide dropdown when clicking outside
+          document.addEventListener('click', function(event) {
+            if (!event.target.closest('.search')) {
+              searchDropdown.style.display = 'none';
             }
           });
         })();
