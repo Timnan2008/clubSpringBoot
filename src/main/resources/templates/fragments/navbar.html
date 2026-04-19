@@ -235,10 +235,11 @@
               <div class="search-item" data-path="${club.detailPath}">
                 <div class="search-item-inner">
                   <img src="${club.logo || '/other%20photo/default-logo.png'}" alt="${club.name}" class="search-item-logo">
-                  <div>
+                  <div class="search-item-content">
                     <div class="search-item-title">${club.name}</div>
                     <div class="search-item-meta">${club.brief || club.description || ''}</div>
                   </div>
+                  <div class="search-item-action">›</div>
                 </div>
               </div>
             `).join('');
