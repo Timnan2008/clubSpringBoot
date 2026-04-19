@@ -37,7 +37,7 @@
         const keyword = urlParams.get('keyword');
 
         if (keyword) {
-            fetch(`/api/clubs/search?keyword=${encodeURIComponent(keyword)}`)
+            fetch(`/api/club/search?keyword=${encodeURIComponent(keyword)}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.code === 200 && data.data && data.data.length > 0) {
