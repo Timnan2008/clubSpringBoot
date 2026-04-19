@@ -137,7 +137,7 @@ public class ClubController {
     }
 
     @GetMapping("/name-en/{clubName}")
-    public <ClubInfoVo> ResponseMessage<ClubInfoVo> findByName(@PathVariable String clubName){
+    public ResponseMessage<ClubInfoVO> findByName(@PathVariable String clubName){
         Locale locale = LocaleContextHolder.getLocale();
         boolean isEn = locale.getLanguage().equals("en");
         System.out.println("clubName: " + clubName);
@@ -152,7 +152,7 @@ public class ClubController {
         clubInfoVO.setVicePresident(isEn? club.getVicePresidentEn() : club.getVicePresident());
         clubInfoVO.setTeacher(isEn? club.getTeacherEn() : club.getTeacher());
 
-        return (ResponseMessage<ClubInfoVo>) ResponseMessage.success(clubInfoVO);
+        return ResponseMessage.success(clubInfoVO);
     }
 
     @GetMapping("/all")
