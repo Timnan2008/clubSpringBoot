@@ -9,5 +9,7 @@ public class SearchResultVO {
     private String nameEn;
     private String description;
     private String descriptionEn;
+    private String brief;
     private String logo;
+    private String detailPath;
 }

@@ -32,38 +32,58 @@
     </div>
 
     <script>
-        // Get keyword from URL
         const urlParams = new URLSearchParams(window.location.search);
         const keyword = urlParams.get('keyword');
 
+        const loadingEl = document.createElement('div');
+        loadingEl.className = 'search-loading';
+        loadingEl.innerHTML = '<div class="spinner"></div><span>正在搜索，请稍候...</span>';
+
+        const container = document.getElementById('search-results');
+        const noResults = document.getElementById('no-results');
+
+        function showNoResults(message) {
+            noResults.textContent = message;
+            noResults.style.display = 'block';
+        }
+
+        function hideNoResults() {
+            noResults.style.display = 'none';
+        }
+
         if (keyword) {
+            container.innerHTML = '';
+            container.appendChild(loadingEl);
+            noResults.style.display = 'none';
+
             fetch(`/api/club/search?keyword=${encodeURIComponent(keyword)}`)
                 .then(response => response.json())
                 .then(data => {
+                    container.removeChild(loadingEl);
                     if (data.code === 200 && data.data && data.data.length > 0) {
                         renderResults(data.data);
                     } else {
-                        document.getElementById('no-results').style.display = 'block';
+                        showNoResults('未找到匹配“' + keyword + '”的社团。');
                     }
                 })
                 .catch(error => {
                     console.error('Search error:', error);
-                    document.getElementById('no-results').style.display = 'block';
+                    container.removeChild(loadingEl);
+                    showNoResults('搜索失败，请稍后重试。');
                 });
         } else {
-            document.getElementById('no-results').style.display = 'block';
+            showNoResults('请输入关键词进行搜索。');
         }
 
         function renderResults(clubs) {
-            const container = document.getElementById('search-results');
             container.innerHTML = clubs.map(club => `
-                <div class="club-card glass-card" onclick="window.location.href='/page/club/${club.id}'">
+                <div class="club-card glass-card" onclick="window.location.href='/${club.detailPath}'">
                     <div class="club-logo">
                         <img src="${club.logo || '/other%20photo/default-logo.png'}" alt="${club.name}" />
                     </div>
                     <div class="club-info">
                         <h3 class="club-name">${club.name}</h3>
-                        <p class="club-description">${club.description || ''}</p>
+                        <p class="club-brief">${club.brief || club.description || ''}</p>
                     </div>
                 </div>
             `).join('');

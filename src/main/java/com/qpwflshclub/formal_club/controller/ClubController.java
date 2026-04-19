@@ -13,6 +13,8 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -195,8 +197,11 @@ public class ClubController {
             vo.setNameEn(c.getClubNameEn());
             vo.setDescription(c.getClubDescription());
             vo.setDescriptionEn(c.getClubDescriptionEn());
-            // Assuming logo is stored in clubItem or another field
-            vo.setLogo(c.getClubItem()); // Adjust if logo field exists
+            vo.setBrief(c.getSortDescription() != null && !c.getSortDescription().isBlank() ? c.getSortDescription() : c.getClubDescription());
+            vo.setLogo(c.getClubItem());
+            String slug = c.getClubNameEn() != null && !c.getClubNameEn().isBlank() ? c.getClubNameEn() : c.getClubName();
+            slug = URLEncoder.encode(slug, StandardCharsets.UTF_8);
+            vo.setDetailPath("page/club-watch/" + slug);
             return vo;
         }).toList();
         return ResponseMessage.success(results);

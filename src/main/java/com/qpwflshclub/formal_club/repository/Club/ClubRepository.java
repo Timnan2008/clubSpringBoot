@@ -7,10 +7,17 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
 @Repository
 public interface ClubRepository extends CrudRepository<Club, Integer> {
     Optional<Club> findByClubNameEn(String clubName);
 
-    List<Club> findByClubNameContainingOrClubDescriptionContainingOrClubNameEnContainingOrClubDescriptionEnContaining(
-        String clubName, String clubDescription, String clubNameEn, String clubDescriptionEn);
+    @Query("select c from Club c where " +
+           "lower(c.clubName) like lower(concat('%', :keyword, '%')) or " +
+           "lower(c.clubDescription) like lower(concat('%', :keyword, '%')) or " +
+           "lower(c.clubNameEn) like lower(concat('%', :keyword, '%')) or " +
+           "lower(c.clubDescriptionEn) like lower(concat('%', :keyword, '%'))")
+    List<Club> searchByKeyword(@Param("keyword") String keyword);
 }

@@ -211,31 +211,33 @@
               return;
             }
 
+            searchDropdown.innerHTML = '<div class="search-item search-loading"><span>正在加载...</span></div>';
+            searchDropdown.style.display = 'block';
+
             fetch(`/api/club/search?keyword=${encodeURIComponent(keyword)}`)
               .then(response => response.json())
               .then(data => {
                 if (data.code === 200 && data.data && data.data.length > 0) {
                   renderDropdown(data.data);
-                  searchDropdown.style.display = 'block';
                 } else {
                   searchDropdown.innerHTML = '<div class="no-results">没有找到匹配的社团</div>';
-                  searchDropdown.style.display = 'block';
                 }
               })
               .catch(error => {
                 console.error('Search error:', error);
-                searchDropdown.style.display = 'none';
+                searchDropdown.innerHTML = '<div class="no-results">搜索失败，请稍后再试</div>';
+                searchDropdown.style.display = 'block';
               });
           }
 
           function renderDropdown(clubs) {
             const html = clubs.map(club => `
-              <div class="search-item" data-id="${club.id}">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                  <img src="${club.logo || '/other%20photo/default-logo.png'}" alt="${club.name}" style="width: 40px; height: 40px; border-radius: 8px; object-fit: cover;">
+              <div class="search-item" data-path="${club.detailPath}">
+                <div class="search-item-inner">
+                  <img src="${club.logo || '/other%20photo/default-logo.png'}" alt="${club.name}" class="search-item-logo">
                   <div>
-                    <div style="font-weight: 500; color: var(--text-primary);">${club.name}</div>
-                    <div style="font-size: 12px; color: var(--text-muted);">${club.description || ''}</div>
+                    <div class="search-item-title">${club.name}</div>
+                    <div class="search-item-meta">${club.brief || club.description || ''}</div>
                   </div>
                 </div>
               </div>
@@ -245,8 +247,8 @@
             // Add click handlers
             searchDropdown.querySelectorAll('.search-item').forEach(item => {
               item.addEventListener('click', function() {
-                const clubId = this.dataset.id;
-                window.location.href = `/page/club/${clubId}`;
+                const detailPath = this.dataset.path;
+                window.location.href = `/${detailPath}`;
               });
             });
           }

@@ -100,8 +100,10 @@ public class ClubService implements IClubService {
 
     @Override
     public List<Club> search(String keyword) {
-        return clubRepository.findByClubNameContainingOrClubDescriptionContainingOrClubNameEnContainingOrClubDescriptionEnContaining(
-            keyword, keyword, keyword, keyword);
+        if (keyword == null || keyword.isBlank()) {
+            return List.of();
+        }
+        return clubRepository.searchByKeyword(keyword.trim());
     }
 
 }
