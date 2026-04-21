@@ -658,6 +658,33 @@ body::after {
   flex-wrap: nowrap;
   white-space: nowrap;
 }
+.navbar-english {
+  flex-direction: column;
+  gap: 0;
+}
+.navbar-links-row2 {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.navbar-links-row2 > a,
+.navbar-links-row2 .dropbtn,
+.navbar-links-row2 .navbar-login-btn {
+  padding: 7px 13px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 13px;
+  border-radius: var(--radius-sm);
+  transition:
+    color 0.2s,
+    background 0.2s;
+}
+.navbar-links-row2 > a:hover,
+.navbar-links-row2 .dropbtn:hover,
+.navbar-links-row2 .navbar-login-btn:hover {
+  color: var(--primary);
+  background: var(--primary-bg);
+}
 .navbar-links > a {
   padding: 7px 13px;
   color: var(--text-secondary);

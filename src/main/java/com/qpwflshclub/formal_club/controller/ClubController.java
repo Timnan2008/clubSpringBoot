@@ -63,7 +63,7 @@ public class ClubController {
 
         for(Club club : clubs){
             ClubDTO clubDto = club.toDTO();
-            clubDto.setVideo("http://123.57.189.22/media/video/" + club.getClubClass() + "/" + club.getClubNameEn() + ".mp4");
+            clubDto.setVideo("https://123.57.189.22/media/video/" + club.getClubClass() + "/" + club.getClubNameEn() + ".mp4");
             update(clubDto.getClubId(), clubDto);
         }
 
