@@ -190,14 +190,14 @@ public class ClubController {
     @GetMapping("/search")
     public ResponseMessage<List<SearchResultVO>> search(@RequestParam String keyword) {
         List<Club> clubs = clubService.search(keyword);
+        Locale locale = LocaleContextHolder.getLocale();
+        boolean isEn = locale.getLanguage().equals("en");
         List<SearchResultVO> results = clubs.stream().map(c -> {
             SearchResultVO vo = new SearchResultVO();
             vo.setId(c.getId());
-            vo.setName(c.getClubName());
-            vo.setNameEn(c.getClubNameEn());
-            vo.setDescription(c.getClubDescription());
-            vo.setDescriptionEn(c.getClubDescriptionEn());
-            vo.setBrief(c.getSortDescription() != null && !c.getSortDescription().isBlank() ? c.getSortDescription() : c.getClubDescription());
+            vo.setName(isEn? c.getClubNameEn() : c.getClubName());
+            vo.setDescription(isEn ? c.getClubDescriptionEn() : c.getClubDescription());
+            vo.setBrief(isEn ? c.getSortDescriptionEn() : c.getClubDescription());
             vo.setLogo(c.getClubItem());
             String slug = c.getClubNameEn() != null && !c.getClubNameEn().isBlank() ? c.getClubNameEn() : c.getClubName();
             slug = URLEncoder.encode(slug, StandardCharsets.UTF_8);
