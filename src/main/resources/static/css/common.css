@@ -659,16 +659,8 @@ body::after {
   white-space: nowrap;
 }
 .navbar-english {
-  flex-direction: row;
-  flex-wrap: wrap;
-  gap: 2px;
-}
-/* 仅英文界面下，将第三个导航项（QingYuan Studio）单独换行显示 */
-.navbar-english > a[th\:href="@{/page/suggestion}"] {
-  flex-basis: 100%;
-  width: 100%;
-  display: flex;
-  justify-content: flex-start;
+  flex-direction: column;
+  gap: 0;
 }
 .navbar-links-row2 {
   display: flex;
@@ -690,26 +682,6 @@ body::after {
 .navbar-links-row2 > a:hover,
 .navbar-links-row2 .dropbtn:hover,
 .navbar-links-row2 .navbar-login-btn:hover {
-  color: var(--primary);
-  background: var(--primary-bg);
-}
-.navbar-lang-login {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-left: 20px;
-}
-.navbar-lang-login .dropbtn,
-.navbar-lang-login .navbar-login-btn {
-  padding: 7px 13px;
-  color: var(--text-secondary);
-  font-weight: 500;
-  font-size: 13px;
-  border-radius: var(--radius-sm);
-  transition: color 0.2s, background 0.2s;
-}
-.navbar-lang-login .dropbtn:hover,
-.navbar-lang-login .navbar-login-btn:hover {
   color: var(--primary);
   background: var(--primary-bg);
 }
