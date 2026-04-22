@@ -16,6 +16,28 @@
             <div class="school-cn" th:text="#{school.cn}"></div>
             <div class="school-en" th:text="#{school.en}"></div>
           </div>
+
+          <th:block th:if="${#locale.language} == 'en'">
+            <div class="navbar-lang-login">
+              <!-- 语言切换 -->
+              <div class="dropdown">
+                <button type="button" class="dropbtn" aria-expanded="false">
+                  🌐
+                </button>
+                <div class="dropdown-content">
+                  <a href="?lang=zh" th:text="#{nav.lang.zh}"></a>
+                  <a href="?lang=en" th:text="#{nav.lang.en}"></a>
+                </div>
+              </div>
+
+              <!-- 登录/注册按钮 -->
+              <a
+                th:href="@{/page/user/login}"
+                class="navbar-login-btn"
+                th:text="#{nav.login}"
+              ></a>
+            </div>
+          </th:block>
         </div>
 
         <!-- 中间：搜索框 -->
@@ -76,36 +98,7 @@
             </div>
           </div>
 
-<<<<<<< HEAD
           <a th:href="@{/page/suggestion}" th:text="#{nav.suggestion}"></a>
-=======
-          <th:block th:if="${#locale.language} == 'en'">
-            <div class="navbar-links-row2">
-              <a th:href="@{/page/suggestion}" th:text="#{nav.suggestion}"></a>
-
-              <!-- 语言切换 -->
-              <div class="dropdown">
-                <button type="button" class="dropbtn" aria-expanded="false">
-                  🌐
-                </button>
-                <div class="dropdown-content">
-                  <a href="?lang=zh" th:text="#{nav.lang.zh}"></a>
-                  <a href="?lang=en" th:text="#{nav.lang.en}"></a>
-                </div>
-              </div>
-
-              <!-- 登录/注册按钮 -->
-              <a
-                th:href="@{/page/user/login}"
-                class="navbar-login-btn"
-                th:text="#{nav.login}"
-              ></a>
-            </div>
-          </th:block>
-
-          <th:block th:unless="${#locale.language} == 'en'">
-            <a th:href="@{/page/suggestion}" th:text="#{nav.suggestion}"></a>
->>>>>>> parent of fb9ace4 (a)
 
           <th:block th:if="${#locale.language} != 'en'">
             <!-- 语言切换 -->
@@ -126,44 +119,6 @@
               th:text="#{nav.login}"
             ></a>
           </th:block>
-        </nav>
-            ></button>
-
-            <div class="dropdown-content">
-              <a th:href="@{/page/club-type/creativity}"
-                ><span th:text="#{nav.club.creativity}"></span
-              ></a>
-              <a th:href="@{/page/club-type/activity}"
-                ><span th:text="#{nav.club.activity}"></span
-              ></a>
-              <a th:href="@{/page/club-type/service}"
-                ><span th:text="#{nav.club.service}"></span
-              ></a>
-              <a th:href="@{/page/club-type/study}"
-                ><span th:text="#{nav.club.study}"></span
-              ></a>
-            </div>
-          </div>
-
-          <a th:href="@{/page/suggestion}" th:text="#{nav.suggestion}"></a>
-
-          <!-- 语言切换 -->
-          <div class="dropdown">
-            <button type="button" class="dropbtn" aria-expanded="false">
-              🌐
-            </button>
-            <div class="dropdown-content">
-              <a href="?lang=zh" th:text="#{nav.lang.zh}"></a>
-              <a href="?lang=en" th:text="#{nav.lang.en}"></a>
-            </div>
-          </div>
-
-          <!-- 登录/注册按钮 -->
-          <a
-            th:href="@{/page/user/login}"
-            class="navbar-login-btn"
-            th:text="#{nav.login}"
-          ></a>
         </nav>
       </header>
 
