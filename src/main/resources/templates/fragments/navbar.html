@@ -64,16 +64,6 @@
             <span th:text="#{nav.home}"></span>
           </a>
 
-            <th:block th:if="${#locale.language} == 'en'">
-              <a th:href="@{/page/suggestion}" class="navbar-suggestion-split">
-                <span class="navbar-suggestion-main">QingYuan Studio</span>
-                <br class="navbar-suggestion-break" />
-                <span class="navbar-suggestion-sub">(Creativity Box)</span>
-              </a>
-            </th:block>
-            <th:block th:unless="${#locale.language} == 'en'">
-              <a th:href="@{/page/suggestion}" th:text="#{nav.suggestion}"></a>
-            </th:block>
           <div class="dropdown">
             <button
               type="button"
@@ -98,9 +88,13 @@
             </div>
           </div>
 
-          <a th:href="@{/page/suggestion}" th:text="#{nav.suggestion}"></a>
+          <th:block th:if="${#locale.language} == 'en'">
+            <a th:href="@{/page/suggestion}" th:text="#{nav.suggestion}"></a>
+          </th:block>
 
-          <th:block th:if="${#locale.language} != 'en'">
+          <th:block th:unless="${#locale.language} == 'en'">
+            <a th:href="@{/page/suggestion}" th:text="#{nav.suggestion}"></a>
+
             <!-- 语言切换 -->
             <div class="dropdown">
               <button type="button" class="dropbtn" aria-expanded="false">
