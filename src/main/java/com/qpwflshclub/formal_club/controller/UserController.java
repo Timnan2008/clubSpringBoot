@@ -1,5 +1,6 @@
 package com.qpwflshclub.formal_club.controller;
 
+import com.qpwflshclub.formal_club.pojo.dto.User.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -18,13 +19,9 @@ import com.qpwflshclub.formal_club.pojo.User.ClubPresident;
 import com.qpwflshclub.formal_club.pojo.User.Teacher;
 import com.qpwflshclub.formal_club.pojo.User.User;
 import com.qpwflshclub.formal_club.pojo.User.UserBase;
-import com.qpwflshclub.formal_club.pojo.dto.User.AdminDTO;
-import com.qpwflshclub.formal_club.pojo.dto.User.ClubPresidentDTO;
-import com.qpwflshclub.formal_club.pojo.dto.User.LoginDTO;
-import com.qpwflshclub.formal_club.pojo.dto.User.TeacherDTO;
-import com.qpwflshclub.formal_club.pojo.dto.User.UserBaseDTO;
-import com.qpwflshclub.formal_club.pojo.dto.User.UserDTO;
 import com.qpwflshclub.formal_club.service.User.IUserService;
+
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/user")
@@ -160,18 +157,32 @@ public class UserController {
     @ResponseBody
     public ResponseMessage<UserBase> login(@RequestBody LoginDTO loginDTO) {
     // 按 email 在 user / teacher 表查找（可按需扩展）
-        try {
-            Iterable<com.qpwflshclub.formal_club.pojo.User.User> users =
-                userRepository.findAll();
-            for (com.qpwflshclub.formal_club.pojo.User.User u : users) {
-                if (loginDTO.getEmail().equals(u.getEmail())
-                        && loginDTO.getPassword().equals(u.getPassword())) {
-                    return ResponseMessage.success(u);
-                }
-            }
-            return ResponseMessage.error("邮箱或密码错误");
-        } catch (Exception e) {
-            return ResponseMessage.error("登录失败：" + e.getMessage());
+        String email = loginDTO.getEmail();
+        UserBase user = userService.findByEmail(email);
+        if (user instanceof User) {
+            if(Objects.equals(user.getPassword(), loginDTO.getPassword()))
+            // 处理 User 类型
+            return ResponseMessage.success((User) user); // 或者返回相关的 DTO
+            else return ResponseMessage.error("用户名或密码错误");
+        } else if (user instanceof Teacher) {
+            if(Objects.equals(user.getPassword(), loginDTO.getPassword()))
+            // 处理 Teacher 类型
+            return ResponseMessage.success((Teacher) user);
+            else return ResponseMessage.error("用户名或密码错误");
+        } else if (user instanceof ClubPresident) {
+            if(Objects.equals(user.getPassword(), loginDTO.getPassword()))
+            // 处理 ClubPresident 类型
+            return ResponseMessage.success((ClubPresident) user);
+            else return ResponseMessage.error("用户名或密码错误");
+        } else if (user instanceof Admin) {
+            if(Objects.equals(user.getPassword(), loginDTO.getPassword()))
+            // 处理 Admin 类型
+            return ResponseMessage.success((Admin) user);
+            else return ResponseMessage.error("用户名或密码错误");
+        } else {
+            return ResponseMessage.error("未找到该用户");
         }
-}
+    }
+
+
 }
