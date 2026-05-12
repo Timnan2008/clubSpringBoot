@@ -177,10 +177,21 @@
               alert(I18N.loginSuccess);
               window.location.href = "/page/index";
             } else {
-              alert(data.message || I18N.loginFail);
+                openNotice26(false,
+                    {
+                        title: "登录错误",
+                        msg: "用户名或密码不正确",
+                        subMsg: ""
+                    })
             }
           })
-          .catch(() => alert(I18N.loginFail))
+          .catch(() => openNotice26(false,
+              {
+                  title: "登录错误",
+                  msg: "请确认网络连接是否正常",
+                  subMsg: ""
+              }
+          ))
           .finally(() => {
             btn.disabled = false;
             btn.textContent = I18N.login;
@@ -239,8 +250,28 @@
         }
         const role = document.getElementById("role").value;
         if (!role) {
-          alert(I18N.errorRole);
+          openNotice26(false,
+              {
+                  title: "请选择身份",
+                  msg:"下方选择身份",
+                  subMsg:"请如实选择身份，如果选择老师得提供以@shwfl.edu.cn结尾的老师邮箱"
+              }
+          )
           return;
+        }
+
+        if(role === "teacher"){
+            indexAt = email.indexOf("@shwfl.edu.cn");
+            if(indexAt === -1){
+                openNotice26(false,
+                    {
+                        title: "你真的是老师吗🤔",
+                        msg : "如果你是老师，请输入以@shwfl.edu.cn结尾的邮箱",
+                        subMsg: "如果你不是老师，请选择学生并输入正确的个人信息"
+                    }
+                )
+                return;
+            }
         }
 
         fetch(
@@ -314,7 +345,14 @@
         })
           .then((r) => r.json())
           .then((data) => {
-            alert(data.message);
+              //alert(data.message);
+              openNotice26(false,
+                  {
+                      title: "成功发送！",
+                      msg: "",
+                      subMsg: ""
+                  }
+              )
           })
           .catch((err) => console.error(err));
       }
