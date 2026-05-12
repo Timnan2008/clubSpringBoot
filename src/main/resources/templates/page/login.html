@@ -11,6 +11,7 @@
   <body>
     <div th:replace="fragments/navbar :: navbar"></div>
     <div th:replace="fragments/particle :: particle"></div>
+    <div th:replace="fragments/notice-alarm :: notice26"></div>
 
     <!-- 把 i18n 文字注入 JS 变量 -->
     <script th:inline="javascript">
@@ -251,14 +252,23 @@
         )
           .then((r) => r.json())
           .then((data) => {
-            if (data.success || data.message === "验证成功") {
-              sendPost();
-            } else {
-              alert("验证码错误或已过期");
-            }
+              const code = data.code;
+              console.log(code)
+              if(code === 200){
+                  sendPost();
+              }else{
+                  openNotice26(false,
+                      {
+                          title: "验证码未通过",
+                          msg:"验证码过期或错误",
+                          subMsg:"请重新输入你的验证码或者确保自己收到了最新的验证码邮箱。如果没有收到验证码，你需查看你的垃圾邮箱。"
+                      }
+                  );
+
+              }
           })
-          .catch((err) => console.error(err));
-      }
+          .catch((err) => console.error(err));}
+
 
       function getValue(id) {
         const el = document.getElementById(id);
