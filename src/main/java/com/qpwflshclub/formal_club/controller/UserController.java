@@ -1,13 +1,27 @@
 package com.qpwflshclub.formal_club.controller;
 
-import com.qpwflshclub.formal_club.pojo.ResponseMessage;
-import com.qpwflshclub.formal_club.pojo.User.*;
-import com.qpwflshclub.formal_club.pojo.User.UserBase;
 import com.qpwflshclub.formal_club.pojo.dto.User.*;
-import com.qpwflshclub.formal_club.service.User.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.qpwflshclub.formal_club.pojo.ResponseMessage;
+import com.qpwflshclub.formal_club.pojo.User.Admin;
+import com.qpwflshclub.formal_club.pojo.User.ClubPresident;
+import com.qpwflshclub.formal_club.pojo.User.Teacher;
+import com.qpwflshclub.formal_club.pojo.User.User;
+import com.qpwflshclub.formal_club.pojo.User.UserBase;
+import com.qpwflshclub.formal_club.service.User.IUserService;
+
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/user")
@@ -15,6 +29,8 @@ public class UserController {
 
     @Autowired
     IUserService userService;
+    @Autowired
+    com.qpwflshclub.formal_club.repository.User.UserRepository userRepository;
 
     //添加用户
 
@@ -139,33 +155,33 @@ public class UserController {
 
     @PostMapping("/login")
     @ResponseBody
-    public ResponseMessage<?> login(@RequestParam String email, @RequestParam String password) {
-        try {
-            UserBase user = userService.findByEmail(email);
-
-            if (user == null) {
-                return ResponseMessage.error("未找到该用户");
-            }
-
-            if (!user.getPassword().equals(password)) {
-                return ResponseMessage.error("密码错误");
-            }
-
-            if (user instanceof User) {
-                return ResponseMessage.success((User) user);
-            } else if (user instanceof Teacher) {
-                return ResponseMessage.success((Teacher) user);
-            } else if (user instanceof ClubPresident) {
-                return ResponseMessage.success((ClubPresident) user);
-            } else if (user instanceof Admin) {
-                return ResponseMessage.success((Admin) user);
-            } else {
-                return ResponseMessage.error("未找到该用户或类型异常");
-            }
-        } catch (Exception e) {
-            return ResponseMessage.error("登录异常");
+    public ResponseMessage<UserBase> login(@RequestBody LoginDTO loginDTO) {
+    // 按 email 在 user / teacher 表查找（可按需扩展）
+        String email = loginDTO.getEmail();
+        UserBase user = userService.findByEmail(email);
+        if (user instanceof User) {
+            if(Objects.equals(user.getPassword(), loginDTO.getPassword()))
+            // 处理 User 类型
+            return ResponseMessage.success((User) user); // 或者返回相关的 DTO
+            else return ResponseMessage.error("用户名或密码错误");
+        } else if (user instanceof Teacher) {
+            if(Objects.equals(user.getPassword(), loginDTO.getPassword()))
+            // 处理 Teacher 类型
+            return ResponseMessage.success((Teacher) user);
+            else return ResponseMessage.error("用户名或密码错误");
+        } else if (user instanceof ClubPresident) {
+            if(Objects.equals(user.getPassword(), loginDTO.getPassword()))
+            // 处理 ClubPresident 类型
+            return ResponseMessage.success((ClubPresident) user);
+            else return ResponseMessage.error("用户名或密码错误");
+        } else if (user instanceof Admin) {
+            if(Objects.equals(user.getPassword(), loginDTO.getPassword()))
+            // 处理 Admin 类型
+            return ResponseMessage.success((Admin) user);
+            else return ResponseMessage.error("用户名或密码错误");
+        } else {
+            return ResponseMessage.error("未找到该用户");
         }
     }
 
-    
 }

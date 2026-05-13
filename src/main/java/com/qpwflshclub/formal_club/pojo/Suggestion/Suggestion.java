@@ -21,6 +21,9 @@ public class Suggestion {
     @Column(name = "name")
     private String name;
 
+    @Column(name = "is_pass")
+    private boolean isPass;
+
     public String getContext() {
         return context;
     }
@@ -59,5 +62,13 @@ public class Suggestion {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public boolean isPass() {
+        return isPass;
+    }
+
+    public void setPass(boolean pass) {
+        isPass = pass;
     }
 }

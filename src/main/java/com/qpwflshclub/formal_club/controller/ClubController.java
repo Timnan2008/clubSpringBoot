@@ -3,6 +3,7 @@ package com.qpwflshclub.formal_club.controller;
 import com.qpwflshclub.formal_club.pojo.Club.Club;
 import com.qpwflshclub.formal_club.pojo.Club.ClubInfoVO;
 import com.qpwflshclub.formal_club.pojo.Club.ClubVO;
+import com.qpwflshclub.formal_club.pojo.Club.SearchResultVO;
 import com.qpwflshclub.formal_club.pojo.ResponseMessage;
 import com.qpwflshclub.formal_club.pojo.dto.Club.ClubDTO;
 import com.qpwflshclub.formal_club.service.Club.ClubLikeService;
@@ -12,6 +13,8 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -137,7 +140,7 @@ public class ClubController {
     }
 
     @GetMapping("/name-en/{clubName}")
-    public <ClubInfoVo> ResponseMessage<ClubInfoVo> findByName(@PathVariable String clubName){
+    public ResponseMessage<ClubInfoVO> findByName(@PathVariable String clubName){
         Locale locale = LocaleContextHolder.getLocale();
         boolean isEn = locale.getLanguage().equals("en");
         System.out.println("clubName: " + clubName);
@@ -152,7 +155,7 @@ public class ClubController {
         clubInfoVO.setVicePresident(isEn? club.getVicePresidentEn() : club.getVicePresident());
         clubInfoVO.setTeacher(isEn? club.getTeacherEn() : club.getTeacher());
 
-        return (ResponseMessage<ClubInfoVo>) ResponseMessage.success(clubInfoVO);
+        return ResponseMessage.success(clubInfoVO);
     }
 
     @GetMapping("/all")
@@ -182,6 +185,26 @@ public class ClubController {
         System.out.println(list);
 
         return ResponseMessage.success(list);
+    }
+
+    @GetMapping("/search")
+    public ResponseMessage<List<SearchResultVO>> search(@RequestParam String keyword) {
+        List<Club> clubs = clubService.search(keyword);
+        Locale locale = LocaleContextHolder.getLocale();
+        boolean isEn = locale.getLanguage().equals("en");
+        List<SearchResultVO> results = clubs.stream().map(c -> {
+            SearchResultVO vo = new SearchResultVO();
+            vo.setId(c.getId());
+            vo.setName(isEn? c.getClubNameEn() : c.getClubName());
+            vo.setDescription(isEn ? c.getClubDescriptionEn() : c.getClubDescription());
+            vo.setBrief(isEn ? c.getSortDescriptionEn() : c.getClubDescription());
+            vo.setLogo(c.getClubItem());
+            String slug = c.getClubNameEn() != null && !c.getClubNameEn().isBlank() ? c.getClubNameEn() : c.getClubName();
+            slug = URLEncoder.encode(slug, StandardCharsets.UTF_8);
+            vo.setDetailPath("page/club-watch/" + slug);
+            return vo;
+        }).toList();
+        return ResponseMessage.success(results);
     }
 
 }

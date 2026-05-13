@@ -15,4 +15,6 @@ public interface ISuggestionService {
     List<Suggestion> findAll();
     Suggestion findById(Long ID);
     Suggestion findByTitle(String name);
+
+    List<Suggestion> onlyPass();
 }

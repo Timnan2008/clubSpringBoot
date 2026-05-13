@@ -51,4 +51,16 @@ public class SuggestionService implements ISuggestionService{
             throw new RuntimeException("未找到该意见");
         });
     }
+
+    @Override
+    public List<Suggestion> onlyPass() {
+        List<Suggestion> s = (List<Suggestion>) suggestionRepository.findAll();
+        List<Suggestion> sa = s.stream()
+                .filter(Suggestion::isPass)
+                .toList();
+
+        return sa;
+    }
+
+
 }

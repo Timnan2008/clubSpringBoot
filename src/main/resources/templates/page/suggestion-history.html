@@ -85,7 +85,7 @@
     async function fetchHistory() {
       renderEmpty(historyI18n.loading);
       try {
-        const response = await fetch('/api/suggestion/all');
+        const response = await fetch('/api/suggestion/pass_only');
         const result = await response.json();
         if (!response.ok || !Array.isArray(result.data)) {
           throw new Error('fetch failed');

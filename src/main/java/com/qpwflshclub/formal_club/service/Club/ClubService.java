@@ -98,6 +98,12 @@ public class ClubService implements IClubService {
         deviceRepo.deleteByClubNameEnAndDeviceId(clubName, deviceId);
     }
 
-
+    @Override
+    public List<Club> search(String keyword) {
+        if (keyword == null || keyword.isBlank()) {
+            return List.of();
+        }
+        return clubRepository.searchByKeyword(keyword.trim());
+    }
 
 }

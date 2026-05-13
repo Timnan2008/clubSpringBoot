@@ -32,16 +32,30 @@ public class SuggestionController {
         return ResponseMessage.success(suggestion);
     }
 
+    @PutMapping("/pass")
+    public ResponseMessage<Suggestion> passSuggestion(@RequestParam Long id){
+        Suggestion suggestion = suggestionService.findById(id);
+        suggestion.setPass(true);
+        return ResponseMessage.success();
+    }
+
     @DeleteMapping("/{id}")
     public ResponseMessage<Suggestion> deleteSuggestion(@PathVariable Long id) {
         suggestionService.delete(id);
         return ResponseMessage.success();
     }
 
+
     @GetMapping("/{suggestion-title}")
     public ResponseMessage<Suggestion> getSuggestion(@PathVariable String suggestionTitle) {
         Suggestion suggestion = suggestionService.findByTitle(suggestionTitle);
         return ResponseMessage.success(suggestion);
+    }
+
+    @GetMapping("/pass_only")
+    public ResponseMessage<List<Suggestion>> getPassOnly(){
+        List<Suggestion> suggestions = suggestionService.onlyPass();
+        return ResponseMessage.success(suggestions);
     }
 
     @GetMapping("/all")
