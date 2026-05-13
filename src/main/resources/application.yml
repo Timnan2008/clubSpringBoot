@@ -8,7 +8,14 @@ spring:
       mail:
         smtp:
           auth: true
+          # 开启 SSL 连接
           ssl:
             enable: true
-          socketFactory:
-            class: javax.net.ssl.SSLSocketFactory
+          # 显式指定 TLS 协议，防止 JDK 21 握手失败
+          ssl.protocols: TLSv1.2
+          # 信任所有主机，防止证书校验导致的 EOF
+          ssl.trust: smtp.qiye.aliyun.com
+          # 增加超时时间，防止因网络波动导致 EOF
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000

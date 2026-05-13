@@ -27,6 +27,25 @@
         submitting: /*[[#{login.btn.submitting}]]*/ "提交中...",
         loginSuccess: /*[[#{login.msg.loginSuccess}]]*/ "登录成功！",
         loginFail: /*[[#{login.msg.loginFail}]]*/ "邮箱或密码错误",
+        btnOk: /*[[#{login.btn.ok}]]*/ "我知道了",
+        noticeErrTitle: /*[[#{login.notice.err.title}]]*/ "操作失败",
+        noticeSuccessTitle: /*[[#{login.notice.success.title}]]*/ "成功",
+        errEmail: /*[[#{login.notice.err.email}]]*/ "邮箱格式错误",
+        errCode: /*[[#{login.notice.err.code}]]*/ "验证码错误",
+        errPwd: /*[[#{login.notice.err.pwd}]]*/ "密码错误",
+        errRole: /*[[#{login.notice.err.role}]]*/ "请选择身份",
+        errRoleSub: /*[[#{login.notice.err.roleSub}]]*/ "详情说明...",
+        errTeacher: /*[[#{login.notice.err.teacher}]]*/ "身份验证",
+        errTeacherSub: /*[[#{login.notice.err.teacherSub}]]*/ "详情说明...",
+        errVerify: /*[[#{login.notice.err.verify}]]*/ "验证码未通过",
+        errVerifySub: /*[[#{login.notice.err.verifySub}]]*/ "详情说明...",
+        errLoginFail: /*[[#{login.notice.err.loginFail}]]*/ "登录失败",
+        errLoginFailMsg: /*[[#{login.notice.err.loginFailMsg}]]*/ "用户名或密码错误",
+        errNetwork: /*[[#{login.notice.err.network}]]*/ "网络错误",
+        errNetworkMsg: /*[[#{login.notice.err.networkMsg}]]*/ "请检查连接",
+        successMsg: /*[[#{login.notice.success.msg}]]*/ "操作成功",
+        errNetMultiple: /*[[#{login.notice.err.networkSubMsg}]]*/ "如果多次尝试无效请关闭VPN，如果还是无效就说明学校网发力了得回家搞，如果回家搞还是不行的话……联系编程社社员",
+        noticeFailTitle: /*[[#{login.notice.fail.title}]]*/ "发送失败", // 新增
       };
     </script>
 
@@ -154,11 +173,11 @@
         const password = document.getElementById("login-password").value;
 
         if (!isValidEmail(email)) {
-          alert(I18N.errorEmail);
+          openNotice26(false, { title: I18N.noticeErrTitle, msg: I18N.errEmail, subMsg: "" });
           return;
         }
         if (!password) {
-          alert(I18N.errorPwd);
+          openNotice26(false, { title: I18N.noticeErrTitle, msg: I18N.errPwd, subMsg: "" });
           return;
         }
 
@@ -174,22 +193,16 @@
           .then((r) => r.json())
           .then((data) => {
             if (data.code === 200) {
-              alert(I18N.loginSuccess);
               window.location.href = "/page/index";
             } else {
-                openNotice26(false,
-                    {
-                        title: "登录错误",
-                        msg: "用户名或密码不正确",
-                        subMsg: ""
-                    })
+              openNotice26(false, { title: I18N.errLoginFail, msg: I18N.errLoginFailMsg, subMsg: "" });
             }
           })
           .catch(() => openNotice26(false,
               {
-                  title: "登录错误",
-                  msg: "请确认网络连接是否正常",
-                  subMsg: ""
+                  title: I18N.noticeErrTitle,
+                  msg: I18N.errNetwork,
+                  subMsg: I18N.errNetMultiple
               }
           ))
           .finally(() => {
@@ -217,21 +230,37 @@
         })
           .then((r) => r.json())
           .then((data) => {
-            alert(data.message);
-            let countdown = 60;
-            btn.textContent = I18N.resend + "(" + countdown + ")";
-            countdownInterval = setInterval(() => {
-              countdown--;
+            if (data.code === 200) {
+              // 只有后端返回 200 才算真正成功
+              openNotice26(false, {
+                title: I18N.noticeSuccessTitle,
+                msg: data.message || I18N.successMsg,
+                subMsg: ""
+              });
+
+              let countdown = 60;
               btn.textContent = I18N.resend + "(" + countdown + ")";
-              if (countdown <= 0) {
-                clearInterval(countdownInterval);
-                btn.textContent = I18N.sendCode;
-                btn.disabled = false;
-              }
-            }, 1000);
+              countdownInterval = setInterval(() => {
+                countdown--;
+                btn.textContent = I18N.resend + "(" + countdown + ")";
+                if (countdown <= 0) {
+                  clearInterval(countdownInterval);
+                  btn.textContent = I18N.sendCode;
+                  btn.disabled = false;
+                }
+              }, 1000);
+            } else {
+              // 即使 fetch 成功了，但后端业务逻辑失败了（如 Mail server connection failed）
+              openNotice26(false, {
+                title: I18N.noticeFailTitle,
+                msg: data.message || "服务异常", // 这里的 data.message 会显示后端的报错详情
+                subMsg: I18N.errNetMultiple
+              });
+              btn.disabled = false;
+            }
           })
           .catch(() => {
-            alert("发送失败");
+            openNotice26(false, { title: I18N.errNetwork, msg: I18N.errNetworkMsg, subMsg: I18N.errNetMultiple });
             btn.disabled = false;
           });
       }
@@ -241,37 +270,26 @@
         const email = document.getElementById("email").value;
         const code = document.getElementById("code").value;
         if (!isValidEmail(email)) {
-          alert(I18N.errorEmail);
+          openNotice26(false, { title: I18N.noticeErrTitle, msg: I18N.errEmail, subMsg: "" });
           return;
         }
         if (code.length !== 6) {
-          alert(I18N.errorCode);
-          return;
-        }
-        const role = document.getElementById("role").value;
-        if (!role) {
-          openNotice26(false,
-              {
-                  title: "请选择身份",
-                  msg:"下方选择身份",
-                  subMsg:"请如实选择身份，如果选择老师得提供以@shwfl.edu.cn结尾的老师邮箱"
-              }
-          )
+          openNotice26(false, { title: I18N.noticeErrTitle, msg: I18N.errCode, subMsg: "" });
           return;
         }
 
+        const role = document.getElementById("role").value;
+        if (!role) {
+          openNotice26(false, { title: I18N.errRole, msg: I18N.errRole, subMsg: I18N.errRoleSub });
+          return;
+        }
+
+
         if(role === "teacher"){
-            indexAt = email.indexOf("@shwfl.edu.cn");
-            if(indexAt === -1){
-                openNotice26(false,
-                    {
-                        title: "你真的是老师吗🤔",
-                        msg : "如果你是老师，请输入以@shwfl.edu.cn结尾的邮箱",
-                        subMsg: "如果你不是老师，请选择学生并输入正确的个人信息"
-                    }
-                )
-                return;
-            }
+          if(email.indexOf("@shwfl.edu.cn") === -1){
+            openNotice26(false, { title: I18N.errTeacher, msg: I18N.errTeacher, subMsg: I18N.errTeacherSub });
+            return;
+          }
         }
 
         fetch(
@@ -288,13 +306,7 @@
               if(code === 200){
                   sendPost();
               }else{
-                  openNotice26(false,
-                      {
-                          title: "验证码未通过",
-                          msg:"验证码过期或错误",
-                          subMsg:"请重新输入你的验证码或者确保自己收到了最新的验证码邮箱。如果没有收到验证码，你需查看你的垃圾邮箱。"
-                      }
-                  );
+                openNotice26(false, { title: I18N.errVerify, msg: I18N.errVerify, subMsg: I18N.errVerifySub });
 
               }
           })
@@ -346,13 +358,7 @@
           .then((r) => r.json())
           .then((data) => {
               //alert(data.message);
-              openNotice26(false,
-                  {
-                      title: "成功发送！",
-                      msg: "",
-                      subMsg: ""
-                  }
-              )
+            openNotice26(false, { title: I18N.noticeSuccessTitle, msg: I18N.successMsg, subMsg: "" })
           })
           .catch((err) => console.error(err));
       }
