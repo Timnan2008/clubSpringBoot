@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -223,6 +224,144 @@ public class UserService implements IUserService{
         }
         
         return null;
+    }
+
+    /* ========================================================================= */
+    /* 以下为整合多表关联的社团交互底座核心                    */
+    /* ========================================================================= */
+
+    @Override
+    public List<Map<String, Object>> getClubMembersWithRoles(Integer clubId) {
+        java.util.ArrayList<Map<String, Object>> list = new java.util.ArrayList<>();
+        Club club = clubRepository.findById(clubId).orElse(null);
+        if (club == null) return list;
+
+        // 1. 扫描所有普通学生
+        for (User u : userRepository.findAll()) {
+            if (u.getClubs() != null && u.getClubs().stream().anyMatch(c -> c.getId() == clubId)) {
+                Map<String, Object> m = new java.util.HashMap<>();
+                m.put("userId", u.getId());
+                m.put("username", u.getUsername());
+                m.put("usernameEn", u.getUsernameEn());
+                m.put("roleInClub", "member"); // 普通学生在这个社团是普通社员
+                list.add(m);
+            }
+        }
+
+        // 2. 扫描社长及副社长池
+        for (ClubPresident cp : clubPresidentRepository.findAll()) {
+            // 判定该人在此社团中是否担任正/副社长
+            if (cp.getMainClub() != null && cp.getMainClub().getId() == clubId) {
+                Map<String, Object> m = new java.util.HashMap<>();
+                m.put("userId", cp.getId());
+                m.put("username", cp.getUsername());
+                m.put("usernameEn", cp.getUsernameEn());
+                m.put("roleInClub", cp.isVicePresident() ? "vice_president" : "president");
+                list.add(m);
+            }
+            // 如果此人在这个社团仅仅挂名作为普通成员
+            else if (cp.getClubs() != null && cp.getClubs().stream().anyMatch(c -> c.getId() == clubId)) {
+                Map<String, Object> m = new java.util.HashMap<>();
+                m.put("userId", cp.getId());
+                m.put("username", cp.getUsername());
+                m.put("usernameEn", cp.getUsernameEn());
+                m.put("roleInClub", "member");
+                list.add(m);
+            }
+        }
+        return list;
+    }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional
+    public void updateClubStaffRole(Integer clubId, Long targetUserId, String newRole) {
+        Club club = clubRepository.findById(clubId).orElseThrow(() -> new RuntimeException("社团不存在"));
+
+        // 逻辑：如果要把某个用户设为社长/副社长
+        if ("president".equals(newRole) || "vice_president".equals(newRole)) {
+            // 先尝试从社长表里找人
+            ClubPresident cp = clubPresidentRepository.findById(targetUserId).orElse(null);
+            if (cp == null) {
+                // 如果在社长表找不到，说明原来只是普通学生，需从 User 转到 ClubPresident（这里根据你的多继承或数据模型而定）
+                User user = userRepository.findById(targetUserId).orElseThrow(() -> new RuntimeException("未定位到学生数据"));
+                cp = new ClubPresident();
+                cp.setUsername(user.getUsername());
+                cp.setUsernameEn(user.getUsernameEn());
+                cp.setEmail(user.getEmail());
+                cp.setPassword(user.getPassword());
+                // 从普通用户表抹除，升职到社长管理表
+                userRepository.delete(user);
+            }
+            cp.setMainClub(club);
+            cp.setVicePresident("vice_president".equals(newRole));
+            clubPresidentRepository.save(cp);
+        }
+        // 降职为普通成员
+        else if ("member".equals(newRole)) {
+            ClubPresident cp = clubPresidentRepository.findById(targetUserId).orElse(null);
+            if (cp != null) {
+                // 如果原来在社长表里，降职后转回普通 User 表维护
+                User user = new User();
+                user.setUsername(cp.getUsername());
+                user.setUsernameEn(cp.getUsernameEn());
+                user.setEmail(cp.getEmail());
+                user.setPassword(cp.getPassword());
+                user.setClubs(new java.util.ArrayList<>());
+                user.getClubs().add(club);
+                userRepository.save(user);
+
+                clubPresidentRepository.delete(cp);
+            }
+        }
+    }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional
+    public void addStudentToClubRelationship(Long userId, Integer clubId) {
+        Club club = clubRepository.findById(clubId).orElseThrow(() -> new RuntimeException("社团不存在"));
+
+        // 分别对不同的角色实体进行多对多集合压入
+        User u = userRepository.findById(userId).orElse(null);
+        if (u != null) {
+            if (u.getClubs() == null) u.setClubs(new java.util.ArrayList<>());
+            if (!u.getClubs().contains(club)) {
+                u.getClubs().add(club);
+                userRepository.save(u);
+            }
+            return;
+        }
+
+        ClubPresident cp = clubPresidentRepository.findById(userId).orElse(null);
+        if (cp != null) {
+            if (cp.getClubs() == null) cp.setClubs(new java.util.ArrayList<>());
+            if (!cp.getClubs().contains(club)) {
+                cp.getClubs().add(club);
+                clubPresidentRepository.save(cp);
+            }
+        }
+    }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional
+    public void removeStudentFromClubRelationship(Long userId, Integer clubId) {
+        User u = userRepository.findById(userId).orElse(null);
+        if (u != null && u.getClubs() != null) {
+            u.getClubs().removeIf(c -> c.getId() == clubId);
+            userRepository.save(u);
+            return;
+        }
+
+        ClubPresident cp = clubPresidentRepository.findById(userId).orElse(null);
+        if (cp != null) {
+            // 如果他是这个社团的主负责人，退出社团时顺便清除正副社长官职
+            if (cp.getMainClub() != null && cp.getMainClub().getId() == clubId) {
+                cp.setMainClub(null);
+            }
+            if (cp.getClubs() != null) {
+                cp.getClubs().removeIf(c -> c.getId() == clubId);
+            }
+            clubPresidentRepository.save(cp);
+        }
     }
 
 

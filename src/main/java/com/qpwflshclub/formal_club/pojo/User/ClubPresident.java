@@ -150,6 +150,11 @@ public class ClubPresident implements UserBase {
         return trimmed.isEmpty() ? null : trimmed;
     }
 
+    @Override
+    public int getUserRight() {
+        return 1; // 既然正副社长有独立表，我们让他们返回 1，方便与普通学生(0)做区分
+    }
+
     /**
      * 将 DTO 转换为实体对象，关系字段需在服务层补全。
      */

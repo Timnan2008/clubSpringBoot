@@ -5,9 +5,11 @@ import com.qpwflshclub.formal_club.pojo.Club.ClubInfoVO;
 import com.qpwflshclub.formal_club.pojo.Club.ClubVO;
 import com.qpwflshclub.formal_club.pojo.Club.SearchResultVO;
 import com.qpwflshclub.formal_club.pojo.ResponseMessage;
+import com.qpwflshclub.formal_club.pojo.User.UserBase;
 import com.qpwflshclub.formal_club.pojo.dto.Club.ClubDTO;
 import com.qpwflshclub.formal_club.service.Club.ClubLikeService;
 import com.qpwflshclub.formal_club.service.Club.IClubService;
+import com.qpwflshclub.formal_club.pojo.User.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.validation.annotation.Validated;
@@ -23,6 +25,8 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/club")
 public class ClubController {
+
+
 
     @Autowired
     IClubService clubService;
@@ -206,6 +210,152 @@ public class ClubController {
             return vo;
         }).toList();
         return ResponseMessage.success(results);
+    }
+
+
+    /* ========================================================================= */
+    /* 以下为新添加的“我的社团”全交互 API                    */
+    /* ========================================================================= */
+
+    @Autowired
+    private com.qpwflshclub.formal_club.service.User.IUserService userService;
+
+    /**
+     * 1. 获取当前用户的所有社团列表及对应在各个社团的实时身份
+     * 对应前端请求: GET /api/club/my-list
+     */
+    @GetMapping("/my-list")
+    public ResponseMessage<List<Map<String, Object>>> getMyClubs(
+            @CookieValue(value = "user_session", required = false) String email) {
+        if (email == null || email.isBlank()) {
+            return ResponseMessage.error("未登录或会话已过期");
+        }
+        UserBase loginUser = userService.findByEmail(email);
+        if (loginUser == null) {
+            return ResponseMessage.error("当前登录用户不存在");
+        }
+
+        Locale locale = LocaleContextHolder.getLocale();
+        boolean isEn = "en".equals(locale.getLanguage());
+
+        // 查出系统里所有的社团
+        List<Club> allClubs = clubService.findAll(); // 确保你的 clubService 实现了基本查询全量的方法
+
+        List<Map<String, Object>> resultList = allClubs.stream().map(c -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", c.getId());
+            map.put("clubName", c.getClubName());
+            map.put("clubNameEn", c.getClubNameEn());
+            map.put("clubItem", c.getClubItem());
+
+            // 🌟 权限交叉核心计算
+            String role = "none"; // 默认为未加入
+
+            if (loginUser instanceof Teacher) {
+                // 老师账号：检查该社团是不是属于该老师的 clubs 列表
+                Teacher t = (Teacher) loginUser;
+                boolean isManager = t.getClubs() != null && t.getClubs().stream().anyMatch(tc -> tc.getId() == c.getId());
+                if (isManager) {
+                    role = "teacher";
+                }
+            } else if (loginUser instanceof ClubPresident) {
+                ClubPresident cp = (ClubPresident) loginUser;
+                // 社长团账号：可能是正社长或副社长
+                if (cp.getMainClub() != null && cp.getMainClub().getId() == c.getId()) {
+                    role = cp.isVicePresident() ? "vice_president" : "president";
+                } else {
+                    // 如果在此社团不是正副社长，检查他是否通过普通 M2M 关系加入了这个社团
+                    boolean isMember = cp.getClubs() != null && cp.getClubs().stream().anyMatch(cc -> cc.getId() == c.getId());
+                    if (isMember) {
+                        role = "member";
+                    }
+                }
+            } else if (loginUser instanceof User) {
+                // 普通学生账号：检查是否在 clubs 列表中
+                User u = (User) loginUser;
+                boolean isMember = u.getClubs() != null && u.getClubs().stream().anyMatch(uc -> uc.getId() == c.getId());
+                if (isMember) {
+                    role = "member";
+                }
+            }
+            map.put("currentUserRole", role);
+            return map;
+        }).toList();
+
+        return ResponseMessage.success(resultList);
+    }
+
+    /**
+     * 2. 【老师/社长管理面板】获取当前社团的所有成员（包含身份标签）
+     * 对应前端请求: GET /api/club/{clubId}/members
+     */
+    @GetMapping("/{clubId}/members")
+    public ResponseMessage<List<Map<String, Object>>> getClubMembers(@PathVariable Integer clubId) {
+        // 利用下面我们在 UserService 中新扩展的业务能力，抓取该社团混合池中的所有人
+        List<Map<String, Object>> members = userService.getClubMembersWithRoles(clubId);
+        return ResponseMessage.success(members);
+    }
+
+    /**
+     * 3. 【交互修改】更改社团内人员的职位 (老师对社长、副社长任免)
+     * 对应前端请求: PUT /api/club/member/update
+     */
+    @PutMapping("/member/update")
+    public ResponseMessage<String> updateMemberRole(@RequestBody Map<String, Object> payload) {
+        try {
+            Integer clubId = (Integer) payload.get("clubId");
+            Long targetUserId = Long.valueOf(payload.get("userId").toString());
+            String newRole = (String) payload.get("roleInClub"); // 'president', 'vice_president', 'member'
+
+            userService.updateClubStaffRole(clubId, targetUserId, newRole);
+            return ResponseMessage.success("职位更新成功");
+        } catch (Exception e) {
+            return ResponseMessage.error("更新失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 4. 【交互修改】老师或社长将某位普通社员踢出社团
+     * 对应前端请求: DELETE /api/club/member/kick
+     */
+    @DeleteMapping("/member/kick")
+    public ResponseMessage<String> kickMember(@RequestBody Map<String, Object> payload) {
+        try {
+            Integer clubId = (Integer) payload.get("clubId");
+            Long targetUserId = Long.valueOf(payload.get("userId").toString());
+
+            userService.removeStudentFromClubRelationship(targetUserId, clubId);
+            return ResponseMessage.success("成功移出该社员");
+        } catch (Exception e) {
+            return ResponseMessage.error("移出失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 5. 【学生交互】自助退出已加入社团，或申请加入未加入社团
+     * 对应前端请求: POST /api/club/{clubId}/action?type=join|leave
+     */
+    @PostMapping("/{clubId}/action")
+    public ResponseMessage<String> handleClubAction(
+            @PathVariable Integer clubId,
+            @RequestParam("type") String actionType,
+            @CookieValue(value = "user_session", required = false) String email) {
+        if (email == null) return ResponseMessage.error("未登录或登录失效");
+        UserBase loginUser = userService.findByEmail(email);
+        if (loginUser == null) return ResponseMessage.error("未找到当前账号信息");
+
+        try {
+            if ("join".equals(actionType)) {
+                userService.addStudentToClubRelationship(loginUser.getId(), clubId);
+                return ResponseMessage.success("成功加入社团");
+            } else if ("leave".equals(actionType)) {
+                userService.removeStudentFromClubRelationship(loginUser.getId(), clubId);
+                return ResponseMessage.success("已成功退出该社团");
+            }
+            return ResponseMessage.error("未知的操作类型");
+        } catch (Exception e) {
+            return ResponseMessage.error("交互失败: " + e.getMessage());
+        }
     }
 
 }

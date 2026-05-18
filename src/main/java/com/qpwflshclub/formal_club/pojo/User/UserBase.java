@@ -21,4 +21,6 @@ public interface UserBase {
     void setEmail(String email);
     List<Club> getClubs();
     void setClubs(List<Club> clubs);
+    // 在 UserBase 接口内添加
+    int getUserRight();
 }

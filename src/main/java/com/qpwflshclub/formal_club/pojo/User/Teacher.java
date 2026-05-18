@@ -113,4 +113,9 @@ public class Teacher implements UserBase{
     public void setTeacherNameEn(String teacherNameEn) {
         this.teacherNameEn = teacherNameEn;
     }
+
+    @Override
+    public int getUserRight() {
+        return 2; // 老师是 2
+    }
 }

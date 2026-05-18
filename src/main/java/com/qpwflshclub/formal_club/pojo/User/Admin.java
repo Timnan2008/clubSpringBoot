@@ -120,6 +120,11 @@ public class Admin implements UserBase{
         this.clubs = clubs;
     }
 
+    @Override
+    public int getUserRight() {
+        return 3; // 管理员是 3
+    }
+
 
 
 

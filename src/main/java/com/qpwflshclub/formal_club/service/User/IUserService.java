@@ -4,6 +4,9 @@ import com.qpwflshclub.formal_club.pojo.User.Teacher;
 import com.qpwflshclub.formal_club.pojo.User.*;
 import com.qpwflshclub.formal_club.pojo.dto.User.*;
 
+import java.util.List;
+import java.util.Map;
+
 public interface IUserService {
 
     Teacher addTeacher(TeacherDTO teacherDTO);
@@ -27,5 +30,12 @@ public interface IUserService {
 
     <T extends UserBase> T findByNameEn(String nameEn);
     <T extends UserBase> T findByEmail(String email);
+
+    List<Map<String, Object>> getClubMembersWithRoles(Integer clubId);
+    void updateClubStaffRole(Integer clubId, Long targetUserId, String newRole);
+    void addStudentToClubRelationship(Long userId, Integer clubId);
+    void removeStudentFromClubRelationship(Long userId, Integer clubId);
+
+    
 
 }
