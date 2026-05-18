@@ -1,6 +1,8 @@
 package com.qpwflshclub.formal_club.controller;
 
 import com.qpwflshclub.formal_club.pojo.dto.User.*;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -155,10 +157,35 @@ public class UserController {
 
     @PostMapping("/login")
     @ResponseBody
-    public ResponseMessage<UserBase> login(@RequestBody LoginDTO loginDTO) {
+    public ResponseMessage<UserBase> login(@RequestBody LoginDTO loginDTO, HttpServletResponse response) {
     // 按 email 在 user / teacher 表查找（可按需扩展）
         String email = loginDTO.getEmail();
         UserBase user = userService.findByEmail(email);
+
+        if (user == null) {
+            return ResponseMessage.error("未找到该用户");
+        }
+
+        String inputPassword = loginDTO.getPassword();
+        boolean isPasswordCorrect = false;
+
+        // 使用 Java 14+ 的模式匹配（Pattern Matching for instanceof）来简化强转
+        if (user instanceof User u) {
+            isPasswordCorrect = Objects.equals(u.getPassword(), inputPassword);
+        } else if (user instanceof Teacher t) {
+            isPasswordCorrect = Objects.equals(t.getPassword(), inputPassword);
+        } else if (user instanceof ClubPresident cp) {
+            isPasswordCorrect = Objects.equals(cp.getPassword(), inputPassword);
+        } else if (user instanceof Admin a) {
+            isPasswordCorrect = Objects.equals(a.getPassword(), inputPassword);
+        }
+
+        // 校验密码结果
+        if (!isPasswordCorrect) {
+            return ResponseMessage.error("用户名或密码错误");
+        }
+
+        /*
         if (user instanceof User) {
             if(Objects.equals(user.getPassword(), loginDTO.getPassword()))
             // 处理 User 类型
@@ -182,7 +209,16 @@ public class UserController {
         } else {
             return ResponseMessage.error("未找到该用户");
         }
-    }
 
+         */
+        // --- 密码正确，写入 Cookie ---
+        Cookie userCookie = new Cookie("user_session", email); // 直接用前端传来的 email 即可
+        userCookie.setMaxAge(7 * 24 * 60 * 60);
+        userCookie.setPath("/");
+        userCookie.setHttpOnly(true);
+        response.addCookie(userCookie);
+
+        return ResponseMessage.success(user);
+    }
 
 }

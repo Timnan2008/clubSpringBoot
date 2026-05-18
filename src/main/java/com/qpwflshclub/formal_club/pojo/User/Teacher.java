@@ -45,6 +45,8 @@ public class Teacher implements UserBase{
     )
     private List<Club> clubs;
 
+    public static int userRight = 2;
+
     @Override
     public String getUsername() {
         return teacherName;

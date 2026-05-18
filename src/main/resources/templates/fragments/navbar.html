@@ -80,11 +80,24 @@
           </div>
 
           <!-- 登录/注册按钮 -->
-          <a
+          <!--<a
             th:href="@{/page/user/login}"
             class="navbar-login-btn"
             th:text="#{nav.login}"
-          ></a>
+          ></a>-->
+          <th:block th:if="${loginUser != null}">
+            <a th:href="@{/page/user/profile}" class="navbar-user-name">
+              <span th:text="${loginUser.username}">某某某</span>
+            </a>
+          </th:block>
+
+          <th:block th:unless="${loginUser != null}">
+            <a
+                    th:href="@{/page/user/login}"
+                    class="navbar-login-btn"
+                    th:text="#{nav.login}"
+            >登录/注册</a>
+          </th:block>
         </nav>
       </header>
 
