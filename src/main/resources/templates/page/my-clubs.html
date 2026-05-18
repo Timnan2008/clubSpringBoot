@@ -15,7 +15,6 @@
 <div th:replace="fragments/notice-alarm :: notice26"></div>
 
 <script th:inline="javascript">
-    // 🌟 直接读取后端算好的干净整数，绝不调用任何敏感类反射
     const GLOBAL_USER_RIGHT = /*[[${userRightValue}]]*/ 0;
     const CURRENT_USER_ID = /*[[${loginUser.id}]]*/ 0;
 </script>
@@ -38,9 +37,9 @@
 
             <div class="club-status-bar">
                 我的身份:
-                <span class="role-badge badge-president" th:if="${club.currentUserRole == 'president'}">正社长</span>
+                <span class="role-badge badge-president" th:if="${club.currentUserRole == 'president'}">社长</span>
                 <span class="role-badge badge-vice-president" th:if="${club.currentUserRole == 'vice_president'}">副社长</span>
-                <span class="role-badge badge-member" th:if="${club.currentUserRole == 'member'}">核心社员</span>
+                <span class="role-badge badge-member" th:if="${club.currentUserRole == 'member'}">社员</span>
                 <span class="role-badge badge-teacher" th:if="${club.currentUserRole == 'teacher'}">指导老师</span>
                 <span class="role-badge badge-none" th:if="${club.currentUserRole == 'none'}">未加入</span>
             </div>
