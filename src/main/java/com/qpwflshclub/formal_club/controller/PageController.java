@@ -1,8 +1,11 @@
 package com.qpwflshclub.formal_club.controller;
 
 import com.qpwflshclub.formal_club.pojo.Club.Club;
+import com.qpwflshclub.formal_club.pojo.User.UserBase;
 import com.qpwflshclub.formal_club.service.Club.ClubNotFoundException;
 import com.qpwflshclub.formal_club.service.Club.IClubService;
+import com.qpwflshclub.formal_club.service.User.IUserService;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -17,6 +20,8 @@ public class PageController {
 
     @Autowired
     IClubService clubService;
+    @Autowired
+    IUserService userService;
 
     @GetMapping("/club-watch/{clubName}")
     public String clubPage(@PathVariable String clubName, Model model) {
@@ -102,6 +107,39 @@ public class PageController {
     @GetMapping("/search")
     public String searchPage(Model model) {
         return "page/search";
+    }
+
+    @GetMapping("/user/profile")
+    public String profile(HttpServletRequest request, Model model) {
+        // 1. 从刚才 navbar 里面提到的 Cookie 中获取登录用户的 session (这里通常是 email)
+        Cookie[] cookies = request.getCookies();
+        String email = null;
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("user_session".equals(cookie.getName())) {
+                    email = cookie.getValue();
+                    break;
+                }
+            }
+        }
+
+        // 2. 如果没登录，重定向到登录页
+        if (email == null) {
+            return "redirect:/page/user/login";
+        }
+
+        // 3. 根据 email 查出完整的用户信息
+
+        UserBase loginUser = userService.findByEmail(email);
+        if (loginUser == null) {
+            return "redirect:/page/user/login";
+        }
+
+        // 4. 【关键】将用户信息存入 model，这样前端的 ${loginUser.username} 等表达式才能拿到值！
+        model.addAttribute("loginUser", loginUser);
+
+        // 5. 返回模板路径：对应 templates/page/user/profile.html
+        return "page/profile";
     }
 
 }

@@ -2,7 +2,9 @@ package com.qpwflshclub.formal_club.controller;
 
 import com.qpwflshclub.formal_club.pojo.dto.User.*;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -219,6 +221,22 @@ public class UserController {
         response.addCookie(userCookie);
 
         return ResponseMessage.success(user);
+    }
+
+    @GetMapping("/logout")
+    public ResponseMessage<String> logout(HttpServletRequest request, HttpServletResponse response) {
+        // 1. 让 session 失效
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
+        // 2. 后端顺便也删一下 Cookie（双重保险）
+        Cookie cookie = new Cookie("user_session", null);
+        cookie.setMaxAge(0);
+        cookie.setPath("/");
+        response.addCookie(cookie);
+
+        return ResponseMessage.success("注销成功");
     }
 
 }
