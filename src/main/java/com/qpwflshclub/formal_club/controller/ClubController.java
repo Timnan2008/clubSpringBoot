@@ -199,6 +199,7 @@ public class ClubController {
             vo.setDescription(isEn ? c.getClubDescriptionEn() : c.getClubDescription());
             vo.setBrief(isEn ? c.getSortDescriptionEn() : c.getClubDescription());
             vo.setLogo(c.getClubItem());
+            vo.setClubURL(c.getClubURL());
             String slug = c.getClubNameEn() != null && !c.getClubNameEn().isBlank() ? c.getClubNameEn() : c.getClubName();
             slug = URLEncoder.encode(slug, StandardCharsets.UTF_8);
             vo.setDetailPath("page/club-watch/" + slug);

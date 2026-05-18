@@ -11,4 +11,5 @@ public class SearchResultVO {
     private String brief;
     private String logo;
     private String detailPath;
+    private String clubURL;
 }

@@ -77,7 +77,7 @@
 
         function renderResults(clubs) {
             container.innerHTML = clubs.map(club => `
-                <div class="club-card glass-card" onclick="window.location.href='/${club.detailPath}'">
+                <div class="club-card glass-card" onclick="window.location.href='/${club.clubURL}'">
                     <div class="club-logo">
                         <img src="${club.logo || '/other%20photo/default-logo.png'}" alt="${club.name}" />
                     </div>
