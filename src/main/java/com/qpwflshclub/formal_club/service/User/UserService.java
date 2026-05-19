@@ -124,8 +124,41 @@ public class UserService implements IUserService{
 
     //删
     @Override
-    public void delate(Long userId) {
-        userRepository.deleteById(userId);
+    public void delete(Long userId, int userRight) {
+        if(userRight == 0){
+            userRepository.deleteById(userId);
+        }else if(userRight == 1){
+            clubPresidentRepository.deleteById(userId);
+        }else if(userRight == 2){
+            teacherRepository.deleteById(userId);
+        }else{
+            adminRepository.deleteById(userId);
+        }
+
+    }
+
+    @Override
+    public void delete(String nameEn){
+        for(User user : userRepository.findAll()){
+            if(user.getUsernameEn().equals(nameEn)){
+                userRepository.deleteById(user.getId());
+            }
+        }
+        for(Teacher teacher : teacherRepository.findAll()){
+            if(teacher.getUsernameEn().equals(nameEn)){
+                teacherRepository.deleteById(teacher.getId());
+            }
+        }
+        for (ClubPresident cp : clubPresidentRepository.findAll()){
+            if(cp.getUsernameEn().equals(nameEn)){
+                clubPresidentRepository.deleteById(cp.getId());
+            }
+        }
+        for(Admin admin : adminRepository.findAll()){
+            if(admin.getUsernameEn().equals(nameEn)){
+                adminRepository.deleteById(admin.getId());
+            }
+        }
     }
 
 
@@ -169,6 +202,7 @@ public class UserService implements IUserService{
                 return true;
             }
         }
+
         return false;
     }
 
@@ -289,8 +323,8 @@ public class UserService implements IUserService{
                 cp.setUsernameEn(user.getUsernameEn());
                 cp.setEmail(user.getEmail());
                 cp.setPassword(user.getPassword());
-                // 从普通用户表抹除，升职到社长管理表
-                userRepository.delete(user);
+                // 不能从普通用户表抹除，升职到社长管理表
+                //不能userRepository.delete(user);
             }
             cp.setMainClub(club);
             cp.setVicePresident("vice_president".equals(newRole));
@@ -300,7 +334,7 @@ public class UserService implements IUserService{
         else if ("member".equals(newRole)) {
             ClubPresident cp = clubPresidentRepository.findById(targetUserId).orElse(null);
             if (cp != null) {
-                // 如果原来在社长表里，降职后转回普通 User 表维护
+                /* 如果原来在社长表里，降职后转回普通 User 表维护
                 User user = new User();
                 user.setUsername(cp.getUsername());
                 user.setUsernameEn(cp.getUsernameEn());
@@ -309,7 +343,7 @@ public class UserService implements IUserService{
                 user.setClubs(new java.util.ArrayList<>());
                 user.getClubs().add(club);
                 userRepository.save(user);
-
+                */
                 clubPresidentRepository.delete(cp);
             }
         }
@@ -362,6 +396,23 @@ public class UserService implements IUserService{
             }
             clubPresidentRepository.save(cp);
         }
+    }
+
+    @Override
+    public Admin transferAdmin(User u){
+
+        Admin admin = new Admin();
+
+        admin.setUsername(u.getUsername());
+        admin.setUsernameEn(u.getUsernameEn());
+        admin.setEmail(u.getEmail());
+        admin.setPassword(u.getPassword());
+        admin.setClubs(new java.util.ArrayList<>());
+        admin.getClubs().addAll(u.getClubs());
+
+        userRepository.delete(u);
+
+        return adminRepository.save(admin);
     }
 
 

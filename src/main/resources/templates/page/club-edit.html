@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <div th:replace="fragments/notice :: notice"></div>
+    <title>修改社团信息</title>
+    <link rel="stylesheet" href="/css/common.css?v=2">
+    <style>
+        .edit-container { max-width: 750px; margin: 30px auto; padding: 30px; background: #fff; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); font-family: 'Helvetica Neue', Arial, sans-serif; }
+        h2 { text-align: center; color: #333; margin-bottom: 25px; border-bottom: 2px solid #f3f4f6; padding-bottom: 10px; }
+        .form-row { display: flex; gap: 20px; margin-bottom: 15px; }
+        .form-group { flex: 1; display: flex; flex-direction: column; }
+        .form-group.full-width { width: 100%; margin-bottom: 15px; }
+        .form-group label { font-weight: 600; margin-bottom: 6px; color: #4b5563; font-size: 14px; }
+        .form-group input, .form-group textarea { padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+        .form-group input:focus, .form-group textarea:focus { border-color: #4f46e5; outline: none; box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+        .form-group textarea { height: 100px; resize: vertical; }
+        .btn-area { margin-top: 25px; display: flex; gap: 15px; }
+        .btn-submit { background: #4f46e5; color: white; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; flex: 2; transition: background 0.2s; }
+        .btn-submit:hover { background: #4338ca; }
+        .btn-cancel { background: #e5e7eb; color: #4b5563; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; text-align: center; text-decoration: none; flex: 1; transition: background 0.2s; }
+        .btn-cancel:hover { background: #d1d5db; }
+    </style>
+</head>
+<body>
+
+<div class="edit-container">
+    <h2>📝 修改社团核心信息</h2>
+    <form id="edit-club-form">
+        <input type="hidden" id="clubId">
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>社团名称 (中文)</label>
+                <input type="text" id="clubName" required>
+            </div>
+            <div class="form-group">
+                <label>社团英文名称 (Club Name En)</label>
+                <input type="text" id="clubNameEn" required>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>社长姓名 (中文)</label>
+                <input type="text" id="president" required>
+            </div>
+            <div class="form-group">
+                <label>社长姓名 (英文/拼音)</label>
+                <input type="text" id="presidentEn" required>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>副社长姓名 (中文)</label>
+                <input type="text" id="vicePresident" required>
+            </div>
+            <div class="form-group">
+                <label>副社长姓名 (英文/拼音)</label>
+                <input type="text" id="vicePresidentEn" required>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>指导老师 (中文)</label>
+                <input type="text" id="teacher" required>
+            </div>
+            <div class="form-group">
+                <label>指导老师 (英文/拼音)</label>
+                <input type="text" id="teacherEn" required>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>社团类别 (如: 学术类/体育类/艺术类)</label>
+                <input type="text" id="clubClass" required>
+            </div>
+            <div class="form-group">
+                <label>社团 Logo 图标 URL</label>
+                <input type="text" id="clubItem" required>
+            </div>
+        </div>
+
+        <div class="form-group full-width">
+            <label>宣传视频 URL</label>
+            <input type="text" id="video">
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label>一句话简短简介 (中文，限20字)</label>
+                <input type="text" id="sortDescription" maxlength="20" required>
+            </div>
+            <div class="form-group">
+                <label>一句话简短简介 (英文)</label>
+                <input type="text" id="sortDescriptionEn" required>
+            </div>
+        </div>
+
+        <div class="form-group full-width">
+            <label>社团详细描述 (中文)</label>
+            <textarea id="clubDescription" required></textarea>
+        </div>
+        <div class="form-group full-width">
+            <label>社团详细描述 (英文)</label>
+            <textarea id="clubDescriptionEn" required></textarea>
+        </div>
+
+        <div class="btn-area">
+            <a id="cancel-btn" href="#" class="btn-cancel">取消</a>
+            <button type="submit" class="btn-submit">确认提交修改</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    // 覆写或增强原始的 openNotice26 方法，使其支持动态传入文字内容
+    const originalOpenNotice26 = window.openNotice26;
+    window.openNotice26 = function(flag, config) {
+        if (config) {
+            const titleEl = document.querySelector("#notice26 .v26-title");
+            const msgEl = document.querySelector("#notice26 .v26-msg");
+            const subEl = document.querySelector("#notice26 .v26-sub");
+
+            if (titleEl && config.title) titleEl.textContent = config.title;
+            if (msgEl && config.msg) msgEl.textContent = config.msg;
+            if (subEl) subEl.textContent = config.subMsg || "";
+        }
+
+        // 执行原始的打开弹窗动画逻辑
+        const overlay = document.getElementById("notice26");
+        const sheet = document.querySelector(".v26-sheet");
+        if (overlay && sheet) {
+            overlay.style.display = "flex";
+            setTimeout(() => {
+                sheet.style.opacity = "1";
+                sheet.style.transform = "translateY(0) scale(1)";
+            }, 10);
+        }
+    };
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const clubNameParam = urlParams.get('clubName');
+
+    if (!clubNameParam) {
+        openNotice26(false, {
+            title: "操作失败",
+            msg: "未指定社团参数",
+            subMsg: "参数传递错误，页面即将重定向。"
+        });
+        setTimeout(() => { window.location.href = "/"; }, 2000);
+    }
+
+    // 设置取消按钮的动态返回路径
+    if (clubNameParam) {
+        document.getElementById("cancel-btn").href = `/page/club-watch/${encodeURIComponent(clubNameParam)}`;
+    }
+
+    // 1. 页面加载时拉取原始数据回显到各个输入框中
+    if (clubNameParam) {
+        fetch(`/api/club/name-en/all-info/${encodeURIComponent(clubNameParam)}`)
+            .then(res => res.json())
+            .then(result => {
+                if(result.code === 200 && result.data) {
+                    const club = result.data;
+
+                    // 将后端已有的值填入对应的 Input 框中
+                    document.getElementById("clubId").value = club.id || '';
+                    document.getElementById("clubName").value = club.clubName || '';
+                    document.getElementById("clubNameEn").value = club.clubNameEn || clubNameParam;
+
+                    document.getElementById("president").value = club.president || '';
+                    document.getElementById("presidentEn").value = club.presidentEn || '';
+                    document.getElementById("vicePresident").value = club.vicePresident || '';
+                    document.getElementById("vicePresidentEn").value = club.vicePresidentEn || '';
+                    document.getElementById("teacher").value = club.teacher || '';
+                    document.getElementById("teacherEn").value = club.teacherEn || '';
+
+                    document.getElementById("clubClass").value = club.clubClass || '';
+                    document.getElementById("clubItem").value = club.clubItem || '';
+                    document.getElementById("video").value = club.video || '';
+
+                    document.getElementById("sortDescription").value = club.sortDescription || '';
+                    document.getElementById("sortDescriptionEn").value = club.sortDescriptionEn || '';
+                    document.getElementById("clubDescription").value = club.clubDescription || '';
+                    document.getElementById("clubDescriptionEn").value = club.clubDescriptionEn || '';
+                } else {
+                    openNotice26(false, {
+                        title: "拉取数据失败",
+                        msg: "无法拉取原始数据",
+                        subMsg: "请检查登录状态、用户权限或学校网络连接。"
+                    });
+                }
+            })
+            .catch(() => {
+                openNotice26(false, {
+                    title: "网络错误",
+                    msg: "无法连接到服务器",
+                    subMsg: "如果多次尝试无效请关闭VPN。若还是无效，可联系编程社社员。"
+                });
+            });
+    }
+
+    // 2. 提交完整的 ClubDTO 数据
+    document.getElementById("edit-club-form").addEventListener("submit", function(e) {
+        e.preventDefault();
+
+        const updateData = {
+            clubId: parseInt(document.getElementById("clubId").value) || null,
+            clubName: document.getElementById("clubName").value,
+            clubNameEn: document.getElementById("clubNameEn").value,
+            president: document.getElementById("president").value,
+            presidentEn: document.getElementById("presidentEn").value,
+            vicePresident: document.getElementById("vicePresident").value,
+            vicePresidentEn: document.getElementById("vicePresidentEn").value,
+            teacher: document.getElementById("teacher").value,
+            teacherEn: document.getElementById("teacherEn").value,
+            clubClass: document.getElementById("clubClass").value,
+            clubItem: document.getElementById("clubItem").value,
+            video: document.getElementById("video").value,
+            sortDescription: document.getElementById("sortDescription").value,
+            sortDescriptionEn: document.getElementById("sortDescriptionEn").value,
+            clubDescription: document.getElementById("clubDescription").value,
+            clubDescriptionEn: document.getElementById("clubDescriptionEn").value
+        };
+
+        // 发送 PUT 请求
+        fetch(`/api/club/name-en/${encodeURIComponent(clubNameParam)}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(updateData)
+        })
+            .then(res => res.json())
+            .then(result => {
+                if (result.code === 200) {
+                    openNotice26(false, {
+                        title: "成功",
+                        msg: "社团信息及负责人更新成功！",
+                        subMsg: "页面即将跳转回社团详情页..."
+                    });
+                    // 稍作延迟等用户看清弹窗后跳回该社团的详情页
+                    setTimeout(() => {
+                        window.location.href = `/page/club-watch/${encodeURIComponent(updateData.clubNameEn)}`;
+                    }, 1800);
+                } else {
+                    openNotice26(false, {
+                        title: "修改失败",
+                        msg: result.message || "未知校验错误",
+                        subMsg: "请核对表单填写项是否完整或符合规范。"
+                    });
+                }
+            })
+            .catch(err => {
+                openNotice26(false, {
+                    title: "请求发送失败",
+                    msg: "网络错误或请求被拒绝",
+                    subMsg: "请检查网络连接、VPN状态或检查后端控制台报错。"
+                });
+            });
+    });
+</script>
+</body>
+</html>

@@ -99,10 +99,11 @@ public class UserController {
         return new ResponseMessage<>(200, "更新成功", result);
     }
 
-    @DeleteMapping("/delete/{id}")
-    public ResponseMessage<Long> delete(@PathVariable Long id){
-        userService.delate(id);
-        return new ResponseMessage<>(200, "删除成功", id);
+    @DeleteMapping("/delete")
+    public ResponseMessage<String> delete(@RequestBody UserBaseDTO userDTO){
+        String nameEn = userDTO.getUsernameEn();
+        userService.delete(nameEn);
+        return new ResponseMessage<>(200, "删除成功", nameEn);
     }
 
     @GetMapping("/find/{type}/{id}")
@@ -239,4 +240,15 @@ public class UserController {
         return ResponseMessage.success("注销成功");
     }
 
+    @PostMapping("/tern-admin")
+    public ResponseMessage<Admin> ternAdmin(@RequestBody UserDTO user) {
+        String userNameEn = user.getUsernameEn();
+        User u = userService.findByNameEn(userNameEn);
+        if (u == null) {
+            return ResponseMessage.error("不存在");
+        }
+
+        Admin admin = userService.transferAdmin(u);
+        return ResponseMessage.success(admin);
+    }
 }

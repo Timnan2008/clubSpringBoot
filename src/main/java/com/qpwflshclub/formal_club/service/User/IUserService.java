@@ -19,7 +19,8 @@ public interface IUserService {
     ClubPresident update(ClubPresidentDTO clubPresidentDTO);
     User update(UserDTO userDTO);
 
-    void delate(Long userId);
+    void delete(Long userId, int userRight);
+    void delete(String nameEn);
 
     Teacher findTeacherByID(Long id);
     Admin findAdminByID(Long id);
@@ -36,6 +37,6 @@ public interface IUserService {
     void addStudentToClubRelationship(Long userId, Integer clubId);
     void removeStudentFromClubRelationship(Long userId, Integer clubId);
 
-    
+    Admin transferAdmin(User u);
 
 }

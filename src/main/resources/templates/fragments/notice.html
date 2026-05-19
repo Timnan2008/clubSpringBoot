@@ -86,7 +86,7 @@
     </style>
 
 
-    <div id="notice26" class="v26-overlay">
+    <div id="notice26" class="v26-overlay" style="display: none !important;">
         <div class="v26-sheet">
 
             <div class="v26-title">投票公告</div>
@@ -109,6 +109,7 @@
 
         </div>
     </div>
+
 
     <script>
         function openNotice26() {
@@ -139,6 +140,7 @@
 
 
         // 🔒 每设备只显示一次（修改 KEY 可强制所有用户重新看到）
+        /*
         const NOTICE_KEY = "notice_ios26_20241211";
         window.addEventListener("DOMContentLoaded", () => {
             if (!localStorage.getItem(NOTICE_KEY)) {
@@ -146,6 +148,8 @@
                 localStorage.setItem(NOTICE_KEY, "shown");
             }
         });
+
+         */
     </script>
 
 </div>

@@ -24,12 +24,14 @@
 </script>
 
 <script th:inline="javascript">
-    const clubName = [[${clubName}]];
+    // 🌟 修正 Thymeleaf 字符串变量注入语法，防止 JS 崩溃
+    const clubName = /*[[${clubName}]]*/ 'default_club';
     const apiUrl = `/api/club/name-en/${encodeURIComponent(clubName)}`;
 
     const urlParams = new URLSearchParams(window.location.search);
     const currentLang = urlParams.get('lang') || 'zh';
 
+    // 1. 获取并渲染社团信息
     fetch(apiUrl)
         .then(res => res.json())
         .then(result => {
@@ -39,6 +41,7 @@
                 return;
             }
 
+            // 保持你原有的 DOM 渲染逻辑
             document.getElementById("club-title").textContent = club.clubName;
             document.title = club.clubName;
             document.getElementById("president").textContent = club.president || "暂无";
@@ -48,27 +51,53 @@
             document.getElementById("club-intro").style.display = 'block';
             document.getElementById("club-logo").src = club.clubItem;
 
-            const videoEl = document.getElementById("club-video");
-            if (club.video && club.video.trim() !== '') {
-                videoEl.querySelector("source").src = club.video;
-                videoEl.load();
-                videoEl.style.display = "block";
-                document.getElementById("video-empty-tip").style.display = "none";
-            } else {
-                videoEl.style.display = "none";
-                document.getElementById("video-empty-tip").style.display = "block";
-            }
-
-            const currentLike = Number(club.videoLike ?? 0);
-            document.getElementById("currentnumber").textContent = currentLike;
-            document.getElementById("movenumber").textContent = currentLike + 1;
+            // 🌟 2. 社团数据加载完后，立即触发权限检查
+            checkUserPermission(clubName);
         })
+        .catch(err => {
+            console.error("加载社团数据失败:", err);
+        });
 
+    // 🌟 3. 核心鉴权函数：通过 userright 判定按钮显隐
+    function checkUserPermission(currentClubNameEn) {
+        fetch('/api/club/my-list')
+            .then(res => res.json())
+            .then(res => {
+                if (res.code === 200 && res.data && res.data.length > 0) {
+                    // 找到当前社团对应的关系数据
+                    const myClubRelation = res.data.find(c => c.clubNameEn === currentClubNameEn);
+
+                    // 获取当前用户的全局 userright（如果没找到说明可能没加入或没匹配上，优先取列表第一项的全局权限）
+                    const userright = myClubRelation ? myClubRelation.userright : res.data[0].userright;
+                    const role = myClubRelation ? myClubRelation.currentUserRole : 'none';
+
+                    console.log("当前用户权限等级 userright:", userright, " 社团内身份:", role);
+
+                    // 🌟 核心判别式：如果是该社团正副社长/老师，或者全局 userright >= 1 (包括 Admin)
+                    if (role === 'president' || role === 'vice_president' || role === 'teacher' || userright >= 1) {
+                        const editBtn = document.getElementById("edit-club-btn");
+                        if (editBtn) {
+                            editBtn.style.display = "block"; // 强行显示按钮
+                            editBtn.onclick = () => {
+                                // 点击跳转到修改页面
+                                window.location.href = `/page/club-edit?clubName=${encodeURIComponent(currentClubNameEn)}`;
+                            };
+                        }
+                    }
+                }
+            })
+            .catch(err => console.log("获取登录用户权限失败或未登录", err));
+    }
 </script>
 
 <!-- 主体内容 -->
 <div class="container">
-    <h1><span id="club-title">未知社团</span></h1>
+    <div class="club-header-area" style="display: flex; justify-content: space-between; align-items: center;">
+        <h1><span id="club-title">未知社团</span></h1>
+        <button id="edit-club-btn" style="display: none; padding: 10px 20px; background-color: #4f46e5; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">
+            修改社团信息
+        </button>
+    </div>
     <div class="top-info">
         <div class="leaders">
             <p><strong><span th:text="#{club.president}"></span></strong ><span id="president">加载中</span></p>

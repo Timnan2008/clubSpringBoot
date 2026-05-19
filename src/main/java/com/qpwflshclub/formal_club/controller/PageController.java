@@ -12,10 +12,7 @@ import org.hibernate.Internal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
@@ -232,5 +229,71 @@ public class PageController {
 
         model.addAttribute("clubList", clubList);
         return "page/my-clubs";
+    }
+
+
+    /**
+     * 🌟 新增：社团修改页面的跳转 API
+     * 路由：GET /page/club-edit
+     * 访问示例：/page/club-edit?clubName=WFL-CS-Club
+     */
+    @GetMapping("/club-edit")
+    public String editClubPage(
+            @RequestParam("clubName") String clubName,
+            @CookieValue(value = "user_session", required = false) String email,
+            Model model) {
+
+        // 1. 如果没有登录，直接重定向到登录页面（或者你系统的首页）
+        if (email == null || email.isBlank()) {
+            return "redirect:/page/login"; // 请根据你实际登录页路径调整
+        }
+
+        UserBase loginUser = userService.findByEmail(email);
+        if (loginUser == null) {
+            return "redirect:/page/login";
+        }
+
+        // 2. 获取当前的社团实体
+        Club c;
+        try {
+            c = clubService.findByName(clubName);
+        } catch (ClubNotFoundException e) {
+            return "error/404"; // 找不到社团去404页面
+        }
+
+        // 3. 🌟 权限核心判定：依据全局 userright 或者是社团内职务
+        boolean hasPermission = false;
+
+        // 方案 A：通过实体类型（系统原有设计）与职务比对
+        if (loginUser instanceof com.qpwflshclub.formal_club.pojo.User.Admin) {
+            hasPermission = true; // Admin 直接放行
+        }
+        else if (loginUser instanceof com.qpwflshclub.formal_club.pojo.User.Teacher) {
+            com.qpwflshclub.formal_club.pojo.User.Teacher t = (com.qpwflshclub.formal_club.pojo.User.Teacher) loginUser;
+            // 指导老师必须负责这个社团
+            hasPermission = t.getClubs() != null && t.getClubs().stream().anyMatch(tc -> tc.getId() == c.getId());
+        }
+        else if (loginUser instanceof com.qpwflshclub.formal_club.pojo.User.ClubPresident) {
+            com.qpwflshclub.formal_club.pojo.User.ClubPresident cp = (com.qpwflshclub.formal_club.pojo.User.ClubPresident) loginUser;
+            // 必须是该社团绑定的正/副社长
+            hasPermission = cp.getMainClub() != null && cp.getMainClub().getId() == c.getId();
+        }
+
+        /* // 方案 B：如果系统各 User 里面有统一的 getUserRight() 方法，也可以简化写为：
+        if (loginUser.getUserRight() >= 3) { // 假设 3 是 Admin
+            hasPermission = true;
+        } else if (...) { ... }
+        */
+
+        // 4. 如果没权限，无权访问修改页，拦截并重定向回详情页
+        if (!hasPermission) {
+            return "redirect:/page/club-watch/" + clubName;
+        }
+
+        // 5. 校验通过，往前端 Thymeleaf 注入变量
+        model.addAttribute("clubName", clubName);
+
+        // 6. 返回模板名称，Thymeleaf 会去找 templates/club-edit.html 页面
+        return "/page/club-edit";
     }
 }
