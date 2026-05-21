@@ -25,6 +25,7 @@ import com.qpwflshclub.formal_club.pojo.User.User;
 import com.qpwflshclub.formal_club.pojo.User.UserBase;
 import com.qpwflshclub.formal_club.service.User.IUserService;
 
+import java.util.List;
 import java.util.Objects;
 
 @RestController
@@ -241,14 +242,36 @@ public class UserController {
     }
 
     @PostMapping("/tern-admin")
-    public ResponseMessage<Admin> ternAdmin(@RequestBody UserDTO user) {
-        String userNameEn = user.getUsernameEn();
-        User u = userService.findByNameEn(userNameEn);
+    public ResponseMessage<Admin> ternAdmin(@RequestBody UserBaseDTO userbase) {
+        String userNameEn = userbase.getUsernameEn();
+
+        UserBase u = userService.findByNameEn(userNameEn);
         if (u == null) {
             return ResponseMessage.error("不存在");
         }
 
-        Admin admin = userService.transferAdmin(u);
+        User us;
+        Teacher t;
+        ClubPresident cp;
+        Admin admin;
+        if (u instanceof Teacher) {
+            t = (Teacher) u;
+            admin = userService.transferAdmin(t);
+        }else if (u instanceof ClubPresident) {
+            cp = (ClubPresident) u;
+            admin = userService.transferAdmin(cp);
+        }else{
+            us = (User) u;
+            admin = userService.transferAdmin(us);
+        }
+
+
         return ResponseMessage.success(admin);
+    }
+
+    @GetMapping("/all")
+    public ResponseMessage<List<UserBase>> getAllUsers() {
+        List<UserBase> list = userService.findAllUsers();
+        return new ResponseMessage<>(200, "查询成功", list);
     }
 }

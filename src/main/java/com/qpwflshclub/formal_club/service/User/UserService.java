@@ -12,6 +12,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -398,6 +399,7 @@ public class UserService implements IUserService{
         }
     }
 
+
     @Override
     public Admin transferAdmin(User u){
 
@@ -415,5 +417,58 @@ public class UserService implements IUserService{
         return adminRepository.save(admin);
     }
 
+    @Override
+    public Admin transferAdmin(Teacher u){
+
+        Admin admin = new Admin();
+
+        admin.setUsername(u.getUsername());
+        admin.setUsernameEn(u.getUsernameEn());
+        admin.setEmail(u.getEmail());
+        admin.setPassword(u.getPassword());
+        admin.setClubs(new java.util.ArrayList<>());
+        admin.getClubs().addAll(u.getClubs());
+
+        teacherRepository.delete(u);
+
+        return adminRepository.save(admin);
+    }
+
+    @Override
+    public Admin transferAdmin(ClubPresident u){
+
+        Admin admin = new Admin();
+
+        admin.setUsername(u.getUsername());
+        admin.setUsernameEn(u.getUsernameEn());
+        admin.setEmail(u.getEmail());
+        admin.setPassword(u.getPassword());
+        admin.setClubs(new java.util.ArrayList<>());
+        admin.getClubs().addAll(u.getClubs());
+
+        clubPresidentRepository.delete(u);
+
+        return adminRepository.save(admin);
+    }
+
+    @Override
+    public List<UserBase> findAllUsers() {
+        List<UserBase> allUsers = new java.util.ArrayList<>();
+
+        // 分别读出四张表的所有用户
+        allUsers.addAll((Collection<? extends UserBase>) userRepository.findAll());
+        allUsers.addAll((Collection<? extends UserBase>) teacherRepository.findAll());
+        allUsers.addAll((Collection<? extends UserBase>) clubPresidentRepository.findAll());
+        allUsers.addAll((Collection<? extends UserBase>) adminRepository.findAll());
+
+        // 按照中文名 (Username) 进行排序（如果没中文名按英文名排）
+        allUsers.sort((u1, u2) -> {
+            String name1 = u1.getUsername() != null ? u1.getUsername() : "";
+            String name2 = u2.getUsername() != null ? u2.getUsername() : "";
+            return name1.compareTo(name2);
+        });
+
+        return allUsers;
+    }
 
 }

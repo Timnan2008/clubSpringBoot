@@ -46,6 +46,7 @@ public class ClubController {
         return ResponseMessage.success(club);
     }
 
+    //严格修改
     @PutMapping("/name-en/{clubName}")
     public ResponseMessage<Club> updateNameEn(
             @PathVariable String clubName,
@@ -68,12 +69,7 @@ public class ClubController {
         }
 
         // 3. 核心鉴权：验证该用户是否为该社团的负责人
-        boolean hasPermission = false;
-        // 在 @PutMapping("/name-en/{clubName}") 接口内部校验时：
-        if (loginUser.getUserRight() >= 1) {
-            // 如果是 admin 或 userright >= 1，直接判定有权修改，跳过社长交叉比对
-            hasPermission = true;
-        }
+        boolean hasPermission = isHasPermission(loginUser, currentClub);
 
         if (!hasPermission) {
             return ResponseMessage.error("越权操作！您不是该社团的负责人，无法修改。");
@@ -84,6 +80,34 @@ public class ClubController {
         clubDTO.setClubId(currentClub.getId()); // 确保 ID 对应
         Club updatedClub = clubService.update(clubDTO);
         return ResponseMessage.success(updatedClub);
+    }
+
+    private static boolean isHasPermission(UserBase loginUser, Club currentClub) {
+        boolean hasPermission = false;
+
+        if(loginUser instanceof ClubPresident president){
+            Club club = president.getMainClub();
+            if(club.equals(currentClub)){
+                hasPermission = true;
+            }
+        }
+
+        if(loginUser instanceof Teacher teacher){
+            List<Club> list = teacher.getClubs();
+            for (Club club : list) {
+                if (club.equals(currentClub)) {
+                    hasPermission = true;
+                    break;
+                }
+            }
+        }
+
+        // 在 @PutMapping("/name-en/{clubName}") 接口内部校验时：
+        if (loginUser.getUserRight() >= 3) {
+            // 如果是 admin 或 userright >= 3，直接判定有权修改，跳过社长交叉比对
+            hasPermission = true;
+        }
+        return hasPermission;
     }
 
     @PutMapping("/initialize-url/{clubName}")

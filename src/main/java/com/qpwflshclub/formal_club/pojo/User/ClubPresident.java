@@ -56,6 +56,7 @@ public class ClubPresident implements UserBase {
     @Column(name = "is_vice_president", nullable = false)
     private boolean vicePresident;
 
+    @Column(name = "user_right")
     public static final Integer userRight = 1;
 
     @Override

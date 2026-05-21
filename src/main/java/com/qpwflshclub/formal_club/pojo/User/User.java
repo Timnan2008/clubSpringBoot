@@ -30,6 +30,7 @@ public class User implements UserBase{
     )
     private List<Club> clubs;
 
+    @Column(name = "user_right")
     public static Integer userRight = 0;
 
     @Override
@@ -87,9 +88,10 @@ public class User implements UserBase{
         this.clubs = clubs;
     }
 
+
     @Override
     public int getUserRight() {
-        return 0; // 学生是 0
+        return 0; // 普通学生是 0
     }
 
     public static void setUserRight(Integer userRight) {

@@ -2,6 +2,7 @@ package com.qpwflshclub.formal_club.controller;
 
 import com.qpwflshclub.formal_club.pojo.Club.Club;
 import com.qpwflshclub.formal_club.pojo.User.UserBase;
+import com.qpwflshclub.formal_club.repository.User.UserRepository;
 import com.qpwflshclub.formal_club.service.Club.ClubNotFoundException;
 import com.qpwflshclub.formal_club.service.Club.IClubService;
 import com.qpwflshclub.formal_club.service.User.IUserService;
@@ -295,5 +296,22 @@ public class PageController {
 
         // 6. 返回模板名称，Thymeleaf 会去找 templates/club-edit.html 页面
         return "/page/club-edit";
+    }
+
+    @Autowired
+    UserRepository userRepository;
+
+    @GetMapping("/user-edit")
+    public String managerPage(HttpServletRequest request, Model model) {
+
+        // 2. 🌟 核心：从各自的 Repository 或 Service 中查出所有用户
+        // 这里以普通学生为例，如果你需要展示所有类型（老师、社长），可以用 userService 查询所有并合并
+
+        List<User> userList = (List<User>) userRepository.findAll();
+
+        // 3. 🌟 极其重要：必须放进 model 里，名字必须叫 "users"，与前端对应
+        model.addAttribute("users", userList);
+
+        return "page/manager of users"; // 返回你的 HTML 模板文件名
     }
 }

@@ -38,5 +38,10 @@ public interface IUserService {
     void removeStudentFromClubRelationship(Long userId, Integer clubId);
 
     Admin transferAdmin(User u);
+    Admin transferAdmin(Teacher u);
+    Admin transferAdmin(ClubPresident u);
+
+    // 添加到 IUserService 接口中
+    List<UserBase> findAllUsers();
 
 }

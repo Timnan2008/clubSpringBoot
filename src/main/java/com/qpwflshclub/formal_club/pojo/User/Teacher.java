@@ -45,6 +45,7 @@ public class Teacher implements UserBase{
     )
     private List<Club> clubs;
 
+    @Column(name = "user_right")
     public static int userRight = 2;
 
     @Override
@@ -116,6 +117,6 @@ public class Teacher implements UserBase{
 
     @Override
     public int getUserRight() {
-        return 2; // 老师是 2
+        return 2; // 明确告诉程序，老师的权限数字是 2
     }
 }

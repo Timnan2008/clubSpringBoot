@@ -68,7 +68,7 @@ public class Admin implements UserBase{
     @Column(name = "admin_email")
     public String adminEmail;
 
-
+    @Column(name = "user_right")
     public final static Integer userRight = 3;
 
     @ManyToMany
@@ -122,12 +122,8 @@ public class Admin implements UserBase{
 
     @Override
     public int getUserRight() {
-        return 3; // 管理员是 3
+        return 3; // 明确告诉程序，管理员的权限数字是 3
     }
-
-
-
-
 
 
 }
