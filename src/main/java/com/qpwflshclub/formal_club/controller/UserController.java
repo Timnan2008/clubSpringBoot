@@ -242,7 +242,12 @@ public class UserController {
     }
 
     @PostMapping("/tern-admin")
-    public ResponseMessage<Admin> ternAdmin(@RequestBody UserBaseDTO userbase) {
+    public ResponseMessage<Admin> ternAdmin(@RequestBody UserBaseDTO userbase, HttpServletRequest request) {
+        UserBase currentUser = (UserBase) request.getAttribute("currentUser");
+        if (currentUser == null || !(currentUser instanceof Admin) && currentUser.getUserRight() < 3) {
+            return ResponseMessage.error("无权限：只有管理员可以将用户提升为管理员");
+        }
+        
         String userNameEn = userbase.getUsernameEn();
 
         UserBase u = userService.findByNameEn(userNameEn);
@@ -250,27 +255,26 @@ public class UserController {
             return ResponseMessage.error("不存在");
         }
 
-        User us;
-        Teacher t;
-        ClubPresident cp;
         Admin admin;
-        if (u instanceof Teacher) {
-            t = (Teacher) u;
+        if (u instanceof Teacher t) {
             admin = userService.transferAdmin(t);
-        }else if (u instanceof ClubPresident) {
-            cp = (ClubPresident) u;
+        } else if (u instanceof ClubPresident cp) {
             admin = userService.transferAdmin(cp);
-        }else{
-            us = (User) u;
+        } else if (u instanceof User us) {
             admin = userService.transferAdmin(us);
+        } else {
+            return ResponseMessage.error("该用户已经是管理员");
         }
-
 
         return ResponseMessage.success(admin);
     }
 
     @GetMapping("/all")
-    public ResponseMessage<List<UserBase>> getAllUsers() {
+    public ResponseMessage<List<UserBase>> getAllUsers(HttpServletRequest request) {
+        UserBase currentUser = (UserBase) request.getAttribute("currentUser");
+        if (currentUser == null || !(currentUser instanceof Admin) && currentUser.getUserRight() < 3) {
+            return ResponseMessage.error("无权限：只有管理员可以查看所有用户");
+        }
         List<UserBase> list = userService.findAllUsers();
         return new ResponseMessage<>(200, "查询成功", list);
     }

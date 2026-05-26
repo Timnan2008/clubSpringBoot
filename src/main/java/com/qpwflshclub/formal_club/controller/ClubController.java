@@ -10,6 +10,7 @@ import com.qpwflshclub.formal_club.pojo.dto.Club.ClubDTO;
 import com.qpwflshclub.formal_club.service.Club.ClubLikeService;
 import com.qpwflshclub.formal_club.service.Club.IClubService;
 import com.qpwflshclub.formal_club.pojo.User.*;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.validation.annotation.Validated;
@@ -31,19 +32,55 @@ public class ClubController {
     @Autowired
     IClubService clubService;
 
-    //增加
+    private UserBase getCurrentUser(HttpServletRequest request) {
+        return (UserBase) request.getAttribute("currentUser");
+    }
+
+    private boolean isAdminOrTeacher(UserBase user) {
+        return user instanceof Admin || user instanceof Teacher || user.getUserRight() >= 2;
+    }
+
+    private boolean canManageClub(UserBase user, Club club) {
+        if (user instanceof Admin || user.getUserRight() >= 3) {
+            return true;
+        }
+        if (user instanceof Teacher teacher) {
+            List<Club> clubs = teacher.getClubs();
+            if (clubs != null) {
+                for (Club c : clubs) {
+                    if (c.getId().equals(club.getId())) return true;
+                }
+            }
+        }
+        if (user instanceof ClubPresident president) {
+            Club mainClub = president.getMainClub();
+            if (mainClub != null && mainClub.getId().equals(club.getId())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @PostMapping
-    public ResponseMessage<Club> add(@Validated @RequestBody ClubDTO clubDTO){
+    public ResponseMessage<Club> add(@Validated @RequestBody ClubDTO clubDTO, HttpServletRequest request){
+        UserBase user = getCurrentUser(request);
+        if (!isAdminOrTeacher(user)) {
+            return ResponseMessage.error("无权限：只有管理员或教师可以创建社团");
+        }
         Club club = clubService.add(clubDTO);
         return ResponseMessage.success(club);
     }
 
-    //修改
     @PutMapping("/{clubId}")
-    public ResponseMessage<Club> update(@PathVariable Integer clubId,@Validated @RequestBody ClubDTO clubDTO){
+    public ResponseMessage<Club> update(@PathVariable Integer clubId, @Validated @RequestBody ClubDTO clubDTO, HttpServletRequest request){
+        UserBase user = getCurrentUser(request);
+        Club club = clubService.find(clubId);
+        if (!canManageClub(user, club)) {
+            return ResponseMessage.error("无权限：您无权修改该社团");
+        }
         clubDTO.setClubId(clubId);
-        Club club = clubService.update(clubDTO);
-        return ResponseMessage.success(club);
+        Club updated = clubService.update(clubDTO);
+        return ResponseMessage.success(updated);
     }
 
     //严格修改
@@ -111,21 +148,29 @@ public class ClubController {
     }
 
     @PutMapping("/initialize-url/{clubName}")
-    public ResponseMessage<Club> initializeUrl(@PathVariable String clubName){
+    public ResponseMessage<Club> initializeUrl(@PathVariable String clubName, HttpServletRequest request){
+        UserBase user = getCurrentUser(request);
         Club club = clubService.findByName(clubName);
+        if (!canManageClub(user, club)) {
+            return ResponseMessage.error("无权限：您无权修改该社团");
+        }
         club.setClubURL("page/club-watch/" + clubName);
         clubService.update(club.toDTO());
         return ResponseMessage.success(club);
     }
 
     @PutMapping("/video-all")
-    public ResponseMessage<List<Club>> updateAll(){
+    public ResponseMessage<List<Club>> updateAll(HttpServletRequest request){
+        UserBase user = getCurrentUser(request);
+        if (!(user instanceof Admin) && user.getUserRight() < 3) {
+            return ResponseMessage.error("无权限：只有管理员可以批量更新视频");
+        }
         List<Club> clubs = clubService.findAll();
 
         for(Club club : clubs){
             ClubDTO clubDto = club.toDTO();
             clubDto.setVideo("http://123.57.189.22/media/video/" + club.getClubClass() + "/" + club.getClubNameEn() + ".mp4");
-            update(clubDto.getClubId(), clubDto);
+            clubService.update(clubDto);
         }
 
         return ResponseMessage.success();
@@ -135,7 +180,11 @@ public class ClubController {
     private ClubLikeService clubLikeService;
 
     @PutMapping("/reverse")
-    public ResponseMessage<List<Club>> reverse(){
+    public ResponseMessage<List<Club>> reverse(HttpServletRequest request){
+        UserBase user = getCurrentUser(request);
+        if (!(user instanceof Admin) && user.getUserRight() < 3) {
+            return ResponseMessage.error("无权限：只有管理员可以交换社长/副社长");
+        }
         List<Club> clubs = clubService.findAll();
         clubs.forEach(n -> {
             String ClubPresident = n.getVicePresident();
@@ -334,22 +383,27 @@ public class ClubController {
      * 对应前端请求: GET /api/club/{clubId}/members
      */
     @GetMapping("/{clubId}/members")
-    public ResponseMessage<List<Map<String, Object>>> getClubMembers(@PathVariable Integer clubId) {
-        // 利用下面我们在 UserService 中新扩展的业务能力，抓取该社团混合池中的所有人
+    public ResponseMessage<List<Map<String, Object>>> getClubMembers(@PathVariable Integer clubId, HttpServletRequest request) {
+        UserBase user = getCurrentUser(request);
+        Club club = clubService.find(clubId);
+        if (!canManageClub(user, club)) {
+            return ResponseMessage.error("无权限：您无权查看该社团成员");
+        }
         List<Map<String, Object>> members = userService.getClubMembersWithRoles(clubId);
         return ResponseMessage.success(members);
     }
 
-    /**
-     * 3. 【交互修改】更改社团内人员的职位 (老师对社长、副社长任免)
-     * 对应前端请求: PUT /api/club/member/update
-     */
     @PutMapping("/member/update")
-    public ResponseMessage<String> updateMemberRole(@RequestBody Map<String, Object> payload) {
+    public ResponseMessage<String> updateMemberRole(@RequestBody Map<String, Object> payload, HttpServletRequest request) {
+        UserBase user = getCurrentUser(request);
+        Integer clubId = (Integer) payload.get("clubId");
+        Club club = clubService.find(clubId);
+        if (!canManageClub(user, club)) {
+            return ResponseMessage.error("无权限：您无权修改该社团成员职位");
+        }
         try {
-            Integer clubId = (Integer) payload.get("clubId");
             Long targetUserId = Long.valueOf(payload.get("userId").toString());
-            String newRole = (String) payload.get("roleInClub"); // 'president', 'vice_president', 'member'
+            String newRole = (String) payload.get("roleInClub");
 
             userService.updateClubStaffRole(clubId, targetUserId, newRole);
             return ResponseMessage.success("职位更新成功");
@@ -358,14 +412,15 @@ public class ClubController {
         }
     }
 
-    /**
-     * 4. 【交互修改】老师或社长将某位普通社员踢出社团
-     * 对应前端请求: DELETE /api/club/member/kick
-     */
     @DeleteMapping("/member/kick")
-    public ResponseMessage<String> kickMember(@RequestBody Map<String, Object> payload) {
+    public ResponseMessage<String> kickMember(@RequestBody Map<String, Object> payload, HttpServletRequest request) {
+        UserBase user = getCurrentUser(request);
+        Integer clubId = (Integer) payload.get("clubId");
+        Club club = clubService.find(clubId);
+        if (!canManageClub(user, club)) {
+            return ResponseMessage.error("无权限：您无权移出该社团成员");
+        }
         try {
-            Integer clubId = (Integer) payload.get("clubId");
             Long targetUserId = Long.valueOf(payload.get("userId").toString());
 
             userService.removeStudentFromClubRelationship(targetUserId, clubId);
