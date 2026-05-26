@@ -3,6 +3,7 @@ package com.qpwflshclub.formal_club.service.Suggestion;
 import com.qpwflshclub.formal_club.pojo.Suggestion.Suggestion;
 import com.qpwflshclub.formal_club.pojo.dto.Suggestion.SuggestionDTO;
 import com.qpwflshclub.formal_club.repository.Suggestion.SuggestionRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -60,6 +61,16 @@ public class SuggestionService implements ISuggestionService{
                 .toList();
 
         return sa;
+    }
+
+
+    @Override
+    @Transactional
+    public Suggestion passSuggestion(Long id) {
+        Suggestion suggestion = suggestionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("未找到该意见"));
+        suggestion.setPass(true);
+        return suggestionRepository.save(suggestion);
     }
 
 

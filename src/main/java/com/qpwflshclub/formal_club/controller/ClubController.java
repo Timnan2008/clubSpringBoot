@@ -146,6 +146,7 @@ public class ClubController {
             n.setPresidentEn(ClubPresidentEn);
             n.setVicePresident(ClubVicePresident);
             n.setVicePresidentEn(ClubVicePresidentEn);
+            clubService.update(n.toDTO());
         });
         return ResponseMessage.success(clubs);
     }

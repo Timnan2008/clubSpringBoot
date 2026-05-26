@@ -17,4 +17,6 @@ public interface ISuggestionService {
     Suggestion findByTitle(String name);
 
     List<Suggestion> onlyPass();
+
+    Suggestion passSuggestion(Long id);
 }

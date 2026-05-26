@@ -34,9 +34,8 @@ public class SuggestionController {
 
     @PutMapping("/pass")
     public ResponseMessage<Suggestion> passSuggestion(@RequestParam Long id){
-        Suggestion suggestion = suggestionService.findById(id);
-        suggestion.setPass(true);
-        return ResponseMessage.success();
+        Suggestion suggestion = suggestionService.passSuggestion(id);
+        return ResponseMessage.success(suggestion);
     }
 
     @DeleteMapping("/{id}")
