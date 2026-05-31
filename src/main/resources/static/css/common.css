@@ -280,6 +280,10 @@ body::after {
     background: var(--primary-bg);
 }
 
+.nav-hidden {
+    display: none !important;
+}
+
 /* ── Dropdown ── */
 .dropdown {
     position: relative;

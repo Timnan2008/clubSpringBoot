@@ -32,29 +32,14 @@
             <button id="logout-btn" class="ghost-btn" type="button">退出</button>
         </header>
 
-        <div class="manager-layout">
-            <aside class="club-sidebar">
-                <div class="panel-title">负责社团</div>
-                <div id="club-list" class="club-list"></div>
-            </aside>
-
-            <section class="members-panel">
-                <div class="members-toolbar">
-                    <div>
-                        <p class="eyebrow-text">当前社团</p>
-                        <h2 id="selected-club-name">请选择社团</h2>
-                    </div>
-                    <div class="search-box">
-                        <input id="student-search" type="search" placeholder="搜索学生姓名 / 英文名">
-                    </div>
-                </div>
-
-                <div id="student-results" class="result-list"></div>
-
-                <div class="panel-title member-title">社团成员</div>
-                <div id="member-list" class="member-list"></div>
-            </section>
+        <div class="managed-summary">
+            <div>
+                <p class="eyebrow-text">我的社团</p>
+                <strong id="club-total">0 个社团</strong>
+            </div>
         </div>
+
+        <div id="club-section-list" class="club-section-list"></div>
     </section>
 </main>
 
@@ -64,8 +49,7 @@
     const state = {
         user: null,
         clubs: [],
-        selectedClub: null,
-        searchTimer: null
+        searchTimers: {}
     };
 
     const roleText = {
@@ -80,10 +64,8 @@
     document.addEventListener("DOMContentLoaded", () => {
         $("login-btn").addEventListener("click", login);
         $("logout-btn").addEventListener("click", logout);
-        $("student-search").addEventListener("input", () => {
-            clearTimeout(state.searchTimer);
-            state.searchTimer = setTimeout(searchStudents, 260);
-        });
+        $("manager-panel").addEventListener("input", handleClubSearchInput);
+        $("manager-panel").addEventListener("click", handleClubActionClick);
         loadCurrentUser();
     });
 
@@ -136,7 +118,7 @@
         });
         state.user = null;
         state.clubs = [];
-        state.selectedClub = null;
+        state.searchTimers = {};
         showLoginPanel();
     }
 
@@ -149,123 +131,159 @@
             return;
         }
 
-        $("login-panel").classList.add("hidden");
-        $("manager-panel").classList.remove("hidden");
-        $("manager-name").textContent = user.username || user.usernameEn || "管理账号";
-        $("manager-role").textContent = roleText[user.role] || "管理账号";
+        addClass($("login-panel"), "hidden");
+        removeClass($("manager-panel"), "hidden");
+        $("manager-name").textContent = `${user.username || user.usernameEn || "管理账号"}的社团管理`;
+        $("manager-role").textContent = `${roleText[user.role] || "管理"}账号`;
+        showNavbarManageLink();
         loadManageableClubs();
     }
 
     function showLoginPanel() {
-        $("manager-panel").classList.add("hidden");
-        $("login-panel").classList.remove("hidden");
-        $("club-list").innerHTML = "";
-        $("member-list").innerHTML = "";
-        $("student-results").innerHTML = "";
-        $("selected-club-name").textContent = "请选择社团";
+        addClass($("manager-panel"), "hidden");
+        removeClass($("login-panel"), "hidden");
+        $("club-section-list").innerHTML = "";
+        $("club-total").textContent = "0 个社团";
+        hideNavbarManageLink();
     }
 
     async function loadManageableClubs() {
         try {
             state.clubs = await requestJson("/api/user/manage/clubs");
-            renderClubList();
+            $("club-total").textContent = `${state.clubs.length} 个社团`;
 
-            if (state.clubs.length > 0) {
-                selectClub(state.clubs[0].id);
-            } else {
-                $("club-list").innerHTML = `<div class="empty-state">暂无负责社团</div>`;
-                $("member-list").innerHTML = "";
+            if (!state.clubs.length) {
+                $("club-section-list").innerHTML = `<div class="empty-state">暂无负责社团</div>`;
+                return;
             }
+
+            renderClubSections();
+            await Promise.all(state.clubs.map((club) => loadMembers(club.id)));
         } catch (error) {
             showToast(error.message, "error");
         }
     }
 
-    function renderClubList() {
-        $("club-list").innerHTML = state.clubs.map((club) => `
-            <button class="club-row" type="button" data-club-id="${club.id}">
-                <img src="${club.clubItem || "/other%20photo/WFL-logo.png"}" alt="">
-                <span>
-                    <strong>${escapeHtml(club.clubName || club.clubNameEn || "未命名社团")}</strong>
-                    <small>${escapeHtml(club.clubNameEn || "")}</small>
-                </span>
-            </button>
+    function renderClubSections() {
+        $("club-section-list").innerHTML = state.clubs.map((club) => `
+            <article class="managed-club-card" data-club-id="${club.id}">
+                <header class="club-card-header">
+                    <img class="club-avatar" src="${club.clubItem || "/other%20photo/WFL-logo.png"}" alt="">
+                    <div class="club-card-title">
+                        <p class="eyebrow-text">负责社团</p>
+                        <h2>${escapeHtml(club.clubName || club.clubNameEn || "未命名社团")}</h2>
+                        <small>${escapeHtml(club.clubNameEn || "")}</small>
+                    </div>
+                    <span id="member-count-${club.id}" class="club-card-count">成员加载中</span>
+                </header>
+
+                <div class="club-card-body">
+                    <div class="club-search-row">
+                        <input type="search"
+                               data-club-search="true"
+                               data-club-id="${club.id}"
+                               placeholder="搜索学生姓名 / 英文名">
+                    </div>
+                    <div id="student-results-${club.id}" class="result-list"></div>
+
+                    <div class="panel-title member-title">社团成员</div>
+                    <div id="member-list-${club.id}" class="member-list">
+                        <div class="empty-state">成员加载中</div>
+                    </div>
+                </div>
+            </article>
         `).join("");
-
-        document.querySelectorAll(".club-row").forEach((button) => {
-            button.addEventListener("click", () => selectClub(Number(button.dataset.clubId)));
-        });
     }
 
-    async function selectClub(clubId) {
-        state.selectedClub = state.clubs.find((club) => club.id === clubId);
-        if (!state.selectedClub) return;
-
-        document.querySelectorAll(".club-row").forEach((button) => {
-            button.classList.toggle("active", Number(button.dataset.clubId) === clubId);
-        });
-
-        $("selected-club-name").textContent = state.selectedClub.clubName || state.selectedClub.clubNameEn;
-        $("student-search").value = "";
-        $("student-results").innerHTML = "";
-        await loadMembers();
-    }
-
-    async function loadMembers() {
-        if (!state.selectedClub) return;
-
+    async function loadMembers(clubId) {
         try {
-            const members = await requestJson(`/api/user/manage/clubs/${state.selectedClub.id}/members`);
-            renderMembers(members);
+            const members = await requestJson(`/api/user/manage/clubs/${clubId}/members`);
+            renderMembers(clubId, members);
         } catch (error) {
             showToast(error.message, "error");
         }
     }
 
-    function renderMembers(members) {
+    function renderMembers(clubId, members) {
+        const memberList = $(`member-list-${clubId}`);
+        const memberCount = $(`member-count-${clubId}`);
+
+        if (memberCount) {
+            memberCount.textContent = `${members.length} 名成员`;
+        }
+
         if (!members.length) {
-            $("member-list").innerHTML = `<div class="empty-state">暂无成员</div>`;
+            memberList.innerHTML = `<div class="empty-state">暂无成员</div>`;
             return;
         }
 
-        $("member-list").innerHTML = members.map((member) => memberRow(member, "remove")).join("");
-        bindMemberButtons();
+        memberList.innerHTML = members.map((member) => memberRow(member, "remove", clubId)).join("");
     }
 
-    async function searchStudents() {
-        if (!state.selectedClub) return;
+    function handleClubSearchInput(event) {
+        const input = event.target.closest("[data-club-search]");
+        if (!input) return;
 
-        const keyword = $("student-search").value.trim();
+        const clubId = Number(input.dataset.clubId);
+        clearTimeout(state.searchTimers[clubId]);
+        state.searchTimers[clubId] = setTimeout(() => searchStudents(clubId), 260);
+    }
+
+    function handleClubActionClick(event) {
+        const button = event.target.closest("[data-action]");
+        if (!button) return;
+
+        const clubId = Number(button.dataset.clubId);
+        const studentId = Number(button.dataset.userId);
+
+        if (button.dataset.action === "add") {
+            addStudent(clubId, studentId);
+        }
+
+        if (button.dataset.action === "remove") {
+            removeStudent(clubId, studentId);
+        }
+    }
+
+    async function searchStudents(clubId) {
+        const input = document.querySelector(`[data-club-search][data-club-id="${clubId}"]`);
+        const resultList = $(`student-results-${clubId}`);
+        if (!input || !resultList) return;
+
+        const keyword = input.value.trim();
         if (!keyword) {
-            $("student-results").innerHTML = "";
+            resultList.innerHTML = "";
             return;
         }
 
         try {
             const students = await requestJson(
-                `/api/user/manage/clubs/${state.selectedClub.id}/students/search?keyword=${encodeURIComponent(keyword)}`
+                `/api/user/manage/clubs/${clubId}/students/search?keyword=${encodeURIComponent(keyword)}`
             );
-            renderSearchResults(students);
+            renderSearchResults(clubId, students);
         } catch (error) {
             showToast(error.message, "error");
         }
     }
 
-    function renderSearchResults(students) {
+    function renderSearchResults(clubId, students) {
+        const resultList = $(`student-results-${clubId}`);
+
         if (!students.length) {
-            $("student-results").innerHTML = `<div class="empty-state">未找到学生</div>`;
+            resultList.innerHTML = `<div class="empty-state">未找到学生</div>`;
             return;
         }
 
-        $("student-results").innerHTML = students.map((student) => memberRow(student, student.member ? "added" : "add")).join("");
-        bindMemberButtons();
+        resultList.innerHTML = students
+            .map((student) => memberRow(student, student.member ? "added" : "add", clubId))
+            .join("");
     }
 
-    function memberRow(member, action) {
+    function memberRow(member, action, clubId) {
         const button = action === "remove"
-            ? `<button class="danger-btn" type="button" data-action="remove" data-user-id="${member.id}">移出</button>`
+            ? `<button class="danger-btn" type="button" data-action="remove" data-club-id="${clubId}" data-user-id="${member.id}">移出</button>`
             : action === "add"
-                ? `<button class="primary-btn small" type="button" data-action="add" data-user-id="${member.id}">加入</button>`
+                ? `<button class="primary-btn small" type="button" data-action="add" data-club-id="${clubId}" data-user-id="${member.id}">加入</button>`
                 : `<span class="status-pill">已在社团</span>`;
 
         return `
@@ -279,40 +297,27 @@
         `;
     }
 
-    function bindMemberButtons() {
-        document.querySelectorAll("[data-action='add']").forEach((button) => {
-            button.addEventListener("click", () => addStudent(Number(button.dataset.userId)));
-        });
-        document.querySelectorAll("[data-action='remove']").forEach((button) => {
-            button.addEventListener("click", () => removeStudent(Number(button.dataset.userId)));
-        });
-    }
-
-    async function addStudent(studentId) {
-        if (!state.selectedClub) return;
-
+    async function addStudent(clubId, studentId) {
         try {
-            await requestJson(`/api/user/manage/clubs/${state.selectedClub.id}/members/${studentId}`, {
+            await requestJson(`/api/user/manage/clubs/${clubId}/members/${studentId}`, {
                 method: "POST"
             });
             showToast("已加入社团");
-            await loadMembers();
-            await searchStudents();
+            await loadMembers(clubId);
+            await searchStudents(clubId);
         } catch (error) {
             showToast(error.message, "error");
         }
     }
 
-    async function removeStudent(studentId) {
-        if (!state.selectedClub) return;
-
+    async function removeStudent(clubId, studentId) {
         try {
-            await requestJson(`/api/user/manage/clubs/${state.selectedClub.id}/members/${studentId}`, {
+            await requestJson(`/api/user/manage/clubs/${clubId}/members/${studentId}`, {
                 method: "DELETE"
             });
             showToast("已移出社团");
-            await loadMembers();
-            await searchStudents();
+            await loadMembers(clubId);
+            await searchStudents(clubId);
         } catch (error) {
             showToast(error.message, "error");
         }
@@ -321,10 +326,10 @@
     function showToast(message, type = "success") {
         const toast = $("toast");
         toast.textContent = message;
-        toast.className = `toast ${type}`;
+        setElementClass(toast, `toast ${type}`);
         clearTimeout(toast.timer);
         toast.timer = setTimeout(() => {
-            toast.className = "toast hidden";
+            setElementClass(toast, "toast hidden");
         }, 2400);
     }
 
@@ -335,6 +340,48 @@
             .replaceAll(">", "&gt;")
             .replaceAll('"', "&quot;")
             .replaceAll("'", "&#039;");
+    }
+
+    function addClass(element, className) {
+        if (!element) return;
+        const classNames = getClassNames(element);
+        if (!classNames.includes(className)) {
+            classNames.push(className);
+        }
+        setElementClass(element, classNames.join(" "));
+    }
+
+    function removeClass(element, className) {
+        if (!element) return;
+        setElementClass(element, getClassNames(element)
+            .filter((item) => item !== className)
+            .join(" "));
+    }
+
+    function getClassNames(element) {
+        return String(element.getAttribute("class") || "")
+            .split(/\s+/)
+            .filter(Boolean);
+    }
+
+    function setElementClass(element, className) {
+        if (element) {
+            element.setAttribute("class", className);
+        }
+    }
+
+    function showNavbarManageLink() {
+        const manageLink = $("nav-club-manage-link");
+        if (manageLink) {
+            setElementClass(manageLink, "");
+        }
+    }
+
+    function hideNavbarManageLink() {
+        const manageLink = $("nav-club-manage-link");
+        if (manageLink) {
+            setElementClass(manageLink, "nav-hidden");
+        }
     }
 </script>
 </body>

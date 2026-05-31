@@ -46,8 +46,17 @@
             <a th:href="@{/page/suggestion}"
                th:text="#{nav.suggestion}"></a>
 
-            <a th:href="@{/page/club/manage}"
-               th:text="#{nav.manage}"></a>
+            <div class="dropdown" id="nav-user-menu">
+                <button type="button" class="dropbtn" aria-expanded="false"
+                        th:text="#{nav.my}">我的</button>
+
+                <div class="dropdown-content">
+                    <a th:href="@{/page/user/login}" th:text="#{nav.account}">账号管理</a>
+                    <a id="nav-club-manage-link" class="nav-hidden"
+                       th:href="@{/page/club/manage}"
+                       th:text="#{nav.myClubManage}">我的社团管理</a>
+                </div>
+            </div>
 
             <!-- 语言切换 -->
             <div class="dropdown">
@@ -154,6 +163,25 @@
                     closeAll();
                 }
             });
+        })();
+
+        (function () {
+            const manageLink = document.getElementById('nav-club-manage-link');
+            if (!manageLink) return;
+
+            fetch('/api/user/current', {
+                credentials: 'same-origin'
+            })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.code !== 200 || !result.data) return;
+
+                    const managerRoles = ['teacher', 'club-president', 'admin'];
+                    if (managerRoles.includes(result.data.role)) {
+                        manageLink.className = '';
+                    }
+                })
+                .catch(() => {});
         })();
     </script>
 </div>
