@@ -411,8 +411,7 @@ public class UserService implements IUserService{
         }
 
         return containsIgnoreCase(user.getUsername(), keyword)
-                || containsIgnoreCase(user.getUsernameEn(), keyword)
-                || containsIgnoreCase(user.getEmail(), keyword);
+                || containsIgnoreCase(user.getUsernameEn(), keyword);
     }
 
     private boolean containsIgnoreCase(String value, String keyword) {

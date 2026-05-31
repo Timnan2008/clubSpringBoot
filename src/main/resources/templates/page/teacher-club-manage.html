@@ -45,7 +45,7 @@
                         <h2 id="selected-club-name">请选择社团</h2>
                     </div>
                     <div class="search-box">
-                        <input id="student-search" type="search" placeholder="搜索学生姓名 / 英文名 / 邮箱">
+                        <input id="student-search" type="search" placeholder="搜索学生姓名 / 英文名">
                     </div>
                 </div>
 
@@ -272,7 +272,7 @@
             <div class="member-row">
                 <div>
                     <strong>${escapeHtml(member.username || member.usernameEn || "未命名学生")}</strong>
-                    <small>${escapeHtml(member.usernameEn || "")}${member.email ? " · " + escapeHtml(member.email) : ""}</small>
+                    <small>${escapeHtml(member.usernameEn || "")}</small>
                 </div>
                 ${button}
             </div>
