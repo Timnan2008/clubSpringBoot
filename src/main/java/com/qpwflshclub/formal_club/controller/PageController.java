@@ -84,6 +84,12 @@ public class PageController {
         return "page/login";
     }
 
+    @GetMapping("/club/manage")
+    public String clubManagePage(Model model) {
+        model.addAttribute("currentUri", "/page/club/manage");
+        return "page/teacher-club-manage";
+    }
+
     @GetMapping("/suggestion")
     public String suggestionPage(Model model) {
         return "page/advice";

@@ -166,8 +166,9 @@ public class ClubController {
         List<ClubVO> list = clubs.stream().map(c -> {
             ClubVO vo = new ClubVO();
 
+            vo.setId(c.getId());
             vo.setClubName(isEn ? c.getClubNameEn() : c.getClubName());
-            vo.setClubItem(c.getClubNameEn());
+            vo.setClubNameEn(c.getClubNameEn());
             vo.setSortDescription(isEn ? c.getSortDescriptionEn() : c.getSortDescription());
             vo.setClubItem(c.getClubItem());
             vo.setGreatClub(c.isGreatClub());

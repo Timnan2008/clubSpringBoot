@@ -1,13 +1,18 @@
 package com.qpwflshclub.formal_club.controller;
 
+import com.qpwflshclub.formal_club.pojo.Club.Club;
+import com.qpwflshclub.formal_club.pojo.Club.ClubVO;
 import com.qpwflshclub.formal_club.pojo.ResponseMessage;
 import com.qpwflshclub.formal_club.pojo.User.*;
 import com.qpwflshclub.formal_club.pojo.User.UserBase;
 import com.qpwflshclub.formal_club.pojo.dto.User.*;
+import jakarta.servlet.http.HttpSession;
 import com.qpwflshclub.formal_club.service.User.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/user")
@@ -139,7 +144,7 @@ public class UserController {
 
     @PostMapping("/login")
     @ResponseBody
-    public ResponseMessage<?> login(@RequestParam String email, @RequestParam String password) {
+    public ResponseMessage<LoginUserVO> login(@RequestParam String email, @RequestParam String password, HttpSession session) {
         try {
             UserBase user = userService.findByEmail(email);
 
@@ -151,19 +156,204 @@ public class UserController {
                 return ResponseMessage.error("密码错误");
             }
 
-            if (user instanceof User) {
-                return ResponseMessage.success((User) user);
-            } else if (user instanceof Teacher) {
-                return ResponseMessage.success((Teacher) user);
-            } else if (user instanceof ClubPresident) {
-                return ResponseMessage.success((ClubPresident) user);
-            } else if (user instanceof Admin) {
-                return ResponseMessage.success((Admin) user);
-            } else {
+            String role = getUserType(user);
+            if (role == null) {
                 return ResponseMessage.error("未找到该用户或类型异常");
             }
+
+            session.setAttribute("userType", role);
+            session.setAttribute("userId", user.getId());
+            return ResponseMessage.success(LoginUserVO.fromUser(user, role));
         } catch (Exception e) {
             return ResponseMessage.error("登录异常");
         }
+    }
+
+    @GetMapping("/current")
+    public ResponseMessage<LoginUserVO> current(HttpSession session) {
+        if (!hasLogin(session)) {
+            return ResponseMessage.error("请先登录");
+        }
+
+        try {
+            String userType = currentUserType(session);
+            Long userId = currentUserId(session);
+            UserBase user = findCurrentUser(userType, userId);
+            return ResponseMessage.success(LoginUserVO.fromUser(user, userType));
+        } catch (Exception e) {
+            session.invalidate();
+            return ResponseMessage.error("登录状态已失效，请重新登录");
+        }
+    }
+
+    @PostMapping("/logout")
+    public ResponseMessage<Object> logout(HttpSession session) {
+        session.invalidate();
+        return ResponseMessage.success();
+    }
+
+    @GetMapping("/manage/clubs")
+    public ResponseMessage<List<ClubVO>> findManageableClubs(HttpSession session) {
+        if (!hasManagerLogin(session)) {
+            return ResponseMessage.error("请先使用老师、社长或管理员账号登录");
+        }
+
+        try {
+            List<ClubVO> clubs = userService
+                    .findManageableClubs(currentUserType(session), currentUserId(session))
+                    .stream()
+                    .map(this::toClubVO)
+                    .toList();
+            return ResponseMessage.success(clubs);
+        } catch (IllegalArgumentException e) {
+            return ResponseMessage.error(e.getMessage());
+        }
+    }
+
+    @GetMapping("/manage/clubs/{clubId}/members")
+    public ResponseMessage<List<ClubMemberVO>> findClubMembers(@PathVariable Integer clubId, HttpSession session) {
+        if (!hasManagerLogin(session)) {
+            return ResponseMessage.error("请先使用老师、社长或管理员账号登录");
+        }
+
+        try {
+            return ResponseMessage.success(userService.findClubMembers(
+                    clubId,
+                    currentUserType(session),
+                    currentUserId(session)
+            ));
+        } catch (IllegalArgumentException e) {
+            return ResponseMessage.error(e.getMessage());
+        }
+    }
+
+    @GetMapping("/manage/clubs/{clubId}/students/search")
+    public ResponseMessage<List<ClubMemberVO>> searchStudents(
+            @PathVariable Integer clubId,
+            @RequestParam(defaultValue = "") String keyword,
+            HttpSession session
+    ) {
+        if (!hasManagerLogin(session)) {
+            return ResponseMessage.error("请先使用老师、社长或管理员账号登录");
+        }
+
+        try {
+            return ResponseMessage.success(userService.searchStudents(
+                    clubId,
+                    keyword,
+                    currentUserType(session),
+                    currentUserId(session)
+            ));
+        } catch (IllegalArgumentException e) {
+            return ResponseMessage.error(e.getMessage());
+        }
+    }
+
+    @PostMapping("/manage/clubs/{clubId}/members/{studentId}")
+    public ResponseMessage<ClubMemberVO> addStudentToClub(
+            @PathVariable Integer clubId,
+            @PathVariable Long studentId,
+            HttpSession session
+    ) {
+        if (!hasManagerLogin(session)) {
+            return ResponseMessage.error("请先使用老师、社长或管理员账号登录");
+        }
+
+        try {
+            ClubMemberVO member = userService.addStudentToClub(
+                    clubId,
+                    studentId,
+                    currentUserType(session),
+                    currentUserId(session)
+            );
+            return ResponseMessage.success(member);
+        } catch (IllegalArgumentException e) {
+            return ResponseMessage.error(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/manage/clubs/{clubId}/members/{studentId}")
+    public ResponseMessage<ClubMemberVO> removeStudentFromClub(
+            @PathVariable Integer clubId,
+            @PathVariable Long studentId,
+            HttpSession session
+    ) {
+        if (!hasManagerLogin(session)) {
+            return ResponseMessage.error("请先使用老师、社长或管理员账号登录");
+        }
+
+        try {
+            ClubMemberVO member = userService.removeStudentFromClub(
+                    clubId,
+                    studentId,
+                    currentUserType(session),
+                    currentUserId(session)
+            );
+            return ResponseMessage.success(member);
+        } catch (IllegalArgumentException e) {
+            return ResponseMessage.error(e.getMessage());
+        }
+    }
+
+    private String getUserType(UserBase user) {
+        if (user instanceof User) {
+            return "user";
+        }
+        if (user instanceof Teacher) {
+            return "teacher";
+        }
+        if (user instanceof ClubPresident) {
+            return "club-president";
+        }
+        if (user instanceof Admin) {
+            return "admin";
+        }
+        return null;
+    }
+
+    private boolean hasLogin(HttpSession session) {
+        return currentUserType(session) != null && currentUserId(session) != null;
+    }
+
+    private boolean hasManagerLogin(HttpSession session) {
+        String userType = currentUserType(session);
+        return hasLogin(session)
+                && ("teacher".equals(userType) || "club-president".equals(userType) || "admin".equals(userType));
+    }
+
+    private String currentUserType(HttpSession session) {
+        Object value = session.getAttribute("userType");
+        return value instanceof String ? (String) value : null;
+    }
+
+    private Long currentUserId(HttpSession session) {
+        Object value = session.getAttribute("userId");
+        if (value instanceof Number number) {
+            return number.longValue();
+        }
+        return null;
+    }
+
+    private UserBase findCurrentUser(String userType, Long userId) {
+        return switch (userType) {
+            case "teacher" -> userService.findTeacherByID(userId);
+            case "club-president" -> userService.findClubPresidentByID(userId);
+            case "admin" -> userService.findAdminByID(userId);
+            case "user" -> userService.findUserById(userId);
+            default -> throw new IllegalArgumentException("不支持的用户类型");
+        };
+    }
+
+    private ClubVO toClubVO(Club club) {
+        ClubVO vo = new ClubVO();
+        vo.setId(club.getId());
+        vo.setClubName(club.getClubName());
+        vo.setClubNameEn(club.getClubNameEn());
+        vo.setClubItem(club.getClubItem());
+        vo.setClubClass(club.getClubClass());
+        vo.setClubURL(club.getClubURL());
+        vo.setSortDescription(club.getSortDescription());
+        vo.setGreatClub(club.isGreatClub());
+        return vo;
     }
 }

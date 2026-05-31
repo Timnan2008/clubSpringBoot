@@ -1,0 +1,328 @@
+body {
+    min-height: 100vh;
+    padding-top: calc(var(--navbar-height) + 28px);
+}
+
+.manage-page {
+    width: min(1180px, calc(100vw - 40px));
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.login-panel,
+.manager-panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-md);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+}
+
+.login-panel {
+    width: min(460px, 100%);
+    margin: 72px auto 0;
+    padding: 28px;
+}
+
+.login-panel h1 {
+    font-size: 24px;
+    margin-bottom: 22px;
+    color: var(--text-primary);
+}
+
+.form-grid {
+    display: grid;
+    gap: 12px;
+}
+
+input {
+    width: 100%;
+    height: 44px;
+    border: 1px solid var(--border-medium);
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, .84);
+    color: var(--text-primary);
+    font: inherit;
+    padding: 0 14px;
+    outline: none;
+}
+
+input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, .1);
+}
+
+button {
+    font: inherit;
+}
+
+.primary-btn,
+.ghost-btn,
+.danger-btn {
+    min-height: 40px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    padding: 0 16px;
+    cursor: pointer;
+    transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease;
+}
+
+.primary-btn {
+    background: var(--primary);
+    color: #fff;
+    font-weight: 700;
+    box-shadow: 0 8px 20px var(--primary-shadow);
+}
+
+.primary-btn:hover,
+.ghost-btn:hover,
+.danger-btn:hover {
+    transform: translateY(-1px);
+}
+
+.primary-btn.small {
+    min-height: 34px;
+    padding: 0 14px;
+    font-size: 13px;
+}
+
+.ghost-btn {
+    background: rgba(255, 255, 255, .7);
+    color: var(--text-primary);
+    border-color: var(--border-medium);
+}
+
+.danger-btn {
+    min-height: 34px;
+    background: #fff1f2;
+    color: #be123c;
+    border-color: #fecdd3;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.login-panel .primary-btn {
+    width: 100%;
+    margin-top: 16px;
+}
+
+.message-line {
+    min-height: 22px;
+    margin-top: 12px;
+    color: #be123c;
+    font-size: 13px;
+}
+
+.manager-panel {
+    padding: 24px;
+}
+
+.manager-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.manager-header h1,
+.members-toolbar h2 {
+    margin: 0;
+    color: var(--text-primary);
+    line-height: 1.2;
+}
+
+.manager-header h1 {
+    font-size: 26px;
+}
+
+.eyebrow-text,
+.panel-title {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+
+.manager-layout {
+    display: grid;
+    grid-template-columns: 300px minmax(0, 1fr);
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.club-sidebar,
+.members-panel {
+    background: rgba(255, 255, 255, .62);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+}
+
+.club-sidebar {
+    padding: 16px;
+}
+
+.club-list {
+    display: grid;
+    gap: 10px;
+    margin-top: 12px;
+    max-height: 640px;
+    overflow-y: auto;
+}
+
+.club-row {
+    width: 100%;
+    min-height: 64px;
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, .74);
+    text-align: left;
+    color: var(--text-primary);
+    cursor: pointer;
+}
+
+.club-row.active {
+    border-color: var(--primary);
+    background: var(--primary-bg);
+}
+
+.club-row img {
+    width: 44px;
+    height: 44px;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+    background: #fff;
+}
+
+.club-row span,
+.member-row div {
+    min-width: 0;
+}
+
+.club-row strong,
+.member-row strong {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.club-row small,
+.member-row small {
+    display: block;
+    color: var(--text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.members-panel {
+    padding: 18px;
+    min-height: 560px;
+}
+
+.members-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 360px);
+    align-items: end;
+    gap: 16px;
+}
+
+.search-box input {
+    margin: 0;
+}
+
+.result-list,
+.member-list {
+    display: grid;
+    gap: 10px;
+}
+
+.result-list {
+    margin-top: 16px;
+}
+
+.member-title {
+    margin-top: 24px;
+    margin-bottom: 10px;
+}
+
+.member-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    min-height: 58px;
+    padding: 10px 12px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, .78);
+}
+
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    height: 30px;
+    padding: 0 10px;
+    border-radius: var(--radius-sm);
+    background: #ecfdf5;
+    color: #047857;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.empty-state {
+    padding: 18px;
+    border: 1px dashed var(--border-medium);
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    background: rgba(255, 255, 255, .52);
+    text-align: center;
+}
+
+.toast {
+    position: fixed;
+    right: 22px;
+    bottom: 22px;
+    z-index: 1100;
+    min-width: 180px;
+    max-width: min(360px, calc(100vw - 44px));
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    background: #052e2b;
+    color: #fff;
+    box-shadow: var(--shadow-lg);
+}
+
+.toast.error {
+    background: #7f1d1d;
+}
+
+@media (max-width: 860px) {
+    .manage-page {
+        width: min(100%, calc(100vw - 24px));
+    }
+
+    .manager-layout,
+    .members-toolbar {
+        grid-template-columns: 1fr;
+    }
+
+    .club-list {
+        max-height: 260px;
+    }
+}

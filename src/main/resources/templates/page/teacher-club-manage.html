@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="/other%20photo/WFL-logo.png">
+    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/teacher-club-manage_style.css">
+    <title>社团成员管理</title>
+</head>
+<body>
+<div th:replace="fragments/navbar :: navbar"></div>
+<div th:replace="fragments/particle :: particle"></div>
+
+<main class="manage-page">
+    <section id="login-panel" class="login-panel">
+        <h1>社团成员管理</h1>
+        <div class="form-grid">
+            <input id="login-email" type="email" autocomplete="email" placeholder="管理账号邮箱">
+            <input id="login-password" type="password" autocomplete="current-password" placeholder="密码">
+        </div>
+        <button id="login-btn" class="primary-btn" type="button">登录</button>
+        <p id="login-error" class="message-line"></p>
+    </section>
+
+    <section id="manager-panel" class="manager-panel hidden">
+        <header class="manager-header">
+            <div>
+                <p id="manager-role" class="eyebrow-text">管理账号</p>
+                <h1 id="manager-name">社团成员管理</h1>
+            </div>
+            <button id="logout-btn" class="ghost-btn" type="button">退出</button>
+        </header>
+
+        <div class="manager-layout">
+            <aside class="club-sidebar">
+                <div class="panel-title">负责社团</div>
+                <div id="club-list" class="club-list"></div>
+            </aside>
+
+            <section class="members-panel">
+                <div class="members-toolbar">
+                    <div>
+                        <p class="eyebrow-text">当前社团</p>
+                        <h2 id="selected-club-name">请选择社团</h2>
+                    </div>
+                    <div class="search-box">
+                        <input id="student-search" type="search" placeholder="搜索学生姓名 / 英文名 / 邮箱">
+                    </div>
+                </div>
+
+                <div id="student-results" class="result-list"></div>
+
+                <div class="panel-title member-title">社团成员</div>
+                <div id="member-list" class="member-list"></div>
+            </section>
+        </div>
+    </section>
+</main>
+
+<div id="toast" class="toast hidden"></div>
+
+<script>
+    const state = {
+        user: null,
+        clubs: [],
+        selectedClub: null,
+        searchTimer: null
+    };
+
+    const roleText = {
+        "teacher": "老师",
+        "club-president": "社长",
+        "admin": "管理员",
+        "user": "学生"
+    };
+
+    const $ = (id) => document.getElementById(id);
+
+    document.addEventListener("DOMContentLoaded", () => {
+        $("login-btn").addEventListener("click", login);
+        $("logout-btn").addEventListener("click", logout);
+        $("student-search").addEventListener("input", () => {
+            clearTimeout(state.searchTimer);
+            state.searchTimer = setTimeout(searchStudents, 260);
+        });
+        loadCurrentUser();
+    });
+
+    async function requestJson(url, options = {}) {
+        const res = await fetch(url, {
+            credentials: "same-origin",
+            ...options
+        });
+        const result = await res.json();
+        if (result.code !== 200) {
+            throw new Error(result.message || "请求失败");
+        }
+        return result.data;
+    }
+
+    async function login() {
+        const email = $("login-email").value.trim();
+        const password = $("login-password").value;
+        $("login-error").textContent = "";
+
+        if (!email || !password) {
+            $("login-error").textContent = "请输入邮箱和密码";
+            return;
+        }
+
+        try {
+            const params = new URLSearchParams({ email, password });
+            const user = await requestJson(`/api/user/login?${params.toString()}`, {
+                method: "POST"
+            });
+            setCurrentUser(user);
+        } catch (error) {
+            $("login-error").textContent = error.message;
+        }
+    }
+
+    async function loadCurrentUser() {
+        try {
+            const user = await requestJson("/api/user/current");
+            setCurrentUser(user);
+        } catch (error) {
+            showLoginPanel();
+        }
+    }
+
+    async function logout() {
+        await fetch("/api/user/logout", {
+            method: "POST",
+            credentials: "same-origin"
+        });
+        state.user = null;
+        state.clubs = [];
+        state.selectedClub = null;
+        showLoginPanel();
+    }
+
+    function setCurrentUser(user) {
+        state.user = user;
+
+        if (!["teacher", "club-president", "admin"].includes(user.role)) {
+            $("login-error").textContent = "学生账号不能管理社团";
+            showLoginPanel();
+            return;
+        }
+
+        $("login-panel").classList.add("hidden");
+        $("manager-panel").classList.remove("hidden");
+        $("manager-name").textContent = user.username || user.usernameEn || "管理账号";
+        $("manager-role").textContent = roleText[user.role] || "管理账号";
+        loadManageableClubs();
+    }
+
+    function showLoginPanel() {
+        $("manager-panel").classList.add("hidden");
+        $("login-panel").classList.remove("hidden");
+        $("club-list").innerHTML = "";
+        $("member-list").innerHTML = "";
+        $("student-results").innerHTML = "";
+        $("selected-club-name").textContent = "请选择社团";
+    }
+
+    async function loadManageableClubs() {
+        try {
+            state.clubs = await requestJson("/api/user/manage/clubs");
+            renderClubList();
+
+            if (state.clubs.length > 0) {
+                selectClub(state.clubs[0].id);
+            } else {
+                $("club-list").innerHTML = `<div class="empty-state">暂无负责社团</div>`;
+                $("member-list").innerHTML = "";
+            }
+        } catch (error) {
+            showToast(error.message, "error");
+        }
+    }
+
+    function renderClubList() {
+        $("club-list").innerHTML = state.clubs.map((club) => `
+            <button class="club-row" type="button" data-club-id="${club.id}">
+                <img src="${club.clubItem || "/other%20photo/WFL-logo.png"}" alt="">
+                <span>
+                    <strong>${escapeHtml(club.clubName || club.clubNameEn || "未命名社团")}</strong>
+                    <small>${escapeHtml(club.clubNameEn || "")}</small>
+                </span>
+            </button>
+        `).join("");
+
+        document.querySelectorAll(".club-row").forEach((button) => {
+            button.addEventListener("click", () => selectClub(Number(button.dataset.clubId)));
+        });
+    }
+
+    async function selectClub(clubId) {
+        state.selectedClub = state.clubs.find((club) => club.id === clubId);
+        if (!state.selectedClub) return;
+
+        document.querySelectorAll(".club-row").forEach((button) => {
+            button.classList.toggle("active", Number(button.dataset.clubId) === clubId);
+        });
+
+        $("selected-club-name").textContent = state.selectedClub.clubName || state.selectedClub.clubNameEn;
+        $("student-search").value = "";
+        $("student-results").innerHTML = "";
+        await loadMembers();
+    }
+
+    async function loadMembers() {
+        if (!state.selectedClub) return;
+
+        try {
+            const members = await requestJson(`/api/user/manage/clubs/${state.selectedClub.id}/members`);
+            renderMembers(members);
+        } catch (error) {
+            showToast(error.message, "error");
+        }
+    }
+
+    function renderMembers(members) {
+        if (!members.length) {
+            $("member-list").innerHTML = `<div class="empty-state">暂无成员</div>`;
+            return;
+        }
+
+        $("member-list").innerHTML = members.map((member) => memberRow(member, "remove")).join("");
+        bindMemberButtons();
+    }
+
+    async function searchStudents() {
+        if (!state.selectedClub) return;
+
+        const keyword = $("student-search").value.trim();
+        if (!keyword) {
+            $("student-results").innerHTML = "";
+            return;
+        }
+
+        try {
+            const students = await requestJson(
+                `/api/user/manage/clubs/${state.selectedClub.id}/students/search?keyword=${encodeURIComponent(keyword)}`
+            );
+            renderSearchResults(students);
+        } catch (error) {
+            showToast(error.message, "error");
+        }
+    }
+
+    function renderSearchResults(students) {
+        if (!students.length) {
+            $("student-results").innerHTML = `<div class="empty-state">未找到学生</div>`;
+            return;
+        }
+
+        $("student-results").innerHTML = students.map((student) => memberRow(student, student.member ? "added" : "add")).join("");
+        bindMemberButtons();
+    }
+
+    function memberRow(member, action) {
+        const button = action === "remove"
+            ? `<button class="danger-btn" type="button" data-action="remove" data-user-id="${member.id}">移出</button>`
+            : action === "add"
+                ? `<button class="primary-btn small" type="button" data-action="add" data-user-id="${member.id}">加入</button>`
+                : `<span class="status-pill">已在社团</span>`;
+
+        return `
+            <div class="member-row">
+                <div>
+                    <strong>${escapeHtml(member.username || member.usernameEn || "未命名学生")}</strong>
+                    <small>${escapeHtml(member.usernameEn || "")}${member.email ? " · " + escapeHtml(member.email) : ""}</small>
+                </div>
+                ${button}
+            </div>
+        `;
+    }
+
+    function bindMemberButtons() {
+        document.querySelectorAll("[data-action='add']").forEach((button) => {
+            button.addEventListener("click", () => addStudent(Number(button.dataset.userId)));
+        });
+        document.querySelectorAll("[data-action='remove']").forEach((button) => {
+            button.addEventListener("click", () => removeStudent(Number(button.dataset.userId)));
+        });
+    }
+
+    async function addStudent(studentId) {
+        if (!state.selectedClub) return;
+
+        try {
+            await requestJson(`/api/user/manage/clubs/${state.selectedClub.id}/members/${studentId}`, {
+                method: "POST"
+            });
+            showToast("已加入社团");
+            await loadMembers();
+            await searchStudents();
+        } catch (error) {
+            showToast(error.message, "error");
+        }
+    }
+
+    async function removeStudent(studentId) {
+        if (!state.selectedClub) return;
+
+        try {
+            await requestJson(`/api/user/manage/clubs/${state.selectedClub.id}/members/${studentId}`, {
+                method: "DELETE"
+            });
+            showToast("已移出社团");
+            await loadMembers();
+            await searchStudents();
+        } catch (error) {
+            showToast(error.message, "error");
+        }
+    }
+
+    function showToast(message, type = "success") {
+        const toast = $("toast");
+        toast.textContent = message;
+        toast.className = `toast ${type}`;
+        clearTimeout(toast.timer);
+        toast.timer = setTimeout(() => {
+            toast.className = "toast hidden";
+        }, 2400);
+    }
+
+    function escapeHtml(value) {
+        return String(value)
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+    }
+</script>
+</body>
+</html>
