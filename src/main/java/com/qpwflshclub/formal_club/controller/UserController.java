@@ -272,10 +272,42 @@ public class UserController {
     @GetMapping("/all")
     public ResponseMessage<List<UserBase>> getAllUsers(HttpServletRequest request) {
         UserBase currentUser = (UserBase) request.getAttribute("currentUser");
-        if (currentUser == null || !(currentUser instanceof Admin) && currentUser.getUserRight() < 3) {
-            return ResponseMessage.error("无权限：只有管理员可以查看所有用户");
+        if (currentUser == null || currentUser.getUserRight() < 2) {
+            return ResponseMessage.error("无权限：只有老师和管理员可以查看所有用户");
         }
         List<UserBase> list = userService.findAllUsers();
         return new ResponseMessage<>(200, "查询成功", list);
+    }
+
+    /**
+     * 改变用户职位（只有管理员可以操作）
+     * POST /api/user/change-role
+     * 请求体：{ "usernameEn": "xxx", "newRole": 0|2|3 }
+     * newRole: 0-普通用户, 2-老师, 3-管理员
+     */
+    @PostMapping("/change-role")
+    public ResponseMessage<UserBase> changeRole(@RequestBody java.util.Map<String, Object> requestBody, HttpServletRequest request) {
+        UserBase currentUser = (UserBase) request.getAttribute("currentUser");
+        // 只有管理员（UserRight == 3）可以改变用户职位
+        if (currentUser == null || currentUser.getUserRight() != 3) {
+            return ResponseMessage.error("无权限：只有管理员可以改变用户职位");
+        }
+
+        String usernameEn = (String) requestBody.get("usernameEn");
+        Integer newRole = (Integer) requestBody.get("newRole");
+
+        if (usernameEn == null || usernameEn.isBlank()) {
+            return ResponseMessage.error("用户名不能为空");
+        }
+        if (newRole == null || (newRole != 0 && newRole != 2 && newRole != 3)) {
+            return ResponseMessage.error("无效的目标职位：只能转换为普通用户(0)、老师(2)或管理员(3)");
+        }
+
+        try {
+            UserBase updatedUser = userService.changeRole(usernameEn, newRole);
+            return ResponseMessage.success(updatedUser);
+        } catch (IllegalArgumentException e) {
+            return ResponseMessage.error(e.getMessage());
+        }
     }
 }

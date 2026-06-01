@@ -8,6 +8,7 @@ import com.qpwflshclub.formal_club.repository.User.AdminRepository;
 import com.qpwflshclub.formal_club.repository.User.ClubPresidentRepository;
 import com.qpwflshclub.formal_club.repository.User.TeacherRepository;
 import com.qpwflshclub.formal_club.repository.User.UserRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -541,14 +542,167 @@ public class UserService implements IUserService{
         allUsers.addAll((Collection<? extends UserBase>) clubPresidentRepository.findAll());
         allUsers.addAll((Collection<? extends UserBase>) adminRepository.findAll());
 
-        // 按照中文名 (Username) 进行排序（如果没中文名按英文名排）
+        // 按照数字-字母-汉字排序
         allUsers.sort((u1, u2) -> {
-            String name1 = u1.getUsername() != null ? u1.getUsername() : "";
-            String name2 = u2.getUsername() != null ? u2.getUsername() : "";
-            return name1.compareTo(name2);
+            String name1 = u1.getUsername() != null ? u1.getUsername() : u1.getUsernameEn() != null ? u1.getUsernameEn() : "";
+            String name2 = u2.getUsername() != null ? u2.getUsername() : u2.getUsernameEn() != null ? u2.getUsernameEn() : "";
+            return compareChineseStrings(name1, name2);
         });
 
         return allUsers;
+    }
+
+    /**
+     * 按数字-字母-汉字顺序排序的比较器
+     * 数字排在最前，然后是字母，最后是汉字
+     */
+    private int compareChineseStrings(String s1, String s2) {
+        for (int i = 0; i < Math.min(s1.length(), s2.length()); i++) {
+            char c1 = s1.charAt(i);
+            char c2 = s2.charAt(i);
+
+            // 检查字符类型
+            boolean isDigit1 = Character.isDigit(c1);
+            boolean isDigit2 = Character.isDigit(c2);
+            boolean isLetter1 = Character.isLetter(c1);
+            boolean isLetter2 = Character.isLetter(c2);
+            boolean isChinese1 = isChinese(c1);
+            boolean isChinese2 = isChinese(c2);
+
+            // 数字优先
+            if (isDigit1 && !isDigit2) return -1;
+            if (!isDigit1 && isDigit2) return 1;
+
+            // 字母次之
+            if (isLetter1 && !isLetter2 && !isDigit2) return -1;
+            if (!isLetter1 && isLetter2 && !isDigit1) return 1;
+
+            // 汉字最后
+            if (isChinese1 && !isChinese2 && !isDigit2 && !isLetter2) return 1;
+            if (!isChinese1 && isChinese2 && !isDigit1 && !isLetter1) return -1;
+
+            // 同类型字符，直接比较
+            int result = Character.compare(c1, c2);
+            if (result != 0) return result;
+        }
+
+        // 如果前面都相同，比较长度
+        return Integer.compare(s1.length(), s2.length());
+    }
+
+    /**
+     * 判断字符是否为汉字
+     */
+    private boolean isChinese(char c) {
+        Character.UnicodeBlock block = Character.UnicodeBlock.of(c);
+        return block == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS
+                || block == Character.UnicodeBlock.CJK_COMPATIBILITY_IDEOGRAPHS
+                || block == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS_EXTENSION_A
+                || block == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS_EXTENSION_B;
+    }
+
+    @Override
+    @Transactional
+    public UserBase changeRole(String usernameEn, int newRole) {
+        // 首先找到用户
+        UserBase user = findByNameEn(usernameEn);
+        if (user == null) {
+            throw new IllegalArgumentException("未找到该用户");
+        }
+
+        // 如果用户已经是目标角色，直接返回
+        if (user.getUserRight() == newRole) {
+            return user;
+        }
+
+        // 根据目标角色进行转换
+        switch (newRole) {
+            case 0 -> {
+                return convertToUser(user);
+            }
+            case 2 -> {
+                return convertToTeacher(user);
+            }
+            case 3 -> {
+                return convertToAdmin(user);
+            }
+            default -> throw new IllegalArgumentException("不支持的目标角色: " + newRole);
+        }
+    }
+
+    /**
+     * 将用户转换为普通用户
+     */
+    private User convertToUser(UserBase user) {
+        User newUser = new User();
+        newUser.setUsername(user.getUsername());
+        newUser.setUsernameEn(user.getUsernameEn());
+        newUser.setEmail(user.getEmail());
+        newUser.setPassword(user.getPassword());
+        newUser.setClubs(new java.util.ArrayList<>());
+        if (user.getClubs() != null) {
+            newUser.getClubs().addAll(user.getClubs());
+        }
+
+        // 删除原用户
+        deleteUserByType(user);
+
+        return userRepository.save(newUser);
+    }
+
+    /**
+     * 将用户转换为老师
+     */
+    private Teacher convertToTeacher(UserBase user) {
+        Teacher newTeacher = new Teacher();
+        newTeacher.setUsername(user.getUsername());
+        newTeacher.setUsernameEn(user.getUsernameEn());
+        newTeacher.setEmail(user.getEmail());
+        newTeacher.setPassword(user.getPassword());
+        newTeacher.setClubs(new java.util.ArrayList<>());
+        if (user.getClubs() != null) {
+            newTeacher.getClubs().addAll(user.getClubs());
+        }
+
+        // 删除原用户
+        deleteUserByType(user);
+
+        return teacherRepository.save(newTeacher);
+    }
+
+    /**
+     * 将用户转换为管理员
+     */
+    private Admin convertToAdmin(UserBase user) {
+        Admin newAdmin = new Admin();
+        newAdmin.setUsername(user.getUsername());
+        newAdmin.setUsernameEn(user.getUsernameEn());
+        newAdmin.setEmail(user.getEmail());
+        newAdmin.setPassword(user.getPassword());
+        newAdmin.setClubs(new java.util.ArrayList<>());
+        if (user.getClubs() != null) {
+            newAdmin.getClubs().addAll(user.getClubs());
+        }
+
+        // 删除原用户
+        deleteUserByType(user);
+
+        return adminRepository.save(newAdmin);
+    }
+
+    /**
+     * 根据用户类型删除用户
+     */
+    private void deleteUserByType(UserBase user) {
+        if (user instanceof User) {
+            userRepository.delete((User) user);
+        } else if (user instanceof Teacher) {
+            teacherRepository.delete((Teacher) user);
+        } else if (user instanceof ClubPresident) {
+            clubPresidentRepository.delete((ClubPresident) user);
+        } else if (user instanceof Admin) {
+            adminRepository.delete((Admin) user);
+        }
     }
 
 }
