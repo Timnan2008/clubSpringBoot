@@ -50,6 +50,7 @@
             document.getElementById("club-intro").textContent = club.clubDescription || "暂无介绍";
             document.getElementById("club-intro").style.display = 'block';
             document.getElementById("club-logo").src = club.clubItem;
+            document.getElementById("club-video").src = club.video;
 
             // 🌟 2. 社团数据加载完后，立即触发权限检查
             checkUserPermission(clubName);

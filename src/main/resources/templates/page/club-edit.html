@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <div th:replace="fragments/notice :: notice"></div>
+
     <title>修改社团信息</title>
     <link rel="stylesheet" href="/css/common.css?v=2">
     <style>
@@ -62,7 +62,7 @@
     </style>
 </head>
 <body>
-
+<div th:replace="fragments/notice :: notice"></div>
 <div class="edit-container">
     <h2>📝 修改社团核心信息</h2>
     <form id="edit-club-form">
@@ -127,7 +127,6 @@
             </div>
         </div>
 
-        <!-- 宣传视频上传 -->
         <div class="form-group full-width">
             <label>宣传视频 URL</label>
             <input type="text" id="video">
@@ -165,48 +164,6 @@
 </div>
 
 <script>
-    // 上传函数
-    function uploadFile(file, type, callback) {
-        const formData = new FormData();
-        formData.append("file", file);
-
-        const clubId = document.getElementById("clubId").value; // ✔ 取 value
-
-        fetch(`/api/club/upload/logo/${clubId}`, {
-            method: "POST",
-            body: formData
-        })
-            .then(res => res.json())
-            .then(result => {
-                if(result.code === 200 && result.data) {
-                    callback(result.data); // 返回文件 URL
-                } else {
-                    alert("上传失败: " + (result.message || "未知错误"));
-                }
-            })
-            .catch(err => alert("上传错误: " + err));
-    }
-
-    // Logo 文件上传
-    document.getElementById("clubLogoFile").addEventListener("change", function(e){
-        const file = e.target.files[0];
-        if(file) {
-            uploadFile(file, "logo", function(url){
-                document.getElementById("clubItem").value = url;
-            });
-        }
-    });
-
-    // 视频文件上传
-    document.getElementById("videoFile").addEventListener("change", function(e){
-        const file = e.target.files[0];
-        if(file) {
-            uploadFile(file, "video", function(url){
-                document.getElementById("video").value = url;
-            });
-        }
-    });
-
     // 覆写或增强原始的 openNotice26 方法，使其支持动态传入文字内容
     const originalOpenNotice26 = window.openNotice26;
     window.openNotice26 = function(flag, config) {
@@ -371,29 +328,29 @@
             method: 'POST',
             body: formData
         })
-        .then(res => res.json())
-        .then(result => {
-            console.log('上传结果:', result);
-            if (result.code === 200) {
-                const urlInput = document.getElementById('clubItem');
-                urlInput.value = result.data;
+            .then(res => res.json())
+            .then(result => {
+                console.log('上传结果:', result);
+                if (result.code === 200) {
+                    const urlInput = document.getElementById('clubItem');
+                    urlInput.value = result.data;
+                    document.getElementById('logo-upload-status').innerHTML =
+                        '<span class="upload-success">✓ 图标上传成功！URL: ' + result.data + '</span>';
+                } else {
+                    document.getElementById('logo-upload-status').innerHTML =
+                        `<span class="upload-error">✗ ${result.message}</span>`;
+                }
+            })
+            .catch(err => {
                 document.getElementById('logo-upload-status').innerHTML =
-                    '<span class="upload-success">✓ 图标上传成功！URL: ' + result.data + '</span>';
-            } else {
-                document.getElementById('logo-upload-status').innerHTML =
-                    `<span class="upload-error">✗ ${result.message}</span>`;
-            }
-        })
-        .catch(err => {
-            document.getElementById('logo-upload-status').innerHTML = 
-                '<span class="upload-error">✗ 上传失败，请检查网络连接</span>';
-        })
-        .finally(() => {
-            uploadBtn.disabled = false;
-            uploadBtn.textContent = '上传图标';
-            // 重置文件输入
-            e.target.value = '';
-        });
+                    '<span class="upload-error">✗ 上传失败，请检查网络连接</span>';
+            })
+            .finally(() => {
+                uploadBtn.disabled = false;
+                uploadBtn.textContent = '上传图标';
+                // 重置文件输入
+                e.target.value = '';
+            });
     });
 
     // 上传视频
@@ -412,29 +369,29 @@
             method: 'POST',
             body: formData
         })
-        .then(res => res.json())
-        .then(result => {
-            console.log('视频上传结果:', result);
-            if (result.code === 200) {
-                const urlInput = document.getElementById('video');
-                urlInput.value = result.data;
+            .then(res => res.json())
+            .then(result => {
+                console.log('视频上传结果:', result);
+                if (result.code === 200) {
+                    const urlInput = document.getElementById('video');
+                    urlInput.value = result.data;
+                    document.getElementById('video-upload-status').innerHTML =
+                        '<span class="upload-success">✓ 视频上传成功！URL: ' + result.data + '</span>';
+                } else {
+                    document.getElementById('video-upload-status').innerHTML =
+                        `<span class="upload-error">✗ ${result.message}</span>`;
+                }
+            })
+            .catch(err => {
                 document.getElementById('video-upload-status').innerHTML =
-                    '<span class="upload-success">✓ 视频上传成功！URL: ' + result.data + '</span>';
-            } else {
-                document.getElementById('video-upload-status').innerHTML =
-                    `<span class="upload-error">✗ ${result.message}</span>`;
-            }
-        })
-        .catch(err => {
-            document.getElementById('video-upload-status').innerHTML = 
-                '<span class="upload-error">✗ 上传失败，请检查网络连接</span>';
-        })
-        .finally(() => {
-            uploadBtn.disabled = false;
-            uploadBtn.textContent = '上传视频';
-            // 重置文件输入
-            e.target.value = '';
-        });
+                    '<span class="upload-error">✗ 上传失败，请检查网络连接</span>';
+            })
+            .finally(() => {
+                uploadBtn.disabled = false;
+                uploadBtn.textContent = '上传视频';
+                // 重置文件输入
+                e.target.value = '';
+            });
     });
 </script>
 </body>
