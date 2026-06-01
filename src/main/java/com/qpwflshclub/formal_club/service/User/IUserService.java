@@ -33,6 +33,7 @@ public interface IUserService {
     <T extends UserBase> T findByEmail(String email);
 
     List<Map<String, Object>> getClubMembersWithRoles(Integer clubId);
+    List<Map<String, Object>> searchStudentsForClub(Integer clubId, String keyword);
     void updateClubStaffRole(Integer clubId, Long targetUserId, String newRole);
     void addStudentToClubRelationship(Long userId, Integer clubId);
     void removeStudentFromClubRelationship(Long userId, Integer clubId);

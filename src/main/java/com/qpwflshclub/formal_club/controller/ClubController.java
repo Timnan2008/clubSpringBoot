@@ -13,6 +13,7 @@ import com.qpwflshclub.formal_club.pojo.User.*;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,6 +35,15 @@ public class ClubController {
 
     private UserBase getCurrentUser(HttpServletRequest request) {
         return (UserBase) request.getAttribute("currentUser");
+    }
+
+    private UserBase getManagedCurrentUser(HttpServletRequest request) {
+        UserBase user = getCurrentUser(request);
+        if (user == null || user.getEmail() == null || user.getEmail().isBlank()) {
+            return user;
+        }
+        UserBase managedUser = userService.findByEmail(user.getEmail());
+        return managedUser != null ? managedUser : user;
     }
 
     private boolean isAdminOrTeacher(UserBase user) {
@@ -382,9 +392,10 @@ public class ClubController {
      * 2. 【老师/社长管理面板】获取当前社团的所有成员（包含身份标签）
      * 对应前端请求: GET /api/club/{clubId}/members
      */
+    @Transactional(readOnly = true)
     @GetMapping("/{clubId}/members")
     public ResponseMessage<List<Map<String, Object>>> getClubMembers(@PathVariable Integer clubId, HttpServletRequest request) {
-        UserBase user = getCurrentUser(request);
+        UserBase user = getManagedCurrentUser(request);
         Club club = clubService.find(clubId);
         if (!canManageClub(user, club)) {
             return ResponseMessage.error("无权限：您无权查看该社团成员");
@@ -393,10 +404,43 @@ public class ClubController {
         return ResponseMessage.success(members);
     }
 
+    @Transactional(readOnly = true)
+    @GetMapping("/{clubId}/students/search")
+    public ResponseMessage<List<Map<String, Object>>> searchStudentsForClub(
+            @PathVariable Integer clubId,
+            @RequestParam(value = "keyword", required = false) String keyword,
+            HttpServletRequest request) {
+        UserBase user = getManagedCurrentUser(request);
+        Club club = clubService.find(clubId);
+        if (!canManageClub(user, club)) {
+            return ResponseMessage.error("无权限：您无权搜索该社团可添加学生");
+        }
+        return ResponseMessage.success(userService.searchStudentsForClub(clubId, keyword));
+    }
+
+    @Transactional
+    @PostMapping("/member/add")
+    public ResponseMessage<String> addMember(@RequestBody Map<String, Object> payload, HttpServletRequest request) {
+        UserBase user = getManagedCurrentUser(request);
+        Integer clubId = Integer.valueOf(payload.get("clubId").toString());
+        Club club = clubService.find(clubId);
+        if (!canManageClub(user, club)) {
+            return ResponseMessage.error("无权限：您无权添加该社团成员");
+        }
+        try {
+            Long targetUserId = Long.valueOf(payload.get("userId").toString());
+            userService.addStudentToClubRelationship(targetUserId, clubId);
+            return ResponseMessage.success("已成功添加学生");
+        } catch (Exception e) {
+            return ResponseMessage.error("添加失败: " + e.getMessage());
+        }
+    }
+
+    @Transactional
     @PutMapping("/member/update")
     public ResponseMessage<String> updateMemberRole(@RequestBody Map<String, Object> payload, HttpServletRequest request) {
-        UserBase user = getCurrentUser(request);
-        Integer clubId = (Integer) payload.get("clubId");
+        UserBase user = getManagedCurrentUser(request);
+        Integer clubId = Integer.valueOf(payload.get("clubId").toString());
         Club club = clubService.find(clubId);
         if (!canManageClub(user, club)) {
             return ResponseMessage.error("无权限：您无权修改该社团成员职位");
@@ -412,10 +456,11 @@ public class ClubController {
         }
     }
 
+    @Transactional
     @DeleteMapping("/member/kick")
     public ResponseMessage<String> kickMember(@RequestBody Map<String, Object> payload, HttpServletRequest request) {
-        UserBase user = getCurrentUser(request);
-        Integer clubId = (Integer) payload.get("clubId");
+        UserBase user = getManagedCurrentUser(request);
+        Integer clubId = Integer.valueOf(payload.get("clubId").toString());
         Club club = clubService.find(clubId);
         if (!canManageClub(user, club)) {
             return ResponseMessage.error("无权限：您无权移出该社团成员");

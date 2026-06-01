@@ -17,6 +17,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Objects;
 
 @Controller
 @RequestMapping("/page")
@@ -155,6 +158,34 @@ public class PageController {
     @Autowired
     private com.qpwflshclub.formal_club.repository.Club.ClubRepository clubRepository;
 
+    @GetMapping("/club/manage")
+    public String clubManagePage(
+            @CookieValue(value = "user_session", required = false) String email,
+            Model model) {
+        if (email == null || email.isBlank()) {
+            return "redirect:/page/user/login";
+        }
+
+        UserBase loginUser = userService.findByEmail(email);
+        if (loginUser == null) {
+            return "redirect:/page/user/login";
+        }
+
+        int userRightNum = loginUser.getUserRight();
+        if (userRightNum < 1) {
+            return "redirect:/page/my-clubs";
+        }
+
+        List<Map<String, Object>> managedClubs = buildManageableClubList(loginUser);
+        model.addAttribute("loginUser", loginUser);
+        model.addAttribute("clubList", managedClubs);
+        model.addAttribute("clubCount", managedClubs.size());
+        model.addAttribute("userRightValue", userRightNum);
+        model.addAttribute("managerRoleText", managerRoleText(loginUser));
+
+        return "page/teacher-club-manage";
+    }
+
     /**
      * 导航进入“我的社团”多权限交互中心页面
      * 对应前端访问路径：GET /page/my-clubs
@@ -174,15 +205,16 @@ public class PageController {
         if (loginUser == null) {
             return "redirect:/page/user/login";
         }
+        if (loginUser.getUserRight() >= 1) {
+            return "redirect:/page/club/manage";
+        }
 
         // 🌟 核心改进：直接在后端用 instanceof 判定身份，算好布尔值传给前端
         boolean isTeacher = loginUser instanceof com.qpwflshclub.formal_club.pojo.User.Teacher;
         boolean isAdmin = loginUser instanceof com.qpwflshclub.formal_club.pojo.User.Admin;
 
         // 判定前端的大类级别（0:学生, 2:老师, 3:管理员）
-        int userRightNum = 0;
-        if (isTeacher) userRightNum = 2;
-        if (isAdmin) userRightNum = 3;
+        int userRightNum = loginUser.getUserRight();
 
         // 将这些绝对安全的计算结果灌入 Model
         model.addAttribute("loginUser", loginUser);
@@ -204,23 +236,26 @@ public class PageController {
 
                     String role = "none";
 
-                    if (loginUser instanceof com.qpwflshclub.formal_club.pojo.User.Teacher) {
+                    if (loginUser instanceof com.qpwflshclub.formal_club.pojo.User.Admin) {
+                        role = "admin";
+                    }
+                    else if (loginUser instanceof com.qpwflshclub.formal_club.pojo.User.Teacher) {
                         com.qpwflshclub.formal_club.pojo.User.Teacher t = (com.qpwflshclub.formal_club.pojo.User.Teacher) loginUser;
-                        boolean isManager = t.getClubs() != null && t.getClubs().stream().anyMatch(tc -> tc.getId() == c.getId());
+                        boolean isManager = t.getClubs() != null && t.getClubs().stream().anyMatch(tc -> Objects.equals(tc.getId(), c.getId()));
                         if (isManager) role = "teacher";
                     }
                     else if (loginUser instanceof com.qpwflshclub.formal_club.pojo.User.ClubPresident) {
                         com.qpwflshclub.formal_club.pojo.User.ClubPresident cp = (com.qpwflshclub.formal_club.pojo.User.ClubPresident) loginUser;
-                        if (cp.getMainClub() != null && cp.getMainClub().getId() == c.getId()) {
+                        if (cp.getMainClub() != null && Objects.equals(cp.getMainClub().getId(), c.getId())) {
                             role = cp.isVicePresident() ? "vice_president" : "president";
                         } else {
-                            boolean isMember = cp.getClubs() != null && cp.getClubs().stream().anyMatch(cc -> cc.getId() == c.getId());
+                            boolean isMember = cp.getClubs() != null && cp.getClubs().stream().anyMatch(cc -> Objects.equals(cc.getId(), c.getId()));
                             if (isMember) role = "member";
                         }
                     }
                     else if (loginUser instanceof com.qpwflshclub.formal_club.pojo.User.User) {
                         com.qpwflshclub.formal_club.pojo.User.User u = (com.qpwflshclub.formal_club.pojo.User.User) loginUser;
-                        boolean isMember = u.getClubs() != null && u.getClubs().stream().anyMatch(uc -> uc.getId() == c.getId());
+                        boolean isMember = u.getClubs() != null && u.getClubs().stream().anyMatch(uc -> Objects.equals(uc.getId(), c.getId()));
                         if (isMember) role = "member";
                     }
 
@@ -228,8 +263,65 @@ public class PageController {
                     return map;
                 }).toList();
 
+        if (isTeacher) {
+            clubList = clubList.stream()
+                    .filter(club -> !"none".equals(club.get("currentUserRole")))
+                    .toList();
+        }
+
         model.addAttribute("clubList", clubList);
         return "page/my-clubs";
+    }
+
+    private List<Map<String, Object>> buildManageableClubList(UserBase loginUser) {
+        Map<Integer, Club> clubs = new LinkedHashMap<>();
+
+        if (loginUser instanceof Admin || loginUser.getUserRight() >= 3) {
+            clubRepository.findAll().forEach(club -> putClub(clubs, club));
+        } else if (loginUser instanceof Teacher teacher) {
+            putClubs(clubs, teacher.getClubs());
+        } else if (loginUser instanceof ClubPresident president) {
+            putClub(clubs, president.getMainClub());
+        }
+
+        return clubs.values().stream()
+                .map(this::toClubManageMap)
+                .toList();
+    }
+
+    private void putClubs(Map<Integer, Club> target, List<Club> clubs) {
+        if (clubs == null) {
+            return;
+        }
+        clubs.forEach(club -> putClub(target, club));
+    }
+
+    private void putClub(Map<Integer, Club> target, Club club) {
+        if (club != null && club.getId() != null) {
+            target.put(club.getId(), club);
+        }
+    }
+
+    private Map<String, Object> toClubManageMap(Club club) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("id", club.getId());
+        map.put("clubName", club.getClubName());
+        map.put("clubNameEn", club.getClubNameEn());
+        map.put("clubItem", club.getClubItem());
+        return map;
+    }
+
+    private String managerRoleText(UserBase loginUser) {
+        if (loginUser instanceof Admin || loginUser.getUserRight() >= 3) {
+            return "管理员账号";
+        }
+        if (loginUser instanceof Teacher) {
+            return "老师账号";
+        }
+        if (loginUser instanceof ClubPresident) {
+            return "社长账号";
+        }
+        return "管理账号";
     }
 
 
