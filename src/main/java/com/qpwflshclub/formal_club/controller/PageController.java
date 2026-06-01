@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Objects;
 
 @Controller
@@ -157,8 +159,31 @@ public class PageController {
     private com.qpwflshclub.formal_club.repository.Club.ClubRepository clubRepository;
 
     @GetMapping("/club/manage")
-    public String clubManageShortcut() {
-        return "redirect:/page/my-clubs";
+    public String clubManagePage(
+            @CookieValue(value = "user_session", required = false) String email,
+            Model model) {
+        if (email == null || email.isBlank()) {
+            return "redirect:/page/user/login";
+        }
+
+        UserBase loginUser = userService.findByEmail(email);
+        if (loginUser == null) {
+            return "redirect:/page/user/login";
+        }
+
+        int userRightNum = loginUser.getUserRight();
+        if (userRightNum < 1) {
+            return "redirect:/page/my-clubs";
+        }
+
+        List<Map<String, Object>> managedClubs = buildManageableClubList(loginUser);
+        model.addAttribute("loginUser", loginUser);
+        model.addAttribute("clubList", managedClubs);
+        model.addAttribute("clubCount", managedClubs.size());
+        model.addAttribute("userRightValue", userRightNum);
+        model.addAttribute("managerRoleText", managerRoleText(loginUser));
+
+        return "page/teacher-club-manage";
     }
 
     /**
@@ -180,15 +205,16 @@ public class PageController {
         if (loginUser == null) {
             return "redirect:/page/user/login";
         }
+        if (loginUser.getUserRight() >= 1) {
+            return "redirect:/page/club/manage";
+        }
 
         // 🌟 核心改进：直接在后端用 instanceof 判定身份，算好布尔值传给前端
         boolean isTeacher = loginUser instanceof com.qpwflshclub.formal_club.pojo.User.Teacher;
         boolean isAdmin = loginUser instanceof com.qpwflshclub.formal_club.pojo.User.Admin;
 
         // 判定前端的大类级别（0:学生, 2:老师, 3:管理员）
-        int userRightNum = 0;
-        if (isTeacher) userRightNum = 2;
-        if (isAdmin) userRightNum = 3;
+        int userRightNum = loginUser.getUserRight();
 
         // 将这些绝对安全的计算结果灌入 Model
         model.addAttribute("loginUser", loginUser);
@@ -245,6 +271,57 @@ public class PageController {
 
         model.addAttribute("clubList", clubList);
         return "page/my-clubs";
+    }
+
+    private List<Map<String, Object>> buildManageableClubList(UserBase loginUser) {
+        Map<Integer, Club> clubs = new LinkedHashMap<>();
+
+        if (loginUser instanceof Admin || loginUser.getUserRight() >= 3) {
+            clubRepository.findAll().forEach(club -> putClub(clubs, club));
+        } else if (loginUser instanceof Teacher teacher) {
+            putClubs(clubs, teacher.getClubs());
+        } else if (loginUser instanceof ClubPresident president) {
+            putClub(clubs, president.getMainClub());
+        }
+
+        return clubs.values().stream()
+                .map(this::toClubManageMap)
+                .toList();
+    }
+
+    private void putClubs(Map<Integer, Club> target, List<Club> clubs) {
+        if (clubs == null) {
+            return;
+        }
+        clubs.forEach(club -> putClub(target, club));
+    }
+
+    private void putClub(Map<Integer, Club> target, Club club) {
+        if (club != null && club.getId() != null) {
+            target.put(club.getId(), club);
+        }
+    }
+
+    private Map<String, Object> toClubManageMap(Club club) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("id", club.getId());
+        map.put("clubName", club.getClubName());
+        map.put("clubNameEn", club.getClubNameEn());
+        map.put("clubItem", club.getClubItem());
+        return map;
+    }
+
+    private String managerRoleText(UserBase loginUser) {
+        if (loginUser instanceof Admin || loginUser.getUserRight() >= 3) {
+            return "管理员账号";
+        }
+        if (loginUser instanceof Teacher) {
+            return "老师账号";
+        }
+        if (loginUser instanceof ClubPresident) {
+            return "社长账号";
+        }
+        return "管理账号";
     }
 
 
