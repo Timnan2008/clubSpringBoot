@@ -78,6 +78,17 @@
         }
         .delete-btn:hover { background: #f56c6c; color: white; }
 
+        .change-role-btn {
+            background: #ffffff;
+            color: #67c23a;
+            border: 1px solid #b3e6ab;
+            padding: 6px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 8px;
+        }
+        .change-role-btn:hover { background: #67c23a; color: white; }
+
         /* 二级确认弹窗 */
         .modal-overlay {
             position: fixed;
@@ -122,8 +133,8 @@
 
 <div class="container">
     <script>console.log(session.currentUser);</script>
-    <h2>恶意注册账号清理后台</h2>
-    <div class="subtitle">当前账号级别支持管理权限。用户列表按用户名中文自然排序。</div>
+    <h2>用户管理</h2>
+    <div class="subtitle">当前账号级别支持管理权限。用户列表按数字-字母-汉字排序。</div>
 
     <div class="user-grid" id="userGrid">
     </div>
@@ -146,12 +157,38 @@
     </div>
 </div>
 
+<!-- 改变职位弹窗 -->
+<div class="modal-overlay" id="changeRoleModal">
+    <div class="modal-box">
+        <h3 style="color: #409eff; margin-top:0;">🔄 改变用户职位</h3>
+        <div class="user-details">
+            <div><strong>用户：</strong> <span id="roleModalUsername"></span></div>
+            <div><strong>当前职位：</strong> <span id="roleModalCurrentRole"></span></div>
+            <div style="margin-top: 12px;">
+                <strong>目标职位：</strong>
+                <select id="roleSelect" style="margin-left: 8px; padding: 4px 8px; border-radius: 4px; border: 1px solid #dcdfe6;">
+                    <option value="0">普通用户</option>
+                    <option value="2">指导老师</option>
+                    <option value="3">管理员</option>
+                </select>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="closeRoleModal()">取消</button>
+            <button class="btn-confirm" id="btnDoChangeRole" style="background: #409eff;">确认修改</button>
+        </div>
+    </div>
+</div>
+
 <script th:inline="javascript">
     let currentUserToDelete = null;
+    let currentUserToChangeRole = null;
 
-    // 只有当有权限时，JS 才会执行初始化请求
+    // 只有当有权限时（UserRight >= 2，即老师或管理员），JS 才会执行初始化请求
     // 这里的 Thymeleaf 表达式可以在 JS 里做一层安全防护
-    const hasAuth = /*[[${session.currentUser != null && session.currentUser.userRight >= 2}]]*/ false;
+    const hasAuth = /*[[${loginUser != null && loginUser.getUserRight() >= 2}]]*/ false;
+    // 判断是否是管理员（只有管理员可以改变职位）
+    const isAdmin = /*[[${loginUser != null && loginUser.getUserRight() == 3}]]*/ false;
 
     if (hasAuth) {
         document.addEventListener("DOMContentLoaded", () => {
@@ -176,6 +213,12 @@
             else if (user.userRight === 2) { roleName = "指导老师"; roleClass = "role-2"; }
             else if (user.userRight === 3) { roleName = "管理员"; roleClass = "role-3"; }
 
+            // 管理员额外显示改变职位按钮
+            let roleBtnHtml = "";
+            if (isAdmin) {
+                roleBtnHtml = '<button class="change-role-btn">改变职位</button>';
+            }
+
             const card = document.createElement("div");
             card.className = "user-card";
             card.innerHTML = `
@@ -186,9 +229,13 @@
                     </div>
                     <div class="card-actions">
                         <button class="delete-btn">删除账号</button>
+                        ${roleBtnHtml}
                     </div>
                 `;
             card.querySelector(".delete-btn").addEventListener("click", () => openModal(user));
+            if (isAdmin) {
+                card.querySelector(".change-role-btn").addEventListener("click", () => openRoleModal(user));
+            }
             grid.appendChild(card);
         });
     }
@@ -231,6 +278,57 @@
                 if (res.code === 200) {
                     alert("账号已成功清理！");
                     closeModal();
+                    loadUsers();
+                } else { alert("操作失败：" + res.message); }
+            });
+    });
+
+    // 改变职位相关函数
+    function getRoleName(role) {
+        if (role === 0) return "普通学生";
+        if (role === 1) return "社长/副社长";
+        if (role === 2) return "指导老师";
+        if (role === 3) return "管理员";
+        return "未知";
+    }
+
+    function openRoleModal(user) {
+        currentUserToChangeRole = user;
+        document.getElementById("roleModalUsername").innerText = user.username || "未设置";
+        document.getElementById("roleModalCurrentRole").innerText = getRoleName(user.userRight);
+        // 设置下拉框默认值（排除当前角色）
+        const select = document.getElementById("roleSelect");
+        select.value = user.userRight === 0 ? "2" : "0"; // 默认选中不同的角色
+        document.getElementById("changeRoleModal").style.display = "flex";
+    }
+
+    function closeRoleModal() {
+        document.getElementById("changeRoleModal").style.display = "none";
+        currentUserToChangeRole = null;
+    }
+
+    document.getElementById("btnDoChangeRole").addEventListener("click", () => {
+        if (!currentUserToChangeRole) return;
+        const newRole = parseInt(document.getElementById("roleSelect").value);
+        
+        if (newRole === currentUserToChangeRole.userRight) {
+            alert("目标职位与当前职位相同，请选择其他职位");
+            return;
+        }
+
+        fetch('/api/user/change-role', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                usernameEn: currentUserToChangeRole.usernameEn, 
+                newRole: newRole 
+            })
+        })
+            .then(res => res.json())
+            .then(res => {
+                if (res.code === 200) {
+                    alert("职位已成功修改！");
+                    closeRoleModal();
                     loadUsers();
                 } else { alert("操作失败：" + res.message); }
             });

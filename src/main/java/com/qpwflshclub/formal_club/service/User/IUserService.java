@@ -44,4 +44,7 @@ public interface IUserService {
     // 添加到 IUserService 接口中
     List<UserBase> findAllUsers();
 
+    // 职位转换方法
+    UserBase changeRole(String usernameEn, int newRole);
+
 }

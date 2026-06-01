@@ -19,3 +19,14 @@ spring:
           connectiontimeout: 5000
           timeout: 5000
           writetimeout: 5000
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 50MB
+      max-request-size: 50MB
+
+# 文件上传配置
+# Windows开发环境会自动使用 ./uploads 目录
+# Linux服务器会自动使用 /opt/club-app/media
+file:
+  upload-dir:

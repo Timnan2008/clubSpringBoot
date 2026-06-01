@@ -20,6 +20,45 @@
         .btn-submit:hover { background: #4338ca; }
         .btn-cancel { background: #e5e7eb; color: #4b5563; padding: 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; text-align: center; text-decoration: none; flex: 1; transition: background 0.2s; }
         .btn-cancel:hover { background: #d1d5db; }
+
+        /* 文件上传按钮样式 */
+        .upload-btn {
+            background: #22c55e;
+            color: white;
+            padding: 8px 14px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background 0.2s;
+            margin-top: 8px;
+            display: inline-block;
+        }
+        .upload-btn:hover {
+            background: #16a34a;
+        }
+        .upload-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+        .upload-info {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 6px;
+        }
+        .upload-success {
+            color: #22c55e;
+            font-size: 12px;
+            margin-top: 6px;
+        }
+        .upload-error {
+            color: #ef4444;
+            font-size: 12px;
+            margin-top: 6px;
+        }
+        .file-input {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -81,12 +120,20 @@
             <div class="form-group">
                 <label>社团 Logo 图标 URL</label>
                 <input type="text" id="clubItem" required>
+                <button type="button" class="upload-btn" onclick="document.getElementById('logo-file').click()">上传图标</button>
+                <input type="file" id="logo-file" class="file-input" accept="image/jpeg,image/png,image/gif,image/webp">
+                <div class="upload-info">支持 jpg, png, gif, webp 格式</div>
+                <div id="logo-upload-status"></div>
             </div>
         </div>
 
         <div class="form-group full-width">
             <label>宣传视频 URL</label>
             <input type="text" id="video">
+            <button type="button" class="upload-btn" onclick="document.getElementById('video-file').click()">上传视频</button>
+            <input type="file" id="video-file" class="file-input" accept="video/mp4,video/webm,video/ogg">
+            <div class="upload-info">支持 mp4, webm, ogg 格式，最大 50MB</div>
+            <div id="video-upload-status"></div>
         </div>
 
         <div class="form-row">
@@ -262,6 +309,89 @@
                     subMsg: "请检查网络连接、VPN状态或检查后端控制台报错。"
                 });
             });
+    });
+
+    // 文件上传相关逻辑
+    // 上传图标
+    document.getElementById('logo-file').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const uploadBtn = document.querySelector('.upload-btn');
+        uploadBtn.disabled = true;
+        uploadBtn.textContent = '上传中...';
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        fetch('/api/upload/club-logo', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(result => {
+            console.log('上传结果:', result);
+            if (result.code === 200) {
+                const urlInput = document.getElementById('clubItem');
+                urlInput.value = result.data;
+                document.getElementById('logo-upload-status').innerHTML =
+                    '<span class="upload-success">✓ 图标上传成功！URL: ' + result.data + '</span>';
+            } else {
+                document.getElementById('logo-upload-status').innerHTML =
+                    `<span class="upload-error">✗ ${result.message}</span>`;
+            }
+        })
+        .catch(err => {
+            document.getElementById('logo-upload-status').innerHTML = 
+                '<span class="upload-error">✗ 上传失败，请检查网络连接</span>';
+        })
+        .finally(() => {
+            uploadBtn.disabled = false;
+            uploadBtn.textContent = '上传图标';
+            // 重置文件输入
+            e.target.value = '';
+        });
+    });
+
+    // 上传视频
+    document.getElementById('video-file').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const uploadBtn = document.querySelector('.upload-btn');
+        uploadBtn.disabled = true;
+        uploadBtn.textContent = '上传中...';
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        fetch('/api/upload/club-video', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(result => {
+            console.log('视频上传结果:', result);
+            if (result.code === 200) {
+                const urlInput = document.getElementById('video');
+                urlInput.value = result.data;
+                document.getElementById('video-upload-status').innerHTML =
+                    '<span class="upload-success">✓ 视频上传成功！URL: ' + result.data + '</span>';
+            } else {
+                document.getElementById('video-upload-status').innerHTML =
+                    `<span class="upload-error">✗ ${result.message}</span>`;
+            }
+        })
+        .catch(err => {
+            document.getElementById('video-upload-status').innerHTML = 
+                '<span class="upload-error">✗ 上传失败，请检查网络连接</span>';
+        })
+        .finally(() => {
+            uploadBtn.disabled = false;
+            uploadBtn.textContent = '上传视频';
+            // 重置文件输入
+            e.target.value = '';
+        });
     });
 </script>
 </body>

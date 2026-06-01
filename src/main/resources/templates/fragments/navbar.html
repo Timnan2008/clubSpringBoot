@@ -93,7 +93,7 @@
           <div class="dropdown-content">
             <a th:href="@{/page/user/profile}" style="color: #333;"><span th:text="#{nav.manageAccount}">管理账号</span></a>
             <a th:href="@{/page/my-clubs}" style="color: #333;"><span th:text="#{nav.myClubs}">我的社团</span></a>
-            <a th:href="@{/page/user-edit}" style="color: #333;" th:if="${loginUser.getUserRight > 1}">管理用户</a>
+            <a th:href="@{/page/user-edit}" style="color: #333;" th:if="${loginUser != null && loginUser.getUserRight() >= 2}">管理用户</a>
             <hr style="margin: 5px 0; border: 0; border-top: 1px solid #eee;" />
             <a href="#" onclick="doLogout(); return false;" style="color: #ff4d4f; font-weight: bold;">
               <span th:text="#{nav.logout}">退出登录</span>

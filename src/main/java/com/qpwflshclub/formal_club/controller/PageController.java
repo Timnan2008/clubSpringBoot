@@ -303,13 +303,41 @@ public class PageController {
 
     @GetMapping("/user-edit")
     public String managerPage(HttpServletRequest request, Model model) {
+        // 1. 从 Cookie 中获取登录用户的 session
+        Cookie[] cookies = request.getCookies();
+        String email = null;
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("user_session".equals(cookie.getName())) {
+                    email = cookie.getValue();
+                    break;
+                }
+            }
+        }
 
-        // 2. 🌟 核心：从各自的 Repository 或 Service 中查出所有用户
-        // 这里以普通学生为例，如果你需要展示所有类型（老师、社长），可以用 userService 查询所有并合并
+        // 2. 如果没登录，重定向到登录页
+        if (email == null) {
+            return "redirect:/page/user/login";
+        }
 
-        List<User> userList = (List<User>) userRepository.findAll();
+        // 3. 根据 email 查出完整的用户信息
+        UserBase loginUser = userService.findByEmail(email);
+        if (loginUser == null) {
+            return "redirect:/page/user/login";
+        }
 
-        // 3. 🌟 极其重要：必须放进 model 里，名字必须叫 "users"，与前端对应
+        // 4. 权限检查：只有 UserRight >= 2 的用户（老师或管理员）才能访问
+        if (loginUser.getUserRight() < 2) {
+            return "redirect:/page/index";
+        }
+
+        // 5. 将登录用户信息存入 model
+        model.addAttribute("loginUser", loginUser);
+
+        // 6. 从 userService 中查出所有用户（包括学生、老师、社长、管理员）
+        List<UserBase> userList = userService.findAllUsers();
+
+        // 7. 将用户列表放进 model 里
         model.addAttribute("users", userList);
 
         return "page/manager of users"; // 返回你的 HTML 模板文件名
