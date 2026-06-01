@@ -16,7 +16,9 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -501,5 +503,52 @@ public class ClubController {
             return ResponseMessage.error("交互失败: " + e.getMessage());
         }
     }
+
+    /* =========================
+   文件上传 API（新增）
+
+
+    private static final String LOGO_DIR = "/opt/club-app/media/logo/";
+    private static final String VIDEO_DIR = "/opt/club-app/media/video/";
+
+    @PostMapping("/upload/logo")
+    public ResponseMessage<String> uploadLogo(@RequestParam("file") MultipartFile file) {
+        return saveFile(file, LOGO_DIR, "/media/logo/");
+    }
+
+    @PostMapping("/upload/video")
+    public ResponseMessage<String> uploadVideo(@RequestParam("file") MultipartFile file) {
+        return saveFile(file, VIDEO_DIR, "/media/video/");
+    }
+
+    private ResponseMessage<String> saveFile(MultipartFile file, String dir, String urlPrefix) {
+        try {
+            if (file.isEmpty()) {
+                return ResponseMessage.error("文件不能为空");
+            }
+
+            File folder = new File(dir);
+            if (!folder.exists()) {
+                folder.mkdirs();
+            }
+
+            String original = file.getOriginalFilename();
+            String suffix = original.substring(original.lastIndexOf("."));
+
+            String fileName = java.util.UUID.randomUUID() + suffix;
+
+            File target = new File(dir + fileName);
+            file.transferTo(target);
+
+            // 返回给前端的 URL（Nginx 暴露路径）
+            String url = urlPrefix + fileName;
+
+            return ResponseMessage.success(url);
+
+        } catch (Exception e) {
+            return ResponseMessage.error("上传失败: " + e.getMessage());
+        }
+    }
+    ========================= */
 
 }

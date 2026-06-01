@@ -78,15 +78,21 @@
                 <label>社团类别 (如: 学术类/体育类/艺术类)</label>
                 <input type="text" id="clubClass" required>
             </div>
-            <div class="form-group">
-                <label>社团 Logo 图标 URL</label>
-                <input type="text" id="clubItem" required>
-            </div>
         </div>
 
+
+        <!-- Logo 上传 -->
+        <div class="form-group">
+            <label>社团 Logo 图标</label>
+            <input type="text" id="clubItem" placeholder="自动生成URL">
+            <input type="file" id="clubLogoFile" accept="image/*">
+        </div>
+
+        <!-- 宣传视频上传 -->
         <div class="form-group full-width">
-            <label>宣传视频 URL</label>
-            <input type="text" id="video">
+            <label>宣传视频</label>
+            <input type="text" id="video" placeholder="自动生成URL">
+            <input type="file" id="videoFile" accept="video/*">
         </div>
 
         <div class="form-row">
@@ -117,6 +123,48 @@
 </div>
 
 <script>
+    // 上传函数
+    function uploadFile(file, type, callback) {
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const clubId = document.getElementById("clubId").value; // ✔ 取 value
+
+        fetch(`/api/club/upload/logo/${clubId}`, {
+            method: "POST",
+            body: formData
+        })
+            .then(res => res.json())
+            .then(result => {
+                if(result.code === 200 && result.data) {
+                    callback(result.data); // 返回文件 URL
+                } else {
+                    alert("上传失败: " + (result.message || "未知错误"));
+                }
+            })
+            .catch(err => alert("上传错误: " + err));
+    }
+
+    // Logo 文件上传
+    document.getElementById("clubLogoFile").addEventListener("change", function(e){
+        const file = e.target.files[0];
+        if(file) {
+            uploadFile(file, "logo", function(url){
+                document.getElementById("clubItem").value = url;
+            });
+        }
+    });
+
+    // 视频文件上传
+    document.getElementById("videoFile").addEventListener("change", function(e){
+        const file = e.target.files[0];
+        if(file) {
+            uploadFile(file, "video", function(url){
+                document.getElementById("video").value = url;
+            });
+        }
+    });
+
     // 覆写或增强原始的 openNotice26 方法，使其支持动态传入文字内容
     const originalOpenNotice26 = window.openNotice26;
     window.openNotice26 = function(flag, config) {
