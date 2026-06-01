@@ -42,10 +42,11 @@
                 <span class="role-badge badge-member" th:if="${club.currentUserRole == 'member'}">社员</span>
                 <span class="role-badge badge-teacher" th:if="${club.currentUserRole == 'teacher'}">指导老师</span>
                 <span class="role-badge badge-none" th:if="${club.currentUserRole == 'none'}">未加入</span>
+                <span class="role-badge badge-admin" th:if="${club.currentUserRole == 'admin'}">管理员</span>
             </div>
 
             <div class="club-card-actions">
-                <button th:if="${club.currentUserRole == 'teacher' || club.currentUserRole == 'president' || club.currentUserRole == 'vice_president'}"
+                <button th:if="${club.currentUserRole == 'teacher' || club.currentUserRole == 'admin' || club.currentUserRole == 'president' || club.currentUserRole == 'vice_president'}"
                         class="btn-sm btn-manage"
                         th:onclick="openManageModal([[${club.id}]], [[${club.clubName}]])">
                     管理成员
@@ -63,7 +64,21 @@
                     申请加入
                 </button>
             </div>
+
+            <div class="club-inline-search"
+                 th:if="${club.currentUserRole == 'teacher' || club.currentUserRole == 'admin' || club.currentUserRole == 'president' || club.currentUserRole == 'vice_president'}">
+                <div class="club-inline-search-title">添加学生</div>
+                <div class="club-inline-search-row">
+                    <input class="student-search-input"
+                           type="search"
+                           placeholder="搜索学生姓名"
+                           th:attr="data-club-id=${club.id}"
+                           oninput="queueInlineStudentSearch(this)" />
+                </div>
+                <div class="student-search-results" th:id="'studentSearchResults-' + ${club.id}"></div>
+            </div>
         </div>
+        <div class="empty-club-state" th:if="${#lists.isEmpty(clubList)}">暂无可管理社团</div>
     </div>
 </div>
 
@@ -74,6 +89,16 @@
             <span class="close-btn" onclick="closeManageModal()">&times;</span>
         </div>
         <div class="modal-body">
+            <div class="member-search-panel">
+                <div class="member-search-row">
+                    <input id="modalStudentSearchInput"
+                           type="search"
+                           placeholder="搜索学生姓名"
+                           autocomplete="off" />
+                    <button type="button" class="btn-sm btn-manage" onclick="searchModalStudents()">搜索</button>
+                </div>
+                <div class="student-search-results modal-student-results" id="modalStudentSearchResults"></div>
+            </div>
             <div class="member-list-loading" id="memberLoading">正在加载成员池数据...</div>
             <div class="member-list-container" id="memberListContainer"></div>
         </div>
@@ -82,6 +107,8 @@
 
 <script th:inline="javascript">
     let activeClubId = null;
+    let modalSearchTimer = null;
+    const inlineSearchTimers = new Map();
 
     function handleClubAction(clubId, actionType) {
         const msg = actionType === 'join' ? "确定要申请加入该社团吗？" : "确定要退出该社团吗？";
@@ -96,6 +123,8 @@
             } else {
                 alert(data.message || "操作失败，请重试");
             }
+        }).catch(() => {
+            alert("网络异常，请稍后再试");
         });
     }
 
@@ -103,14 +132,25 @@
         activeClubId = clubId;
         document.getElementById('modalTitle').textContent = `【${clubName}】 成员权限架构面板`;
         document.getElementById('manageModal').style.display = 'flex';
+        document.getElementById('modalStudentSearchInput').value = '';
+        document.getElementById('modalStudentSearchResults').innerHTML = '';
         loadMembers(clubId);
+        setTimeout(() => document.getElementById('modalStudentSearchInput').focus(), 80);
     }
 
-    th:inline="javascript"
     function closeManageModal() {
         document.getElementById('manageModal').style.display = 'none';
+        document.getElementById('modalStudentSearchResults').innerHTML = '';
         activeClubId = null;
     }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const modalSearchInput = document.getElementById('modalStudentSearchInput');
+        modalSearchInput.addEventListener('input', () => {
+            clearTimeout(modalSearchTimer);
+            modalSearchTimer = setTimeout(searchModalStudents, 260);
+        });
+    });
 
     function loadMembers(clubId) {
         const listContainer = document.getElementById('memberListContainer');
@@ -122,6 +162,11 @@
             .then(r => r.json())
             .then(res => {
                 loadingText.style.display = 'none';
+                if (res.code !== 200) {
+                    listContainer.innerHTML = `<p style="color:#c62828; text-align:center;">${escapeHtml(res.message || '成员列表加载失败')}</p>`;
+                    return;
+                }
+
                 if (!res.data || res.data.length === 0) {
                     listContainer.innerHTML = '<p style="color:#999; text-align:center;">暂无任何人在该社团中</p>';
                     return;
@@ -156,14 +201,105 @@
 
                     item.innerHTML = `
                 <div class="member-user-info">
-                  <span class="member-name">${member.username}</span>
+                  <span class="member-name">${escapeHtml(member.username || '未命名')}</span>
                   <span class="member-role-tag tag-${member.roleInClub}">[${roleName}]</span>
                 </div>
                 <div class="member-action-box">${actionHtml}</div>
               `;
                     listContainer.appendChild(item);
                 });
+            }).catch(() => {
+                loadingText.style.display = 'none';
+                listContainer.innerHTML = '<p style="color:#c62828; text-align:center;">成员列表加载失败</p>';
             });
+    }
+
+    function queueInlineStudentSearch(input) {
+        const clubId = Number(input.dataset.clubId);
+        const resultsBox = document.getElementById(`studentSearchResults-${clubId}`);
+        clearTimeout(inlineSearchTimers.get(clubId));
+        inlineSearchTimers.set(clubId, setTimeout(() => {
+            searchStudentsForClub(clubId, input.value, resultsBox);
+        }, 260));
+    }
+
+    function searchModalStudents() {
+        if (!activeClubId) return;
+        const input = document.getElementById('modalStudentSearchInput');
+        const resultsBox = document.getElementById('modalStudentSearchResults');
+        searchStudentsForClub(activeClubId, input.value, resultsBox);
+    }
+
+    function searchStudentsForClub(clubId, keyword, resultsBox) {
+        const text = (keyword || '').trim();
+        if (!resultsBox) return;
+        if (!text) {
+            resultsBox.innerHTML = '';
+            return;
+        }
+
+        resultsBox.innerHTML = '<div class="search-loading">搜索中...</div>';
+        fetch(`/api/club/${clubId}/students/search?keyword=${encodeURIComponent(text)}`)
+            .then(r => r.json())
+            .then(res => {
+                if (res.code !== 200) {
+                    resultsBox.innerHTML = `<div class="search-empty">${escapeHtml(res.message || '搜索失败')}</div>`;
+                    return;
+                }
+                renderStudentSearchResults(clubId, res.data || [], resultsBox);
+            })
+            .catch(() => {
+                resultsBox.innerHTML = '<div class="search-empty">搜索失败，请稍后再试</div>';
+            });
+    }
+
+    function renderStudentSearchResults(clubId, students, resultsBox) {
+        if (!students.length) {
+            resultsBox.innerHTML = '<div class="search-empty">没有找到匹配学生</div>';
+            return;
+        }
+
+        resultsBox.innerHTML = students.map(student => {
+            const userId = Number(student.userId);
+            const name = escapeHtml(student.username || '未命名学生');
+            const enName = student.usernameEn ? `<span class="student-en-name">@${escapeHtml(student.usernameEn)}</span>` : '';
+            const action = student.member
+                ? '<span class="student-added-pill">已在社团</span>'
+                : `<button type="button" class="student-add-btn" onclick="addStudentToClub(${clubId}, ${userId})">加入</button>`;
+
+            return `
+                <div class="student-search-row">
+                    <div class="student-search-name">
+                        <span>${name}</span>
+                        ${enName}
+                    </div>
+                    ${action}
+                </div>
+            `;
+        }).join('');
+    }
+
+    function addStudentToClub(clubId, targetUserId) {
+        fetch('/api/club/member/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                clubId: clubId,
+                userId: targetUserId
+            })
+        }).then(r => r.json()).then(data => {
+            if (data.code === 200) {
+                if (activeClubId === clubId) {
+                    loadMembers(clubId);
+                    searchModalStudents();
+                }
+                refreshInlineSearch(clubId);
+            } else {
+                alert(data.message || '添加失败');
+            }
+        }).catch(() => {
+            alert('添加失败，请稍后再试');
+        });
     }
 
     function updateMemberRole(targetUserId, newRole) {
@@ -197,10 +333,26 @@
         }).then(r => r.json()).then(data => {
             if (data.code === 200) {
                 loadMembers(activeClubId);
+                searchModalStudents();
+                refreshInlineSearch(activeClubId);
             } else {
                 alert(data.message || "移出失败");
             }
         });
+    }
+
+    function refreshInlineSearch(clubId) {
+        const input = document.querySelector(`.student-search-input[data-club-id="${clubId}"]`);
+        const resultsBox = document.getElementById(`studentSearchResults-${clubId}`);
+        if (input && input.value.trim()) {
+            searchStudentsForClub(clubId, input.value, resultsBox);
+        }
+    }
+
+    function escapeHtml(value) {
+        const div = document.createElement('div');
+        div.textContent = value === null || value === undefined ? '' : String(value);
+        return div.innerHTML;
     }
 </script>
 </body>

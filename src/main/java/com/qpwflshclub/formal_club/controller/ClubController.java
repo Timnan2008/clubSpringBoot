@@ -393,10 +393,40 @@ public class ClubController {
         return ResponseMessage.success(members);
     }
 
+    @GetMapping("/{clubId}/students/search")
+    public ResponseMessage<List<Map<String, Object>>> searchStudentsForClub(
+            @PathVariable Integer clubId,
+            @RequestParam(value = "keyword", required = false) String keyword,
+            HttpServletRequest request) {
+        UserBase user = getCurrentUser(request);
+        Club club = clubService.find(clubId);
+        if (!canManageClub(user, club)) {
+            return ResponseMessage.error("无权限：您无权搜索该社团可添加学生");
+        }
+        return ResponseMessage.success(userService.searchStudentsForClub(clubId, keyword));
+    }
+
+    @PostMapping("/member/add")
+    public ResponseMessage<String> addMember(@RequestBody Map<String, Object> payload, HttpServletRequest request) {
+        UserBase user = getCurrentUser(request);
+        Integer clubId = Integer.valueOf(payload.get("clubId").toString());
+        Club club = clubService.find(clubId);
+        if (!canManageClub(user, club)) {
+            return ResponseMessage.error("无权限：您无权添加该社团成员");
+        }
+        try {
+            Long targetUserId = Long.valueOf(payload.get("userId").toString());
+            userService.addStudentToClubRelationship(targetUserId, clubId);
+            return ResponseMessage.success("已成功添加学生");
+        } catch (Exception e) {
+            return ResponseMessage.error("添加失败: " + e.getMessage());
+        }
+    }
+
     @PutMapping("/member/update")
     public ResponseMessage<String> updateMemberRole(@RequestBody Map<String, Object> payload, HttpServletRequest request) {
         UserBase user = getCurrentUser(request);
-        Integer clubId = (Integer) payload.get("clubId");
+        Integer clubId = Integer.valueOf(payload.get("clubId").toString());
         Club club = clubService.find(clubId);
         if (!canManageClub(user, club)) {
             return ResponseMessage.error("无权限：您无权修改该社团成员职位");
@@ -415,7 +445,7 @@ public class ClubController {
     @DeleteMapping("/member/kick")
     public ResponseMessage<String> kickMember(@RequestBody Map<String, Object> payload, HttpServletRequest request) {
         UserBase user = getCurrentUser(request);
-        Integer clubId = (Integer) payload.get("clubId");
+        Integer clubId = Integer.valueOf(payload.get("clubId").toString());
         Club club = clubService.find(clubId);
         if (!canManageClub(user, club)) {
             return ResponseMessage.error("无权限：您无权移出该社团成员");

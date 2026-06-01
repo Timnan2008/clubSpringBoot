@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Controller
 @RequestMapping("/page")
@@ -155,6 +156,11 @@ public class PageController {
     @Autowired
     private com.qpwflshclub.formal_club.repository.Club.ClubRepository clubRepository;
 
+    @GetMapping("/club/manage")
+    public String clubManageShortcut() {
+        return "redirect:/page/my-clubs";
+    }
+
     /**
      * 导航进入“我的社团”多权限交互中心页面
      * 对应前端访问路径：GET /page/my-clubs
@@ -204,29 +210,38 @@ public class PageController {
 
                     String role = "none";
 
-                    if (loginUser instanceof com.qpwflshclub.formal_club.pojo.User.Teacher) {
+                    if (loginUser instanceof com.qpwflshclub.formal_club.pojo.User.Admin) {
+                        role = "admin";
+                    }
+                    else if (loginUser instanceof com.qpwflshclub.formal_club.pojo.User.Teacher) {
                         com.qpwflshclub.formal_club.pojo.User.Teacher t = (com.qpwflshclub.formal_club.pojo.User.Teacher) loginUser;
-                        boolean isManager = t.getClubs() != null && t.getClubs().stream().anyMatch(tc -> tc.getId() == c.getId());
+                        boolean isManager = t.getClubs() != null && t.getClubs().stream().anyMatch(tc -> Objects.equals(tc.getId(), c.getId()));
                         if (isManager) role = "teacher";
                     }
                     else if (loginUser instanceof com.qpwflshclub.formal_club.pojo.User.ClubPresident) {
                         com.qpwflshclub.formal_club.pojo.User.ClubPresident cp = (com.qpwflshclub.formal_club.pojo.User.ClubPresident) loginUser;
-                        if (cp.getMainClub() != null && cp.getMainClub().getId() == c.getId()) {
+                        if (cp.getMainClub() != null && Objects.equals(cp.getMainClub().getId(), c.getId())) {
                             role = cp.isVicePresident() ? "vice_president" : "president";
                         } else {
-                            boolean isMember = cp.getClubs() != null && cp.getClubs().stream().anyMatch(cc -> cc.getId() == c.getId());
+                            boolean isMember = cp.getClubs() != null && cp.getClubs().stream().anyMatch(cc -> Objects.equals(cc.getId(), c.getId()));
                             if (isMember) role = "member";
                         }
                     }
                     else if (loginUser instanceof com.qpwflshclub.formal_club.pojo.User.User) {
                         com.qpwflshclub.formal_club.pojo.User.User u = (com.qpwflshclub.formal_club.pojo.User.User) loginUser;
-                        boolean isMember = u.getClubs() != null && u.getClubs().stream().anyMatch(uc -> uc.getId() == c.getId());
+                        boolean isMember = u.getClubs() != null && u.getClubs().stream().anyMatch(uc -> Objects.equals(uc.getId(), c.getId()));
                         if (isMember) role = "member";
                     }
 
                     map.put("currentUserRole", role);
                     return map;
                 }).toList();
+
+        if (isTeacher) {
+            clubList = clubList.stream()
+                    .filter(club -> !"none".equals(club.get("currentUserRole")))
+                    .toList();
+        }
 
         model.addAttribute("clubList", clubList);
         return "page/my-clubs";
