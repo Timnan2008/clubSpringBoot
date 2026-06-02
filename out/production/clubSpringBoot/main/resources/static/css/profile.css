@@ -1,0 +1,53 @@
+/* 个人中心专属美化微调 */
+.profile-card {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    padding: 30px;
+    max-width: 550px;
+    margin: 40px auto;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+.profile-section {
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+.profile-section:last-child {
+    border-bottom: none;
+}
+.section-title {
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+}
+.form-group {
+    margin-bottom: 12px;
+}
+.form-group label {
+    display: block;
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 5px;
+}
+.static-email {
+    background: #f5f5f5;
+    color: #999;
+    cursor: not-allowed;
+}
+.danger-zone {
+    background: rgba(255, 77, 79, 0.05);
+    border: 1px dashed #ff4d4f;
+    border-radius: 8px;
+    padding: 15px;
+}
+.btn-danger {
+    background-color: #ff4d4f !important;
+    color: white;
+}
+.btn-danger:hover {
+    background-color: #ff7875 !important;
+}

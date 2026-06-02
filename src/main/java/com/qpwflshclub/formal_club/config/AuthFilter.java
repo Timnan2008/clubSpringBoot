@@ -40,7 +40,12 @@ public class AuthFilter implements Filter {
 
     private static final Set<String> PUBLIC_POST_PATHS = Set.of(
             "/api/user/login",
+
             "/api/user/add/user",
+            "/api/user/add/teacher",
+            "/api/user/add/admin",
+            "/api/user/add/club-president",
+
             "/api/email/send",
             "/api/email/verify",
             "/api/suggestion"

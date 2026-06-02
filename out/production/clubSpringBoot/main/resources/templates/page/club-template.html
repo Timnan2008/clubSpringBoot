@@ -1,0 +1,249 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="#{club.info}"></title>
+    <link rel="icon" type="image/png" href="/other%20photo/WFL-logo.png">
+    <link rel="stylesheet" href="/css/common.css?v=2">
+    <link rel="stylesheet" href="/css/club-template_style.css?v=2">
+
+</head>
+
+<body>
+<div id="particles"></div>
+<div th:replace="fragments/notice :: notice"></div>
+<div th:replace="fragments/notice-repeat :: notice"></div>
+<div th:replace="fragments/navbar :: navbar"></div>
+<div th:replace="fragments/particle :: particle"></div>
+
+
+<script th:inline="javascript">
+    const i18n = {
+        info: /*[[#{club.info}]]*/
+    };
+</script>
+
+<script th:inline="javascript">
+    // 🌟 修正 Thymeleaf 字符串变量注入语法，防止 JS 崩溃
+    const clubName = /*[[${clubName}]]*/ 'default_club';
+    const apiUrl = `/api/club/name-en/${encodeURIComponent(clubName)}`;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentLang = urlParams.get('lang') || 'zh';
+
+    // 1. 获取并渲染社团信息
+    fetch(apiUrl)
+        .then(res => res.json())
+        .then(result => {
+            const club = result.data;
+            if (!club) {
+                document.getElementById("club-title").textContent = "未找到该社团";
+                return;
+            }
+
+            // 保持你原有的 DOM 渲染逻辑
+            document.getElementById("club-title").textContent = club.clubName;
+            document.title = club.clubName;
+            document.getElementById("president").textContent = club.president || "暂无";
+            document.getElementById("vicePresident").textContent = club.vicePresident || "暂无";
+            document.getElementById("teacher").textContent = club.teacher || "暂无";
+            document.getElementById("club-intro").textContent = club.clubDescription || "暂无介绍";
+            document.getElementById("club-intro").style.display = 'block';
+            document.getElementById("club-logo").src = club.clubItem;
+            document.getElementById("club-video").src = club.video;
+
+            // 🌟 2. 社团数据加载完后，立即触发权限检查
+            checkUserPermission(clubName);
+        })
+        .catch(err => {
+            console.error("加载社团数据失败:", err);
+        });
+
+    // 🌟 3. 核心鉴权函数：通过 userright 判定按钮显隐
+    function checkUserPermission(currentClubNameEn) {
+        fetch('/api/club/my-list')
+            .then(res => res.json())
+            .then(res => {
+                if (res.code === 200 && res.data && res.data.length > 0) {
+                    // 找到当前社团对应的关系数据
+                    const myClubRelation = res.data.find(c => c.clubNameEn === currentClubNameEn);
+
+                    // 获取当前用户的全局 userright（如果没找到说明可能没加入或没匹配上，优先取列表第一项的全局权限）
+                    const userright = myClubRelation ? myClubRelation.userright : res.data[0].userright;
+                    const role = myClubRelation ? myClubRelation.currentUserRole : 'none';
+
+                    console.log("当前用户权限等级 userright:", userright, " 社团内身份:", role);
+
+                    // 🌟 核心判别式：如果是该社团正副社长/老师，或者全局 userright >= 1 (包括 Admin)
+                    if (role === 'president' || role === 'vice_president' || role === 'teacher' || userright >= 1) {
+                        const editBtn = document.getElementById("edit-club-btn");
+                        if (editBtn) {
+                            editBtn.style.display = "block"; // 强行显示按钮
+                            editBtn.onclick = () => {
+                                // 点击跳转到修改页面
+                                window.location.href = `/page/club-edit?clubName=${encodeURIComponent(currentClubNameEn)}`;
+                            };
+                        }
+                    }
+                }
+            })
+            .catch(err => console.log("获取登录用户权限失败或未登录", err));
+    }
+</script>
+
+<!-- 主体内容 -->
+<div class="container">
+    <div class="club-header-area" style="display: flex; justify-content: space-between; align-items: center;">
+        <h1><span id="club-title">未知社团</span></h1>
+        <button id="edit-club-btn" style="display: none; padding: 10px 20px; background-color: #4f46e5; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">
+            修改社团信息
+        </button>
+    </div>
+    <div class="top-info">
+        <div class="leaders">
+            <p><strong><span th:text="#{club.president}"></span></strong ><span id="president">加载中</span></p>
+            <p><strong><span th:text="#{club.vice_president}"></span></strong><span id="vicePresident">加载中</span></p>
+            <p><strong><span th:text="#{club.teacher}"></span></strong><span id="teacher">加载中</span></p>
+        </div>
+        <img id="club-logo" class="club-logo">
+    </div>
+
+    <div class="intro">
+        <h2><span th:text="#{club.club_info}"></span></h2>
+        <p id="club-intro">加载中...</p>
+    </div>
+
+    <h1><span th:text="#{club.video}"></span></h1>
+
+    <div class="video-container">
+        <video id="club-video" width="100%" controls>
+            <source type="video/mp4">
+            您的浏览器不支持 video 标签。
+        </video>
+        <p id="video-empty-tip" style="display: none; padding: 24px; color: #6b7296; text-align: center;">预览模式下暂未提供社团视频。</p>
+
+        <div class="like-area">
+            <input hidden id="checknumber" type="checkbox" />
+            <label for="checknumber" class="like-btn">
+                <span class="like-ripple"></span>
+                <svg class="like-heart" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                </svg>
+                <span class="like-num">
+                    <span id="currentnumber">0</span>
+                    <span id="movenumber">1</span>
+                </span>
+            </label>
+        </div>
+
+    </div>
+</div>
+
+<a href="https://beian.miit.gov.cn" style="position: absolute; width: 100%; text-align: center; color: #9096b0;">沪ICP备2025137067号</a>
+
+
+<script th:inline="javascript">
+
+    let deviceId;
+
+    window.addEventListener("DOMContentLoaded", () => {
+        function generateUUID() {
+            if (crypto.randomUUID) return crypto.randomUUID();
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+                const r = Math.random() * 16 | 0;
+                const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        if(localStorage.getItem('deviceId') === "undefined"){
+            deviceId = generateUUID();
+        }else{
+            deviceId = localStorage.getItem('deviceId') || generateUUID();
+        }
+
+        localStorage.setItem('deviceId', deviceId);
+
+        likeToggle.addEventListener("change", () =>{
+            if (likeToggle.checked) {
+                performLike();
+            } else {
+                performUnlike();
+            }
+        });
+    });
+
+    const clubName2 = [[${clubName}]];
+
+    const likeToggle = document.getElementById("checknumber");
+    const likeCountEl = document.getElementById("currentnumber");
+    const likeCountElAfter = document.getElementById("movenumber");
+
+    window.addEventListener("DOMContentLoaded", () => {
+        const key = `liked_${clubName2}`;
+        if (localStorage.getItem(key) === "true") {
+            likeToggle.checked = true;
+        }
+    });
+
+    const url = `/api/club/name-en/${encodeURIComponent(clubName2)}`;
+
+    fetch(url, { method: "GET"})
+        .then(res => res.json())
+        .then(result => {
+            if (result.data){
+                const currentLike = Number(result.data.videoLike ?? 0);
+                likeCountEl.textContent = currentLike;
+                likeCountElAfter.textContent = currentLike + 1;
+            }
+        });
+
+    function performLike(){
+        fetch(`/api/club/like/${encodeURIComponent(clubName2)}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                "Device-Id": deviceId
+            }})
+            .then(res => res.json())
+            .then(result => {
+                if (result.code === 200) {
+                    likeToggle.checked = true;
+                } else {
+                    showNotice("点赞失败：" + (result.message || "未知错误"));
+                    likeToggle.checked = false;
+                }
+            })
+            .catch(err => {
+                showNotice("点赞失败：" + "你不可以刷赞");
+                likeToggle.checked = false;
+            });
+    }
+
+    function performUnlike(){
+        fetch(`/api/club/dislike/${encodeURIComponent(clubName2)}`, {
+            method: "PUT" ,
+            headers: {
+                "Content-Type": "application/json",
+                "X-Device-Id": deviceId
+            }
+        })
+            .then(res => res.json())
+            .then(result => {
+                if (result.code === 200) {
+                    likeToggle.checked = false;
+                } else {
+                    alert("取消点赞失败：" + (result.message || "未知错误"));
+                    likeToggle.checked = true;
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                likeToggle.checked = true;
+            });
+    }
+
+</script>
+
+</body>
+</html>
