@@ -37,7 +37,7 @@ public class Teacher implements UserBase{
     @Column(name = "teacher_email")
     private String email;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "teacher_club",
             joinColumns = @JoinColumn(name = "teacher_id"),

@@ -3,6 +3,7 @@ package com.qpwflshclub.formal_club.service.User;
 import com.qpwflshclub.formal_club.pojo.User.Teacher;
 import com.qpwflshclub.formal_club.pojo.User.*;
 import com.qpwflshclub.formal_club.pojo.dto.User.*;
+import com.qpwflshclub.formal_club.pojo.Club.Club;
 
 import java.util.List;
 import java.util.Map;
@@ -47,5 +48,11 @@ public interface IUserService {
 
     // 职位转换方法
     UserBase changeRole(String usernameEn, int newRole);
+
+    // 任命社长方法
+    ClubPresident appointPresident(String targetUsernameEn, Integer clubId, boolean isVicePresident);
+
+    // 获取所有社团
+    List<Club> getAllClubs();
 
 }

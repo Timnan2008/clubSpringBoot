@@ -27,6 +27,7 @@ import com.qpwflshclub.formal_club.service.User.IUserService;
 
 import java.util.List;
 import java.util.Objects;
+import com.qpwflshclub.formal_club.pojo.Club.Club;
 
 @RestController
 @RequestMapping("/api/user")
@@ -309,5 +310,85 @@ public class UserController {
         } catch (IllegalArgumentException e) {
             return ResponseMessage.error(e.getMessage());
         }
+    }
+
+    /**
+     * 任命社长
+     * POST /api/user/appoint-president
+     * 请求体：{ "usernameEn": "xxx", "clubId": 1, "isVicePresident": false }
+     * 权限：老师可以任命自己指导的社团的社长，管理员可以任命任何社团的社长
+     */
+    @PostMapping("/appoint-president")
+    public ResponseMessage<ClubPresident> appointPresident(
+            @RequestBody java.util.Map<String, Object> requestBody,
+            HttpServletRequest request) {
+        
+        UserBase currentUser = (UserBase) request.getAttribute("currentUser");
+        if (currentUser == null || currentUser.getUserRight() < 2) {
+            return ResponseMessage.error("无权限：只有老师和管理员可以任命社长");
+        }
+
+        String targetUsernameEn = (String) requestBody.get("usernameEn");
+        Integer clubId = (Integer) requestBody.get("clubId");
+        Boolean isVicePresident = (Boolean) requestBody.get("isVicePresident");
+
+        if (targetUsernameEn == null || targetUsernameEn.isBlank()) {
+            return ResponseMessage.error("目标用户名不能为空");
+        }
+        if (clubId == null) {
+            return ResponseMessage.error("社团ID不能为空");
+        }
+        if (isVicePresident == null) {
+            isVicePresident = false;
+        }
+
+        // 如果是老师（不是管理员），检查是否有权限管理该社团
+        if (currentUser.getUserRight() == 2 && currentUser instanceof Teacher teacher) {
+            boolean hasPermission = false;
+            if (teacher.getClubs() != null) {
+                hasPermission = teacher.getClubs().stream()
+                        .anyMatch(club -> Objects.equals(club.getId(), clubId));
+            }
+            if (!hasPermission) {
+                return ResponseMessage.error("无权限：您只能任命自己指导的社团的社长");
+            }
+        }
+
+        try {
+            ClubPresident newPresident = userService.appointPresident(targetUsernameEn, clubId, isVicePresident);
+            return ResponseMessage.success(newPresident);
+        } catch (IllegalArgumentException e) {
+            return ResponseMessage.error(e.getMessage());
+        }
+    }
+
+    /**
+     * 获取当前用户管理的社团列表（用于老师任命社长时选择社团）
+     * GET /api/user/my-clubs
+     * 权限：老师和管理员可以访问
+     */
+    @GetMapping("/my-clubs")
+    public ResponseMessage<List<Club>> getMyManagedClubs(HttpServletRequest request) {
+        UserBase currentUser = (UserBase) request.getAttribute("currentUser");
+        if (currentUser == null || currentUser.getUserRight() < 2) {
+            return ResponseMessage.error("无权限：只有老师和管理员可以访问");
+        }
+
+        List<Club> clubs = null;
+        
+        // 如果是管理员，返回所有社团
+        if (currentUser.getUserRight() == 3 || currentUser instanceof Admin) {
+            clubs = userService.getAllClubs();
+        }
+        // 如果是老师，返回自己指导的社团
+        else if (currentUser instanceof Teacher teacher) {
+            clubs = teacher.getClubs();
+        }
+
+        if (clubs == null) {
+            clubs = List.of();
+        }
+        
+        return ResponseMessage.success(clubs);
     }
 }

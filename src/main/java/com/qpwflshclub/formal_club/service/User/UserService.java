@@ -705,4 +705,48 @@ public class UserService implements IUserService{
         }
     }
 
+    @Override
+    @Transactional
+    public ClubPresident appointPresident(String targetUsernameEn, Integer clubId, boolean isVicePresident) {
+        Club club = clubRepository.findById(clubId)
+                .orElseThrow(() -> new IllegalArgumentException("社团不存在"));
+
+        UserBase targetUser = findByNameEn(targetUsernameEn);
+        if (targetUser == null) {
+            throw new IllegalArgumentException("目标用户不存在");
+        }
+
+        ClubPresident newPresident;
+
+        if (targetUser instanceof ClubPresident existingPresident) {
+            newPresident = existingPresident;
+        } else {
+            newPresident = new ClubPresident();
+            newPresident.setUsername(targetUser.getUsername());
+            newPresident.setUsernameEn(targetUser.getUsernameEn());
+            newPresident.setEmail(targetUser.getEmail());
+            newPresident.setPassword(targetUser.getPassword());
+            newPresident.setClubs(new ArrayList<>());
+            if (targetUser.getClubs() != null) {
+                newPresident.getClubs().addAll(targetUser.getClubs());
+            }
+            // 多身份兼容：不删除原管理员/老师记录，保留原身份
+            // deleteUserByType(targetUser);
+        }
+
+        newPresident.setMainClub(club);
+        newPresident.setVicePresident(isVicePresident);
+
+        if (!hasClub(newPresident.getClubs(), clubId)) {
+            newPresident.getClubs().add(club);
+        }
+
+        return clubPresidentRepository.save(newPresident);
+    }
+
+    @Override
+    public List<Club> getAllClubs() {
+        return (List<Club>) clubRepository.findAll();
+    }
+
 }

@@ -4,6 +4,7 @@ import lombok.Data;
 
 @Data
 public class ClubVO {
+    private Integer id;
     private String clubName;
     private String clubNameEn;
     private String sortDescription;

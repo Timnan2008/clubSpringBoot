@@ -89,6 +89,28 @@
         }
         .change-role-btn:hover { background: #67c23a; color: white; }
 
+        .appoint-president-btn {
+            background: #ffffff;
+            color: #e6a23c;
+            border: 1px solid #e6d8a2;
+            padding: 6px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 8px;
+        }
+        .appoint-president-btn:hover { background: #e6a23c; color: white; }
+
+        .appoint-vice-btn {
+            background: #ffffff;
+            color: #909399;
+            border: 1px solid #dcdfe6;
+            padding: 6px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 8px;
+        }
+        .appoint-vice-btn:hover { background: #909399; color: white; }
+
         /* 二级确认弹窗 */
         .modal-overlay {
             position: fixed;
@@ -180,20 +202,73 @@
     </div>
 </div>
 
+<!-- 任命社长弹窗 -->
+<div class="modal-overlay" id="appointModal">
+    <div class="modal-box">
+        <h3 style="color: #e6a23c; margin-top:0;" id="appointModalTitle">👑 任命社长</h3>
+        <div class="user-details">
+            <div><strong>用户：</strong> <span id="appointModalUsername"></span></div>
+            <div><strong>当前职位：</strong> <span id="appointModalCurrentRole"></span></div>
+            <div><strong>任命类型：</strong> <span id="appointModalType" style="color: #e6a23c; font-weight: bold;"></span></div>
+            <div style="margin-top: 12px;">
+                <strong>选择社团：</strong>
+                <select id="appointClubSelect" style="margin-left: 8px; padding: 4px 8px; border-radius: 4px; border: 1px solid #dcdfe6; width: 200px;">
+                </select>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="closeAppointModal()">取消</button>
+            <button class="btn-confirm" id="btnDoAppoint" style="background: #e6a23c;">确认任命</button>
+        </div>
+    </div>
+</div>
+
 <script th:inline="javascript">
     let currentUserToDelete = null;
     let currentUserToChangeRole = null;
+    let currentUserToAppoint = null;
+    let allClubs = [];
 
     // 只有当有权限时（UserRight >= 2，即老师或管理员），JS 才会执行初始化请求
     // 这里的 Thymeleaf 表达式可以在 JS 里做一层安全防护
     const hasAuth = /*[[${loginUser != null && loginUser.getUserRight() >= 2}]]*/ false;
     // 判断是否是管理员（只有管理员可以改变职位）
     const isAdmin = /*[[${loginUser != null && loginUser.getUserRight() == 3}]]*/ false;
+    // 判断是否是老师或管理员（可以任命社长）
+    const canAppoint = /*[[${loginUser != null && loginUser.getUserRight() >= 2}]]*/ false;
+    // 获取当前登录用户的社团列表（用于老师权限判断）
+    const loginUserClubs = /*[[${loginUser != null ? loginUser.clubs : null}]]*/ null;
+    let teacherManagedClubs = [];
 
     if (hasAuth) {
         document.addEventListener("DOMContentLoaded", () => {
             loadUsers();
+            loadClubs();
+            // 如果是老师，额外获取自己指导的社团列表作为备用
+            if (!isAdmin && canAppoint) {
+                loadTeacherClubs();
+            }
         });
+    }
+
+    function loadTeacherClubs() {
+        fetch('/api/user/my-clubs')
+            .then(res => res.json())
+            .then(res => {
+                if (res.code === 200) {
+                    teacherManagedClubs = res.data;
+                }
+            });
+    }
+
+    function loadClubs() {
+        fetch('/api/club/all')
+            .then(res => res.json())
+            .then(res => {
+                if (res.code === 200) {
+                    allClubs = res.data;
+                }
+            });
     }
 
     function loadUsers() {
@@ -219,6 +294,12 @@
                 roleBtnHtml = '<button class="change-role-btn">改变职位</button>';
             }
 
+            // 老师和管理员可以任命社长/副社长（不能任命老师和管理员）
+            let appointBtnHtml = "";
+            if (canAppoint && user.userRight !== 2 && user.userRight !== 3) {
+                appointBtnHtml = '<button class="appoint-president-btn">任命社长</button><button class="appoint-vice-btn">任命副社长</button>';
+            }
+
             const card = document.createElement("div");
             card.className = "user-card";
             card.innerHTML = `
@@ -230,11 +311,16 @@
                     <div class="card-actions">
                         <button class="delete-btn">删除账号</button>
                         ${roleBtnHtml}
+                        ${appointBtnHtml}
                     </div>
                 `;
             card.querySelector(".delete-btn").addEventListener("click", () => openModal(user));
             if (isAdmin) {
                 card.querySelector(".change-role-btn").addEventListener("click", () => openRoleModal(user));
+            }
+            if (canAppoint && user.userRight !== 2 && user.userRight !== 3) {
+                card.querySelector(".appoint-president-btn").addEventListener("click", () => openAppointModal(user, false));
+                card.querySelector(".appoint-vice-btn").addEventListener("click", () => openAppointModal(user, true));
             }
             grid.appendChild(card);
         });
@@ -329,6 +415,92 @@
                 if (res.code === 200) {
                     alert("职位已成功修改！");
                     closeRoleModal();
+                    loadUsers();
+                } else { alert("操作失败：" + res.message); }
+            });
+    });
+
+    // 任命社长相关函数
+    let currentAppointIsVice = false;
+    
+    function openAppointModal(user, isVice) {
+        currentUserToAppoint = user;
+        currentAppointIsVice = isVice;
+        
+        document.getElementById("appointModalUsername").innerText = user.username || "未设置";
+        document.getElementById("appointModalCurrentRole").innerText = getRoleName(user.userRight);
+        document.getElementById("appointModalType").innerText = isVice ? "副社长" : "社长";
+        
+        // 设置弹窗标题
+        const title = document.getElementById("appointModalTitle");
+        title.innerText = isVice ? "👑 任命副社长" : "👑 任命社长";
+        
+        // 填充社团下拉列表
+        const clubSelect = document.getElementById("appointClubSelect");
+        clubSelect.innerHTML = "";
+        
+        // 如果是管理员，可以选择所有社团
+        // 如果是老师，只能选择自己指导的社团
+        let availableClubs = allClubs;
+        if (!isAdmin) {
+            // 优先使用从后端获取的老师社团列表
+            let myManagedClubs = teacherManagedClubs;
+            // 如果 teacherManagedClubs 为空，尝试使用 loginUserClubs
+            if (myManagedClubs.length === 0 && loginUserClubs && Array.isArray(loginUserClubs)) {
+                myManagedClubs = loginUserClubs;
+            }
+            
+            if (myManagedClubs.length > 0) {
+                const myClubIds = myManagedClubs.map(c => c.id);
+                availableClubs = allClubs.filter(c => myClubIds.includes(c.id));
+            } else {
+                // 如果都没有，显示一个提示选项
+                clubSelect.innerHTML = '<option value="">没有可管理的社团</option>';
+                document.getElementById("appointModal").style.display = "flex";
+                return;
+            }
+        }
+        
+        availableClubs.forEach(club => {
+            const option = document.createElement("option");
+            option.value = club.id;
+            option.innerText = club.clubName;
+            clubSelect.appendChild(option);
+        });
+        
+        document.getElementById("appointModal").style.display = "flex";
+    }
+
+    function closeAppointModal() {
+        document.getElementById("appointModal").style.display = "none";
+        currentUserToAppoint = null;
+        currentAppointIsVice = false;
+    }
+
+    document.getElementById("btnDoAppoint").addEventListener("click", () => {
+        if (!currentUserToAppoint) return;
+        
+        const clubId = parseInt(document.getElementById("appointClubSelect").value);
+        
+        if (!clubId) {
+            alert("请选择社团");
+            return;
+        }
+
+        fetch('/api/user/appoint-president', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                usernameEn: currentUserToAppoint.usernameEn, 
+                clubId: clubId,
+                isVicePresident: currentAppointIsVice
+            })
+        })
+            .then(res => res.json())
+            .then(res => {
+                if (res.code === 200) {
+                    alert(currentAppointIsVice ? "副社长任命成功！" : "社长任命成功！");
+                    closeAppointModal();
                     loadUsers();
                 } else { alert("操作失败：" + res.message); }
             });
