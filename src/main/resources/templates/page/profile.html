@@ -26,7 +26,10 @@
         USER_TYPE = 'admin';
     }
 
+    const USER_NAME = /*[[${loginUser.username}]]*/ '';
+    const USER_NAME_EN = /*[[${loginUser.usernameEn}]]*/ '';
     const USER_EMAIL = /*[[${loginUser.email}]]*/ '';
+    const USER_PASSWORD = /*[[${loginUser.password}]]*/ '';
     const I18N = {
         noticeErrTitle: "操作失败",
         noticeSuccessTitle: "成功",
@@ -97,6 +100,7 @@
         const payload = {
             username: username,
             usernameEn: usernameEn,
+            password: USER_PASSWORD,
             email: USER_EMAIL,
             userType: USER_TYPE
         };
@@ -153,6 +157,9 @@
 
     /* ───── 3. 验证并修改密码 ───── */
     function updatePassword() {
+        const username = document.getElementById("profile-name").value.trim();
+        const usernameEn = document.getElementById("profile-nameEn").value.trim();
+
         const newPwd = document.getElementById("new-password").value;
         const code = document.getElementById("security-code").value.trim();
 
@@ -170,6 +177,8 @@
             .then((data) => {
                 if (data.code === 200) {
                     const payload = {
+                        username: username,
+                        usernameEn: usernameEn,
                         password: newPwd,
                         email: USER_EMAIL,
                         userType: USER_TYPE

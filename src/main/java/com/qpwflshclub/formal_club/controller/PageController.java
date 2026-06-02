@@ -387,7 +387,7 @@ public class PageController {
         model.addAttribute("clubName", clubName);
 
         // 6. 返回模板名称，Thymeleaf 会去找 templates/club-edit.html 页面
-        return "/page/club-edit";
+        return "page/club-edit";
     }
 
     @Autowired

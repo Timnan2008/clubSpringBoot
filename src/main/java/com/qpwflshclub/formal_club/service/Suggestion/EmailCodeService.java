@@ -1,6 +1,7 @@
 package com.qpwflshclub.formal_club.service.Suggestion;
 
 import com.qpwflshclub.formal_club.Util.CodeUtil;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -39,16 +40,13 @@ public class EmailCodeService {
      * 验证码信息类
      */
     private static class CodeInfo {
+        @Getter
         private final String code;
         private final long expireTime;
 
         public CodeInfo(String code, long expireTime) {
             this.code = code;
             this.expireTime = expireTime;
-        }
-
-        public String getCode() {
-            return code;
         }
 
         public boolean isExpired() {
