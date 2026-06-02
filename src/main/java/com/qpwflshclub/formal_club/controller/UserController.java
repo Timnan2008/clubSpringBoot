@@ -102,6 +102,35 @@ public class UserController {
         return new ResponseMessage<>(200, "更新成功", result);
     }
 
+
+
+    /*
+    @PutMapping("/update/user")
+    public ResponseMessage<User> update(@Validated @RequestBody UserDTO userDTO){
+        User user = userService.update(userDTO);
+        return ResponseMessage.success(user);
+    }
+
+    @PutMapping("/update/club-president")
+    public ResponseMessage<ClubPresident> update(@Validated @RequestBody ClubPresidentDTO clubPresidentDTO){
+        ClubPresident clubPresident = userService.update(clubPresidentDTO);
+        return ResponseMessage.success(clubPresident);
+    }
+
+    @PutMapping("/update/teacher")
+    public ResponseMessage<Teacher> update(@Validated @RequestBody TeacherDTO teacherDTO){
+        Teacher teacher = userService.update(teacherDTO);
+        return ResponseMessage.success(teacher);
+    }
+
+    @PutMapping("/update/admin")
+    public ResponseMessage<Admin> update(@Validated @RequestBody AdminDTO adminDTO){
+        Admin admin = userService.update(adminDTO);
+        return ResponseMessage.success(admin);
+    }
+
+     */
+
     @DeleteMapping("/delete")
     public ResponseMessage<String> delete(@RequestBody UserBaseDTO userDTO){
         String nameEn = userDTO.getUsernameEn();
