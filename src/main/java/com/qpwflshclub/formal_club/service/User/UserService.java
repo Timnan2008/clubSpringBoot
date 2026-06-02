@@ -255,6 +255,7 @@ public class UserService implements IUserService{
         return null;
     }
 
+    /*
     @Override
     public <T extends UserBase> T findByEmail(String email) {
         for (User user : userRepository.findAll()) {
@@ -281,6 +282,43 @@ public class UserService implements IUserService{
             }
         }
         
+        return null;
+    }
+
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    public <T extends UserBase> T findByEmail(String email) {
+        if (email == null || email.trim().isEmpty()) {
+            return null;
+        }
+
+        // 🌟 1. 优先级最高：先去社长/副社长表里查
+        // 如果该邮箱存在于社长表中，直接返回社长对象。
+        // 这样就截断了后续对普通用户表的查询，完美规避了 user 表残留数据的干扰！
+        ClubPresident president = clubPresidentRepository.findByEmail(email);
+        if (president != null) {
+            return (T) president;
+        }
+
+        // 2. 优先级第二：如果不是社长，再去普通用户（学生）表里查
+        User student = userRepository.findByEmail(email);
+        if (student != null) {
+            return (T) student;
+        }
+
+        // 3. 优先级第三：去老师表查
+        Teacher teacher = teacherRepository.findByEmail(email);
+        if (teacher != null) {
+            return (T) teacher;
+        }
+
+        // 4. 优先级第四：去管理员表查
+        Admin admin = adminRepository.findByAdminEmail(email);
+        if (admin != null) {
+            return (T) admin;
+        }
+
         return null;
     }
 

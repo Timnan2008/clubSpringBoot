@@ -1,5 +1,6 @@
 package com.qpwflshclub.formal_club.pojo.User;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.qpwflshclub.formal_club.pojo.Club.Club;
 import jakarta.persistence.*;
 
@@ -71,6 +72,7 @@ public class Admin implements UserBase{
     @Column(name = "user_right")
     public final static Integer userRight = 3;
 
+    @JsonIgnore // 🌟 添加这一行
     @ManyToMany
     @JoinTable(
             name = "admin_club",

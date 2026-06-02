@@ -466,4 +466,23 @@ public class UserController {
 
         return ResponseMessage.success(clubs);
     }
+
+    /**
+     * 获取当前登录用户的信息
+     * GET /api/user/current
+     * 作用：供前端 navbar.html 动态校验用户的登录状态，控制“登录/注册”按钮与头像的显隐
+     */
+    @GetMapping("/current")
+    public ResponseMessage<UserBase> getCurrentUser(HttpServletRequest request) {
+        // 1. 从刚才恢复的 AuthFilter 注入的 request 属性中获取当前登录用户
+        UserBase currentUser = (UserBase) request.getAttribute("currentUser");
+
+        // 2. 如果 Filter 没有找到有效 Session/Cookie（用户未登录），返回 401 状态码或错误提示
+        if (currentUser == null) {
+            return new ResponseMessage<>(401, "用户未登录", null);
+        }
+
+        // 3. 用户已登录，将查出的高优先级实体类对象（如已完美兼容多身份的 ClubPresident）返回给前端
+        return ResponseMessage.success(currentUser);
+    }
 }

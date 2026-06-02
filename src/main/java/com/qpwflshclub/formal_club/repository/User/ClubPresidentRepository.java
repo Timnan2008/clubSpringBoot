@@ -9,4 +9,5 @@ import java.util.Optional;
 @Repository
 public interface ClubPresidentRepository extends CrudRepository<ClubPresident, Long> {
     Optional<ClubPresident> findByUsernameEn(String usernameEn);
+    ClubPresident findByEmail(String email);
 }
