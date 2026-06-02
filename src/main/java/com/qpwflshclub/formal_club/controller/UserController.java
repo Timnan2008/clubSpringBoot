@@ -26,6 +26,7 @@ import com.qpwflshclub.formal_club.pojo.User.UserBase;
 import com.qpwflshclub.formal_club.service.User.IUserService;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import com.qpwflshclub.formal_club.pojo.Club.Club;
 
@@ -357,6 +358,50 @@ public class UserController {
         try {
             ClubPresident newPresident = userService.appointPresident(targetUsernameEn, clubId, isVicePresident);
             return ResponseMessage.success(newPresident);
+        } catch (IllegalArgumentException e) {
+            return ResponseMessage.error(e.getMessage());
+        }
+    }
+
+    /**
+     * 撤销社长/副社长
+     * POST /api/user/revoke-president
+     * 请求体：{ "userId": 1 }
+     * 权限：老师可以撤销自己指导社团的社长，管理员可以撤销任何社长
+     */
+    @PostMapping("/revoke-president")
+    public ResponseMessage<String> revokePresident(
+            @RequestBody Map<String, Object> requestBody,
+            HttpServletRequest request) {
+
+        UserBase currentUser = (UserBase) request.getAttribute("currentUser");
+        if (currentUser == null || currentUser.getUserRight() < 2) {
+            return ResponseMessage.error("无权限：只有老师和管理员可以撤销社长");
+        }
+
+        Object userIdValue = requestBody.get("userId");
+        if (userIdValue == null) {
+            return ResponseMessage.error("社长ID不能为空");
+        }
+
+        try {
+            Long presidentId = Long.valueOf(userIdValue.toString());
+            ClubPresident targetPresident = userService.findClubPresidentByID(presidentId);
+
+            if (currentUser.getUserRight() == 2 && currentUser instanceof Teacher teacher) {
+                Club targetClub = targetPresident.getMainClub();
+                boolean hasPermission = targetClub != null
+                        && teacher.getClubs() != null
+                        && teacher.getClubs().stream()
+                        .anyMatch(club -> Objects.equals(club.getId(), targetClub.getId()));
+
+                if (!hasPermission) {
+                    return ResponseMessage.error("无权限：您只能撤销自己指导社团的社长");
+                }
+            }
+
+            userService.revokePresident(presidentId);
+            return ResponseMessage.success("社长身份已撤销");
         } catch (IllegalArgumentException e) {
             return ResponseMessage.error(e.getMessage());
         }

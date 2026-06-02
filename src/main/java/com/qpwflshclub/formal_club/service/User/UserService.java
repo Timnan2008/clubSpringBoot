@@ -199,6 +199,12 @@ public class UserService implements IUserService{
     }
 
     @Override
+    public ClubPresident findClubPresidentByUsernameEn(String usernameEn) {
+        return clubPresidentRepository.findByUsernameEn(usernameEn)
+                .orElseThrow(() -> new IllegalArgumentException("没有找到该社长"));
+    }
+
+    @Override
     public User findUserById(Long id) {
         return userRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("没有找到该用户"));
     }
@@ -742,6 +748,19 @@ public class UserService implements IUserService{
         }
 
         return clubPresidentRepository.save(newPresident);
+    }
+
+    @Override
+    @Transactional
+    public void revokePresident(Long presidentId) {
+        if (presidentId == null) {
+            throw new IllegalArgumentException("社长ID不能为空");
+        }
+
+        ClubPresident president = clubPresidentRepository.findById(presidentId)
+                .orElseThrow(() -> new IllegalArgumentException("该用户不是社长或副社长"));
+
+        clubPresidentRepository.delete(president);
     }
 
     @Override

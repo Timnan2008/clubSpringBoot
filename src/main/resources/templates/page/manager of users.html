@@ -111,6 +111,17 @@
         }
         .appoint-vice-btn:hover { background: #909399; color: white; }
 
+        .revoke-president-btn {
+            background: #ffffff;
+            color: #f56c6c;
+            border: 1px solid #fbc4c4;
+            padding: 6px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 8px;
+        }
+        .revoke-president-btn:hover { background: #f56c6c; color: white; }
+
         /* 二级确认弹窗 */
         .modal-overlay {
             position: fixed;
@@ -154,7 +165,6 @@
 <div th:replace="~{fragments/navbar :: navbar}"></div>
 
 <div class="container">
-    <script>console.log(session.currentUser);</script>
     <h2>用户管理</h2>
     <div class="subtitle">当前账号级别支持管理权限。用户列表按数字-字母-汉字排序。</div>
 
@@ -236,8 +246,6 @@
     const isAdmin = /*[[${loginUser != null && loginUser.getUserRight() == 3}]]*/ false;
     // 判断是否是老师或管理员（可以任命社长）
     const canAppoint = /*[[${loginUser != null && loginUser.getUserRight() >= 2}]]*/ false;
-    // 获取当前登录用户的社团列表（用于老师权限判断）
-    const loginUserClubs = /*[[${loginUser != null ? loginUser.clubs : null}]]*/ null;
     let teacherManagedClubs = [];
 
     if (hasAuth) {
@@ -299,6 +307,10 @@
             if (canAppoint && user.userRight !== 2 && user.userRight !== 3) {
                 appointBtnHtml = '<button class="appoint-president-btn">任命社长</button><button class="appoint-vice-btn">任命副社长</button>';
             }
+            let revokeBtnHtml = "";
+            if (canAppoint && user.userRight === 1) {
+                revokeBtnHtml = '<button class="revoke-president-btn">撤销社长</button>';
+            }
 
             const card = document.createElement("div");
             card.className = "user-card";
@@ -312,6 +324,7 @@
                         <button class="delete-btn">删除账号</button>
                         ${roleBtnHtml}
                         ${appointBtnHtml}
+                        ${revokeBtnHtml}
                     </div>
                 `;
             card.querySelector(".delete-btn").addEventListener("click", () => openModal(user));
@@ -321,6 +334,9 @@
             if (canAppoint && user.userRight !== 2 && user.userRight !== 3) {
                 card.querySelector(".appoint-president-btn").addEventListener("click", () => openAppointModal(user, false));
                 card.querySelector(".appoint-vice-btn").addEventListener("click", () => openAppointModal(user, true));
+            }
+            if (canAppoint && user.userRight === 1) {
+                card.querySelector(".revoke-president-btn").addEventListener("click", () => revokePresident(user));
             }
             grid.appendChild(card);
         });
@@ -445,11 +461,6 @@
         if (!isAdmin) {
             // 优先使用从后端获取的老师社团列表
             let myManagedClubs = teacherManagedClubs;
-            // 如果 teacherManagedClubs 为空，尝试使用 loginUserClubs
-            if (myManagedClubs.length === 0 && loginUserClubs && Array.isArray(loginUserClubs)) {
-                myManagedClubs = loginUserClubs;
-            }
-            
             if (myManagedClubs.length > 0) {
                 const myClubIds = myManagedClubs.map(c => c.id);
                 availableClubs = allClubs.filter(c => myClubIds.includes(c.id));
@@ -505,6 +516,28 @@
                 } else { alert("操作失败：" + res.message); }
             });
     });
+
+    function revokePresident(user) {
+        if (!user || !user.id) return;
+
+        const roleName = user.userRight === 1 ? "社长/副社长" : "社长";
+        if (!confirm(`确定要撤销 ${user.username || user.usernameEn} 的${roleName}身份吗？`)) {
+            return;
+        }
+
+        fetch('/api/user/revoke-president', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: user.id })
+        })
+            .then(res => res.json())
+            .then(res => {
+                if (res.code === 200) {
+                    alert("社长身份已撤销！");
+                    loadUsers();
+                } else { alert("操作失败：" + res.message); }
+            });
+    }
 </script>
 </body>
 </html>
