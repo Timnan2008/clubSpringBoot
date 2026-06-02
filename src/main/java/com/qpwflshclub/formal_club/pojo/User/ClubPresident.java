@@ -56,6 +56,7 @@ public class ClubPresident implements UserBase {
     @Column(name = "is_vice_president", nullable = false)
     private boolean vicePresident;
 
+    @Column(name = "user_right")
     public static final Integer userRight = 1;
 
     @Override
@@ -148,6 +149,11 @@ public class ClubPresident implements UserBase {
         }
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    @Override
+    public int getUserRight() {
+        return 1; // 既然正副社长有独立表，我们让他们返回 1，方便与普通学生(0)做区分
     }
 
     /**

@@ -1,6 +1,5 @@
 package com.qpwflshclub.formal_club.pojo.User;
 
-import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.qpwflshclub.formal_club.pojo.Club.Club;
 import jakarta.persistence.*;
 
@@ -31,6 +30,7 @@ public class User implements UserBase{
     )
     private List<Club> clubs;
 
+    @Column(name = "user_right")
     public static Integer userRight = 0;
 
     @Override
@@ -88,8 +88,10 @@ public class User implements UserBase{
         this.clubs = clubs;
     }
 
-    public static Integer getUserRight() {
-        return userRight;
+
+    @Override
+    public int getUserRight() {
+        return 0; // 普通学生是 0
     }
 
     public static void setUserRight(Integer userRight) {

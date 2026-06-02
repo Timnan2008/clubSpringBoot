@@ -37,13 +37,16 @@ public class Teacher implements UserBase{
     @Column(name = "teacher_email")
     private String email;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "teacher_club",
             joinColumns = @JoinColumn(name = "teacher_id"),
             inverseJoinColumns = @JoinColumn(name = "club_id")
     )
     private List<Club> clubs;
+
+    @Column(name = "user_right")
+    public static int userRight = 2;
 
     @Override
     public String getUsername() {
@@ -110,5 +113,10 @@ public class Teacher implements UserBase{
 
     public void setTeacherNameEn(String teacherNameEn) {
         this.teacherNameEn = teacherNameEn;
+    }
+
+    @Override
+    public int getUserRight() {
+        return 2; // 明确告诉程序，老师的权限数字是 2
     }
 }

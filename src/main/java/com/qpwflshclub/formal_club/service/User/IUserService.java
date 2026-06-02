@@ -3,6 +3,10 @@ package com.qpwflshclub.formal_club.service.User;
 import com.qpwflshclub.formal_club.pojo.User.Teacher;
 import com.qpwflshclub.formal_club.pojo.User.*;
 import com.qpwflshclub.formal_club.pojo.dto.User.*;
+import com.qpwflshclub.formal_club.pojo.Club.Club;
+
+import java.util.List;
+import java.util.Map;
 
 public interface IUserService {
 
@@ -16,16 +20,43 @@ public interface IUserService {
     ClubPresident update(ClubPresidentDTO clubPresidentDTO);
     User update(UserDTO userDTO);
 
-    void delate(Long userId);
+    void delete(Long userId, int userRight);
+    void delete(String nameEn);
 
     Teacher findTeacherByID(Long id);
     Admin findAdminByID(Long id);
     ClubPresident findClubPresidentByID(Long id);
+    ClubPresident findClubPresidentByUsernameEn(String usernameEn);
     User findUserById(Long id);
 
     boolean hasUser(String nameEn);
 
     <T extends UserBase> T findByNameEn(String nameEn);
     <T extends UserBase> T findByEmail(String email);
+
+    List<Map<String, Object>> getClubMembersWithRoles(Integer clubId);
+    List<Map<String, Object>> searchStudentsForClub(Integer clubId, String keyword);
+    void updateClubStaffRole(Integer clubId, Long targetUserId, String newRole);
+    void addStudentToClubRelationship(Long userId, Integer clubId);
+    void removeStudentFromClubRelationship(Long userId, Integer clubId);
+
+    Admin transferAdmin(User u);
+    Admin transferAdmin(Teacher u);
+    Admin transferAdmin(ClubPresident u);
+
+    // 添加到 IUserService 接口中
+    List<UserBase> findAllUsers();
+
+    // 职位转换方法
+    UserBase changeRole(String usernameEn, int newRole);
+
+    // 任命社长方法
+    ClubPresident appointPresident(String targetUsernameEn, Integer clubId, boolean isVicePresident);
+
+    // 撤销社长方法
+    void revokePresident(Long presidentId);
+
+    // 获取所有社团
+    List<Club> getAllClubs();
 
 }

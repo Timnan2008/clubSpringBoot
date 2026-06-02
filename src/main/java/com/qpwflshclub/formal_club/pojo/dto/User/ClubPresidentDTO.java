@@ -45,6 +45,7 @@ public class ClubPresidentDTO implements UserBaseDTO {
 
     private List<Long> clubs;
 
+    @NotBlank(message="主要社团不能为空")
     private Long mainClubId;
 
     private boolean vicePresident;

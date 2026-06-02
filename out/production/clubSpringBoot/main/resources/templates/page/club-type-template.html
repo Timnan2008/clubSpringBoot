@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="icon" type="image/png" href="/other%20photo/WFL-logo.png">
+    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/club-type-template_style.css">
+    <title id="title">加载中...</title>
+</head>
+<body>
+<div id="particles"></div>
+<div th:replace="fragments/notice :: notice"></div>
+<div th:replace="fragments/navbar :: navbar"></div>
+<div th:replace="fragments/particle :: particle"></div>
+
+<div id="Top" class="tab-buttons"></div>
+
+<div class="grid" id="clubGrid">
+    <div class="card">
+        <img src="1" alt="加载中……">
+        <div class="card-content">
+            <h2>加载中……</h2>
+            <p>加载中……</p>
+            <a class="button">无法点击</a>
+        </div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    const messages = {
+        "nav.club.creativity": /*[[#{nav.club.creativity}]]*/'creativity',
+        "nav.club.activity": /*[[#{nav.club.activity}]]*/'activity',
+        "nav.club.service": /*[[#{nav.club.service}]]*/'service',
+        "nav.club.study": /*[[#{nav.club.study}]]*/'study'
+    };
+</script>
+
+<script th:inline="javascript">
+    const i18n = {
+        viewDetail: /*[[#{button.viewDetail}]]*/
+    };
+</script>
+
+
+<script  th:inline="javascript" >
+    const type =  /*[[${type}]]*/ 'default';
+
+    var typeForUse = type;
+
+    const clubTypes = {
+        creativity: "nav.club.creativity",
+        activity: "nav.club.activity",
+        service: "nav.club.service",
+        study: "nav.club.study"
+    };
+
+    const topTabs = document.getElementById("Top");
+
+    const title = document.getElementById("title");
+
+    topTabs.innerHTML = "";
+
+    // 遍历生成 tabs
+    Object.entries(clubTypes).forEach(([key, i18nKey]) => {
+        const a = document.createElement("a");
+        a.className = "tab-button";
+        a.dataset.i18n = i18nKey;
+
+        if (key === type) {
+            a.classList.add("active");
+            title.dataset.i18n = i18nKey; // 当前页面标题也 i18n
+        } else {
+            a.href = `/page/club-type/${key}`;
+        }
+
+        topTabs.appendChild(a);
+    });
+
+    function applyI18n(messages) {
+        document.querySelectorAll("[data-i18n]").forEach(el => {
+            const key = el.dataset.i18n;
+            if (messages[key]) {
+                el.textContent = messages[key];
+            }
+        });
+    }
+
+    // DOM 生成完毕后再 i18n
+    applyI18n(messages);
+
+
+
+    /*if(type === "activity"){
+        document.getElementById("title").textContent = "体育活动";
+        document.getElementById("Top").innerHTML = `
+            <a href="/page/club-type/creativity" class="tab-button" data-i18n="main:C-type">创意艺术</a>
+            <a class="tab-button active" data-i18n="main:A-type">体育活动</a>
+            <a href="/page/club-type/service" class="tab-button" data-i18n="main:S-type">社会服务</a>
+            <a href="/page/club-type/study" class="tab-button" data-i18n="main:St-type">学科竞赛</a>
+        `
+    }else if(type === "service"){
+        document.getElementById("title").textContent = "社会服务";
+        document.getElementById("Top").innerHTML = `
+            <a href="/page/club-type/creativity" class="tab-button" data-i18n="main:C-type">创意艺术</a>
+            <a href="/page/club-type/activity" class="tab-button" data-i18n="main:A-type">体育活动</a>
+            <a class="tab-button active" data-i18n="main:S-type">社会服务</a>
+            <a href="/page/club-type/study" class="tab-button" data-i18n="main:St-type">学科竞赛</a>`
+    }else if(type === "study"){
+        document.getElementById("title").textContent = "学科竞赛";
+        document.getElementById("Top").innerHTML = `
+            <a href="/page/club-type/creativity" class="tab-button" data-i18n="main:C-type">创意艺术</a>
+            <a href="/page/club-type/activity" class="tab-button" data-i18n="main:A-type">体育活动</a>
+            <a href="/page/club-type/service" class="tab-button" data-i18n="main:S-type">社会服务</a>
+            <a class="tab-button active" data-i18n="main:St-type">学科竞赛</a>`
+    }else{
+        document.getElementById("title").textContent = "创意艺术";
+        document.getElementById("Top").innerHTML = `
+            <a class="tab-button active" data-i18n="main:C-type">创意艺术</a>
+            <a href="/page/club-type/activity" class="tab-button" data-i18n="main:A-type">体育活动</a>
+            <a href="/page/club-type/service" class="tab-button" data-i18n="main:S-type">社会服务</a>
+            <a href="/page/club-type/study" class="tab-button" data-i18n="main:St-type">学科竞赛</a>`
+    }*/
+
+
+    //获取数据
+    fetch(`/api/club/all`)
+        .then(response => response.json())
+        .then(result => {
+            const data = result.data;
+
+            const container = document.getElementById("clubGrid");
+            container.innerHTML = '';
+            data.forEach(club => {
+                if (club.clubClass === type) {
+                    if(club.clubURL === null){
+                        fetch(`/api/club/initialize-url/` + club.clubNameEn , {
+                            method: 'PUT',
+                        })
+                    }
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.innerHTML = `
+                        <img src="${club.clubItem}" alt="${club.clubName}">
+                        <div class="card-content">
+                          <h2>${club.clubName}</h2>
+                          <p>${club.sortDescription}</p>
+                          <a class="button" href="/${club.clubURL}">${i18n.viewDetail}</a>
+                        </div>
+                      `;
+                    container.appendChild(card);
+
+                }
+            });
+        })
+        .catch(error => {
+            console.error("加载社团数据失败:", error);
+        });
+
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+
+            button.classList.add('active');
+            document.getElementById(button.dataset.tab).classList.add('active');
+        });
+    });
+
+    const container = document.getElementById("clubGrid");
+
+</script>
+
+
+
+<a href="https://beian.miit.gov.cn" style="position: absolute; width: 100%; text-align: center; color: #9096b0;">沪ICP备2025137067号</a>
+
+</body>
+</html>

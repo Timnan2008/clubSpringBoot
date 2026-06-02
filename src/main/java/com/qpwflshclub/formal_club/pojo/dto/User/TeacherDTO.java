@@ -1,7 +1,6 @@
 package com.qpwflshclub.formal_club.pojo.dto.User;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.qpwflshclub.formal_club.pojo.Club.Club;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 
@@ -53,13 +52,6 @@ public class TeacherDTO implements UserBaseDTO{
         this.teacherEmail = teacherEmail;
     }
 
-    public List<Long> getDirectedClubs() {
-        return directedClubs;
-    }
-
-    public void setDirectedClubs(List<Long> directedClubs) {
-        this.directedClubs = directedClubs;
-    }
 
     @Override
     public void setId(long id) {
@@ -81,7 +73,7 @@ public class TeacherDTO implements UserBaseDTO{
     public final static Integer userRight = 2;
 
 
-    public List<Long> directedClubs;
+    public List<Long> Clubs;
 
     @Override
     public String getUsername() {
@@ -126,12 +118,12 @@ public class TeacherDTO implements UserBaseDTO{
 
     @Override
     public List<Long> getClubs() {
-        return  directedClubs;
+        return Clubs;
     }
 
     @Override
     public void setClubs(List<Long> clubs) {
-        this.directedClubs = clubs;
+        this.Clubs = clubs;
     }
 
 }
