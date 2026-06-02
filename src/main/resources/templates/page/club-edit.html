@@ -207,6 +207,7 @@
     }
 
     let IS_GREAT = false;
+    let CLUB_URL;
 
     // 1. 页面加载时拉取原始数据回显到各个输入框中
     if (clubNameParam) {
@@ -238,6 +239,7 @@
                     document.getElementById("clubDescriptionEn").value = club.clubDescriptionEn || '';
 
                     IS_GREAT = club.isGreatClub;
+                    CLUB_URL = club.clubURL;
                 } else {
                     openNotice26(false, {
                         title: "拉取数据失败",
@@ -277,6 +279,7 @@
             clubDescription: document.getElementById("clubDescription").value,
             clubDescriptionEn: document.getElementById("clubDescriptionEn").value,
             isGreatClub: IS_GREAT,
+            clubURL: CLUB_URL
         };
 
         // 发送 PUT 请求

@@ -103,7 +103,7 @@
             const members = await requestJson(`/api/club/${clubId}/members`);
             renderMembers(clubId, members || []);
         } catch (error) {
-            showToast(error.message, "error");
+            showToast(error.message, "方法与api被调用但加载失败");
         }
     }
 

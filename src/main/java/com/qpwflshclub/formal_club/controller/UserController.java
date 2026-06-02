@@ -43,32 +43,32 @@ public class UserController {
 
     @PostMapping("/add/admin")
     @ResponseBody
-    public ResponseMessage<Admin> add(@Validated @RequestBody AdminDTO adminDTO){
+    public ResponseMessage<Admin> add(@Validated @RequestBody AdminDTO adminDTO) {
         Admin admin = userService.addAdmin(adminDTO);
         return ResponseMessage.success(admin);
     }
 
     @PostMapping("/add/teacher")
     @ResponseBody
-    public ResponseMessage<Teacher> add(@Validated @RequestBody TeacherDTO teacherDTO){
+    public ResponseMessage<Teacher> add(@Validated @RequestBody TeacherDTO teacherDTO) {
         Teacher teacher = userService.addTeacher(teacherDTO);
         return ResponseMessage.success(teacher);
     }
 
     @PostMapping("/add/club-president")
     @ResponseBody
-    public ResponseMessage<ClubPresident> add(@Validated @RequestBody ClubPresidentDTO clubPresidentDTO){
+    public ResponseMessage<ClubPresident> add(@Validated @RequestBody ClubPresidentDTO clubPresidentDTO) {
         ClubPresident clubPresident = userService.addClubPresident(clubPresidentDTO);
         return ResponseMessage.success(clubPresident);
     }
 
     @PostMapping("/add/user")
     @ResponseBody
-    public ResponseMessage<User> add(@Validated @RequestBody UserDTO userDTO){
+    public ResponseMessage<User> add(@Validated @RequestBody UserDTO userDTO) {
 
         String nameEn = userDTO.getUsernameEn();
 
-        if(userService.hasUser(nameEn)){
+        if (userService.hasUser(nameEn)) {
             return ResponseMessage.occupied(userDTO.getUsername(), null);
         }
 
@@ -91,7 +91,7 @@ public class UserController {
 
     //更新用户
     @PutMapping("/update/{userType}")
-    public ResponseMessage<Object> update(@Validated @RequestBody UserBaseDTO userDTO, @PathVariable String userType){
+    public ResponseMessage<Object> update(@Validated @RequestBody UserBaseDTO userDTO, @PathVariable String userType) {
         Object result = switch (userType) {
             case "teacher" -> userService.update((TeacherDTO) userDTO);
             case "user" -> userService.update((UserDTO) userDTO);
@@ -132,14 +132,14 @@ public class UserController {
      */
 
     @DeleteMapping("/delete")
-    public ResponseMessage<String> delete(@RequestBody UserBaseDTO userDTO){
+    public ResponseMessage<String> delete(@RequestBody UserBaseDTO userDTO) {
         String nameEn = userDTO.getUsernameEn();
         userService.delete(nameEn);
         return new ResponseMessage<>(200, "删除成功", nameEn);
     }
 
     @GetMapping("/find/{type}/{id}")
-    public ResponseMessage<UserBase> find(@PathVariable String type, @PathVariable Long id){
+    public ResponseMessage<UserBase> find(@PathVariable String type, @PathVariable Long id) {
         UserBase user = switch (type) {
             case "teacher" -> userService.findTeacherByID(id);
             case "user" -> userService.findUserById(id);
@@ -151,24 +151,25 @@ public class UserController {
     }
 
     @GetMapping("/find-name/{type}/{name-en}")
-    public ResponseMessage<UserBase> find(@PathVariable String type, @PathVariable String nameEn){
-        if(type.equals("user")){
+    public ResponseMessage<UserBase> find(@PathVariable String type, @PathVariable String nameEn) {
+        if (type.equals("user")) {
             return new ResponseMessage<>(200, "查询成功", userService.findUserById(Long.parseLong(nameEn)));
         }
-        if(type.equals("admin")){
+        if (type.equals("admin")) {
             return new ResponseMessage<>(200, "查询成功", userService.findAdminByID(Long.parseLong(nameEn)));
         }
-        if(type.equals("teacher")){
+        if (type.equals("teacher")) {
             return new ResponseMessage<>(200, "查询成功", userService.findTeacherByID(Long.parseLong(nameEn)));
 
         }
-        if(type.equals("club-president")){
+        if (type.equals("club-president")) {
             return new ResponseMessage<>(200, "查询成功", userService.findClubPresidentByID(Long.parseLong(nameEn)));
         }
         return ResponseMessage.error("查不到");
     }
+
     @GetMapping("/find-name-directly/{nameEn}")
-    public ResponseMessage<?> findNameDirectly(@PathVariable String nameEn){
+    public ResponseMessage<?> findNameDirectly(@PathVariable String nameEn) {
         // 假设返回类型为 UserBase
         UserBase user = userService.findByNameEn(nameEn);
 
@@ -193,7 +194,7 @@ public class UserController {
     @PostMapping("/login")
     @ResponseBody
     public ResponseMessage<UserBase> login(@RequestBody LoginDTO loginDTO, HttpServletResponse response) {
-    // 按 email 在 user / teacher 表查找（可按需扩展）
+        // 按 email 在 user / teacher 表查找（可按需扩展）
         String email = loginDTO.getEmail();
         UserBase user = userService.findByEmail(email);
 
@@ -278,7 +279,7 @@ public class UserController {
         if (currentUser == null || !(currentUser instanceof Admin) && currentUser.getUserRight() < 3) {
             return ResponseMessage.error("无权限：只有管理员可以将用户提升为管理员");
         }
-        
+
         String userNameEn = userbase.getUsernameEn();
 
         UserBase u = userService.findByNameEn(userNameEn);
@@ -352,7 +353,7 @@ public class UserController {
     public ResponseMessage<ClubPresident> appointPresident(
             @RequestBody java.util.Map<String, Object> requestBody,
             HttpServletRequest request) {
-        
+
         UserBase currentUser = (UserBase) request.getAttribute("currentUser");
         if (currentUser == null || currentUser.getUserRight() < 2) {
             return ResponseMessage.error("无权限：只有老师和管理员可以任命社长");
@@ -449,7 +450,7 @@ public class UserController {
         }
 
         List<Club> clubs = null;
-        
+
         // 如果是管理员，返回所有社团
         if (currentUser.getUserRight() == 3 || currentUser instanceof Admin) {
             clubs = userService.getAllClubs();
@@ -462,7 +463,7 @@ public class UserController {
         if (clubs == null) {
             clubs = List.of();
         }
-        
+
         return ResponseMessage.success(clubs);
     }
 }
