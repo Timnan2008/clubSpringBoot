@@ -32,10 +32,21 @@
 
               <!-- 登录/注册按钮 -->
               <a
+                th:if="${loginUser == null}"
                 th:href="@{/page/user/login}"
                 class="navbar-login-btn"
                 th:text="#{nav.login}"
               ></a>
+              <div class="dropdown user-dropdown" th:if="${loginUser != null}">
+                <button type="button" class="dropbtn" aria-expanded="false">My</button>
+                <div class="dropdown-content">
+                  <a th:href="@{/page/user/profile}">Profile</a>
+                  <a th:href="@{/page/my-clubs}">My Clubs</a>
+                  <a th:if="${loginUser != null && loginUser.getUserRight() >= 1}" th:href="@{/page/club/manage}">Club Management</a>
+                  <a th:if="${loginUser != null && loginUser.getUserRight() >= 2}" th:href="@{/page/user-edit}">Account Management</a>
+                  <a href="#" onclick="event.preventDefault(); fetch('/api/user/logout').finally(() => window.location.href='/page/user/login');">Log out</a>
+                </div>
+              </div>
             </div>
           </th:block>
         </div>
@@ -104,10 +115,21 @@
 
             <!-- 登录/注册按钮 -->
             <a
+              th:if="${loginUser == null}"
               th:href="@{/page/user/login}"
               class="navbar-login-btn"
               th:text="#{nav.login}"
             ></a>
+            <div class="dropdown user-dropdown" th:if="${loginUser != null}">
+              <button type="button" class="dropbtn" aria-expanded="false">我的</button>
+              <div class="dropdown-content">
+                <a th:href="@{/page/user/profile}">个人资料</a>
+                <a th:href="@{/page/my-clubs}">我的社团</a>
+                <a th:if="${loginUser != null && loginUser.getUserRight() >= 1}" th:href="@{/page/club/manage}">社团管理</a>
+                <a th:if="${loginUser != null && loginUser.getUserRight() >= 2}" th:href="@{/page/user-edit}">账号管理</a>
+                <a href="#" onclick="event.preventDefault(); fetch('/api/user/logout').finally(() => window.location.href='/page/user/login');">退出登录</a>
+              </div>
+            </div>
           </th:block>
         </nav>
       </header>

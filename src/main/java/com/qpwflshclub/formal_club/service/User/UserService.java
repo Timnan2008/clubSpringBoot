@@ -16,9 +16,11 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -313,6 +315,43 @@ public class UserService implements IUserService{
         return clubs != null && clubs.stream().anyMatch(club -> Objects.equals(club.getId(), clubId));
     }
 
+    private List<Club> participantClubsExceptManagedClub(List<Club> clubs, Integer managedClubId) {
+        if (clubs == null) {
+            return new ArrayList<>();
+        }
+        return clubs.stream()
+                .filter(club -> club != null && !Objects.equals(club.getId(), managedClubId))
+                .collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    private void removeManagedClubFromParticipantClubs(ClubPresident president, Integer managedClubId) {
+        if (president == null || president.getClubs() == null) {
+            return;
+        }
+        List<Club> participantClubs = president.getClubs().stream()
+                .filter(club -> club != null && !Objects.equals(club.getId(), managedClubId))
+                .collect(Collectors.toCollection(ArrayList::new));
+        president.setClubs(participantClubs);
+    }
+
+    private void addParticipantClubsExceptManagedClub(ClubPresident president, List<Club> clubs, Integer managedClubId) {
+        if (president == null || clubs == null) {
+            return;
+        }
+        president.setClubs(new ArrayList<>(president.getClubs()));
+        Set<Integer> existingClubIds = president.getClubs().stream()
+                .filter(Objects::nonNull)
+                .map(Club::getId)
+                .collect(Collectors.toSet());
+        for (Club club : clubs) {
+            if (club == null || Objects.equals(club.getId(), managedClubId) || existingClubIds.contains(club.getId())) {
+                continue;
+            }
+            president.getClubs().add(club);
+            existingClubIds.add(club.getId());
+        }
+    }
+
     private boolean matchesStudentKeyword(User user, String keyword) {
         if (keyword == null || keyword.isBlank()) {
             return false;
@@ -326,15 +365,55 @@ public class UserService implements IUserService{
         return value != null && value.toLowerCase().contains(keyword);
     }
 
+    private String identityKey(UserBase user) {
+        if (user == null) {
+            return "";
+        }
+        if (user.getEmail() != null && !user.getEmail().isBlank()) {
+            return "email:" + user.getEmail().trim().toLowerCase();
+        }
+        if (user.getUsernameEn() != null && !user.getUsernameEn().isBlank()) {
+            return "nameEn:" + user.getUsernameEn().trim().toLowerCase();
+        }
+        return user.getId() > 0 ? "id:" + user.getId() : "";
+    }
+
+    private ClubPresident findExistingClubPresidentForIdentity(UserBase user) {
+        if (user instanceof ClubPresident president) {
+            return president;
+        }
+        Iterable<ClubPresident> presidents = clubPresidentRepository.findAll();
+        if (presidents == null) {
+            return null;
+        }
+        String key = identityKey(user);
+        for (ClubPresident president : presidents) {
+            if (!key.isBlank() && Objects.equals(key, identityKey(president))) {
+                return president;
+            }
+        }
+        return null;
+    }
+
     @Override
     public List<Map<String, Object>> getClubMembersWithRoles(Integer clubId) {
         java.util.ArrayList<Map<String, Object>> list = new java.util.ArrayList<>();
         Club club = clubRepository.findById(clubId).orElse(null);
         if (club == null) return list;
 
+        List<ClubPresident> presidents = new ArrayList<>();
+        clubPresidentRepository.findAll().forEach(presidents::add);
+
+        Set<String> managedPresidentKeys = new HashSet<>();
+        for (ClubPresident cp : presidents) {
+            if (cp.getMainClub() != null && Objects.equals(cp.getMainClub().getId(), clubId)) {
+                managedPresidentKeys.add(identityKey(cp));
+            }
+        }
+
         // 1. 扫描所有普通学生
         for (User u : userRepository.findAll()) {
-            if (hasClub(u.getClubs(), clubId)) {
+            if (hasClub(u.getClubs(), clubId) && !managedPresidentKeys.contains(identityKey(u))) {
                 Map<String, Object> m = new java.util.HashMap<>();
                 m.put("userId", u.getId());
                 m.put("username", u.getUsername());
@@ -345,7 +424,7 @@ public class UserService implements IUserService{
         }
 
         // 2. 扫描社长及副社长池
-        for (ClubPresident cp : clubPresidentRepository.findAll()) {
+        for (ClubPresident cp : presidents) {
             // 判定该人在此社团中是否担任正/副社长
             if (cp.getMainClub() != null && Objects.equals(cp.getMainClub().getId(), clubId)) {
                 Map<String, Object> m = new java.util.HashMap<>();
@@ -402,34 +481,30 @@ public class UserService implements IUserService{
             // 先尝试从社长表里找人
             ClubPresident cp = clubPresidentRepository.findById(targetUserId).orElse(null);
             if (cp == null) {
-                // 如果在社长表找不到，说明原来只是普通学生，需从 User 转到 ClubPresident（这里根据你的多继承或数据模型而定）
+                // 如果在社长表找不到，只新增社长身份记录，普通 user 表不变。
                 User user = userRepository.findById(targetUserId).orElseThrow(() -> new RuntimeException("未定位到学生数据"));
-                cp = new ClubPresident();
-                cp.setUsername(user.getUsername());
-                cp.setUsernameEn(user.getUsernameEn());
-                cp.setEmail(user.getEmail());
-                cp.setPassword(user.getPassword());
-                // 不能从普通用户表抹除，升职到社长管理表
-                //不能userRepository.delete(user);
+                cp = findExistingClubPresidentForIdentity(user);
+                if (cp == null) {
+                    cp = new ClubPresident();
+                    cp.setUsername(user.getUsername());
+                    cp.setUsernameEn(user.getUsernameEn());
+                    cp.setEmail(user.getEmail());
+                    cp.setPassword(user.getPassword());
+                    cp.setClubs(participantClubsExceptManagedClub(user.getClubs(), clubId));
+                } else {
+                    addParticipantClubsExceptManagedClub(cp, user.getClubs(), clubId);
+                }
             }
             cp.setMainClub(club);
             cp.setVicePresident("vice_president".equals(newRole));
+            removeManagedClubFromParticipantClubs(cp, clubId);
             clubPresidentRepository.save(cp);
         }
         // 降职为普通成员
         else if ("member".equals(newRole)) {
             ClubPresident cp = clubPresidentRepository.findById(targetUserId).orElse(null);
             if (cp != null) {
-                /* 如果原来在社长表里，降职后转回普通 User 表维护
-                User user = new User();
-                user.setUsername(cp.getUsername());
-                user.setUsernameEn(cp.getUsernameEn());
-                user.setEmail(cp.getEmail());
-                user.setPassword(cp.getPassword());
-                user.setClubs(new java.util.ArrayList<>());
-                user.getClubs().add(club);
-                userRepository.save(user);
-                */
+                cp.setClubs(new ArrayList<>());
                 clubPresidentRepository.delete(cp);
             }
         }
@@ -724,28 +799,24 @@ public class UserService implements IUserService{
 
         ClubPresident newPresident;
 
-        if (targetUser instanceof ClubPresident existingPresident) {
+        ClubPresident existingPresident = findExistingClubPresidentForIdentity(targetUser);
+        if (existingPresident != null) {
             newPresident = existingPresident;
+            addParticipantClubsExceptManagedClub(newPresident, targetUser.getClubs(), clubId);
         } else {
             newPresident = new ClubPresident();
             newPresident.setUsername(targetUser.getUsername());
             newPresident.setUsernameEn(targetUser.getUsernameEn());
             newPresident.setEmail(targetUser.getEmail());
             newPresident.setPassword(targetUser.getPassword());
-            newPresident.setClubs(new ArrayList<>());
-            if (targetUser.getClubs() != null) {
-                newPresident.getClubs().addAll(targetUser.getClubs());
-            }
+            newPresident.setClubs(participantClubsExceptManagedClub(targetUser.getClubs(), clubId));
             // 多身份兼容：不删除原管理员/老师记录，保留原身份
             // deleteUserByType(targetUser);
         }
 
         newPresident.setMainClub(club);
         newPresident.setVicePresident(isVicePresident);
-
-        if (!hasClub(newPresident.getClubs(), clubId)) {
-            newPresident.getClubs().add(club);
-        }
+        removeManagedClubFromParticipantClubs(newPresident, clubId);
 
         return clubPresidentRepository.save(newPresident);
     }
@@ -760,6 +831,7 @@ public class UserService implements IUserService{
         ClubPresident president = clubPresidentRepository.findById(presidentId)
                 .orElseThrow(() -> new IllegalArgumentException("该用户不是社长或副社长"));
 
+        president.setClubs(new ArrayList<>());
         clubPresidentRepository.delete(president);
     }
 
