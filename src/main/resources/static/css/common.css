@@ -765,6 +765,16 @@ body::after {
   bottom: calc(100% + 4px);
   transform-origin: bottom center;
 }
+.navbar .dropdown.user-dropdown .dropdown-content {
+  right: 12px;
+  left: auto;
+  margin-right: 12px;
+  transform-origin: top right;
+  box-sizing: border-box;
+  max-width: calc(100vw - 24px);
+  overflow-x: hidden;
+  white-space: normal;
+}
 .dropdown-content a {
   color: var(--text-secondary);
   padding: 9px 14px;
