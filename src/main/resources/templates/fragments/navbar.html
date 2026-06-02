@@ -30,15 +30,26 @@
             </div>
           </div>
 
-          <!-- 登录/注册按钮 -->
-          <a
-                  th:href="@{/page/user/login}"
-                  class="navbar-login-btn"
-                  th:text="#{nav.login}"
-          ></a>
+              <!-- 登录/注册按钮 -->
+              <a
+                th:if="${loginUser == null}"
+                th:href="@{/page/user/login}"
+                class="navbar-login-btn"
+                th:text="#{nav.login}"
+              ></a>
+              <div class="dropdown user-dropdown" th:if="${loginUser != null}">
+                <button type="button" class="dropbtn" aria-expanded="false">My</button>
+                <div class="dropdown-content">
+                  <a th:href="@{/page/user/profile}">Profile</a>
+                  <a th:href="@{/page/my-clubs}">My Clubs</a>
+                  <a th:if="${loginUser != null && loginUser.getUserRight() >= 1}" th:href="@{/page/club/manage}">Club Management</a>
+                  <a th:if="${loginUser != null && loginUser.getUserRight() >= 2}" th:href="@{/page/user-edit}">Account Management</a>
+                  <a href="#" onclick="event.preventDefault(); fetch('/api/user/logout').finally(() => window.location.href='/page/user/login');">Log out</a>
+                </div>
+              </div>
+            </div>
+          </th:block>
         </div>
-      </th:block>
-    </div>
 
     <!-- 中间：搜索框 -->
     <div class="navbar-center">
@@ -102,54 +113,26 @@
           </div>
         </div>
 
-        <!-- 登录/注册按钮 -->
-        <a
-                th:href="@{/page/user/login}"
-                class="navbar-login-btn"
-                th:text="#{nav.login}"
-        ></a>
-      </th:block>
-    </nav>
-  </header>
-
-  <script>
-    (function checkLoginStatus() {
-      const loginBtns = document.querySelectorAll('.navbar-login-btn');
-      const userProfiles = document.querySelectorAll('.user-profile');
-
-      fetch('/api/user/current')
-              .then(res => res.json())
-              .then(resData => {
-                console.log("Navbar 登录状态接口返回原始数据:", resData);
-
-                // 🌟 核心修改点：放宽并增强判定逻辑
-                // 只要后端返回状态码是 200，并且无论在 data 还是 result 字段下，
-                // 能检测到 email 或 username 存在，就代表【已登录】
-                const isLoggedIn = resData.code === 200 && (
-                        resData.data ||
-                        resData.result ||
-                        (resData.data && (resData.data.email || resData.data.username)) ||
-                        (resData.result && (resData.result.email || resData.result.username))
-                );
-
-                if (isLoggedIn) {
-                  // 已登录：隐藏登录/注册按钮，显示用户头像与菜单
-                  loginBtns.forEach(btn => btn.style.display = 'none');
-                  userProfiles.forEach(profile => profile.style.display = 'block');
-                } else {
-                  // 未登录：显示登录/注册按钮，隐藏用户头像与菜单
-                  loginBtns.forEach(btn => btn.style.display = 'block');
-                  userProfiles.forEach(profile => profile.style.display = 'none');
-                }
-              })
-              .catch(err => {
-                console.error("检查登录状态接口请求失败:", err);
-                // 发生异常时，按未登录状态兜底显隐
-                loginBtns.forEach(btn => btn.style.display = 'block');
-                userProfiles.forEach(profile => profile.style.display = 'none');
-              });
-    })();
-  </script>
+            <!-- 登录/注册按钮 -->
+            <a
+              th:if="${loginUser == null}"
+              th:href="@{/page/user/login}"
+              class="navbar-login-btn"
+              th:text="#{nav.login}"
+            ></a>
+            <div class="dropdown user-dropdown" th:if="${loginUser != null}">
+              <button type="button" class="dropbtn" aria-expanded="false">我的</button>
+              <div class="dropdown-content">
+                <a th:href="@{/page/user/profile}">个人资料</a>
+                <a th:href="@{/page/my-clubs}">我的社团</a>
+                <a th:if="${loginUser != null && loginUser.getUserRight() >= 1}" th:href="@{/page/club/manage}">社团管理</a>
+                <a th:if="${loginUser != null && loginUser.getUserRight() >= 2}" th:href="@{/page/user-edit}">账号管理</a>
+                <a href="#" onclick="event.preventDefault(); fetch('/api/user/logout').finally(() => window.location.href='/page/user/login');">退出登录</a>
+              </div>
+            </div>
+          </th:block>
+        </nav>
+      </header>
 
   <script>
     (function () {
