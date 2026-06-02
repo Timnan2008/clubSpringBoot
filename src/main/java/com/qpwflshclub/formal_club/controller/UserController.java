@@ -391,4 +391,50 @@ public class UserController {
         
         return ResponseMessage.success(clubs);
     }
+
+    /**
+     * 撤销社长
+     * POST /api/user/revoke-president
+     * 请求体：{ "usernameEn": "xxx", "clubId": 1 }
+     * 权限：老师可以撤销自己指导的社团的社长，管理员可以撤销任何社团的社长
+     */
+    @PostMapping("/revoke-president")
+    public ResponseMessage<String> revokePresident(
+            @RequestBody java.util.Map<String, Object> requestBody,
+            HttpServletRequest request) {
+        
+        UserBase currentUser = (UserBase) request.getAttribute("currentUser");
+        if (currentUser == null || currentUser.getUserRight() < 2) {
+            return ResponseMessage.error("无权限：只有老师和管理员可以撤销社长");
+        }
+
+        String targetUsernameEn = (String) requestBody.get("usernameEn");
+        Integer clubId = (Integer) requestBody.get("clubId");
+
+        if (targetUsernameEn == null || targetUsernameEn.isBlank()) {
+            return ResponseMessage.error("目标用户名不能为空");
+        }
+        if (clubId == null) {
+            return ResponseMessage.error("社团ID不能为空");
+        }
+
+        // 如果是老师（不是管理员），检查是否有权限管理该社团
+        if (currentUser.getUserRight() == 2 && currentUser instanceof Teacher teacher) {
+            boolean hasPermission = false;
+            if (teacher.getClubs() != null) {
+                hasPermission = teacher.getClubs().stream()
+                        .anyMatch(club -> Objects.equals(club.getId(), clubId));
+            }
+            if (!hasPermission) {
+                return ResponseMessage.error("无权限：您只能撤销自己指导的社团的社长");
+            }
+        }
+
+        try {
+            userService.revokePresident(targetUsernameEn, clubId);
+            return ResponseMessage.success("撤销社长成功");
+        } catch (IllegalArgumentException e) {
+            return ResponseMessage.error(e.getMessage());
+        }
+    }
 }

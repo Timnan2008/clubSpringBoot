@@ -534,14 +534,30 @@ public class UserService implements IUserService{
 
     @Override
     public List<UserBase> findAllUsers() {
-        List<UserBase> allUsers = new java.util.ArrayList<>();
+        // 使用 LinkedHashMap 保证顺序并去重，key 为 usernameEn
+        java.util.LinkedHashMap<String, UserBase> userMap = new java.util.LinkedHashMap<>();
 
-        // 分别读出四张表的所有用户
-        allUsers.addAll((Collection<? extends UserBase>) userRepository.findAll());
-        allUsers.addAll((Collection<? extends UserBase>) teacherRepository.findAll());
-        allUsers.addAll((Collection<? extends UserBase>) clubPresidentRepository.findAll());
-        allUsers.addAll((Collection<? extends UserBase>) adminRepository.findAll());
+        // 按照权限从高到低的顺序添加，这样高权限的用户会覆盖低权限的同名用户
+        // 先添加普通用户
+        for (User user : userRepository.findAll()) {
+            userMap.put(user.getUsernameEn(), user);
+        }
+        // 添加社长（权限高于普通用户）
+        for (ClubPresident cp : clubPresidentRepository.findAll()) {
+            userMap.put(cp.getUsernameEn(), cp);
+        }
+        // 添加老师（权限高于社长）
+        for (Teacher teacher : teacherRepository.findAll()) {
+            userMap.put(teacher.getUsernameEn(), teacher);
+        }
+        // 添加管理员（权限最高）
+        for (Admin admin : adminRepository.findAll()) {
+            userMap.put(admin.getUsernameEn(), admin);
+        }
 
+        // 转换为列表并排序
+        List<UserBase> allUsers = new java.util.ArrayList<>(userMap.values());
+        
         // 按照数字-字母-汉字排序
         allUsers.sort((u1, u2) -> {
             String name1 = u1.getUsername() != null ? u1.getUsername() : u1.getUsernameEn() != null ? u1.getUsernameEn() : "";
@@ -716,6 +732,11 @@ public class UserService implements IUserService{
             throw new IllegalArgumentException("目标用户不存在");
         }
 
+        // 验证：只有该社团成员才能被任命为该社团社长
+        if (!hasClub(targetUser.getClubs(), clubId)) {
+            throw new IllegalArgumentException("该用户不是该社团成员，无法被任命为该社团社长");
+        }
+
         ClubPresident newPresident;
 
         if (targetUser instanceof ClubPresident existingPresident) {
@@ -745,8 +766,51 @@ public class UserService implements IUserService{
     }
 
     @Override
+    @Transactional
+    public void revokePresident(String targetUsernameEn, Integer clubId) {
+        // 直接从社长表查询，而不是使用 findByNameEn（避免多身份时返回非社长对象）
+        java.util.List<ClubPresident> presidents = clubPresidentRepository.findAllByUsernameEn(targetUsernameEn);
+        
+        if (presidents == null || presidents.isEmpty()) {
+            throw new IllegalArgumentException("该用户不是社长或副社长");
+        }
+
+        Club club = clubRepository.findById(clubId)
+                .orElseThrow(() -> new IllegalArgumentException("社团不存在"));
+
+        // 找到匹配的社长记录（主社团匹配的）
+        ClubPresident presidentToDelete = null;
+        ClubPresident presidentToUpdate = null;
+        
+        for (ClubPresident president : presidents) {
+            Integer mainClubId = president.getMainClub() != null ? president.getMainClub().getId() : null;
+            
+            // 如果撤销的是主社团，标记为删除
+            if (Objects.equals(mainClubId, clubId)) {
+                presidentToDelete = president;
+            } else {
+                // 检查是否在社团列表中
+                if (president.getClubs() != null && president.getClubs().stream().anyMatch(c -> Objects.equals(c.getId(), clubId))) {
+                    presidentToUpdate = president;
+                }
+            }
+        }
+
+        if (presidentToDelete != null) {
+            // 如果撤销的是主社团，直接删除社长记录
+            clubPresidentRepository.delete(presidentToDelete);
+        } else if (presidentToUpdate != null) {
+            // 如果撤销的不是主社团，只是从社团列表中移除
+            presidentToUpdate.getClubs().removeIf(c -> Objects.equals(c.getId(), clubId));
+            clubPresidentRepository.save(presidentToUpdate);
+        } else {
+            throw new IllegalArgumentException("该用户不是该社团的社长或副社长");
+        }
+    }
+
+    @Override
     public List<Club> getAllClubs() {
-        return (List<Club>) clubRepository.findAll();
+        return clubRepository.findAll();
     }
 
 }

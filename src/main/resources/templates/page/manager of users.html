@@ -223,42 +223,45 @@
     </div>
 </div>
 
+<!-- 撤销社长弹窗 -->
+<div class="modal-overlay" id="revokeModal">
+    <div class="modal-box">
+        <h3 style="color: #f56c6c; margin-top:0;" id="revokeModalTitle">🔻 撤销社长</h3>
+        <div class="user-details">
+            <div><strong>用户：</strong> <span id="revokeModalUsername"></span></div>
+            <div><strong>当前职位：</strong> <span id="revokeModalCurrentRole"></span></div>
+            <div style="margin-top: 12px;">
+                <strong>选择社团：</strong>
+                <select id="revokeClubSelect" style="margin-left: 8px; padding: 4px 8px; border-radius: 4px; border: 1px solid #dcdfe6; width: 200px;">
+                </select>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="closeRevokeModal()">取消</button>
+            <button class="btn-confirm" id="btnDoRevoke" style="background: #f56c6c;">确认撤销</button>
+        </div>
+    </div>
+</div>
+
 <script th:inline="javascript">
     let currentUserToDelete = null;
     let currentUserToChangeRole = null;
     let currentUserToAppoint = null;
     let allClubs = [];
-
-    // 只有当有权限时（UserRight >= 2，即老师或管理员），JS 才会执行初始化请求
-    // 这里的 Thymeleaf 表达式可以在 JS 里做一层安全防护
-    const hasAuth = /*[[${loginUser != null && loginUser.getUserRight() >= 2}]]*/ false;
-    // 判断是否是管理员（只有管理员可以改变职位）
-    const isAdmin = /*[[${loginUser != null && loginUser.getUserRight() == 3}]]*/ false;
-    // 判断是否是老师或管理员（可以任命社长）
-    const canAppoint = /*[[${loginUser != null && loginUser.getUserRight() >= 2}]]*/ false;
-    // 获取当前登录用户的社团列表（用于老师权限判断）
-    const loginUserClubs = /*[[${loginUser != null ? loginUser.clubs : null}]]*/ null;
     let teacherManagedClubs = [];
 
+    // 权限判断（Thymeleaf 表达式）
+    const hasAuth = /*[[${loginUser != null && loginUser.getUserRight() >= 2}]]*/ false;
+    const isAdmin = /*[[${loginUser != null && loginUser.getUserRight() == 3}]]*/ false;
+    const canAppoint = /*[[${loginUser != null && loginUser.getUserRight() >= 2}]]*/ false;
+    const loginUserClubs = /*[[${loginUser != null ? loginUser.clubs : null}]]*/ null;
+
+    // 初始化逻辑
     if (hasAuth) {
         document.addEventListener("DOMContentLoaded", () => {
             loadUsers();
             loadClubs();
-            // 如果是老师，额外获取自己指导的社团列表作为备用
-            if (!isAdmin && canAppoint) {
-                loadTeacherClubs();
-            }
         });
-    }
-
-    function loadTeacherClubs() {
-        fetch('/api/user/my-clubs')
-            .then(res => res.json())
-            .then(res => {
-                if (res.code === 200) {
-                    teacherManagedClubs = res.data;
-                }
-            });
     }
 
     function loadClubs() {
@@ -280,40 +283,65 @@
     }
 
     function renderGrid(users) {
-        const grid = document.getElementById("userGrid");
-        grid.innerHTML = "";
-        users.forEach(user => {
-            let roleName = "普通学生"; let roleClass = "role-0";
-            if (user.userRight === 1) { roleName = "社长/副社长"; roleClass = "role-1"; }
-            else if (user.userRight === 2) { roleName = "指导老师"; roleClass = "role-2"; }
-            else if (user.userRight === 3) { roleName = "管理员"; roleClass = "role-3"; }
+            const grid = document.getElementById("userGrid");
+            grid.innerHTML = "";
+            users.forEach(user => {
+                let roleName = "普通学生"; let roleClass = "role-0";
+                if (user.userRight === 1) { roleName = "社长/副社长"; roleClass = "role-1"; }
+                else if (user.userRight === 2) { roleName = "指导老师"; roleClass = "role-2"; }
+                else if (user.userRight === 3) { roleName = "管理员"; roleClass = "role-3"; }
 
-            // 管理员额外显示改变职位按钮
-            let roleBtnHtml = "";
-            if (isAdmin) {
-                roleBtnHtml = '<button class="change-role-btn">改变职位</button>';
-            }
+                // 管理员额外显示改变职位按钮
+                let roleBtnHtml = "";
+                if (isAdmin) {
+                    roleBtnHtml = '<button class="change-role-btn">改变职位</button>';
+                }
 
-            // 老师和管理员可以任命社长/副社长（不能任命老师和管理员）
-            let appointBtnHtml = "";
-            if (canAppoint && user.userRight !== 2 && user.userRight !== 3) {
-                appointBtnHtml = '<button class="appoint-president-btn">任命社长</button><button class="appoint-vice-btn">任命副社长</button>';
-            }
+                // 老师和管理员可以任命社长/副社长（不能任命老师和管理员）
+                let appointBtnHtml = "";
+                if (canAppoint && user.userRight !== 2 && user.userRight !== 3) {
+                    appointBtnHtml = '<button class="appoint-president-btn">任命社长</button><button class="appoint-vice-btn">任命副社长</button>';
+                }
 
-            const card = document.createElement("div");
-            card.className = "user-card";
-            card.innerHTML = `
-                    <div>
-                        <div class="cn-name">${user.username || '未填写'}</div>
-                        <div class="en-name">@${user.usernameEn || '无'}</div>
-                        <div class="role-tag ${roleClass}">${roleName}</div>
-                    </div>
-                    <div class="card-actions">
-                        <button class="delete-btn">删除账号</button>
-                        ${roleBtnHtml}
-                        ${appointBtnHtml}
-                    </div>
-                `;
+                // 老师和管理员可以撤销社长/副社长（只能撤销社长）
+                let revokeBtnHtml = "";
+                if (canAppoint && user.userRight === 1) {
+                    revokeBtnHtml = '<button class="revoke-president-btn">撤销社长</button>';
+                }
+
+                // 社长额外显示主社团社长信息
+                let clubInfoHtml = "";
+                if (user.userRight === 1 && user.clubs && user.clubs.length > 0) {
+                    try {
+                        const mainClubId = user.mainClubId || (user.mainClub && user.mainClub.id);
+                        // 找到主社团
+                        const mainClub = user.clubs.find(c => c.id === mainClubId);
+                        if (mainClub) {
+                            // 显示格式：XX社社长 或 XX社副社长
+                            const roleText = user.vicePresident ? '副社长' : '社长';
+                            clubInfoHtml = `<div style="margin-top: 8px; font-size: 12px; color: #67c23a;">${mainClub.clubName}${roleText}</div>`;
+                        }
+                    } catch (e) {
+                        console.log('Error rendering club info:', e);
+                    }
+                }
+
+                const card = document.createElement("div");
+                card.className = "user-card";
+                card.innerHTML = `
+                        <div>
+                            <div class="cn-name">${user.username || '未填写'}</div>
+                            <div class="en-name">@${user.usernameEn || '无'}</div>
+                            <div class="role-tag ${roleClass}">${roleName}</div>
+                            ${clubInfoHtml}
+                        </div>
+                        <div class="card-actions">
+                            <button class="delete-btn">删除账号</button>
+                            ${roleBtnHtml}
+                            ${appointBtnHtml}
+                            ${revokeBtnHtml}
+                        </div>
+                    `;
             card.querySelector(".delete-btn").addEventListener("click", () => openModal(user));
             if (isAdmin) {
                 card.querySelector(".change-role-btn").addEventListener("click", () => openRoleModal(user));
@@ -321,6 +349,9 @@
             if (canAppoint && user.userRight !== 2 && user.userRight !== 3) {
                 card.querySelector(".appoint-president-btn").addEventListener("click", () => openAppointModal(user, false));
                 card.querySelector(".appoint-vice-btn").addEventListener("click", () => openAppointModal(user, true));
+            }
+            if (canAppoint && user.userRight === 1) {
+                card.querySelector(".revoke-president-btn").addEventListener("click", () => openRevokeModal(user));
             }
             grid.appendChild(card);
         });
@@ -501,6 +532,88 @@
                 if (res.code === 200) {
                     alert(currentAppointIsVice ? "副社长任命成功！" : "社长任命成功！");
                     closeAppointModal();
+                    loadUsers();
+                } else { alert("操作失败：" + res.message); }
+            });
+    });
+
+    // 撤销社长相关函数
+    let currentUserToRevoke = null;
+
+    function openRevokeModal(user) {
+        currentUserToRevoke = user;
+        
+        document.getElementById("revokeModalUsername").innerText = user.username || "未设置";
+        document.getElementById("revokeModalCurrentRole").innerText = getRoleName(user.userRight);
+        
+        // 填充社团下拉列表
+        const clubSelect = document.getElementById("revokeClubSelect");
+        clubSelect.innerHTML = "";
+        
+        // 获取该用户所属的社团列表
+        let userClubs = user.clubs || [];
+        
+        // 如果是管理员，可以撤销任何社团的社长
+        // 如果是老师，只能撤销自己指导的社团的社长
+        let availableClubs = userClubs;
+        if (!isAdmin) {
+            let myManagedClubs = teacherManagedClubs;
+            if (myManagedClubs.length === 0 && loginUserClubs && Array.isArray(loginUserClubs)) {
+                myManagedClubs = loginUserClubs;
+            }
+            
+            if (myManagedClubs.length > 0) {
+                const myClubIds = myManagedClubs.map(c => c.id);
+                availableClubs = userClubs.filter(c => myClubIds.includes(c.id));
+            } else {
+                clubSelect.innerHTML = '<option value="">没有可撤销的社团</option>';
+                document.getElementById("revokeModal").style.display = "flex";
+                return;
+            }
+        }
+        
+        if (availableClubs.length === 0) {
+            clubSelect.innerHTML = '<option value="">没有可撤销的社团</option>';
+        } else {
+            availableClubs.forEach(club => {
+                const option = document.createElement("option");
+                option.value = club.id;
+                option.innerText = club.clubName;
+                clubSelect.appendChild(option);
+            });
+        }
+        
+        document.getElementById("revokeModal").style.display = "flex";
+    }
+
+    function closeRevokeModal() {
+        document.getElementById("revokeModal").style.display = "none";
+        currentUserToRevoke = null;
+    }
+
+    document.getElementById("btnDoRevoke").addEventListener("click", () => {
+        if (!currentUserToRevoke) return;
+        
+        const clubId = parseInt(document.getElementById("revokeClubSelect").value);
+        
+        if (!clubId) {
+            alert("请选择社团");
+            return;
+        }
+
+        fetch('/api/user/revoke-president', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                usernameEn: currentUserToRevoke.usernameEn, 
+                clubId: clubId
+            })
+        })
+            .then(res => res.json())
+            .then(res => {
+                if (res.code === 200) {
+                    alert("撤销社长成功！");
+                    closeRevokeModal();
                     loadUsers();
                 } else { alert("操作失败：" + res.message); }
             });

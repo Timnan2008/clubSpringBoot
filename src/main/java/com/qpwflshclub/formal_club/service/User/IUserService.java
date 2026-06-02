@@ -52,6 +52,9 @@ public interface IUserService {
     // 任命社长方法
     ClubPresident appointPresident(String targetUsernameEn, Integer clubId, boolean isVicePresident);
 
+    // 撤销社长方法
+    void revokePresident(String targetUsernameEn, Integer clubId);
+
     // 获取所有社团
     List<Club> getAllClubs();
 
