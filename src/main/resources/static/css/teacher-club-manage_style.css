@@ -232,6 +232,12 @@ button {
     color: #1d4ed8;
 }
 
+.staff-btn.revoke {
+    border-color: #fecdd3;
+    background: #fff1f2;
+    color: #be123c;
+}
+
 .staff-btn:hover {
     transform: translateY(-1px);
     box-shadow: 0 8px 18px rgba(15, 23, 42, .08);

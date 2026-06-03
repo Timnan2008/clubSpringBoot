@@ -15,6 +15,10 @@ class TeacherClubManageTemplateTest {
 
         assertThat(template).contains("data-action=\"appoint-president\"");
         assertThat(template).contains("data-action=\"appoint-vice-president\"");
+        assertThat(template).contains("data-action=\"revoke-staff-role\"");
+        assertThat(template).contains("appointStaffRole(clubId, studentId, \"member\")");
+        assertThat(template).contains("撤销社长");
+        assertThat(template).contains("撤销副社长");
         assertThat(template).contains("/api/club/member/update");
     }
 }

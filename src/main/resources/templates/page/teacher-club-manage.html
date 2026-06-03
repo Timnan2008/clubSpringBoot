@@ -149,6 +149,9 @@
         if (button.dataset.action === "appoint-vice-president") {
             appointStaffRole(clubId, studentId, "vice_president");
         }
+        if (button.dataset.action === "revoke-staff-role") {
+            appointStaffRole(clubId, studentId, "member");
+        }
     }
 
     async function searchStudents(clubId) {
@@ -195,6 +198,7 @@
             ? `<div class="member-action-group">
                     ${member.roleInClub === "president" ? "" : `<button class="staff-btn" type="button" data-action="appoint-president" data-club-id="${clubId}" data-user-id="${userId}">任命社长</button>`}
                     ${member.roleInClub === "vice_president" ? "" : `<button class="staff-btn muted" type="button" data-action="appoint-vice-president" data-club-id="${clubId}" data-user-id="${userId}">任命副社长</button>`}
+                    ${member.roleInClub === "president" || member.roleInClub === "vice_president" ? `<button class="staff-btn revoke" type="button" data-action="revoke-staff-role" data-club-id="${clubId}" data-user-id="${userId}">${member.roleInClub === "vice_president" ? "撤销副社长" : "撤销社长"}</button>` : ""}
                </div>`
             : "";
         const actionHtml = canRemove
@@ -233,13 +237,14 @@
 
     async function appointStaffRole(clubId, studentId, roleInClub) {
         const roleName = roleInClub === "vice_president" ? "副社长" : "社长";
+        const successMessage = roleInClub === "member" ? "已撤销职务" : `已任命${roleName}`;
         try {
             await requestJson("/api/club/member/update", {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ clubId, userId: studentId, roleInClub })
             });
-            showToast(`已任命${roleName}`);
+            showToast(successMessage);
             await loadMembers(clubId);
             await searchStudents(clubId);
         } catch (error) {
