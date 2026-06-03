@@ -125,6 +125,34 @@
         .role-1 { background: #fdf6ec; color: #e6a23c; }
         .role-2 { background: #f0f9eb; color: #67c23a; }
         .role-3 { background: #fef0f0; color: #f56c6c; }
+        .president-club-info {
+            border: 1px solid #faecd8;
+            background: #fffaf2;
+            border-radius: 6px;
+            padding: 10px 12px;
+            margin: 0 0 14px;
+            line-height: 1.45;
+        }
+        .president-club-label {
+            font-size: 12px;
+            color: #b88230;
+            margin-bottom: 4px;
+        }
+        .president-club-name {
+            font-size: 15px;
+            font-weight: 700;
+            color: #303133;
+        }
+        .president-club-meta {
+            font-size: 12px;
+            color: #909399;
+            margin-top: 2px;
+            overflow-wrap: anywhere;
+        }
+        .president-club-empty {
+            color: #c0c4cc;
+            font-style: italic;
+        }
 
         .card-actions {
             text-align: right;
@@ -312,6 +340,7 @@
     let currentUserToChangeRole = null;
     let currentUserToAppoint = null;
     let allClubs = [];
+    let lastLoadedUsers = [];
 
     // 只有当有权限时（UserRight >= 2，即老师或管理员），JS 才会执行初始化请求
     // 这里的 Thymeleaf 表达式可以在 JS 里做一层安全防护
@@ -349,6 +378,9 @@
             .then(res => {
                 if (res.code === 200) {
                     allClubs = res.data;
+                    if (lastLoadedUsers.length > 0) {
+                        renderGrid(lastLoadedUsers);
+                    }
                 }
             });
     }
@@ -357,7 +389,10 @@
         fetch('/api/user/all')
             .then(res => res.json())
             .then(res => {
-                if (res.code === 200) { renderGrid(res.data); }
+                if (res.code === 200) {
+                    lastLoadedUsers = res.data || [];
+                    renderGrid(lastLoadedUsers);
+                }
             });
     }
 
@@ -403,6 +438,41 @@
             groupMap.get(key).identities.push(user);
         });
         return Array.from(groupMap.values());
+    }
+
+    function resolveMainClub(user) {
+        if (!user || user.userRight !== 1) return null;
+        if (user.mainClub) return user.mainClub;
+        if (user.mainClubId === null || user.mainClubId === undefined) return null;
+        const mainClubId = Number(user.mainClubId);
+        return allClubs.find(club => Number(club.id) === mainClubId) || { id: mainClubId };
+    }
+
+    function presidentClubInfoHtml(user) {
+        if (!user || user.userRight !== 1) return "";
+
+        const club = resolveMainClub(user);
+        const label = user.vicePresident ? "副社长社团" : "社长社团";
+        if (!club) {
+            return `
+                <div class="president-club-info president-club-empty">
+                    <div class="president-club-label">${label}</div>
+                    <div>暂未设置负责社团</div>
+                </div>
+            `;
+        }
+
+        const clubName = club.clubName || club.clubNameEn || `社团 ID ${club.id}`;
+        const clubNameEn = club.clubNameEn && club.clubNameEn !== clubName ? club.clubNameEn : "";
+        const clubIdText = club.id ? `ID: ${club.id}` : "";
+        const metaParts = [clubNameEn, clubIdText].filter(Boolean);
+        return `
+            <div class="president-club-info">
+                <div class="president-club-label">${label}</div>
+                <div class="president-club-name">${escapeHtml(clubName)}</div>
+                ${metaParts.length ? `<div class="president-club-meta">${escapeHtml(metaParts.join(" · "))}</div>` : ""}
+            </div>
+        `;
     }
 
     function renderGrid(users) {
@@ -451,6 +521,7 @@
             if (canAppoint && user.userRight === 1) {
                 revokeBtnHtml = '<button class="revoke-president-btn">撤销社长</button>';
             }
+            const presidentInfoHtml = presidentClubInfoHtml(user);
 
             const card = document.createElement("div");
             card.className = "user-card identity-card";
@@ -459,6 +530,7 @@
                         <div class="cn-name">${escapeHtml(displayName(user))}</div>
                         <div class="en-name">@${escapeHtml(displayNameEn(user))}</div>
                         <div class="role-tag ${roleClass}">${roleName}</div>
+                        ${presidentInfoHtml}
                     </div>
                     <div class="card-actions">
                         <button class="delete-btn">删除账号</button>
