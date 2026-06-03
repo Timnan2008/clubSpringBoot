@@ -20,7 +20,10 @@
                 <p class="eyebrow-text" th:text="${managerRoleText}">管理账号</p>
                 <h1><span th:text="${loginUser.username}">用户</span>的社团管理</h1>
             </div>
-            <button class="ghost-btn" type="button" onclick="doLogout()">退出</button>
+            <div class="manager-actions">
+                <a class="primary-btn" th:if="${userRightValue >= 3}" th:href="@{/page/club/add}">新增社团</a>
+                <button class="ghost-btn" type="button" onclick="doLogout()">退出</button>
+            </div>
         </header>
 
         <div class="managed-summary">

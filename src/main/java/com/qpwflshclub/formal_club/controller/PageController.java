@@ -186,6 +186,27 @@ public class PageController {
         return "page/teacher-club-manage";
     }
 
+    @GetMapping("/club/add")
+    public String clubAddPage(
+            @CookieValue(value = "user_session", required = false) String email,
+            Model model) {
+        if (email == null || email.isBlank()) {
+            return "redirect:/page/user/login";
+        }
+
+        UserBase loginUser = userService.findByEmail(email);
+        if (loginUser == null) {
+            return "redirect:/page/user/login";
+        }
+
+        if (loginUser.getUserRight() < 3) {
+            return "redirect:/page/club/manage";
+        }
+
+        model.addAttribute("loginUser", loginUser);
+        return "page/club-add";
+    }
+
     /**
      * 导航进入“我的社团”多权限交互中心页面
      * 对应前端访问路径：GET /page/my-clubs
