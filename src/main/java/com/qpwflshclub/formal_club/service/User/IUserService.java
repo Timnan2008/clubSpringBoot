@@ -26,6 +26,7 @@ public interface IUserService {
     Teacher findTeacherByID(Long id);
     Admin findAdminByID(Long id);
     ClubPresident findClubPresidentByID(Long id);
+    ClubPresident findClubPresidentByUsernameEn(String usernameEn);
     User findUserById(Long id);
 
     boolean hasUser(String nameEn);
@@ -53,7 +54,7 @@ public interface IUserService {
     ClubPresident appointPresident(String targetUsernameEn, Integer clubId, boolean isVicePresident);
 
     // 撤销社长方法
-    void revokePresident(String targetUsernameEn, Integer clubId);
+    void revokePresident(Long presidentId);
 
     // 获取所有社团
     List<Club> getAllClubs();

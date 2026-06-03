@@ -24,8 +24,53 @@
         /* 卡片网格 */
         .user-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
             gap: 20px;
+        }
+        .person-card {
+            background: #ffffff;
+            border: 1px solid #e4e7ed;
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 2px 12px 0 rgba(0,0,0,0.05);
+        }
+        .person-card.merged-person {
+            grid-column: span 2;
+            border-color: #8cc5ff;
+            background: #f7fbff;
+        }
+        .person-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid #edf2f7;
+            padding-bottom: 10px;
+        }
+        .person-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: #303133;
+        }
+        .person-meta {
+            font-size: 13px;
+            color: #909399;
+            margin-top: 3px;
+            overflow-wrap: anywhere;
+        }
+        .identity-count {
+            flex: 0 0 auto;
+            background: #ecf5ff;
+            color: #409eff;
+            border-radius: 4px;
+            padding: 3px 8px;
+            font-size: 12px;
+        }
+        .identity-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+            gap: 12px;
         }
         .user-card {
             background: #ffffff;
@@ -36,6 +81,24 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+        }
+        .identity-card {
+            box-shadow: none;
+            padding: 16px;
+            min-height: 150px;
+        }
+        .identity-card .cn-name {
+            font-size: 18px;
+        }
+        .identity-card .card-actions {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .identity-card .card-actions button {
+            margin-left: 0;
         }
         /* 中文名大，英文名小 */
         .cn-name {
@@ -62,6 +125,34 @@
         .role-1 { background: #fdf6ec; color: #e6a23c; }
         .role-2 { background: #f0f9eb; color: #67c23a; }
         .role-3 { background: #fef0f0; color: #f56c6c; }
+        .president-club-info {
+            border: 1px solid #faecd8;
+            background: #fffaf2;
+            border-radius: 6px;
+            padding: 10px 12px;
+            margin: 0 0 14px;
+            line-height: 1.45;
+        }
+        .president-club-label {
+            font-size: 12px;
+            color: #b88230;
+            margin-bottom: 4px;
+        }
+        .president-club-name {
+            font-size: 15px;
+            font-weight: 700;
+            color: #303133;
+        }
+        .president-club-meta {
+            font-size: 12px;
+            color: #909399;
+            margin-top: 2px;
+            overflow-wrap: anywhere;
+        }
+        .president-club-empty {
+            color: #c0c4cc;
+            font-style: italic;
+        }
 
         .card-actions {
             text-align: right;
@@ -111,6 +202,17 @@
         }
         .appoint-vice-btn:hover { background: #909399; color: white; }
 
+        .revoke-president-btn {
+            background: #ffffff;
+            color: #f56c6c;
+            border: 1px solid #fbc4c4;
+            padding: 6px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 8px;
+        }
+        .revoke-president-btn:hover { background: #f56c6c; color: white; }
+
         /* 二级确认弹窗 */
         .modal-overlay {
             position: fixed;
@@ -147,6 +249,17 @@
         .modal-actions { display: flex; justify-content: flex-end; gap: 12px; }
         .btn-cancel { background: white; border: 1px solid #dcdfe6; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
         .btn-confirm { background: #f56c6c; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
+        @media (max-width: 780px) {
+            .user-grid {
+                grid-template-columns: 1fr;
+            }
+            .person-card.merged-person {
+                grid-column: span 1;
+            }
+            .person-header {
+                flex-direction: column;
+            }
+        }
     </style>
 </head>
 <body>
@@ -154,7 +267,6 @@
 <div th:replace="~{fragments/navbar :: navbar}"></div>
 
 <div class="container">
-    <script>console.log(session.currentUser);</script>
     <h2>用户管理</h2>
     <div class="subtitle">当前账号级别支持管理权限。用户列表按数字-字母-汉字排序。</div>
 
@@ -248,13 +360,15 @@
     let currentUserToChangeRole = null;
     let currentUserToAppoint = null;
     let allClubs = [];
-    let teacherManagedClubs = [];
+    let lastLoadedUsers = [];
 
     // 权限判断（Thymeleaf 表达式）
     const hasAuth = /*[[${loginUser != null && loginUser.getUserRight() >= 2}]]*/ false;
     const isAdmin = /*[[${loginUser != null && loginUser.getUserRight() == 3}]]*/ false;
     const canAppoint = /*[[${loginUser != null && loginUser.getUserRight() >= 2}]]*/ false;
+    // 获取当前登录用户的社团列表（用于老师权限判断）
     const loginUserClubs = /*[[${loginUser != null ? loginUser.clubs : null}]]*/ null;
+    let teacherManagedClubs = [];
 
     // 初始化逻辑
     if (hasAuth) {
@@ -270,6 +384,9 @@
             .then(res => {
                 if (res.code === 200) {
                     allClubs = res.data;
+                    if (lastLoadedUsers.length > 0) {
+                        renderGrid(lastLoadedUsers);
+                    }
                 }
             });
     }
@@ -278,18 +395,100 @@
         fetch('/api/user/all')
             .then(res => res.json())
             .then(res => {
-                if (res.code === 200) { renderGrid(res.data); }
+                if (res.code === 200) {
+                    lastLoadedUsers = res.data || [];
+                    renderGrid(lastLoadedUsers);
+                }
             });
     }
 
+    function personKey(user) {
+        const email = (user.email || user.teacherEmail || user.adminEmail || "").trim().toLowerCase();
+        if (email) return `email:${email}`;
+        const usernameEn = (user.usernameEn || user.teacherNameEn || user.adminNameEn || "").trim().toLowerCase();
+        if (usernameEn) return `name:${usernameEn}`;
+        return `role:${user.userRight}:id:${user.id}`;
+    }
+
+    function displayName(user) {
+        return user.username || user.teacherName || user.adminName || user.usernameEn || "未填写";
+    }
+
+    function displayNameEn(user) {
+        return user.usernameEn || user.teacherNameEn || user.adminNameEn || "无";
+    }
+
+    function displayEmail(user) {
+        return user.email || user.teacherEmail || user.adminEmail || "";
+    }
+
+    function escapeHtml(value) {
+        const div = document.createElement("div");
+        div.textContent = value === null || value === undefined ? "" : String(value);
+        return div.innerHTML;
+    }
+
+    function groupUsersByPerson(users) {
+        const groupMap = new Map();
+        users.forEach(user => {
+            const key = personKey(user);
+            if (!groupMap.has(key)) {
+                groupMap.set(key, {
+                    key,
+                    name: displayName(user),
+                    nameEn: displayNameEn(user),
+                    email: displayEmail(user),
+                    identities: []
+                });
+            }
+            groupMap.get(key).identities.push(user);
+        });
+        return Array.from(groupMap.values());
+    }
+
+    function resolveMainClub(user) {
+        if (!user || user.userRight !== 1) return null;
+        if (user.mainClub) return user.mainClub;
+        if (user.mainClubId === null || user.mainClubId === undefined) return null;
+        const mainClubId = Number(user.mainClubId);
+        return allClubs.find(club => Number(club.id) === mainClubId) || { id: mainClubId };
+    }
+
+    function presidentClubInfoHtml(user) {
+        if (!user || user.userRight !== 1) return "";
+
+        const club = resolveMainClub(user);
+        const label = user.vicePresident ? "副社长社团" : "社长社团";
+        if (!club) {
+            return `
+                <div class="president-club-info president-club-empty">
+                    <div class="president-club-label">${label}</div>
+                    <div>暂未设置负责社团</div>
+                </div>
+            `;
+        }
+
+        const clubName = club.clubName || club.clubNameEn || `社团 ID ${club.id}`;
+        const clubNameEn = club.clubNameEn && club.clubNameEn !== clubName ? club.clubNameEn : "";
+        const clubIdText = club.id ? `ID: ${club.id}` : "";
+        const metaParts = [clubNameEn, clubIdText].filter(Boolean);
+        return `
+            <div class="president-club-info">
+                <div class="president-club-label">${label}</div>
+                <div class="president-club-name">${escapeHtml(clubName)}</div>
+                ${metaParts.length ? `<div class="president-club-meta">${escapeHtml(metaParts.join(" · "))}</div>` : ""}
+            </div>
+        `;
+    }
+
     function renderGrid(users) {
-            const grid = document.getElementById("userGrid");
-            grid.innerHTML = "";
-            users.forEach(user => {
-                let roleName = "普通学生"; let roleClass = "role-0";
-                if (user.userRight === 1) { roleName = "社长/副社长"; roleClass = "role-1"; }
-                else if (user.userRight === 2) { roleName = "指导老师"; roleClass = "role-2"; }
-                else if (user.userRight === 3) { roleName = "管理员"; roleClass = "role-3"; }
+        const grid = document.getElementById("userGrid");
+        grid.innerHTML = "";
+        users.forEach(user => {
+            let roleName = "普通学生"; let roleClass = "role-0";
+            if (user.userRight === 1) { roleName = "社长/副社长"; roleClass = "role-1"; }
+            else if (user.userRight === 2) { roleName = "指导老师"; roleClass = "role-2"; }
+            else if (user.userRight === 3) { roleName = "管理员"; roleClass = "role-3"; }
 
                 // 管理员额外显示改变职位按钮
                 let roleBtnHtml = "";
@@ -297,51 +496,26 @@
                     roleBtnHtml = '<button class="change-role-btn">改变职位</button>';
                 }
 
-                // 老师和管理员可以任命社长/副社长（不能任命老师和管理员）
-                let appointBtnHtml = "";
-                if (canAppoint && user.userRight !== 2 && user.userRight !== 3) {
-                    appointBtnHtml = '<button class="appoint-president-btn">任命社长</button><button class="appoint-vice-btn">任命副社长</button>';
-                }
+            // 老师和管理员可以任命社长/副社长（不能任命老师和管理员）
+            let appointBtnHtml = "";
+            if (canAppoint && user.userRight !== 2 && user.userRight !== 3) {
+                appointBtnHtml = '<button class="appoint-president-btn">任命社长</button><button class="appoint-vice-btn">任命副社长</button>';
+            }
 
-                // 老师和管理员可以撤销社长/副社长（只能撤销社长）
-                let revokeBtnHtml = "";
-                if (canAppoint && user.userRight === 1) {
-                    revokeBtnHtml = '<button class="revoke-president-btn">撤销社长</button>';
-                }
-
-                // 社长额外显示主社团社长信息
-                let clubInfoHtml = "";
-                if (user.userRight === 1 && user.clubs && user.clubs.length > 0) {
-                    try {
-                        const mainClubId = user.mainClubId || (user.mainClub && user.mainClub.id);
-                        // 找到主社团
-                        const mainClub = user.clubs.find(c => c.id === mainClubId);
-                        if (mainClub) {
-                            // 显示格式：XX社社长 或 XX社副社长
-                            const roleText = user.vicePresident ? '副社长' : '社长';
-                            clubInfoHtml = `<div style="margin-top: 8px; font-size: 12px; color: #67c23a;">${mainClub.clubName}${roleText}</div>`;
-                        }
-                    } catch (e) {
-                        console.log('Error rendering club info:', e);
-                    }
-                }
-
-                const card = document.createElement("div");
-                card.className = "user-card";
-                card.innerHTML = `
-                        <div>
-                            <div class="cn-name">${user.username || '未填写'}</div>
-                            <div class="en-name">@${user.usernameEn || '无'}</div>
-                            <div class="role-tag ${roleClass}">${roleName}</div>
-                            ${clubInfoHtml}
-                        </div>
-                        <div class="card-actions">
-                            <button class="delete-btn">删除账号</button>
-                            ${roleBtnHtml}
-                            ${appointBtnHtml}
-                            ${revokeBtnHtml}
-                        </div>
-                    `;
+            const card = document.createElement("div");
+            card.className = "user-card";
+            card.innerHTML = `
+                    <div>
+                        <div class="cn-name">${user.username || '未填写'}</div>
+                        <div class="en-name">@${user.usernameEn || '无'}</div>
+                        <div class="role-tag ${roleClass}">${roleName}</div>
+                    </div>
+                    <div class="card-actions">
+                        <button class="delete-btn">删除账号</button>
+                        ${roleBtnHtml}
+                        ${appointBtnHtml}
+                    </div>
+                `;
             card.querySelector(".delete-btn").addEventListener("click", () => openModal(user));
             if (isAdmin) {
                 card.querySelector(".change-role-btn").addEventListener("click", () => openRoleModal(user));
@@ -350,18 +524,15 @@
                 card.querySelector(".appoint-president-btn").addEventListener("click", () => openAppointModal(user, false));
                 card.querySelector(".appoint-vice-btn").addEventListener("click", () => openAppointModal(user, true));
             }
-            if (canAppoint && user.userRight === 1) {
-                card.querySelector(".revoke-president-btn").addEventListener("click", () => openRevokeModal(user));
-            }
             grid.appendChild(card);
         });
     }
 
     function openModal(user) {
         currentUserToDelete = user;
-        document.getElementById("modalUsername").innerText = user.username || "未设置";
-        document.getElementById("modalUsernameEn").innerText = user.usernameEn || "无";
-        document.getElementById("modalEmail").innerText = user.email || "未绑定";
+        document.getElementById("modalUsername").innerText = displayName(user);
+        document.getElementById("modalUsernameEn").innerText = displayNameEn(user);
+        document.getElementById("modalEmail").innerText = displayEmail(user) || "未绑定";
 
         const clubBox = document.getElementById("modalClubs");
         clubBox.innerHTML = "";
@@ -476,11 +647,6 @@
         if (!isAdmin) {
             // 优先使用从后端获取的老师社团列表
             let myManagedClubs = teacherManagedClubs;
-            // 如果 teacherManagedClubs 为空，尝试使用 loginUserClubs
-            if (myManagedClubs.length === 0 && loginUserClubs && Array.isArray(loginUserClubs)) {
-                myManagedClubs = loginUserClubs;
-            }
-            
             if (myManagedClubs.length > 0) {
                 const myClubIds = myManagedClubs.map(c => c.id);
                 availableClubs = allClubs.filter(c => myClubIds.includes(c.id));
@@ -532,88 +698,6 @@
                 if (res.code === 200) {
                     alert(currentAppointIsVice ? "副社长任命成功！" : "社长任命成功！");
                     closeAppointModal();
-                    loadUsers();
-                } else { alert("操作失败：" + res.message); }
-            });
-    });
-
-    // 撤销社长相关函数
-    let currentUserToRevoke = null;
-
-    function openRevokeModal(user) {
-        currentUserToRevoke = user;
-        
-        document.getElementById("revokeModalUsername").innerText = user.username || "未设置";
-        document.getElementById("revokeModalCurrentRole").innerText = getRoleName(user.userRight);
-        
-        // 填充社团下拉列表
-        const clubSelect = document.getElementById("revokeClubSelect");
-        clubSelect.innerHTML = "";
-        
-        // 获取该用户所属的社团列表
-        let userClubs = user.clubs || [];
-        
-        // 如果是管理员，可以撤销任何社团的社长
-        // 如果是老师，只能撤销自己指导的社团的社长
-        let availableClubs = userClubs;
-        if (!isAdmin) {
-            let myManagedClubs = teacherManagedClubs;
-            if (myManagedClubs.length === 0 && loginUserClubs && Array.isArray(loginUserClubs)) {
-                myManagedClubs = loginUserClubs;
-            }
-            
-            if (myManagedClubs.length > 0) {
-                const myClubIds = myManagedClubs.map(c => c.id);
-                availableClubs = userClubs.filter(c => myClubIds.includes(c.id));
-            } else {
-                clubSelect.innerHTML = '<option value="">没有可撤销的社团</option>';
-                document.getElementById("revokeModal").style.display = "flex";
-                return;
-            }
-        }
-        
-        if (availableClubs.length === 0) {
-            clubSelect.innerHTML = '<option value="">没有可撤销的社团</option>';
-        } else {
-            availableClubs.forEach(club => {
-                const option = document.createElement("option");
-                option.value = club.id;
-                option.innerText = club.clubName;
-                clubSelect.appendChild(option);
-            });
-        }
-        
-        document.getElementById("revokeModal").style.display = "flex";
-    }
-
-    function closeRevokeModal() {
-        document.getElementById("revokeModal").style.display = "none";
-        currentUserToRevoke = null;
-    }
-
-    document.getElementById("btnDoRevoke").addEventListener("click", () => {
-        if (!currentUserToRevoke) return;
-        
-        const clubId = parseInt(document.getElementById("revokeClubSelect").value);
-        
-        if (!clubId) {
-            alert("请选择社团");
-            return;
-        }
-
-        fetch('/api/user/revoke-president', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                usernameEn: currentUserToRevoke.usernameEn, 
-                clubId: clubId
-            })
-        })
-            .then(res => res.json())
-            .then(res => {
-                if (res.code === 200) {
-                    alert("撤销社长成功！");
-                    closeRevokeModal();
                     loadUsers();
                 } else { alert("操作失败：" + res.message); }
             });

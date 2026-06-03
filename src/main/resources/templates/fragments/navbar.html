@@ -16,7 +16,40 @@
         <div class="school-cn" th:text="#{school.cn}"></div>
         <div class="school-en" th:text="#{school.en}"></div>
       </div>
-    </div>
+
+      <th:block th:if="${#locale.language} == 'en'">
+        <div class="navbar-lang-login">
+          <!-- 语言切换 -->
+          <div class="dropdown">
+            <button type="button" class="dropbtn" aria-expanded="false">
+              🌐
+            </button>
+            <div class="dropdown-content">
+              <a href="?lang=zh" th:text="#{nav.lang.zh}"></a>
+              <a href="?lang=en" th:text="#{nav.lang.en}"></a>
+            </div>
+          </div>
+
+              <!-- 登录/注册按钮 -->
+              <a
+                th:if="${loginUser == null}"
+                th:href="@{/page/user/login}"
+                class="navbar-login-btn"
+                th:text="#{nav.login}"
+              ></a>
+              <div class="dropdown user-dropdown" th:if="${loginUser != null}">
+                <button type="button" class="dropbtn" aria-expanded="false">My</button>
+                <div class="dropdown-content">
+                  <a th:href="@{/page/user/profile}">Profile</a>
+                  <a th:if="${loginUser != null && loginUser.getUserRight() < 1}" th:href="@{/page/my-clubs}">My Clubs</a>
+                  <a th:if="${loginUser != null && loginUser.getUserRight() >= 1}" th:href="@{/page/club/manage}">Club Management</a>
+                  <a th:if="${loginUser != null && loginUser.getUserRight() >= 2}" th:href="@{/page/user-edit}">Account Management</a>
+                  <a href="#" onclick="event.preventDefault(); fetch('/api/user/logout').finally(() => window.location.href='/page/user/login');">Log out</a>
+                </div>
+              </div>
+            </div>
+          </th:block>
+        </div>
 
     <!-- 中间：搜索框 -->
     <div class="navbar-center">
@@ -37,7 +70,7 @@
     </div>
 
     <!-- 右侧：导航链接 -->
-    <nav class="navbar-links">
+    <nav class="navbar-links" th:classappend="${#locale.language} == 'en' ? 'navbar-english' : ''">
       <a th:href="@{/page/index}">
         <span th:text="#{nav.home}"></span>
       </a>
@@ -68,75 +101,38 @@
 
       <a th:href="@{/page/suggestion}" th:text="#{nav.suggestion}"></a>
 
-      <!-- 语言切换 -->
-      <div class="dropdown">
-        <button type="button" class="dropbtn" aria-expanded="false">
-          🌐
-        </button>
-        <div class="dropdown-content">
-          <a href="?lang=zh" th:text="#{nav.lang.zh}"></a>
-          <a href="?lang=en" th:text="#{nav.lang.en}"></a>
-        </div>
-      </div>
-
-      <!-- 登录/注册按钮 -->
-      <!--<a
-        th:href="@{/page/user/login}"
-        class="navbar-login-btn"
-        th:text="#{nav.login}"
-      ></a>-->
-      <th:block th:if="${loginUser != null}">
-        <div class="dropdown user-dropdown">
-          <button type="button" class="dropbtn navbar-user-name" aria-expanded="false">
-            <span th:text="${loginUser.username}">某某某</span>
+      <th:block th:if="${#locale.language} != 'en'">
+        <!-- 语言切换 -->
+        <div class="dropdown">
+          <button type="button" class="dropbtn" aria-expanded="false">
+            🌐
           </button>
           <div class="dropdown-content">
-            <a th:href="@{/page/user/profile}" style="color: #333;"><span th:text="#{nav.manageAccount}">管理账号</span></a>
-            <a th:if="${loginUser.getUserRight() >= 1}" th:href="@{/page/club/manage}" style="color: #333;">管理社团</a>
-            <a th:if="${loginUser.getUserRight() < 1}" th:href="@{/page/my-clubs}" style="color: #333;"><span th:text="#{nav.myClubs}">我的社团</span></a>
-            <a th:href="@{/page/user-edit}" style="color: #333;" th:if="${loginUser.getUserRight() > 1}">管理用户</a>
-            <hr style="margin: 5px 0; border: 0; border-top: 1px solid #eee;" />
-            <a href="#" onclick="doLogout(); return false;" style="color: #ff4d4f; font-weight: bold;">
-              <span th:text="#{nav.logout}">退出登录</span>
-            </a>                 </div>
+            <a href="?lang=zh" th:text="#{nav.lang.zh}"></a>
+            <a href="?lang=en" th:text="#{nav.lang.en}"></a>
+          </div>
         </div>
-      </th:block>
 
-      <th:block th:unless="${loginUser != null}">
-        <a
-                th:href="@{/page/user/login}"
-                class="navbar-login-btn"
-                th:text="#{nav.login}"
-        >登录/注册</a>
-      </th:block>
-    </nav>
-  </header>
-
-  <script>
-    function doLogout() {
-      console.log("正在请求后端退出登录...");
-
-      // 1. 请求后端刚才新写的注销接口
-      fetch("/api/user/logout", {
-        method: "GET" // 或者根据你后端 @PostMapping/@GetMapping 保持一致
-      })
-              .then(response => response.json())
-              .then(data => {
-                // 2. 无论后端返回什么，前端作为双重保险，顺便再清理一下本地缓存
-                if (window.localStorage) localStorage.clear();
-                if (window.sessionStorage) sessionStorage.clear();
-
-                // 3. 后端清理 session/Cookie 成功后，前端强制刷新并跳转到首页
-                console.log("后端注销成功，开始跳转...");
-                window.location.replace("/page/index");
-              })
-              .catch(err => {
-                console.error("退出请求失败:", err);
-                // 即使网络可能断开请求失败，为了用户体验，前端也强制跳转清除状态
-                window.location.replace("/page/index");
-              });
-    }
-  </script>
+            <!-- 登录/注册按钮 -->
+            <a
+              th:if="${loginUser == null}"
+              th:href="@{/page/user/login}"
+              class="navbar-login-btn"
+              th:text="#{nav.login}"
+            ></a>
+            <div class="dropdown user-dropdown" th:if="${loginUser != null}">
+              <button type="button" class="dropbtn" aria-expanded="false">我的</button>
+              <div class="dropdown-content">
+                <a th:href="@{/page/user/profile}">个人资料</a>
+                <a th:if="${loginUser != null && loginUser.getUserRight() < 1}" th:href="@{/page/my-clubs}">我的社团</a>
+                <a th:if="${loginUser != null && loginUser.getUserRight() >= 1}" th:href="@{/page/club/manage}">社团管理</a>
+                <a th:if="${loginUser != null && loginUser.getUserRight() >= 2}" th:href="@{/page/user-edit}">账号管理</a>
+                <a href="#" onclick="event.preventDefault(); fetch('/api/user/logout').finally(() => window.location.href='/page/user/login');">退出登录</a>
+              </div>
+            </div>
+          </th:block>
+        </nav>
+      </header>
 
   <script>
     (function () {
@@ -201,6 +197,37 @@
         });
       }
 
+      function updateDropdownPlacement(dropdown) {
+        const button = dropdown.querySelector(".dropbtn");
+        const menu = dropdown.querySelector(".dropdown-content");
+        if (!button || !menu) return;
+
+        menu.classList.remove("shift-right", "shift-up");
+        menu.style.left = "";
+        menu.style.right = "";
+        menu.style.top = "";
+        menu.style.bottom = "";
+
+        const buttonRect = button.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        const safeMargin = 12;
+        const menuWidth = Math.min(menu.offsetWidth || 220, viewportWidth - safeMargin * 2);
+        const spaceRight = viewportWidth - buttonRect.right - safeMargin;
+        const spaceLeft = buttonRect.left - safeMargin;
+        const spaceBelow = viewportHeight - buttonRect.bottom - safeMargin;
+        const spaceAbove = buttonRect.top - safeMargin;
+
+        if (menuWidth > spaceRight && spaceLeft >= menuWidth) {
+          menu.classList.add("shift-right");
+        }
+
+        const menuHeight = menu.offsetHeight;
+        if (menuHeight > spaceBelow && spaceAbove > spaceBelow) {
+          menu.classList.add("shift-up");
+        }
+      }
+
       dropdowns.forEach((dropdown) => {
         const button = dropdown.querySelector(".dropbtn");
         const menu = dropdown.querySelector(".dropdown-content");
@@ -214,6 +241,16 @@
           closeAll(dropdown);
           dropdown.classList.toggle("open", !isOpen);
           button.setAttribute("aria-expanded", String(!isOpen));
+
+          if (!isOpen) {
+            window.requestAnimationFrame(() => updateDropdownPlacement(dropdown));
+          }
+        });
+
+        dropdown.addEventListener("mouseenter", function () {
+          if (dropdown.matches(":hover")) {
+            window.requestAnimationFrame(() => updateDropdownPlacement(dropdown));
+          }
         });
 
         menu.querySelectorAll("a").forEach((link) => {
@@ -223,6 +260,22 @@
           });
         });
       });
+
+      window.addEventListener("resize", function () {
+        dropdowns.forEach((dropdown) => {
+          if (dropdown.classList.contains("open")) {
+            updateDropdownPlacement(dropdown);
+          }
+        });
+      });
+
+      window.addEventListener("scroll", function () {
+        dropdowns.forEach((dropdown) => {
+          if (dropdown.classList.contains("open")) {
+            updateDropdownPlacement(dropdown);
+          }
+        });
+      }, true);
 
       document.addEventListener("click", function () {
         closeAll();
@@ -340,7 +393,5 @@
     })();
   </script>
 </div>
-
-
 </body>
 </html>

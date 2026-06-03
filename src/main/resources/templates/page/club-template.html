@@ -59,7 +59,7 @@
             console.error("加载社团数据失败:", err);
         });
 
-    // 🌟 3. 核心鉴权函数：通过 userright 判定按钮显隐
+    /* 🌟 3. 核心鉴权函数：通过 userright 判定按钮显隐
     function checkUserPermission(currentClubNameEn) {
         fetch('/api/club/my-list')
             .then(res => res.json())
@@ -81,6 +81,66 @@
                             editBtn.style.display = "block"; // 强行显示按钮
                             editBtn.onclick = () => {
                                 // 点击跳转到修改页面
+                                window.location.href = `/page/club-edit?clubName=${encodeURIComponent(currentClubNameEn)}`;
+                            };
+                        }
+                    }
+                }
+            })
+            .catch(err => console.log("获取登录用户权限失败或未登录", err));
+    }
+
+     */
+
+    // 🌟 3. 核心鉴权函数：完全基于 userright 判定按钮显隐
+    // 🌟 3. 核心鉴权函数：移除特定 role 字符串判断，正副社长权限完全对等
+    function checkUserPermission(currentClubNameEn) {
+        fetch('/api/club/my-list')
+            .then(res => res.json())
+            .then(res => {
+                if (res.code === 200 && res.data && res.data.length > 0) {
+                    // 1. 找到当前页面正在浏览的社团数据
+                    const currentClub = res.data.find(c => c.clubNameEn === currentClubNameEn);
+                    if (!currentClub) return; // 如果系统不存在此社团，直接返回
+
+                    const userright = currentClub.userright; // 获取全局权限数字
+                    const currentClubId = currentClub.id;
+
+                    console.log("userright:" + userright);
+                    console.log("clubId:"+currentClubId);
+
+                    let hasPermission = false;
+
+                    // 2. 根据 userright 纯数字级别判定
+                    if (userright === 3) {
+                        // 【管理员】：直接拥有全部社团修改权限
+                        hasPermission = true;
+                    }
+                    else if (userright === 2) {
+                        // 【老师】：检查当前浏览的社团 id 是否在其指导的列表中
+                        // 后端对于老师指导的社团，会塞入角色 'teacher'
+                        const isManagedTeacher = res.data.some(c => c.id === currentClubId && c.currentUserRole === 'teacher');
+                        if (isManagedTeacher) {
+                            hasPermission = true;
+                        }
+                    }
+                    else if (userright === 1) {
+                        // 【正/副社长】：因为正副社长作用相同，不用细分角色字符串。
+                        // 只要在 my-list 返回的负责数组中，能匹配到当前的 currentClubId，就直接放行
+                        const isClubLeader = res.data.some(c => c.id === currentClubId);
+                        if (isClubLeader) {
+                            hasPermission = true;
+                        }
+                    }
+
+
+
+                    // 3. 验证通过，显示“修改社团信息”按钮并绑定跳转
+                    if (hasPermission) {
+                        const editBtn = document.getElementById("edit-club-btn");
+                        if (editBtn) {
+                            editBtn.style.display = "block";
+                            editBtn.onclick = () => {
                                 window.location.href = `/page/club-edit?clubName=${encodeURIComponent(currentClubNameEn)}`;
                             };
                         }

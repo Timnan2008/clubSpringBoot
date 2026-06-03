@@ -48,8 +48,8 @@ public class ClubController {
         return managedUser != null ? managedUser : user;
     }
 
-    private boolean isAdminOrTeacher(UserBase user) {
-        return user instanceof Admin || user instanceof Teacher || user.getUserRight() >= 2;
+    private boolean isAdmin(UserBase user) {
+        return user instanceof Admin || (user != null && user.getUserRight() >= 3);
     }
 
     private boolean canManageClub(UserBase user, Club club) {
@@ -76,8 +76,8 @@ public class ClubController {
     @PostMapping
     public ResponseMessage<Club> add(@Validated @RequestBody ClubDTO clubDTO, HttpServletRequest request){
         UserBase user = getCurrentUser(request);
-        if (!isAdminOrTeacher(user)) {
-            return ResponseMessage.error("无权限：只有管理员或教师可以创建社团");
+        if (!isAdmin(user)) {
+            return ResponseMessage.error("无权限：只有管理员可以创建社团");
         }
         Club club = clubService.add(clubDTO);
         return ResponseMessage.success(club);

@@ -1,5 +1,6 @@
 package com.qpwflshclub.formal_club.pojo.User;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.qpwflshclub.formal_club.pojo.Club.Club;
 import jakarta.persistence.*;
 
@@ -22,6 +23,7 @@ public class User implements UserBase{
     @Column(name = "email")
     private String email;
 
+    @JsonIgnore // 🌟 添加这一行
     @ManyToMany
     @JoinTable(
             name = "user_club",

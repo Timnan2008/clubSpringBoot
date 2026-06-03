@@ -8,5 +8,6 @@ import java.util.Optional;
 
 @Repository
 public interface ClubPresidentRepository extends CrudRepository<ClubPresident, Long> {
-    java.util.List<ClubPresident> findAllByUsernameEn(String usernameEn);
+    Optional<ClubPresident> findByUsernameEn(String usernameEn);
+    ClubPresident findByEmail(String email);
 }

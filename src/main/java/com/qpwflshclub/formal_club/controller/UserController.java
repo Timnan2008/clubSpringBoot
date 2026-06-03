@@ -26,6 +26,7 @@ import com.qpwflshclub.formal_club.pojo.User.UserBase;
 import com.qpwflshclub.formal_club.service.User.IUserService;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import com.qpwflshclub.formal_club.pojo.Club.Club;
 
@@ -42,32 +43,32 @@ public class UserController {
 
     @PostMapping("/add/admin")
     @ResponseBody
-    public ResponseMessage<Admin> add(@Validated @RequestBody AdminDTO adminDTO){
+    public ResponseMessage<Admin> add(@Validated @RequestBody AdminDTO adminDTO) {
         Admin admin = userService.addAdmin(adminDTO);
         return ResponseMessage.success(admin);
     }
 
     @PostMapping("/add/teacher")
     @ResponseBody
-    public ResponseMessage<Teacher> add(@Validated @RequestBody TeacherDTO teacherDTO){
+    public ResponseMessage<Teacher> add(@Validated @RequestBody TeacherDTO teacherDTO) {
         Teacher teacher = userService.addTeacher(teacherDTO);
         return ResponseMessage.success(teacher);
     }
 
     @PostMapping("/add/club-president")
     @ResponseBody
-    public ResponseMessage<ClubPresident> add(@Validated @RequestBody ClubPresidentDTO clubPresidentDTO){
+    public ResponseMessage<ClubPresident> add(@Validated @RequestBody ClubPresidentDTO clubPresidentDTO) {
         ClubPresident clubPresident = userService.addClubPresident(clubPresidentDTO);
         return ResponseMessage.success(clubPresident);
     }
 
     @PostMapping("/add/user")
     @ResponseBody
-    public ResponseMessage<User> add(@Validated @RequestBody UserDTO userDTO){
+    public ResponseMessage<User> add(@Validated @RequestBody UserDTO userDTO) {
 
         String nameEn = userDTO.getUsernameEn();
 
-        if(userService.hasUser(nameEn)){
+        if (userService.hasUser(nameEn)) {
             return ResponseMessage.occupied(userDTO.getUsername(), null);
         }
 
@@ -90,7 +91,7 @@ public class UserController {
 
     //更新用户
     @PutMapping("/update/{userType}")
-    public ResponseMessage<Object> update(@Validated @RequestBody UserBaseDTO userDTO, @PathVariable String userType){
+    public ResponseMessage<Object> update(@Validated @RequestBody UserBaseDTO userDTO, @PathVariable String userType) {
         Object result = switch (userType) {
             case "teacher" -> userService.update((TeacherDTO) userDTO);
             case "user" -> userService.update((UserDTO) userDTO);
@@ -101,15 +102,44 @@ public class UserController {
         return new ResponseMessage<>(200, "更新成功", result);
     }
 
+
+
+    /*
+    @PutMapping("/update/user")
+    public ResponseMessage<User> update(@Validated @RequestBody UserDTO userDTO){
+        User user = userService.update(userDTO);
+        return ResponseMessage.success(user);
+    }
+
+    @PutMapping("/update/club-president")
+    public ResponseMessage<ClubPresident> update(@Validated @RequestBody ClubPresidentDTO clubPresidentDTO){
+        ClubPresident clubPresident = userService.update(clubPresidentDTO);
+        return ResponseMessage.success(clubPresident);
+    }
+
+    @PutMapping("/update/teacher")
+    public ResponseMessage<Teacher> update(@Validated @RequestBody TeacherDTO teacherDTO){
+        Teacher teacher = userService.update(teacherDTO);
+        return ResponseMessage.success(teacher);
+    }
+
+    @PutMapping("/update/admin")
+    public ResponseMessage<Admin> update(@Validated @RequestBody AdminDTO adminDTO){
+        Admin admin = userService.update(adminDTO);
+        return ResponseMessage.success(admin);
+    }
+
+     */
+
     @DeleteMapping("/delete")
-    public ResponseMessage<String> delete(@RequestBody UserBaseDTO userDTO){
+    public ResponseMessage<String> delete(@RequestBody UserBaseDTO userDTO) {
         String nameEn = userDTO.getUsernameEn();
         userService.delete(nameEn);
         return new ResponseMessage<>(200, "删除成功", nameEn);
     }
 
     @GetMapping("/find/{type}/{id}")
-    public ResponseMessage<UserBase> find(@PathVariable String type, @PathVariable Long id){
+    public ResponseMessage<UserBase> find(@PathVariable String type, @PathVariable Long id) {
         UserBase user = switch (type) {
             case "teacher" -> userService.findTeacherByID(id);
             case "user" -> userService.findUserById(id);
@@ -121,24 +151,25 @@ public class UserController {
     }
 
     @GetMapping("/find-name/{type}/{name-en}")
-    public ResponseMessage<UserBase> find(@PathVariable String type, @PathVariable String nameEn){
-        if(type.equals("user")){
+    public ResponseMessage<UserBase> find(@PathVariable String type, @PathVariable String nameEn) {
+        if (type.equals("user")) {
             return new ResponseMessage<>(200, "查询成功", userService.findUserById(Long.parseLong(nameEn)));
         }
-        if(type.equals("admin")){
+        if (type.equals("admin")) {
             return new ResponseMessage<>(200, "查询成功", userService.findAdminByID(Long.parseLong(nameEn)));
         }
-        if(type.equals("teacher")){
+        if (type.equals("teacher")) {
             return new ResponseMessage<>(200, "查询成功", userService.findTeacherByID(Long.parseLong(nameEn)));
 
         }
-        if(type.equals("club-president")){
+        if (type.equals("club-president")) {
             return new ResponseMessage<>(200, "查询成功", userService.findClubPresidentByID(Long.parseLong(nameEn)));
         }
         return ResponseMessage.error("查不到");
     }
+
     @GetMapping("/find-name-directly/{nameEn}")
-    public ResponseMessage<?> findNameDirectly(@PathVariable String nameEn){
+    public ResponseMessage<?> findNameDirectly(@PathVariable String nameEn) {
         // 假设返回类型为 UserBase
         UserBase user = userService.findByNameEn(nameEn);
 
@@ -163,7 +194,7 @@ public class UserController {
     @PostMapping("/login")
     @ResponseBody
     public ResponseMessage<UserBase> login(@RequestBody LoginDTO loginDTO, HttpServletResponse response) {
-    // 按 email 在 user / teacher 表查找（可按需扩展）
+        // 按 email 在 user / teacher 表查找（可按需扩展）
         String email = loginDTO.getEmail();
         UserBase user = userService.findByEmail(email);
 
@@ -248,7 +279,7 @@ public class UserController {
         if (currentUser == null || !(currentUser instanceof Admin) && currentUser.getUserRight() < 3) {
             return ResponseMessage.error("无权限：只有管理员可以将用户提升为管理员");
         }
-        
+
         String userNameEn = userbase.getUsernameEn();
 
         UserBase u = userService.findByNameEn(userNameEn);
@@ -322,7 +353,7 @@ public class UserController {
     public ResponseMessage<ClubPresident> appointPresident(
             @RequestBody java.util.Map<String, Object> requestBody,
             HttpServletRequest request) {
-        
+
         UserBase currentUser = (UserBase) request.getAttribute("currentUser");
         if (currentUser == null || currentUser.getUserRight() < 2) {
             return ResponseMessage.error("无权限：只有老师和管理员可以任命社长");
@@ -363,6 +394,50 @@ public class UserController {
     }
 
     /**
+     * 撤销社长/副社长
+     * POST /api/user/revoke-president
+     * 请求体：{ "userId": 1 }
+     * 权限：老师可以撤销自己指导社团的社长，管理员可以撤销任何社长
+     */
+    @PostMapping("/revoke-president")
+    public ResponseMessage<String> revokePresident(
+            @RequestBody Map<String, Object> requestBody,
+            HttpServletRequest request) {
+
+        UserBase currentUser = (UserBase) request.getAttribute("currentUser");
+        if (currentUser == null || currentUser.getUserRight() < 2) {
+            return ResponseMessage.error("无权限：只有老师和管理员可以撤销社长");
+        }
+
+        Object userIdValue = requestBody.get("userId");
+        if (userIdValue == null) {
+            return ResponseMessage.error("社长ID不能为空");
+        }
+
+        try {
+            Long presidentId = Long.valueOf(userIdValue.toString());
+            ClubPresident targetPresident = userService.findClubPresidentByID(presidentId);
+
+            if (currentUser.getUserRight() == 2 && currentUser instanceof Teacher teacher) {
+                Club targetClub = targetPresident.getMainClub();
+                boolean hasPermission = targetClub != null
+                        && teacher.getClubs() != null
+                        && teacher.getClubs().stream()
+                        .anyMatch(club -> Objects.equals(club.getId(), targetClub.getId()));
+
+                if (!hasPermission) {
+                    return ResponseMessage.error("无权限：您只能撤销自己指导社团的社长");
+                }
+            }
+
+            userService.revokePresident(presidentId);
+            return ResponseMessage.success("社长身份已撤销");
+        } catch (IllegalArgumentException e) {
+            return ResponseMessage.error(e.getMessage());
+        }
+    }
+
+    /**
      * 获取当前用户管理的社团列表（用于老师任命社长时选择社团）
      * GET /api/user/my-clubs
      * 权限：老师和管理员可以访问
@@ -375,7 +450,7 @@ public class UserController {
         }
 
         List<Club> clubs = null;
-        
+
         // 如果是管理员，返回所有社团
         if (currentUser.getUserRight() == 3 || currentUser instanceof Admin) {
             clubs = userService.getAllClubs();
@@ -388,53 +463,26 @@ public class UserController {
         if (clubs == null) {
             clubs = List.of();
         }
-        
+
         return ResponseMessage.success(clubs);
     }
 
     /**
-     * 撤销社长
-     * POST /api/user/revoke-president
-     * 请求体：{ "usernameEn": "xxx", "clubId": 1 }
-     * 权限：老师可以撤销自己指导的社团的社长，管理员可以撤销任何社团的社长
+     * 获取当前登录用户的信息
+     * GET /api/user/current
+     * 作用：供前端 navbar.html 动态校验用户的登录状态，控制“登录/注册”按钮与头像的显隐
      */
-    @PostMapping("/revoke-president")
-    public ResponseMessage<String> revokePresident(
-            @RequestBody java.util.Map<String, Object> requestBody,
-            HttpServletRequest request) {
-        
+    @GetMapping("/current")
+    public ResponseMessage<UserBase> getCurrentUser(HttpServletRequest request) {
+        // 1. 从刚才恢复的 AuthFilter 注入的 request 属性中获取当前登录用户
         UserBase currentUser = (UserBase) request.getAttribute("currentUser");
-        if (currentUser == null || currentUser.getUserRight() < 2) {
-            return ResponseMessage.error("无权限：只有老师和管理员可以撤销社长");
+
+        // 2. 如果 Filter 没有找到有效 Session/Cookie（用户未登录），返回 401 状态码或错误提示
+        if (currentUser == null) {
+            return new ResponseMessage<>(401, "用户未登录", null);
         }
 
-        String targetUsernameEn = (String) requestBody.get("usernameEn");
-        Integer clubId = (Integer) requestBody.get("clubId");
-
-        if (targetUsernameEn == null || targetUsernameEn.isBlank()) {
-            return ResponseMessage.error("目标用户名不能为空");
-        }
-        if (clubId == null) {
-            return ResponseMessage.error("社团ID不能为空");
-        }
-
-        // 如果是老师（不是管理员），检查是否有权限管理该社团
-        if (currentUser.getUserRight() == 2 && currentUser instanceof Teacher teacher) {
-            boolean hasPermission = false;
-            if (teacher.getClubs() != null) {
-                hasPermission = teacher.getClubs().stream()
-                        .anyMatch(club -> Objects.equals(club.getId(), clubId));
-            }
-            if (!hasPermission) {
-                return ResponseMessage.error("无权限：您只能撤销自己指导的社团的社长");
-            }
-        }
-
-        try {
-            userService.revokePresident(targetUsernameEn, clubId);
-            return ResponseMessage.success("撤销社长成功");
-        } catch (IllegalArgumentException e) {
-            return ResponseMessage.error(e.getMessage());
-        }
+        // 3. 用户已登录，将查出的高优先级实体类对象（如已完美兼容多身份的 ClubPresident）返回给前端
+        return ResponseMessage.success(currentUser);
     }
 }

@@ -236,6 +236,7 @@ body::after {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 14px;
   background: rgba(255, 255, 255, 0.68);
   backdrop-filter: blur(14px) saturate(160%);
   -webkit-backdrop-filter: blur(14px) saturate(160%);
@@ -261,6 +262,7 @@ body::after {
 .navbar-left {
   display: flex;
   align-items: center;
+  flex: 0 0 auto;
 }
 
 .navbar-logo {
@@ -291,6 +293,7 @@ body::after {
 /* ── Search ── */
 .navbar-center {
   flex: 1;
+  min-width: 0;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -657,6 +660,31 @@ body::after {
   flex-direction: row;
   flex-wrap: nowrap;
   white-space: nowrap;
+  min-width: 0;
+}
+.navbar-english {
+  flex-wrap: wrap;
+}
+
+.navbar-lang-login {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: 20px;
+}
+.navbar-lang-login .dropbtn,
+.navbar-lang-login .navbar-login-btn {
+  padding: 7px 13px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 13px;
+  border-radius: var(--radius-sm);
+  transition: color 0.2s, background 0.2s;
+}
+.navbar-lang-login .dropbtn:hover,
+.navbar-lang-login .navbar-login-btn:hover {
+  color: var(--primary);
+  background: var(--primary-bg);
 }
 .navbar-links > a {
   padding: 7px 13px;
@@ -716,16 +744,40 @@ body::after {
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   min-width: 164px;
+  max-width: min(280px, calc(100vw - 32px));
   box-shadow: var(--shadow-md);
   z-index: 1001;
   border-radius: var(--radius-md);
   overflow: hidden;
+  overflow-y: auto;
   top: calc(100% + 4px);
   left: 0;
+  right: auto;
   border: 1px solid var(--border-light);
   padding: 4px;
   animation: scaleIn 0.16s ease-out;
   transform-origin: top center;
+  box-sizing: border-box;
+  max-height: calc(100vh - 96px);
+}
+.dropdown-content.shift-right {
+  left: auto;
+  right: 0;
+}
+.dropdown-content.shift-up {
+  top: auto;
+  bottom: calc(100% + 4px);
+  transform-origin: bottom center;
+}
+.navbar .dropdown.user-dropdown .dropdown-content {
+  right: 12px;
+  left: auto;
+  margin-right: 12px;
+  transform-origin: top right;
+  box-sizing: border-box;
+  max-width: calc(100vw - 24px);
+  overflow-x: hidden;
+  white-space: normal;
 }
 .dropdown-content a {
   color: var(--text-secondary);
@@ -869,9 +921,37 @@ body::after {
 /* ============================================
    Responsive
    ============================================ */
+@media (max-width: 1100px) {
+  :root {
+    --navbar-height: 116px;
+  }
+  .navbar {
+    height: auto;
+    min-height: var(--navbar-height);
+    flex-wrap: wrap;
+    padding: 10px 18px;
+    row-gap: 8px;
+  }
+  .navbar-center {
+    order: 3;
+    flex: 1 0 100%;
+    width: 100%;
+    justify-content: stretch;
+  }
+  .search {
+    width: 100%;
+    max-width: none;
+  }
+  .navbar-links {
+    flex: 1 1 auto;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+}
+
 @media (max-width: 768px) {
   :root {
-    --navbar-height: auto;
+    --navbar-height: 142px;
   }
   .navbar {
     padding: 10px 14px;
@@ -894,11 +974,21 @@ body::after {
     flex-wrap: nowrap;
     justify-content: flex-end;
   }
-  .navbar-links > a,
-  .dropbtn {
-    padding: 5px 9px;
-    font-size: 12px;
-  }
+    .navbar-english {
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 2px;
+    }
+    /* 只针对英文界面，将第三个导航项单独一行且整体居中 */
+    .navbar-english > a[th\:href="@{/page/suggestion}"] {
+      flex-basis: 100%;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      white-space: nowrap;
+      margin-top: 2px;
+    }
   body {
     padding: 10px;
     padding-top: 110px;
