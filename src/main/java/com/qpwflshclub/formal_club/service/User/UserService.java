@@ -653,14 +653,30 @@ public class UserService implements IUserService{
 
     @Override
     public List<UserBase> findAllUsers() {
-        List<UserBase> allUsers = new java.util.ArrayList<>();
+        // 使用 LinkedHashMap 保证顺序并去重，key 为 usernameEn
+        java.util.LinkedHashMap<String, UserBase> userMap = new java.util.LinkedHashMap<>();
 
-        // 分别读出四张表的所有用户
-        allUsers.addAll((Collection<? extends UserBase>) userRepository.findAll());
-        allUsers.addAll((Collection<? extends UserBase>) teacherRepository.findAll());
-        allUsers.addAll((Collection<? extends UserBase>) clubPresidentRepository.findAll());
-        allUsers.addAll((Collection<? extends UserBase>) adminRepository.findAll());
+        // 按照权限从高到低的顺序添加，这样高权限的用户会覆盖低权限的同名用户
+        // 先添加普通用户
+        for (User user : userRepository.findAll()) {
+            userMap.put(user.getUsernameEn(), user);
+        }
+        // 添加社长（权限高于普通用户）
+        for (ClubPresident cp : clubPresidentRepository.findAll()) {
+            userMap.put(cp.getUsernameEn(), cp);
+        }
+        // 添加老师（权限高于社长）
+        for (Teacher teacher : teacherRepository.findAll()) {
+            userMap.put(teacher.getUsernameEn(), teacher);
+        }
+        // 添加管理员（权限最高）
+        for (Admin admin : adminRepository.findAll()) {
+            userMap.put(admin.getUsernameEn(), admin);
+        }
 
+        // 转换为列表并排序
+        List<UserBase> allUsers = new java.util.ArrayList<>(userMap.values());
+        
         // 按照数字-字母-汉字排序
         allUsers.sort((u1, u2) -> {
             String name1 = u1.getUsername() != null ? u1.getUsername() : u1.getUsernameEn() != null ? u1.getUsernameEn() : "";
@@ -835,6 +851,11 @@ public class UserService implements IUserService{
             throw new IllegalArgumentException("目标用户不存在");
         }
 
+        // 验证：只有该社团成员才能被任命为该社团社长
+        if (!hasClub(targetUser.getClubs(), clubId)) {
+            throw new IllegalArgumentException("该用户不是该社团成员，无法被任命为该社团社长");
+        }
+
         ClubPresident newPresident;
 
         ClubPresident existingPresident = findExistingClubPresidentForIdentity(targetUser);
@@ -875,7 +896,7 @@ public class UserService implements IUserService{
 
     @Override
     public List<Club> getAllClubs() {
-        return (List<Club>) clubRepository.findAll();
+        return clubRepository.findAll();
     }
 
 }

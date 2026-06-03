@@ -59,6 +59,29 @@
         .file-input {
             display: none;
         }
+        
+        /* 进度条样式 */
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background-color: #e5e7eb;
+            border-radius: 4px;
+            margin-top: 8px;
+            overflow: hidden;
+            display: none;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: #4f46e5;
+            border-radius: 4px;
+            transition: width 0.2s ease;
+        }
+        .progress-text {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 4px;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -120,7 +143,7 @@
             <div class="form-group">
                 <label>社团 Logo 图标 URL</label>
                 <input type="text" id="clubItem" required>
-                <button type="button" class="upload-btn" onclick="document.getElementById('logo-file').click()">上传图标</button>
+                <button type="button" class="upload-btn" id="logo-upload-btn" onclick="document.getElementById('logo-file').click()">上传图标</button>
                 <input type="file" id="logo-file" class="file-input" accept="image/jpeg,image/png,image/gif,image/webp">
                 <div class="upload-info">支持 jpg, png, gif, webp 格式</div>
                 <div id="logo-upload-status"></div>
@@ -130,9 +153,13 @@
         <div class="form-group full-width">
             <label>宣传视频 URL</label>
             <input type="text" id="video">
-            <button type="button" class="upload-btn" onclick="document.getElementById('video-file').click()">上传视频</button>
+            <button type="button" class="upload-btn" id="video-upload-btn" onclick="document.getElementById('video-file').click()">上传视频</button>
             <input type="file" id="video-file" class="file-input" accept="video/mp4,video/webm,video/ogg">
             <div class="upload-info">支持 mp4, webm, ogg 格式，最大 50MB</div>
+            <div id="video-progress-container" class="progress-container">
+                <div id="video-progress-bar" class="progress-bar"></div>
+            </div>
+            <div id="video-progress-text" class="progress-text">上传进度: 0%</div>
             <div id="video-upload-status"></div>
         </div>
 
@@ -325,7 +352,7 @@
         const file = e.target.files[0];
         if (!file) return;
 
-        const uploadBtn = document.querySelector('.upload-btn');
+        const uploadBtn = document.getElementById('logo-upload-btn');
         uploadBtn.disabled = true;
         uploadBtn.textContent = '上传中...';
 
@@ -366,19 +393,42 @@
         const file = e.target.files[0];
         if (!file) return;
 
-        const uploadBtn = document.querySelector('.upload-btn');
+        const uploadBtn = document.getElementById('video-upload-btn');
         uploadBtn.disabled = true;
         uploadBtn.textContent = '上传中...';
+
+        // 显示进度条
+        const progressContainer = document.getElementById('video-progress-container');
+        const progressBar = document.getElementById('video-progress-bar');
+        const progressText = document.getElementById('video-progress-text');
+        progressContainer.style.display = 'block';
+        progressText.style.display = 'block';
+        progressBar.style.width = '0%';
+        progressText.textContent = '上传进度: 0%';
+
+        // 清空之前的上传状态
+        document.getElementById('video-upload-status').innerHTML = '';
 
         const formData = new FormData();
         formData.append('file', file);
 
-        fetch('/api/upload/club-video', {
-            method: 'POST',
-            body: formData
-        })
-            .then(res => res.json())
-            .then(result => {
+        // 使用XMLHttpRequest来跟踪上传进度
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/api/upload/club-video');
+
+        // 监听上传进度
+        xhr.upload.addEventListener('progress', function(event) {
+            if (event.lengthComputable) {
+                const percent = Math.round((event.loaded / event.total) * 100);
+                progressBar.style.width = percent + '%';
+                progressText.textContent = '上传进度: ' + percent + '%';
+            }
+        });
+
+        // 上传完成处理
+        xhr.addEventListener('load', function() {
+            try {
+                const result = JSON.parse(xhr.responseText);
                 console.log('视频上传结果:', result);
                 if (result.code === 200) {
                     const urlInput = document.getElementById('video');
@@ -389,17 +439,30 @@
                     document.getElementById('video-upload-status').innerHTML =
                         `<span class="upload-error">✗ ${result.message}</span>`;
                 }
-            })
-            .catch(err => {
+            } catch (err) {
                 document.getElementById('video-upload-status').innerHTML =
-                    '<span class="upload-error">✗ 上传失败，请检查网络连接</span>';
-            })
-            .finally(() => {
-                uploadBtn.disabled = false;
-                uploadBtn.textContent = '上传视频';
-                // 重置文件输入
-                e.target.value = '';
-            });
+                    '<span class="upload-error">✗ 上传失败，服务器返回无效数据</span>';
+            }
+        });
+
+        // 上传失败处理
+        xhr.addEventListener('error', function() {
+            document.getElementById('video-upload-status').innerHTML =
+                '<span class="upload-error">✗ 上传失败，请检查网络连接</span>';
+        });
+
+        // 请求完成（无论成功失败）
+        xhr.addEventListener('loadend', function() {
+            uploadBtn.disabled = false;
+            uploadBtn.textContent = '上传视频';
+            // 隐藏进度条
+            progressContainer.style.display = 'none';
+            progressText.style.display = 'none';
+            // 重置文件输入
+            e.target.value = '';
+        });
+
+        xhr.send(formData);
     });
 </script>
 </body>
