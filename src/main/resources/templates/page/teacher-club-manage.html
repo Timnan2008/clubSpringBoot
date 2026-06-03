@@ -143,6 +143,12 @@
         if (button.dataset.action === "remove") {
             removeStudent(clubId, studentId);
         }
+        if (button.dataset.action === "appoint-president") {
+            appointStaffRole(clubId, studentId, "president");
+        }
+        if (button.dataset.action === "appoint-vice-president") {
+            appointStaffRole(clubId, studentId, "vice_president");
+        }
     }
 
     async function searchStudents(clubId) {
@@ -182,8 +188,17 @@
         const canRemove = action === "remove"
             && userId !== CURRENT_USER_ID
             && (CURRENT_USER_RIGHT >= 2 || member.roleInClub === "member");
+        const canAppointStaff = action === "remove"
+            && userId !== CURRENT_USER_ID
+            && CURRENT_USER_RIGHT >= 1;
+        const staffActionHtml = canAppointStaff
+            ? `<div class="member-action-group">
+                    ${member.roleInClub === "president" ? "" : `<button class="staff-btn" type="button" data-action="appoint-president" data-club-id="${clubId}" data-user-id="${userId}">任命社长</button>`}
+                    ${member.roleInClub === "vice_president" ? "" : `<button class="staff-btn muted" type="button" data-action="appoint-vice-president" data-club-id="${clubId}" data-user-id="${userId}">任命副社长</button>`}
+               </div>`
+            : "";
         const actionHtml = canRemove
-            ? `<button class="danger-btn" type="button" data-action="remove" data-club-id="${clubId}" data-user-id="${userId}">移出</button>`
+            ? `<div class="member-actions">${staffActionHtml}<button class="danger-btn" type="button" data-action="remove" data-club-id="${clubId}" data-user-id="${userId}">移出</button></div>`
             : action === "add"
                 ? `<button class="primary-btn small" type="button" data-action="add" data-club-id="${clubId}" data-user-id="${userId}">加入</button>`
                 : action === "added"
@@ -209,6 +224,22 @@
                 body: JSON.stringify({ clubId, userId: studentId })
             });
             showToast("已加入社团");
+            await loadMembers(clubId);
+            await searchStudents(clubId);
+        } catch (error) {
+            showToast(error.message, "error");
+        }
+    }
+
+    async function appointStaffRole(clubId, studentId, roleInClub) {
+        const roleName = roleInClub === "vice_president" ? "副社长" : "社长";
+        try {
+            await requestJson("/api/club/member/update", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ clubId, userId: studentId, roleInClub })
+            });
+            showToast(`已任命${roleName}`);
             await loadMembers(clubId);
             await searchStudents(clubId);
         } catch (error) {
