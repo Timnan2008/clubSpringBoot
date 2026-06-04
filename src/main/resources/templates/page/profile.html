@@ -21,7 +21,7 @@
     if (className.includes('Teacher')) {
         USER_TYPE = 'teacher';
     } else if (className.includes('ClubPresident')) {
-        USER_TYPE = 'clubPresident';
+        USER_TYPE = 'club-president';
     } else if (className.includes('Admin')) {
         USER_TYPE = 'admin';
     }
@@ -31,7 +31,6 @@
     const USER_NAME = /*[[${loginUser.username}]]*/ '';
     const USER_NAME_EN = /*[[${loginUser.usernameEn}]]*/ '';
     const USER_EMAIL = /*[[${loginUser.email}]]*/ '';
-    const USER_PASSWORD = /*[[${loginUser.password}]]*/ '';
     const I18N = {
         noticeErrTitle: "操作失败",
         noticeSuccessTitle: "成功",
@@ -103,7 +102,7 @@
             id: USER_ID,
             username: username,
             usernameEn: usernameEn,
-            password: USER_PASSWORD,
+            password: "",
             email: USER_EMAIL,
             userType: USER_TYPE
         };
@@ -226,12 +225,11 @@
             .then((r) => r.json())
             .then((data) => {
                 if (data.code === 200) {
-                    const userId = /*[[${loginUser.id}]]*/ null;
-                    if(!userId) {
-                        alert("未获取到合法 user_id 变量");
-                        return;
-                    }
-                    return fetch("/api/user/delete/" + userId, { method: "DELETE" }).then(r => r.json());
+                    return fetch("/api/user/delete", {
+                        method: "DELETE",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ usernameEn: USER_NAME_EN })
+                    }).then(r => r.json());
                 } else {
                     throw new Error("验证码校验失败，拒绝注销");
                 }

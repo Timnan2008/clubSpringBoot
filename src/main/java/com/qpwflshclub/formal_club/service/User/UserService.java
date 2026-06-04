@@ -580,8 +580,10 @@ public class UserService implements IUserService{
     @org.springframework.transaction.annotation.Transactional
     public void removeStudentFromClubRelationship(Long userId, Integer clubId) {
         User u = userRepository.findById(userId).orElse(null);
-        if (u != null && u.getClubs() != null) {
-            u.getClubs().removeIf(c -> Objects.equals(c.getId(), clubId));
+        if (u != null && hasClub(u.getClubs(), clubId)) {
+            List<Club> clubs = new ArrayList<>(u.getClubs());
+            clubs.removeIf(c -> Objects.equals(c.getId(), clubId));
+            u.setClubs(clubs);
             userRepository.save(u);
             return;
         }
@@ -592,8 +594,10 @@ public class UserService implements IUserService{
             if (cp.getMainClub() != null && Objects.equals(cp.getMainClub().getId(), clubId)) {
                 cp.setMainClub(null);
             }
-            if (cp.getClubs() != null) {
-                cp.getClubs().removeIf(c -> Objects.equals(c.getId(), clubId));
+            if (hasClub(cp.getClubs(), clubId)) {
+                List<Club> clubs = new ArrayList<>(cp.getClubs());
+                clubs.removeIf(c -> Objects.equals(c.getId(), clubId));
+                cp.setClubs(clubs);
             }
             clubPresidentRepository.save(cp);
         }

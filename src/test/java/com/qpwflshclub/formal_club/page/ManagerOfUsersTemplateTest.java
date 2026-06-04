@@ -17,4 +17,25 @@ class ManagerOfUsersTemplateTest {
         assertThat(template).contains("presidentClubInfoHtml");
         assertThat(template).contains("mainClubId");
     }
+
+    @Test
+    void usersWithMultipleIdentitiesAreRenderedAsMergedPersonCards() throws Exception {
+        String template = Files.readString(Path.of("src/main/resources/templates/page/manager of users.html"));
+
+        assertThat(template).contains("groupUsersByPerson(users).forEach");
+        assertThat(template).contains("person-card merged-person");
+        assertThat(template).contains("identity-grid");
+        assertThat(template).contains("buildUserCard(user, true)");
+    }
+
+    @Test
+    void revokePresidentModalIsWiredToBackend() throws Exception {
+        String template = Files.readString(Path.of("src/main/resources/templates/page/manager of users.html"));
+
+        assertThat(template).contains("revoke-president-btn");
+        assertThat(template).contains("openRevokeModal(user)");
+        assertThat(template).contains("currentUserToRevoke");
+        assertThat(template).contains("/api/user/revoke-president");
+        assertThat(template).contains("btnDoRevoke");
+    }
 }

@@ -135,6 +135,22 @@ class UserServicePresidentRoleTest {
                 .containsEntry("userId", 3L);
     }
 
+    @Test
+    void removeStudentFromClubRelationshipRemovesPresidentParticipantClubWhenIdsOverlap() {
+        Club club = club(8, "Codecraft");
+        User unrelatedStudentWithSameId = user(3L, "张三", "Eric", List.of());
+        ClubPresident president = president(3L, "王艺蒙", "Thomas", club(10, "Other"), List.of(club));
+
+        when(userRepository.findById(3L)).thenReturn(Optional.of(unrelatedStudentWithSameId));
+        when(clubPresidentRepository.findById(3L)).thenReturn(Optional.of(president));
+
+        userService.removeStudentFromClubRelationship(3L, 8);
+
+        assertThat(president.getClubs()).isEmpty();
+        verify(clubPresidentRepository).save(president);
+        verify(userRepository, never()).save(unrelatedStudentWithSameId);
+    }
+
     private static Club club(Integer id, String nameEn) {
         Club club = new Club();
         club.setId(id);

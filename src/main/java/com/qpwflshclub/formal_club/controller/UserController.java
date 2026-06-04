@@ -43,7 +43,11 @@ public class UserController {
 
     @PostMapping("/add/admin")
     @ResponseBody
-    public ResponseMessage<Admin> add(@Validated @RequestBody AdminDTO adminDTO) {
+    public ResponseMessage<Admin> add(@Validated @RequestBody AdminDTO adminDTO, HttpServletRequest request) {
+        UserBase currentUser = currentUserFromRequest(request);
+        if (!isAdmin(currentUser)) {
+            return ResponseMessage.error("无权限：只有管理员可以创建管理员账号");
+        }
         Admin admin = userService.addAdmin(adminDTO);
         return ResponseMessage.success(admin);
     }
@@ -57,7 +61,11 @@ public class UserController {
 
     @PostMapping("/add/club-president")
     @ResponseBody
-    public ResponseMessage<ClubPresident> add(@Validated @RequestBody ClubPresidentDTO clubPresidentDTO) {
+    public ResponseMessage<ClubPresident> add(@Validated @RequestBody ClubPresidentDTO clubPresidentDTO, HttpServletRequest request) {
+        UserBase currentUser = currentUserFromRequest(request);
+        if (!isAdmin(currentUser)) {
+            return ResponseMessage.error("无权限：只有管理员可以创建社长账号");
+        }
         ClubPresident clubPresident = userService.addClubPresident(clubPresidentDTO);
         return ResponseMessage.success(clubPresident);
     }
@@ -91,7 +99,12 @@ public class UserController {
 
     //更新用户
     @PutMapping("/update/{userType}")
-    public ResponseMessage<Object> update(@Validated @RequestBody UserBaseDTO userDTO, @PathVariable String userType) {
+    public ResponseMessage<Object> update(@Validated @RequestBody UserBaseDTO userDTO, @PathVariable String userType, HttpServletRequest request) {
+        UserBase currentUser = currentUserFromRequest(request);
+        if (!canModifyUser(currentUser, userDTO, userType)) {
+            return ResponseMessage.error("无权限：只能修改自己的账号");
+        }
+        preserveCurrentPasswordIfProfileLeftBlank(currentUser, userDTO, userType);
         Object result = switch (userType) {
             case "teacher" -> userService.update((TeacherDTO) userDTO);
             case "user" -> userService.update((UserDTO) userDTO);
@@ -132,10 +145,57 @@ public class UserController {
      */
 
     @DeleteMapping("/delete")
-    public ResponseMessage<String> delete(@RequestBody UserBaseDTO userDTO) {
+    public ResponseMessage<String> delete(@RequestBody UserBaseDTO userDTO, HttpServletRequest request) {
+        UserBase currentUser = currentUserFromRequest(request);
         String nameEn = userDTO.getUsernameEn();
+        if (!canDeleteUser(currentUser, nameEn)) {
+            return ResponseMessage.error("无权限：只能删除自己的账号");
+        }
         userService.delete(nameEn);
         return new ResponseMessage<>(200, "删除成功", nameEn);
+    }
+
+    private UserBase currentUserFromRequest(HttpServletRequest request) {
+        return (UserBase) request.getAttribute("currentUser");
+    }
+
+    private boolean isAdmin(UserBase user) {
+        return user instanceof Admin || (user != null && user.getUserRight() >= 3);
+    }
+
+    private boolean canModifyUser(UserBase currentUser, UserBaseDTO targetUser, String targetType) {
+        if (currentUser == null || targetUser == null) {
+            return false;
+        }
+        return isAdmin(currentUser) || isSameTypedUser(currentUser, targetUser, targetType);
+    }
+
+    private boolean isSameTypedUser(UserBase currentUser, UserBaseDTO targetUser, String targetType) {
+        return currentUser != null
+                && targetUser != null
+                && currentUser.getId() == targetUser.getId()
+                && Objects.equals(userTypeOf(currentUser), targetType);
+    }
+
+    private void preserveCurrentPasswordIfProfileLeftBlank(UserBase currentUser, UserBaseDTO targetUser, String targetType) {
+        if (isSameTypedUser(currentUser, targetUser, targetType)
+                && (targetUser.getPassword() == null || targetUser.getPassword().isBlank())) {
+            targetUser.setPassword(currentUser.getPassword());
+        }
+    }
+
+    private boolean canDeleteUser(UserBase currentUser, String targetUsernameEn) {
+        if (currentUser == null || targetUsernameEn == null || targetUsernameEn.isBlank()) {
+            return false;
+        }
+        return isAdmin(currentUser) || Objects.equals(currentUser.getUsernameEn(), targetUsernameEn);
+    }
+
+    private String userTypeOf(UserBase user) {
+        if (user instanceof Teacher) return "teacher";
+        if (user instanceof ClubPresident) return "club-president";
+        if (user instanceof Admin) return "admin";
+        return "user";
     }
 
     @GetMapping("/find/{type}/{id}")

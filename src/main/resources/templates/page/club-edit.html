@@ -235,6 +235,7 @@
 
     let IS_GREAT = false;
     let CLUB_URL;
+    let VIDEO_LIKE = 0;
 
     // 1. 页面加载时拉取原始数据回显到各个输入框中
     if (clubNameParam) {
@@ -265,8 +266,9 @@
                     document.getElementById("clubDescription").value = club.clubDescription || '';
                     document.getElementById("clubDescriptionEn").value = club.clubDescriptionEn || '';
 
-                    IS_GREAT = club.isGreatClub;
+                    IS_GREAT = club.greatClub === true || club.isGreatClub === true;
                     CLUB_URL = club.clubURL;
+                    VIDEO_LIKE = club.videoLike ?? 0;
                 } else {
                     openNotice26(false, {
                         title: "拉取数据失败",
@@ -305,8 +307,9 @@
             sortDescriptionEn: document.getElementById("sortDescriptionEn").value,
             clubDescription: document.getElementById("clubDescription").value,
             clubDescriptionEn: document.getElementById("clubDescriptionEn").value,
-            isGreatClub: IS_GREAT,
-            clubURL: CLUB_URL
+            greatClub: IS_GREAT,
+            clubURL: CLUB_URL,
+            videoLike: VIDEO_LIKE
         };
 
         // 发送 PUT 请求

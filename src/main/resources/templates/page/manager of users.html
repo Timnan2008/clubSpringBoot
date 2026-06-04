@@ -359,6 +359,7 @@
     let currentUserToDelete = null;
     let currentUserToChangeRole = null;
     let currentUserToAppoint = null;
+    let currentUserToRevoke = null;
     let allClubs = [];
     let lastLoadedUsers = [];
 
@@ -484,48 +485,79 @@
     function renderGrid(users) {
         const grid = document.getElementById("userGrid");
         grid.innerHTML = "";
-        users.forEach(user => {
-            let roleName = "普通学生"; let roleClass = "role-0";
-            if (user.userRight === 1) { roleName = "社长/副社长"; roleClass = "role-1"; }
-            else if (user.userRight === 2) { roleName = "指导老师"; roleClass = "role-2"; }
-            else if (user.userRight === 3) { roleName = "管理员"; roleClass = "role-3"; }
-
-                // 管理员额外显示改变职位按钮
-                let roleBtnHtml = "";
-                if (isAdmin) {
-                    roleBtnHtml = '<button class="change-role-btn">改变职位</button>';
-                }
-
-            // 老师和管理员可以任命社长/副社长（不能任命老师和管理员）
-            let appointBtnHtml = "";
-            if (canAppoint && user.userRight !== 2 && user.userRight !== 3) {
-                appointBtnHtml = '<button class="appoint-president-btn">任命社长</button><button class="appoint-vice-btn">任命副社长</button>';
+        groupUsersByPerson(users).forEach(person => {
+            if (person.identities.length === 1) {
+                grid.appendChild(buildUserCard(person.identities[0], false));
+                return;
             }
 
-            const card = document.createElement("div");
-            card.className = "user-card";
-            card.innerHTML = `
+            const personCard = document.createElement("div");
+            personCard.className = "person-card merged-person";
+            personCard.innerHTML = `
+                <div class="person-header">
                     <div>
-                        <div class="cn-name">${user.username || '未填写'}</div>
-                        <div class="en-name">@${user.usernameEn || '无'}</div>
-                        <div class="role-tag ${roleClass}">${roleName}</div>
+                        <div class="person-name">${escapeHtml(person.name)}</div>
+                        <div class="person-meta">@${escapeHtml(person.nameEn)}${person.email ? " · " + escapeHtml(person.email) : ""}</div>
                     </div>
-                    <div class="card-actions">
-                        <button class="delete-btn">删除账号</button>
-                        ${roleBtnHtml}
-                        ${appointBtnHtml}
-                    </div>
-                `;
-            card.querySelector(".delete-btn").addEventListener("click", () => openModal(user));
-            if (isAdmin) {
-                card.querySelector(".change-role-btn").addEventListener("click", () => openRoleModal(user));
-            }
-            if (canAppoint && user.userRight !== 2 && user.userRight !== 3) {
-                card.querySelector(".appoint-president-btn").addEventListener("click", () => openAppointModal(user, false));
-                card.querySelector(".appoint-vice-btn").addEventListener("click", () => openAppointModal(user, true));
-            }
-            grid.appendChild(card);
+                    <div class="identity-count">${person.identities.length} 个身份</div>
+                </div>
+                <div class="identity-grid"></div>
+            `;
+            const identityGrid = personCard.querySelector(".identity-grid");
+            person.identities.forEach(user => identityGrid.appendChild(buildUserCard(user, true)));
+            grid.appendChild(personCard);
         });
+    }
+
+    function buildUserCard(user, isIdentityCard) {
+        let roleName = "普通学生"; let roleClass = "role-0";
+        if (user.userRight === 1) { roleName = "社长/副社长"; roleClass = "role-1"; }
+        else if (user.userRight === 2) { roleName = "指导老师"; roleClass = "role-2"; }
+        else if (user.userRight === 3) { roleName = "管理员"; roleClass = "role-3"; }
+
+        let roleBtnHtml = "";
+        if (isAdmin) {
+            roleBtnHtml = '<button class="change-role-btn">改变职位</button>';
+        }
+
+        let appointBtnHtml = "";
+        if (canAppoint && user.userRight !== 2 && user.userRight !== 3) {
+            appointBtnHtml = '<button class="appoint-president-btn">任命社长</button><button class="appoint-vice-btn">任命副社长</button>';
+        }
+
+        let revokeBtnHtml = "";
+        if (canAppoint && user.userRight === 1) {
+            revokeBtnHtml = '<button class="revoke-president-btn">撤销社长</button>';
+        }
+
+        const card = document.createElement("div");
+        card.className = isIdentityCard ? "user-card identity-card" : "user-card";
+        card.innerHTML = `
+            <div>
+                <div class="cn-name">${escapeHtml(displayName(user))}</div>
+                <div class="en-name">@${escapeHtml(displayNameEn(user))}</div>
+                <div class="role-tag ${roleClass}">${roleName}</div>
+                ${presidentClubInfoHtml(user)}
+            </div>
+            <div class="card-actions">
+                <button class="delete-btn">删除账号</button>
+                ${roleBtnHtml}
+                ${appointBtnHtml}
+                ${revokeBtnHtml}
+            </div>
+        `;
+        card.querySelector(".delete-btn").addEventListener("click", () => openModal(user));
+        if (isAdmin) {
+            card.querySelector(".change-role-btn").addEventListener("click", () => openRoleModal(user));
+        }
+        if (canAppoint && user.userRight !== 2 && user.userRight !== 3) {
+            card.querySelector(".appoint-president-btn").addEventListener("click", () => openAppointModal(user, false));
+            card.querySelector(".appoint-vice-btn").addEventListener("click", () => openAppointModal(user, true));
+        }
+        if (canAppoint && user.userRight === 1) {
+            card.querySelector(".revoke-president-btn").addEventListener("click", () => openRevokeModal(user));
+        }
+        return card;
     }
 
     function openModal(user) {
@@ -674,6 +706,28 @@
         currentAppointIsVice = false;
     }
 
+    function openRevokeModal(user) {
+        currentUserToRevoke = user;
+        document.getElementById("revokeModalUsername").innerText = displayName(user);
+        document.getElementById("revokeModalCurrentRole").innerText = user.vicePresident ? "副社长" : "社长";
+
+        const clubSelect = document.getElementById("revokeClubSelect");
+        clubSelect.innerHTML = "";
+        const club = resolveMainClub(user);
+        const option = document.createElement("option");
+        option.value = club && club.id ? club.id : "";
+        option.innerText = club ? (club.clubName || club.clubNameEn || `社团 ID ${club.id}`) : "暂未设置负责社团";
+        clubSelect.appendChild(option);
+
+        document.getElementById("revokeModalTitle").innerText = user.vicePresident ? "撤销副社长" : "撤销社长";
+        document.getElementById("revokeModal").style.display = "flex";
+    }
+
+    function closeRevokeModal() {
+        document.getElementById("revokeModal").style.display = "none";
+        currentUserToRevoke = null;
+    }
+
     document.getElementById("btnDoAppoint").addEventListener("click", () => {
         if (!currentUserToAppoint) return;
         
@@ -698,6 +752,24 @@
                 if (res.code === 200) {
                     alert(currentAppointIsVice ? "副社长任命成功！" : "社长任命成功！");
                     closeAppointModal();
+                    loadUsers();
+                } else { alert("操作失败：" + res.message); }
+            });
+    });
+
+    document.getElementById("btnDoRevoke").addEventListener("click", () => {
+        if (!currentUserToRevoke) return;
+
+        fetch('/api/user/revoke-president', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: currentUserToRevoke.id })
+        })
+            .then(res => res.json())
+            .then(res => {
+                if (res.code === 200) {
+                    alert("社长身份已撤销！");
+                    closeRevokeModal();
                     loadUsers();
                 } else { alert("操作失败：" + res.message); }
             });

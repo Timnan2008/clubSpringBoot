@@ -43,8 +43,6 @@ public class AuthFilter implements Filter {
 
             "/api/user/add/user",
             "/api/user/add/teacher",
-            "/api/user/add/admin",
-            "/api/user/add/club-president",
 
             "/api/email/send",
             "/api/email/verify",
