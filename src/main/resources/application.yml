@@ -3,7 +3,7 @@ spring:
     host: smtp.qiye.aliyun.com
     port: 465
     username: qpwflhs_cs@shwfl.edu.cn
-    password: ympkVwWEJCTKlk4A
+    password: ${MAIL_PASSWORD:}
     properties:
       mail:
         smtp:

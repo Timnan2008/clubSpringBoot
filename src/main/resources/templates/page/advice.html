@@ -216,6 +216,24 @@ document.getElementById('form').addEventListener('submit', async (e) => {
     }
 
     showToast(i18n.success, 'success');
+
+    // 记录到本机：提交者自己能随时在“历史记录”里看到（哪怕还没被老师审核通过）
+    if (result.data && result.data.id) {
+      try {
+        const myKey = 'wfl_my_ideas_v1';
+        const myIdeas = JSON.parse(localStorage.getItem(myKey) || '[]')
+          .filter(item => item.id !== result.data.id);
+        myIdeas.push({
+          id: result.data.id,
+          title: result.data.title || suggestionData.title,
+          context: result.data.context || suggestionData.context,
+          name: result.data.name || (anon ? '' : name),
+          anonymous: !!(result.data.anonymous || result.data.isAnonymous || anon)
+        });
+        localStorage.setItem(myKey, JSON.stringify(myIdeas.slice(-30)));
+      } catch (e) { /* localStorage 不可用时忽略 */ }
+    }
+
     document.getElementById('form').reset();
     document.getElementById('charCount').textContent = '0 / 500';
     document.getElementById('charProgress').style.width = '0';

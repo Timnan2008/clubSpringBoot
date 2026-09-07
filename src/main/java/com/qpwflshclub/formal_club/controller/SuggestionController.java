@@ -80,10 +80,11 @@ public class SuggestionController {
 
     private boolean isAdmin(HttpServletRequest request) {
         UserBase currentUser = (UserBase) request.getAttribute("currentUser");
-        return currentUser instanceof Admin || (currentUser != null && currentUser.getUserRight() >= 3);
+        // 老师(userRight=2)及以上拥有审核/管理意见的权限
+        return currentUser instanceof Admin || (currentUser != null && currentUser.getUserRight() >= 2);
     }
 
     private <T> ResponseMessage<T> adminOnlyError() {
-        return ResponseMessage.error("无权限：只有管理员可以管理建议");
+        return ResponseMessage.error("无权限：只有老师或管理员可以审核建议");
     }
 }

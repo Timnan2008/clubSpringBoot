@@ -22,7 +22,7 @@ public class Suggestion {
     private String name;
 
     @Column(name = "is_pass")
-    private boolean isPass;
+    private Boolean isPass = Boolean.FALSE;
 
     public String getContext() {
         return context;
@@ -65,10 +65,10 @@ public class Suggestion {
     }
 
     public boolean isPass() {
-        return isPass;
+        return Boolean.TRUE.equals(isPass);
     }
 
-    public void setPass(boolean pass) {
+    public void setPass(Boolean pass) {
         isPass = pass;
     }
 }
