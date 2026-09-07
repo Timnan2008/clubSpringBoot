@@ -9,9 +9,11 @@
     <link rel="stylesheet" href="/css/index_style.css">
     <title th:text="#{nav.home}">首页</title>
 </head>
+
 <body>
     <div th:replace="fragments/navbar :: navbar"></div>
     <div th:replace="fragments/notice :: notice"></div>
+    <div th:replace="~{fragments/notice-media :: notice}"></div>
 
     <!-- Ultra-Glass Parallax Matrix background -->
     <div class="bg-viewport" aria-hidden="true"></div>

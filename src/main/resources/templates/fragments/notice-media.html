@@ -1,0 +1,1141 @@
+<div th:fragment="notice"
+     id="clubNotice"
+     class="club-notice">
+
+    <!-- =========================
+         Notice 内容
+         ========================= -->
+
+    <div class="notice-overlay"></div>
+
+    <div class="notice-modal">
+
+        <button
+                class="notice-x"
+                id="noticeX">
+            ×
+        </button>
+
+        <!-- 视频区域 -->
+        <div class="notice-video-container">
+
+            <button
+                    class="notice-arrow notice-prev"
+                    id="noticePrev">
+                ‹
+            </button>
+
+            <div class="notice-slides">
+
+                <!-- 视频 1：网站整体焕新 -->
+                <div class="notice-slide active">
+                    <video
+                            class="notice-video"
+                            muted
+                            playsinline
+                            preload="metadata">
+
+                        <source
+                                src="/media/notice/video-01.mp4"
+                                type="video/mp4">
+
+                    </video>
+                </div>
+
+                <!-- 视频 2：登录 / 注册 -->
+                <div class="notice-slide">
+                    <video
+                            class="notice-video"
+                            muted
+                            playsinline
+                            preload="metadata">
+
+                        <source
+                                src="/media/notice/video-02.mp4"
+                                type="video/mp4">
+
+                    </video>
+                </div>
+
+                <!-- 视频 3：新功能 ① -->
+                <div class="notice-slide">
+                    <video
+                            class="notice-video"
+                            muted
+                            playsinline
+                            preload="metadata">
+
+                        <source
+                                src="/media/notice/video-03.mp4"
+                                type="video/mp4">
+
+                    </video>
+                </div>
+
+                <!-- 视频 4：新功能 ② -->
+                <div class="notice-slide">
+                    <video
+                            class="notice-video"
+                            muted
+                            playsinline
+                            preload="metadata">
+
+                        <source
+                                src="/media/notice/video-04.mp4"
+                                type="video/mp4">
+
+                    </video>
+                </div>
+
+                <!-- 视频 5：其他更新 -->
+                <div class="notice-slide">
+                    <video
+                            class="notice-video"
+                            muted
+                            playsinline
+                            preload="metadata">
+
+                        <source
+                                src="/media/notice/video-05.mp4"
+                                type="video/mp4">
+
+                    </video>
+                </div>
+
+                <!-- 视频 6：社长修改功能 -->
+                <div class="notice-slide">
+                    <video
+                            class="notice-video"
+                            muted
+                            playsinline
+                            preload="metadata">
+
+                        <source
+                                src="/media/notice/video-06.mp4"
+                                type="video/mp4">
+
+                    </video>
+                </div>
+
+            </div>
+
+            <button
+                    class="notice-arrow notice-next"
+                    id="noticeNext">
+                ›
+            </button>
+
+        </div>
+
+        <!-- 小点点 -->
+        <div
+                class="notice-dots"
+                id="noticeDots">
+        </div>
+
+        <!-- 按钮 -->
+        <div class="notice-buttons">
+
+            <button
+                    class="notice-btn notice-close"
+                    id="noticeClose">
+                关闭
+            </button>
+
+            <button
+                    class="notice-btn notice-never"
+                    id="noticeNever">
+                已知晓，不再播放
+            </button>
+
+        </div>
+
+    </div>
+
+
+
+
+<style>
+    /* ================================
+   Notice 弹窗
+   ================================ */
+
+    * {
+        box-sizing: border-box;
+    }
+
+    /* 整个 Notice 遮罩层 */
+    .club-notice {
+        position: fixed;
+        inset: 0;
+        z-index: 99999;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        visibility: hidden;
+        opacity: 0;
+
+        transition:
+                opacity 0.35s ease,
+                visibility 0.35s ease;
+    }
+
+    /* JS 添加 .show 后显示 */
+    .club-notice.show {
+        visibility: visible;
+        opacity: 1;
+    }
+
+
+    /* ================================
+       背景遮罩
+       ================================ */
+
+    .notice-overlay {
+        position: absolute;
+        inset: 0;
+
+        background: rgba(0, 0, 0, 0.68);
+
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+    }
+
+
+    /* ================================
+       弹窗主体
+       ================================ */
+
+    .notice-modal {
+        position: relative;
+
+        width: min(900px, 90vw);
+
+        background: #ffffff;
+
+        border-radius: 24px;
+
+        overflow: hidden;
+
+        box-shadow:
+                0 30px 80px rgba(0, 0, 0, 0.35);
+
+        transform: scale(0.94);
+
+        transition: transform 0.35s ease;
+    }
+
+    /* 弹窗出现时放大 */
+    .club-notice.show .notice-modal {
+        transform: scale(1);
+    }
+
+
+    /* ================================
+       右上角关闭按钮
+       ================================ */
+
+    .notice-x {
+        position: absolute;
+
+        top: 15px;
+        right: 15px;
+
+        z-index: 20;
+
+        width: 38px;
+        height: 38px;
+
+        border: none;
+        border-radius: 50%;
+
+        background: rgba(0, 0, 0, 0.45);
+
+        color: #ffffff;
+
+        font-size: 24px;
+        line-height: 38px;
+
+        text-align: center;
+
+        cursor: pointer;
+
+        transition:
+                background 0.2s ease,
+                transform 0.2s ease;
+    }
+
+    .notice-x:hover {
+        background: rgba(0, 0, 0, 0.7);
+
+        transform: scale(1.08);
+    }
+
+
+    /* ================================
+       视频区域
+       ================================ */
+
+    .notice-video-container {
+        position: relative;
+
+        width: 100%;
+
+        background: #000000;
+
+        overflow: hidden;
+    }
+
+
+    /* 每一个视频 */
+    .notice-slide {
+        display: none;
+
+        width: 100%;
+    }
+
+
+    /* 当前显示的视频 */
+    .notice-slide.active {
+        display: block;
+    }
+
+
+    /* 视频本身 */
+    .notice-video {
+        display: block;
+
+        width: 100%;
+        height: auto;
+
+        max-height: 70vh;
+
+        object-fit: contain;
+
+        background: #000000;
+    }
+
+
+    /* ================================
+       左右切换按钮
+       ================================ */
+
+    .notice-arrow {
+        position: absolute;
+
+        top: 50%;
+
+        z-index: 10;
+
+        width: 46px;
+        height: 70px;
+
+        border: none;
+        border-radius: 12px;
+
+        background: rgba(0, 0, 0, 0.35);
+
+        color: #ffffff;
+
+        font-size: 48px;
+
+        line-height: 60px;
+
+        cursor: pointer;
+
+        transform: translateY(-50%);
+
+        transition:
+                background 0.2s ease,
+                transform 0.2s ease;
+    }
+
+
+    /* 左箭头 */
+    .notice-prev {
+        left: 15px;
+    }
+
+
+    /* 右箭头 */
+    .notice-next {
+        right: 15px;
+    }
+
+
+    /* 鼠标悬停 */
+    .notice-arrow:hover {
+        background: rgba(0, 0, 0, 0.65);
+
+        transform: translateY(-50%) scale(1.05);
+    }
+
+
+    /* ================================
+       视频下方的小圆点
+       ================================ */
+
+    .notice-dots {
+        display: flex;
+
+        justify-content: center;
+        align-items: center;
+
+        gap: 8px;
+
+        padding: 18px 10px 10px;
+    }
+
+
+    /* 普通圆点 */
+    .notice-dot {
+        width: 7px;
+        height: 7px;
+
+        padding: 0;
+
+        border: none;
+        border-radius: 50%;
+
+        background: #c7c7c7;
+
+        cursor: pointer;
+
+        transition:
+                width 0.25s ease,
+                background 0.25s ease;
+    }
+
+
+    /* 当前视频的圆点 */
+    .notice-dot.active {
+        width: 22px;
+
+        border-radius: 10px;
+
+        background: #333333;
+    }
+
+
+    /* ================================
+       底部按钮区域
+       ================================ */
+
+    .notice-buttons {
+        display: flex;
+
+        justify-content: center;
+        align-items: center;
+
+        gap: 12px;
+
+        padding: 10px 25px 25px;
+    }
+
+
+    /* 所有底部按钮 */
+    .notice-btn {
+        padding: 10px 22px;
+
+        border-radius: 10px;
+
+        font-size: 14px;
+
+        cursor: pointer;
+
+        transition:
+                background 0.2s ease,
+                transform 0.2s ease;
+    }
+
+
+    /* 普通关闭 */
+    .notice-close {
+        border: 1px solid #dddddd;
+
+        background: #f5f5f5;
+
+        color: #333333;
+    }
+
+    .notice-close:hover {
+        background: #e9e9e9;
+
+        transform: translateY(-1px);
+    }
+
+
+    /* 永久关闭 */
+    .notice-never {
+        border: none;
+
+        background: #111111;
+
+        color: #ffffff;
+    }
+
+    .notice-never:hover {
+        background: #333333;
+
+        transform: translateY(-1px);
+    }
+
+
+    /* ================================
+       手机端适配
+       ================================ */
+
+    @media (max-width: 600px) {
+
+        .notice-modal {
+            width: 94vw;
+
+            border-radius: 18px;
+        }
+
+        .notice-video {
+            max-height: 65vh;
+        }
+
+        .notice-arrow {
+            width: 38px;
+            height: 56px;
+
+            font-size: 36px;
+
+            line-height: 48px;
+        }
+
+        .notice-prev {
+            left: 8px;
+        }
+
+        .notice-next {
+            right: 8px;
+        }
+
+        .notice-buttons {
+            flex-direction: column;
+
+            gap: 8px;
+
+            padding: 8px 20px 20px;
+        }
+
+        .notice-btn {
+            width: 100%;
+
+            padding: 11px 15px;
+        }
+
+        .notice-x {
+            width: 34px;
+            height: 34px;
+
+            font-size: 21px;
+
+            line-height: 34px;
+        }
+    }
+</style>
+
+<!-- =========================================================
+     JavaScript
+     ========================================================= -->
+
+<script>
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+
+
+            /* =================================================
+               获取 HTML 元素
+               ================================================= */
+
+            const notice =
+                document.getElementById("clubNotice");
+
+            const slides =
+                Array.from(
+                    document.querySelectorAll(
+                        ".notice-slide"
+                    )
+                );
+
+            const videos =
+                Array.from(
+                    document.querySelectorAll(
+                        ".notice-video"
+                    )
+                );
+
+            const dotsContainer =
+                document.getElementById(
+                    "noticeDots"
+                );
+
+            const prevButton =
+                document.getElementById(
+                    "noticePrev"
+                );
+
+            const nextButton =
+                document.getElementById(
+                    "noticeNext"
+                );
+
+            const closeButton =
+                document.getElementById(
+                    "noticeClose"
+                );
+
+            const neverButton =
+                document.getElementById(
+                    "noticeNever"
+                );
+
+            const xButton =
+                document.getElementById(
+                    "noticeX"
+                );
+
+            const overlay =
+                document.querySelector(
+                    ".notice-overlay"
+                );
+
+
+            /* =================================================
+               当前视频编号
+
+               0 = 第一个视频
+               1 = 第二个视频
+               ...
+               ================================================= */
+
+            let currentIndex = 0;
+
+
+            /* =================================================
+               检查是否已经选择：
+               「已知晓，不再播放」
+               ================================================= */
+
+            const neverShow =
+                localStorage.getItem(
+                    "clubNoticeNeverShow"
+                );
+
+
+            /*
+             * 如果永久关闭过，
+             * 那么整个 Notice 不显示。
+             */
+
+            if (neverShow === "true") {
+
+                return;
+
+            }
+
+
+            /* =================================================
+               创建底部圆点
+               ================================================= */
+
+            slides.forEach(
+                function (_, index) {
+
+                    const dot =
+                        document.createElement(
+                            "button"
+                        );
+
+                    dot.classList.add(
+                        "notice-dot"
+                    );
+
+                    dot.setAttribute(
+                        "aria-label",
+                        "查看第 " +
+                        (index + 1) +
+                        " 个视频"
+                    );
+
+
+                    /*
+                     * 点击圆点直接跳到对应视频
+                     */
+
+                    dot.addEventListener(
+                        "click",
+                        function () {
+
+                            showSlide(index);
+
+                        }
+                    );
+
+
+                    dotsContainer.appendChild(
+                        dot
+                    );
+
+                }
+            );
+
+
+            const dots =
+                Array.from(
+                    document.querySelectorAll(
+                        ".notice-dot"
+                    )
+                );
+
+
+            /* =================================================
+               显示指定视频
+               ================================================= */
+
+            function showSlide(index) {
+
+
+                /*
+                 * 如果没有视频，
+                 * 直接结束。
+                 */
+
+                if (slides.length === 0) {
+
+                    return;
+
+                }
+
+
+                /*
+                 * 如果超过最后一个，
+                 * 回到第一个。
+                 */
+
+                if (index >= slides.length) {
+
+                    index = 0;
+
+                }
+
+
+                /*
+                 * 如果小于第一个，
+                 * 跳到最后一个。
+                 */
+
+                if (index < 0) {
+
+                    index =
+                        slides.length - 1;
+
+                }
+
+
+                /* =============================================
+                   停止所有视频
+                   ============================================= */
+
+                videos.forEach(
+                    function (video) {
+
+                        video.pause();
+
+                        /*
+                         * 切换回来时从头播放。
+                         */
+
+                        video.currentTime = 0;
+
+                    }
+                );
+
+
+                /* =============================================
+                   移除所有 active
+                   ============================================= */
+
+                slides.forEach(
+                    function (slide) {
+
+                        slide.classList.remove(
+                            "active"
+                        );
+
+                    }
+                );
+
+
+                dots.forEach(
+                    function (dot) {
+
+                        dot.classList.remove(
+                            "active"
+                        );
+
+                    }
+                );
+
+
+                /* =============================================
+                   设置当前视频
+                   ============================================= */
+
+                currentIndex = index;
+
+
+                slides[currentIndex]
+                    .classList.add("active");
+
+
+                dots[currentIndex]
+                    .classList.add("active");
+
+
+                /* =============================================
+                   自动播放当前视频
+                   ============================================= */
+
+                const currentVideo =
+                    videos[currentIndex];
+
+
+                if (currentVideo) {
+
+                    const playPromise =
+                        currentVideo.play();
+
+
+                    /*
+                     * 某些浏览器可能阻止 autoplay。
+                     * 因为视频设置了 muted，
+                     * 一般可以正常自动播放。
+                     */
+
+                    if (
+                        playPromise !== undefined
+                    ) {
+
+                        playPromise.catch(
+                            function () {
+
+                                console.log(
+                                    "浏览器阻止了视频自动播放"
+                                );
+
+                            }
+                        );
+
+                    }
+
+                }
+
+            }
+
+
+            /* =================================================
+               下一个视频
+               ================================================= */
+
+            function nextSlide() {
+
+                showSlide(
+                    currentIndex + 1
+                );
+
+            }
+
+
+            /* =================================================
+               上一个视频
+               ================================================= */
+
+            function previousSlide() {
+
+                showSlide(
+                    currentIndex - 1
+                );
+
+            }
+
+
+            /* =================================================
+               左右箭头
+               ================================================= */
+
+            nextButton.addEventListener(
+                "click",
+                nextSlide
+            );
+
+
+            prevButton.addEventListener(
+                "click",
+                previousSlide
+            );
+
+
+            /* =================================================
+               视频播放结束
+
+               自动播放下一个视频
+               ================================================= */
+
+            videos.forEach(
+                function (video, index) {
+
+                    video.addEventListener(
+                        "ended",
+                        function () {
+
+
+                            /*
+                             * 如果不是最后一个视频，
+                             * 自动进入下一个。
+                             */
+
+                            if (
+                                index <
+                                videos.length - 1
+                            ) {
+
+                                nextSlide();
+
+                            }
+
+                            /*
+                             * 最后一个视频播放结束后，
+                             * 停留在最后一个视频。
+                             */
+
+                        }
+                    );
+
+                }
+            );
+
+
+            /* =================================================
+               打开 Notice
+               ================================================= */
+
+            function openNotice() {
+
+                notice.classList.add(
+                    "show"
+                );
+
+
+                /*
+                 * 从第一个视频开始
+                 */
+
+                showSlide(0);
+
+
+                /*
+                 * 禁止背景网页滚动
+                 */
+
+                document.body.style.overflow =
+                    "hidden";
+
+            }
+
+
+            /* =================================================
+               关闭 Notice
+               
+               注意：
+
+               这里不会保存 localStorage。
+
+               所以：
+
+               点击关闭
+                     ↓
+               本次隐藏
+                     ↓
+               下一次进入网站
+                     ↓
+               Notice 继续出现
+               ================================================= */
+
+            function closeNotice() {
+
+                notice.classList.remove(
+                    "show"
+                );
+
+
+                /*
+                 * 停止视频
+                 */
+
+                videos.forEach(
+                    function (video) {
+
+                        video.pause();
+
+                    }
+                );
+
+
+                /*
+                 * 恢复网页滚动
+                 */
+
+                document.body.style.overflow =
+                    "";
+
+            }
+
+
+            /* =================================================
+               永久关闭 Notice
+               ================================================= */
+
+            function neverShowAgain() {
+
+
+                /*
+                 * 保存到浏览器 localStorage
+                 */
+
+                localStorage.setItem(
+                    "clubNoticeNeverShow",
+                    "true"
+                );
+
+
+                /*
+                 * 关闭 Notice
+                 */
+
+                closeNotice();
+
+            }
+
+
+            /* =================================================
+               按钮事件
+               ================================================= */
+
+            closeButton.addEventListener(
+                "click",
+                closeNotice
+            );
+
+
+            xButton.addEventListener(
+                "click",
+                closeNotice
+            );
+
+
+            neverButton.addEventListener(
+                "click",
+                neverShowAgain
+            );
+
+
+            /* =================================================
+               点击黑色背景关闭
+               ================================================= */
+
+            overlay.addEventListener(
+                "click",
+                closeNotice
+            );
+
+
+            /* =================================================
+               键盘操作
+
+               ESC = 关闭
+               ←   = 上一个视频
+               →   = 下一个视频
+               ================================================= */
+
+            document.addEventListener(
+                "keydown",
+                function (event) {
+
+
+                    /*
+                     * Notice 没有打开，
+                     * 不处理键盘。
+                     */
+
+                    if (
+                        !notice.classList.contains(
+                            "show"
+                        )
+                    ) {
+
+                        return;
+
+                    }
+
+
+                    if (
+                        event.key === "Escape"
+                    ) {
+
+                        closeNotice();
+
+                    }
+
+
+                    if (
+                        event.key === "ArrowLeft"
+                    ) {
+
+                        previousSlide();
+
+                    }
+
+
+                    if (
+                        event.key === "ArrowRight"
+                    ) {
+
+                        nextSlide();
+
+                    }
+
+                }
+            );
+
+
+            /* =================================================
+               页面加载后自动显示 Notice
+
+               延迟 500ms，
+               避免和网站本身的加载动画冲突。
+               ================================================= */
+
+            setTimeout(
+                function () {
+
+                    openNotice();
+
+                },
+                500
+            );
+
+
+        }
+    );
+
+</script>
+</div>
