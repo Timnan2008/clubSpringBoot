@@ -44,6 +44,14 @@ body {
     font-size: 28px;
 }
 
+.manager-actions {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
 .managed-summary {
     display: flex;
     align-items: center;
@@ -162,11 +170,15 @@ button {
 .primary-btn,
 .ghost-btn,
 .danger-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     min-height: 40px;
     border: 1px solid transparent;
     border-radius: var(--radius-sm);
     padding: 0 16px;
     cursor: pointer;
+    text-decoration: none;
     transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease;
 }
 
@@ -202,6 +214,45 @@ button {
     border-color: #fecdd3;
     font-size: 13px;
     font-weight: 700;
+}
+
+.member-actions,
+.member-action-group {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.staff-btn {
+    min-height: 34px;
+    border: 1px solid #fed7aa;
+    border-radius: var(--radius-sm);
+    background: #fff7ed;
+    color: #c2410c;
+    padding: 0 12px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 800;
+    transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease;
+}
+
+.staff-btn.muted {
+    border-color: #bfdbfe;
+    background: #eff6ff;
+    color: #1d4ed8;
+}
+
+.staff-btn.revoke {
+    border-color: #fecdd3;
+    background: #fff1f2;
+    color: #be123c;
+}
+
+.staff-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(15, 23, 42, .08);
 }
 
 .result-list,
@@ -301,5 +352,14 @@ button {
 
     .club-card-count {
         justify-self: start;
+    }
+
+    .member-row {
+        grid-template-columns: 1fr;
+    }
+
+    .member-actions,
+    .member-action-group {
+        justify-content: flex-start;
     }
 }

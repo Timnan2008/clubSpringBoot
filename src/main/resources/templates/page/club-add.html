@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="/other%20photo/WFL-logo.png">
+    <link rel="stylesheet" href="/css/common.css">
+    <title>新增社团</title>
+    <style>
+        body {
+            min-height: 100vh;
+            padding-top: calc(var(--navbar-height) + 28px);
+        }
+
+        .create-page {
+            width: min(980px, calc(100vw - 40px));
+            margin: 0 auto 44px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .create-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-sm);
+            box-shadow: var(--shadow-md);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            padding: 24px;
+        }
+
+        .create-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .create-header h1 {
+            margin: 0;
+            color: var(--text-primary);
+            font-size: 28px;
+            line-height: 1.2;
+        }
+
+        .eyebrow-text {
+            margin: 0;
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+        }
+
+        .club-form {
+            display: grid;
+            gap: 18px;
+            padding-top: 20px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .form-field {
+            display: grid;
+            gap: 7px;
+        }
+
+        .form-field.full {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            border: 1px solid var(--border-medium);
+            border-radius: var(--radius-sm);
+            background: rgba(255, 255, 255, .84);
+            color: var(--text-primary);
+            font: inherit;
+            padding: 0 14px;
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        input,
+        select {
+            height: 44px;
+        }
+
+        textarea {
+            min-height: 112px;
+            padding-top: 12px;
+            resize: vertical;
+        }
+
+        input:focus,
+        textarea:focus,
+        select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, .1);
+        }
+
+        .checkbox-row {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 44px;
+            color: var(--text-secondary);
+            font-weight: 800;
+        }
+
+        .checkbox-row input {
+            width: 18px;
+            height: 18px;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            flex-wrap: wrap;
+            padding-top: 6px;
+        }
+
+        .primary-btn,
+        .ghost-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 40px;
+            border: 1px solid transparent;
+            border-radius: var(--radius-sm);
+            padding: 0 16px;
+            cursor: pointer;
+            text-decoration: none;
+            font: inherit;
+            transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease, background .2s ease;
+        }
+
+        .primary-btn {
+            background: var(--primary);
+            color: #fff;
+            font-weight: 700;
+            box-shadow: 0 8px 20px var(--primary-shadow);
+        }
+
+        .ghost-btn {
+            background: rgba(255, 255, 255, .7);
+            color: var(--text-primary);
+            border-color: var(--border-medium);
+        }
+
+        .primary-btn:hover,
+        .ghost-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .toast {
+            position: fixed;
+            right: 22px;
+            bottom: 22px;
+            z-index: 1100;
+            min-width: 180px;
+            max-width: min(360px, calc(100vw - 44px));
+            padding: 12px 14px;
+            border-radius: var(--radius-sm);
+            background: #052e2b;
+            color: #fff;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .toast.error {
+            background: #7f1d1d;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 760px) {
+            .create-page {
+                width: min(100%, calc(100vw - 24px));
+            }
+
+            .create-header,
+            .form-actions {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .upload-btn {
+            background: #22c55e;
+            color: white;
+            padding: 8px 14px;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 13px;
+            transition: background 0.2s;
+            margin-top: 8px;
+            display: inline-block;
+        }
+        .upload-btn:hover {
+            background: #16a34a;
+        }
+        .upload-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+        .upload-info {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+        .upload-success {
+            color: #22c55e;
+            font-size: 12px;
+            margin-top: 6px;
+        }
+        .upload-error {
+            color: #ef4444;
+            font-size: 12px;
+            margin-top: 6px;
+        }
+        .file-input {
+            display: none;
+        }
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background-color: var(--border-light);
+            border-radius: 4px;
+            margin-top: 8px;
+            overflow: hidden;
+            display: none;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: var(--primary);
+            border-radius: 4px;
+            transition: width 0.2s ease;
+        }
+        .progress-text {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            display: none;
+        }
+
+    </style>
+</head>
+<body>
+<div th:replace="fragments/navbar :: navbar"></div>
+<div th:replace="fragments/particle :: particle"></div>
+
+<main class="create-page">
+    <section class="create-panel">
+        <header class="create-header">
+            <div>
+                <p class="eyebrow-text">管理员账号</p>
+                <h1>新增社团</h1>
+            </div>
+            <a class="ghost-btn" th:href="@{/page/club/manage}">返回社团管理</a>
+        </header>
+
+        <form id="club-create-form" class="club-form">
+            <div class="form-grid">
+                <div class="form-field">
+                    <label for="clubName">社团名称</label>
+                    <input id="clubName" type="text" required>
+                </div>
+                <div class="form-field">
+                    <label for="clubNameEn">社团英文名称</label>
+                    <input id="clubNameEn" type="text" required>
+                </div>
+
+                <div class="form-field">
+                    <label for="president">社长</label>
+                    <input id="president" type="text" required>
+                </div>
+                <div class="form-field">
+                    <label for="presidentEn">社长英文名</label>
+                    <input id="presidentEn" type="text" required>
+                </div>
+
+                <div class="form-field">
+                    <label for="vicePresident">副社长</label>
+                    <input id="vicePresident" type="text" required>
+                </div>
+                <div class="form-field">
+                    <label for="vicePresidentEn">副社长英文名</label>
+                    <input id="vicePresidentEn" type="text" required>
+                </div>
+
+                <div class="form-field">
+                    <label for="teacher">指导老师</label>
+                    <input id="teacher" type="text" required>
+                </div>
+                <div class="form-field">
+                    <label for="teacherEn">指导老师英文名</label>
+                    <input id="teacherEn" type="text" required>
+                </div>
+
+                <div class="form-field">
+                    <label for="clubClass">社团类别</label>
+                    <select id="clubClass" required>
+                        <option value="">请选择</option>
+                        <option value="creativity">创意艺术</option>
+                        <option value="activity">体育活动</option>
+                        <option value="service">社会服务</option>
+                        <option value="study">学科竞赛</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label for="clubItem">社团 Logo URL</label>
+                    <input id="clubItem" type="text" required>
+                    <button type="button" class="upload-btn" id="logo-upload-btn" onclick="document.getElementById('logo-file').click()">上传图标</button>
+                    <input type="file" id="logo-file" class="file-input" accept="image/jpeg,image/png,image/gif,image/webp">
+                    <div class="upload-info">支持 jpg, png, gif, webp 格式</div>
+                    <div id="logo-upload-status"></div>
+
+                </div>
+
+                <div class="form-field full">
+                    <label for="video">宣传视频 URL</label>
+                    <input id="video" type="text">
+                    <button type="button" class="upload-btn" id="video-upload-btn" onclick="document.getElementById('video-file').click()">上传视频</button>
+                    <input type="file" id="video-file" class="file-input" accept="video/mp4,video/webm,video/ogg">
+                    <div class="upload-info">支持 mp4, webm, ogg 格式，最大 50MB</div>
+                    <div id="video-progress-container" class="progress-container">
+                        <div id="video-progress-bar" class="progress-bar"></div>
+                    </div>
+                    <div id="video-progress-text" class="progress-text">上传进度: 0%</div>
+                    <div id="video-upload-status"></div>
+
+                </div>
+
+                <div class="form-field">
+                    <label for="sortDescription">简短简介</label>
+                    <input id="sortDescription" type="text" maxlength="20" required>
+                </div>
+                <div class="form-field">
+                    <label for="sortDescriptionEn">英文简短简介</label>
+                    <input id="sortDescriptionEn" type="text" maxlength="200" required>
+                </div>
+
+                <div class="form-field full">
+                    <label for="clubDescription">社团详细描述</label>
+                    <textarea id="clubDescription" maxlength="1000" required></textarea>
+                </div>
+                <div class="form-field full">
+                    <label for="clubDescriptionEn">英文详细描述</label>
+                    <textarea id="clubDescriptionEn" maxlength="1000" required></textarea>
+                </div>
+
+                <label class="checkbox-row">
+                    <input id="greatClub" type="checkbox">
+                    优秀社团
+                </label>
+            </div>
+
+            <div class="form-actions">
+                <a class="ghost-btn" th:href="@{/page/club/manage}">取消</a>
+                <button class="primary-btn" type="submit">创建社团</button>
+            </div>
+        </form>
+    </section>
+</main>
+
+<div id="toast" class="toast hidden"></div>
+
+<script>
+    document.getElementById("club-create-form").addEventListener("submit", async function (event) {
+        event.preventDefault();
+
+        const clubNameEn = valueOf("clubNameEn");
+        const updateData = {
+            clubName: valueOf("clubName"),
+            clubNameEn: clubNameEn,
+            clubItem: valueOf("clubItem"),
+            clubClass: valueOf("clubClass"),
+            president: valueOf("president"),
+            presidentEn: valueOf("presidentEn"),
+            vicePresident: valueOf("vicePresident"),
+            vicePresidentEn: valueOf("vicePresidentEn"),
+            teacher: valueOf("teacher"),
+            teacherEn: valueOf("teacherEn"),
+            sortDescription: valueOf("sortDescription"),
+            sortDescriptionEn: valueOf("sortDescriptionEn"),
+            clubDescription: valueOf("clubDescription"),
+            clubDescriptionEn: valueOf("clubDescriptionEn"),
+            video: valueOf("video"),
+            videoLike: 0,
+            greatClub: document.getElementById("greatClub").checked,
+            clubURL: `page/club-watch/${clubNameEn}`
+        };
+
+        try {
+            const response = await fetch("/api/club", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "same-origin",
+                body: JSON.stringify(updateData)
+            });
+            const result = await response.json();
+            if (result.code !== 200) {
+                throw new Error(result.message || "创建失败");
+            }
+            showToast("社团已创建");
+            setTimeout(() => {
+                window.location.href = `/page/club-watch/${encodeURIComponent(clubNameEn)}`;
+            }, 900);
+        } catch (error) {
+            showToast(error.message, "error");
+        }
+    });
+
+    function valueOf(id) {
+        return document.getElementById(id).value.trim();
+    }
+
+    function showToast(message, type = "success") {
+        const toast = document.getElementById("toast");
+        toast.textContent = message;
+        toast.className = `toast ${type}`;
+        clearTimeout(toast.timer);
+        toast.timer = setTimeout(() => {
+            toast.className = "toast hidden";
+        }, 2400);
+    }
+
+    // 上传图标
+    document.getElementById('logo-file').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const uploadBtn = document.getElementById('logo-upload-btn');
+        uploadBtn.disabled = true;
+        uploadBtn.textContent = '上传中...';
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        fetch('/api/upload/club-logo', {
+            method: 'POST',
+            body: formData
+        })
+            .then(res => res.json())
+            .then(result => {
+                if (result.code === 200) {
+                    const urlInput = document.getElementById('clubItem');
+                    urlInput.value = result.data;
+                    document.getElementById('logo-upload-status').innerHTML =
+                        '<span class="upload-success">✓ 图标上传成功！URL: ' + result.data + '</span>';
+                } else {
+                    document.getElementById('logo-upload-status').innerHTML =
+                        '<span class="upload-error">✗ ' + result.message + '</span>';
+                }
+            })
+            .catch(err => {
+                document.getElementById('logo-upload-status').innerHTML =
+                    '<span class="upload-error">✗ 上传失败，请检查网络连接</span>';
+            })
+            .finally(() => {
+                uploadBtn.disabled = false;
+                uploadBtn.textContent = '上传图标';
+                e.target.value = '';
+            });
+    });
+
+    // 上传视频
+    document.getElementById('video-file').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const uploadBtn = document.getElementById('video-upload-btn');
+        uploadBtn.disabled = true;
+        uploadBtn.textContent = '上传中...';
+
+        const progressContainer = document.getElementById('video-progress-container');
+        const progressBar = document.getElementById('video-progress-bar');
+        const progressText = document.getElementById('video-progress-text');
+        progressContainer.style.display = 'block';
+        progressText.style.display = 'block';
+        progressBar.style.width = '0%';
+        progressText.textContent = '上传进度: 0%';
+
+        document.getElementById('video-upload-status').innerHTML = '';
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/api/upload/club-video');
+
+        xhr.upload.addEventListener('progress', function(event) {
+            if (event.lengthComputable) {
+                const percent = Math.round((event.loaded / event.total) * 100);
+                progressBar.style.width = percent + '%';
+                progressText.textContent = '上传进度: ' + percent + '%';
+            }
+        });
+
+        xhr.addEventListener('load', function() {
+            try {
+                const result = JSON.parse(xhr.responseText);
+                if (result.code === 200) {
+                    const urlInput = document.getElementById('video');
+                    urlInput.value = result.data;
+                    document.getElementById('video-upload-status').innerHTML =
+                        '<span class="upload-success">✓ 视频上传成功！URL: ' + result.data + '</span>';
+                } else {
+                    document.getElementById('video-upload-status').innerHTML =
+                        '<span class="upload-error">✗ ' + result.message + '</span>';
+                }
+            } catch (err) {
+                document.getElementById('video-upload-status').innerHTML =
+                    '<span class="upload-error">✗ 上传失败，服务器返回无效数据</span>';
+            }
+        });
+
+        xhr.addEventListener('error', function() {
+            document.getElementById('video-upload-status').innerHTML =
+                '<span class="upload-error">✗ 上传失败，请检查网络连接</span>';
+        });
+
+        xhr.addEventListener('loadend', function() {
+            uploadBtn.disabled = false;
+            uploadBtn.textContent = '上传视频';
+            progressContainer.style.display = 'none';
+            progressText.style.display = 'none';
+            e.target.value = '';
+        });
+
+        xhr.send(formData);
+    });
+
+</script>
+</body>
+</html>

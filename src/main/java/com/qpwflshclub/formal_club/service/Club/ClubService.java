@@ -35,9 +35,17 @@ public class ClubService implements IClubService {
         // 先从数据库查找现有的club对象
         Club existingClub = clubRepository.findById(clubDTO.getClubId())
                 .orElseThrow(() -> new IllegalArgumentException("没有找到该社团"));
+        Integer existingVideoLike = existingClub.getVideoLike();
+        String existingClubURL = existingClub.getClubURL();
 
         // 将DTO的属性复制到existingClub对象上
         BeanUtils.copyProperties(clubDTO, existingClub);
+        if (clubDTO.getVideoLike() == null) {
+            existingClub.setVideoLike(existingVideoLike);
+        }
+        if (clubDTO.getClubURL() == null) {
+            existingClub.setClubURL(existingClubURL);
+        }
 
         return clubRepository.save(existingClub);
     }

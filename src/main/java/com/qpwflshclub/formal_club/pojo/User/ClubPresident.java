@@ -1,5 +1,6 @@
 package com.qpwflshclub.formal_club.pojo.User;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.qpwflshclub.formal_club.pojo.Club.Club;
 import com.qpwflshclub.formal_club.pojo.dto.User.ClubPresidentDTO;
 import lombok.AllArgsConstructor;
@@ -41,6 +42,7 @@ public class ClubPresident implements UserBase {
     @Column(name = "club_president_email", nullable = false)
     private String email;
 
+    @JsonIgnore // 🌟 添加这一行
     @ManyToMany
     @JoinTable(
             name = "president_club",

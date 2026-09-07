@@ -43,32 +43,40 @@ public class UserController {
 
     @PostMapping("/add/admin")
     @ResponseBody
-    public ResponseMessage<Admin> add(@Validated @RequestBody AdminDTO adminDTO){
+    public ResponseMessage<Admin> add(@Validated @RequestBody AdminDTO adminDTO, HttpServletRequest request) {
+        UserBase currentUser = currentUserFromRequest(request);
+        if (!isAdmin(currentUser)) {
+            return ResponseMessage.error("无权限：只有管理员可以创建管理员账号");
+        }
         Admin admin = userService.addAdmin(adminDTO);
         return ResponseMessage.success(admin);
     }
 
     @PostMapping("/add/teacher")
     @ResponseBody
-    public ResponseMessage<Teacher> add(@Validated @RequestBody TeacherDTO teacherDTO){
+    public ResponseMessage<Teacher> add(@Validated @RequestBody TeacherDTO teacherDTO) {
         Teacher teacher = userService.addTeacher(teacherDTO);
         return ResponseMessage.success(teacher);
     }
 
     @PostMapping("/add/club-president")
     @ResponseBody
-    public ResponseMessage<ClubPresident> add(@Validated @RequestBody ClubPresidentDTO clubPresidentDTO){
+    public ResponseMessage<ClubPresident> add(@Validated @RequestBody ClubPresidentDTO clubPresidentDTO, HttpServletRequest request) {
+        UserBase currentUser = currentUserFromRequest(request);
+        if (!isAdmin(currentUser)) {
+            return ResponseMessage.error("无权限：只有管理员可以创建社长账号");
+        }
         ClubPresident clubPresident = userService.addClubPresident(clubPresidentDTO);
         return ResponseMessage.success(clubPresident);
     }
 
     @PostMapping("/add/user")
     @ResponseBody
-    public ResponseMessage<User> add(@Validated @RequestBody UserDTO userDTO){
+    public ResponseMessage<User> add(@Validated @RequestBody UserDTO userDTO) {
 
         String nameEn = userDTO.getUsernameEn();
 
-        if(userService.hasUser(nameEn)){
+        if (userService.hasUser(nameEn)) {
             return ResponseMessage.occupied(userDTO.getUsername(), null);
         }
 
@@ -91,7 +99,12 @@ public class UserController {
 
     //更新用户
     @PutMapping("/update/{userType}")
-    public ResponseMessage<Object> update(@Validated @RequestBody UserBaseDTO userDTO, @PathVariable String userType){
+    public ResponseMessage<Object> update(@Validated @RequestBody UserBaseDTO userDTO, @PathVariable String userType, HttpServletRequest request) {
+        UserBase currentUser = currentUserFromRequest(request);
+        if (!canModifyUser(currentUser, userDTO, userType)) {
+            return ResponseMessage.error("无权限：只能修改自己的账号");
+        }
+        preserveCurrentPasswordIfProfileLeftBlank(currentUser, userDTO, userType);
         Object result = switch (userType) {
             case "teacher" -> userService.update((TeacherDTO) userDTO);
             case "user" -> userService.update((UserDTO) userDTO);
@@ -132,14 +145,61 @@ public class UserController {
      */
 
     @DeleteMapping("/delete")
-    public ResponseMessage<String> delete(@RequestBody UserBaseDTO userDTO){
+    public ResponseMessage<String> delete(@RequestBody UserBaseDTO userDTO, HttpServletRequest request) {
+        UserBase currentUser = currentUserFromRequest(request);
         String nameEn = userDTO.getUsernameEn();
+        if (!canDeleteUser(currentUser, nameEn)) {
+            return ResponseMessage.error("无权限：只能删除自己的账号");
+        }
         userService.delete(nameEn);
         return new ResponseMessage<>(200, "删除成功", nameEn);
     }
 
+    private UserBase currentUserFromRequest(HttpServletRequest request) {
+        return (UserBase) request.getAttribute("currentUser");
+    }
+
+    private boolean isAdmin(UserBase user) {
+        return user instanceof Admin || (user != null && user.getUserRight() >= 3);
+    }
+
+    private boolean canModifyUser(UserBase currentUser, UserBaseDTO targetUser, String targetType) {
+        if (currentUser == null || targetUser == null) {
+            return false;
+        }
+        return isAdmin(currentUser) || isSameTypedUser(currentUser, targetUser, targetType);
+    }
+
+    private boolean isSameTypedUser(UserBase currentUser, UserBaseDTO targetUser, String targetType) {
+        return currentUser != null
+                && targetUser != null
+                && currentUser.getId() == targetUser.getId()
+                && Objects.equals(userTypeOf(currentUser), targetType);
+    }
+
+    private void preserveCurrentPasswordIfProfileLeftBlank(UserBase currentUser, UserBaseDTO targetUser, String targetType) {
+        if (isSameTypedUser(currentUser, targetUser, targetType)
+                && (targetUser.getPassword() == null || targetUser.getPassword().isBlank())) {
+            targetUser.setPassword(currentUser.getPassword());
+        }
+    }
+
+    private boolean canDeleteUser(UserBase currentUser, String targetUsernameEn) {
+        if (currentUser == null || targetUsernameEn == null || targetUsernameEn.isBlank()) {
+            return false;
+        }
+        return isAdmin(currentUser) || Objects.equals(currentUser.getUsernameEn(), targetUsernameEn);
+    }
+
+    private String userTypeOf(UserBase user) {
+        if (user instanceof Teacher) return "teacher";
+        if (user instanceof ClubPresident) return "club-president";
+        if (user instanceof Admin) return "admin";
+        return "user";
+    }
+
     @GetMapping("/find/{type}/{id}")
-    public ResponseMessage<UserBase> find(@PathVariable String type, @PathVariable Long id){
+    public ResponseMessage<UserBase> find(@PathVariable String type, @PathVariable Long id) {
         UserBase user = switch (type) {
             case "teacher" -> userService.findTeacherByID(id);
             case "user" -> userService.findUserById(id);
@@ -151,24 +211,25 @@ public class UserController {
     }
 
     @GetMapping("/find-name/{type}/{name-en}")
-    public ResponseMessage<UserBase> find(@PathVariable String type, @PathVariable String nameEn){
-        if(type.equals("user")){
+    public ResponseMessage<UserBase> find(@PathVariable String type, @PathVariable String nameEn) {
+        if (type.equals("user")) {
             return new ResponseMessage<>(200, "查询成功", userService.findUserById(Long.parseLong(nameEn)));
         }
-        if(type.equals("admin")){
+        if (type.equals("admin")) {
             return new ResponseMessage<>(200, "查询成功", userService.findAdminByID(Long.parseLong(nameEn)));
         }
-        if(type.equals("teacher")){
+        if (type.equals("teacher")) {
             return new ResponseMessage<>(200, "查询成功", userService.findTeacherByID(Long.parseLong(nameEn)));
 
         }
-        if(type.equals("club-president")){
+        if (type.equals("club-president")) {
             return new ResponseMessage<>(200, "查询成功", userService.findClubPresidentByID(Long.parseLong(nameEn)));
         }
         return ResponseMessage.error("查不到");
     }
+
     @GetMapping("/find-name-directly/{nameEn}")
-    public ResponseMessage<?> findNameDirectly(@PathVariable String nameEn){
+    public ResponseMessage<?> findNameDirectly(@PathVariable String nameEn) {
         // 假设返回类型为 UserBase
         UserBase user = userService.findByNameEn(nameEn);
 
@@ -193,7 +254,7 @@ public class UserController {
     @PostMapping("/login")
     @ResponseBody
     public ResponseMessage<UserBase> login(@RequestBody LoginDTO loginDTO, HttpServletResponse response) {
-    // 按 email 在 user / teacher 表查找（可按需扩展）
+        // 按 email 在 user / teacher 表查找（可按需扩展）
         String email = loginDTO.getEmail();
         UserBase user = userService.findByEmail(email);
 
@@ -231,7 +292,97 @@ public class UserController {
             // 处理 Teacher 类型
             return ResponseMessage.success((Teacher) user);
             else return ResponseMessage.error("用户名或密码错误");
-        } else if (user instanceof ClubPresident) {
+        } else if (user instanceof ClubPresident) {// 获取当前用户身份并控制“优秀社团”按钮的显隐
+    fetch('/api/user/current')
+        .then(res => res.json())
+        .then(result => {
+            if (result.code === 200 && result.data) {
+                const userRight = result.data.userRight;
+                // userRight: 2-老师, 3-管理员
+                if (userRight === 2 || userRight === 3) {
+                    document.getElementById('great-club-row').style.display = 'flex';
+
+                    // 初始化优秀社团开关状态（确保在权限校验通过后才绑定和初始化）
+                    const greatClubSwitch = document.getElementById('greatClubSwitch');
+                    const greatClubText = document.getElementById('greatClubText');
+                    greatClubSwitch.checked = IS_GREAT;
+                    greatClubText.textContent = IS_GREAT ? '是' : '否';
+
+                    greatClubSwitch.addEventListener('change', function() {
+                        IS_GREAT = this.checked;
+                        greatClubText.textContent = this.checked ? '是' : '否';
+                    });
+                }
+            } else if (result.code === 401) {
+                openNotice26(false, { title: "权限校验失败", msg: "未登录或登录已失效", subMsg: "请重新登录后再试。" });
+            } else {
+                openNotice26(false, { title: "权限校验失败", msg: result.message || "无法获取用户身份", subMsg: "请刷新页面重试。" });
+            }
+        })
+        .catch(() => {
+            openNotice26(false, { title: "网络错误", msg: "获取用户身份失败", subMsg: "请检查网络连接或尝试关闭VPN。" });
+        });
+// 获取当前用户身份并控制“优秀社团”按钮的显隐
+    fetch('/api/user/current')
+        .then(res => res.json())
+        .then(result => {
+            if (result.code === 200 && result.data) {
+                const userRight = result.data.userRight;
+                // userRight: 2-老师, 3-管理员
+                if (userRight === 2 || userRight === 3) {
+                    document.getElementById('great-club-row').style.display = 'flex';
+
+                    // 初始化优秀社团开关状态（确保在权限校验通过后才绑定和初始化）
+                    const greatClubSwitch = document.getElementById('greatClubSwitch');
+                    const greatClubText = document.getElementById('greatClubText');
+                    greatClubSwitch.checked = IS_GREAT;
+                    greatClubText.textContent = IS_GREAT ? '是' : '否';
+
+                    greatClubSwitch.addEventListener('change', function() {
+                        IS_GREAT = this.checked;
+                        greatClubText.textContent = this.checked ? '是' : '否';
+                    });
+                }
+            } else if (result.code === 401) {
+                openNotice26(false, { title: "权限校验失败", msg: "未登录或登录已失效", subMsg: "请重新登录后再试。" });
+            } else {
+                openNotice26(false, { title: "权限校验失败", msg: result.message || "无法获取用户身份", subMsg: "请刷新页面重试。" });
+            }
+        })
+        .catch(() => {
+            openNotice26(false, { title: "网络错误", msg: "获取用户身份失败", subMsg: "请检查网络连接或尝试关闭VPN。" });
+        });
+// 获取当前用户身份并控制“优秀社团”按钮的显隐
+    fetch('/api/user/current')
+        .then(res => res.json())
+        .then(result => {
+            if (result.code === 200 && result.data) {
+                const userRight = result.data.userRight;
+                // userRight: 2-老师, 3-管理员
+                if (userRight === 2 || userRight === 3) {
+                    document.getElementById('great-club-row').style.display = 'flex';
+
+                    // 初始化优秀社团开关状态（确保在权限校验通过后才绑定和初始化）
+                    const greatClubSwitch = document.getElementById('greatClubSwitch');
+                    const greatClubText = document.getElementById('greatClubText');
+                    greatClubSwitch.checked = IS_GREAT;
+                    greatClubText.textContent = IS_GREAT ? '是' : '否';
+
+                    greatClubSwitch.addEventListener('change', function() {
+                        IS_GREAT = this.checked;
+                        greatClubText.textContent = this.checked ? '是' : '否';
+                    });
+                }
+            } else if (result.code === 401) {
+                openNotice26(false, { title: "权限校验失败", msg: "未登录或登录已失效", subMsg: "请重新登录后再试。" });
+            } else {
+                openNotice26(false, { title: "权限校验失败", msg: result.message || "无法获取用户身份", subMsg: "请刷新页面重试。" });
+            }
+        })
+        .catch(() => {
+            openNotice26(false, { title: "网络错误", msg: "获取用户身份失败", subMsg: "请检查网络连接或尝试关闭VPN。" });
+        });
+
             if(Objects.equals(user.getPassword(), loginDTO.getPassword()))
             // 处理 ClubPresident 类型
             return ResponseMessage.success((ClubPresident) user);
@@ -278,7 +429,7 @@ public class UserController {
         if (currentUser == null || !(currentUser instanceof Admin) && currentUser.getUserRight() < 3) {
             return ResponseMessage.error("无权限：只有管理员可以将用户提升为管理员");
         }
-        
+
         String userNameEn = userbase.getUsernameEn();
 
         UserBase u = userService.findByNameEn(userNameEn);
@@ -352,7 +503,7 @@ public class UserController {
     public ResponseMessage<ClubPresident> appointPresident(
             @RequestBody java.util.Map<String, Object> requestBody,
             HttpServletRequest request) {
-        
+
         UserBase currentUser = (UserBase) request.getAttribute("currentUser");
         if (currentUser == null || currentUser.getUserRight() < 2) {
             return ResponseMessage.error("无权限：只有老师和管理员可以任命社长");
@@ -449,7 +600,7 @@ public class UserController {
         }
 
         List<Club> clubs = null;
-        
+
         // 如果是管理员，返回所有社团
         if (currentUser.getUserRight() == 3 || currentUser instanceof Admin) {
             clubs = userService.getAllClubs();
@@ -462,7 +613,26 @@ public class UserController {
         if (clubs == null) {
             clubs = List.of();
         }
-        
+
         return ResponseMessage.success(clubs);
+    }
+
+    /**
+     * 获取当前登录用户的信息
+     * GET /api/user/current
+     * 作用：供前端 navbar.html 动态校验用户的登录状态，控制“登录/注册”按钮与头像的显隐
+     */
+    @GetMapping("/current")
+    public ResponseMessage<UserBase> getCurrentUser(HttpServletRequest request) {
+        // 1. 从刚才恢复的 AuthFilter 注入的 request 属性中获取当前登录用户
+        UserBase currentUser = (UserBase) request.getAttribute("currentUser");
+
+        // 2. 如果 Filter 没有找到有效 Session/Cookie（用户未登录），返回 401 状态码或错误提示
+        if (currentUser == null) {
+            return new ResponseMessage<>(401, "用户未登录", null);
+        }
+
+        // 3. 用户已登录，将查出的高优先级实体类对象（如已完美兼容多身份的 ClubPresident）返回给前端
+        return ResponseMessage.success(currentUser);
     }
 }

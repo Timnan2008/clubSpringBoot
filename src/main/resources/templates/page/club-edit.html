@@ -59,9 +59,43 @@
         .file-input {
             display: none;
         }
+        
+        /* 进度条样式 */
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background-color: #e5e7eb;
+            border-radius: 4px;
+            margin-top: 8px;
+            overflow: hidden;
+            display: none;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: #4f46e5;
+            border-radius: 4px;
+            transition: width 0.2s ease;
+        }
+        .progress-text {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 4px;
+            display: none;
+        }
+        /* 优秀社团开关样式 */
+        .switch-group { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+        .switch { position: relative; display: inline-block; width: 40px; height: 22px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 22px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        .switch input:checked + .slider { background-color: #4f46e5; }
+        .switch input:checked + .slider:before { transform: translateX(18px); }
+        .switch-label { font-size: 14px; color: #4b5563; font-weight: 600; }
+
     </style>
 </head>
 <body>
+<div th:replace="fragments/navbar :: navbar"></div>
 <div th:replace="fragments/notice :: notice"></div>
 <div class="edit-container">
     <h2>📝 修改社团核心信息</h2>
@@ -120,7 +154,7 @@
             <div class="form-group">
                 <label>社团 Logo 图标 URL</label>
                 <input type="text" id="clubItem" required>
-                <button type="button" class="upload-btn" onclick="document.getElementById('logo-file').click()">上传图标</button>
+                <button type="button" class="upload-btn" id="logo-upload-btn" onclick="document.getElementById('logo-file').click()">上传图标</button>
                 <input type="file" id="logo-file" class="file-input" accept="image/jpeg,image/png,image/gif,image/webp">
                 <div class="upload-info">支持 jpg, png, gif, webp 格式</div>
                 <div id="logo-upload-status"></div>
@@ -130,9 +164,13 @@
         <div class="form-group full-width">
             <label>宣传视频 URL</label>
             <input type="text" id="video">
-            <button type="button" class="upload-btn" onclick="document.getElementById('video-file').click()">上传视频</button>
+            <button type="button" class="upload-btn" id="video-upload-btn" onclick="document.getElementById('video-file').click()">上传视频</button>
             <input type="file" id="video-file" class="file-input" accept="video/mp4,video/webm,video/ogg">
             <div class="upload-info">支持 mp4, webm, ogg 格式，最大 50MB</div>
+            <div id="video-progress-container" class="progress-container">
+                <div id="video-progress-bar" class="progress-bar"></div>
+            </div>
+            <div id="video-progress-text" class="progress-text">上传进度: 0%</div>
             <div id="video-upload-status"></div>
         </div>
 
@@ -155,6 +193,20 @@
             <label>社团详细描述 (英文)</label>
             <textarea id="clubDescriptionEn" required></textarea>
         </div>
+
+        <div class="form-row" id="great-club-row" style="display: none;">
+            <div class="form-group">
+                <label>是否为优秀社团</label>
+                <div class="switch-group">
+                    <label class="switch">
+                        <input type="checkbox" id="greatClubSwitch">
+                        <span class="slider"></span>
+                    </label>
+                    <span class="switch-label" id="greatClubText">否</span>
+                </div>
+            </div>
+        </div>
+
 
         <div class="btn-area">
             <a id="cancel-btn" href="#" class="btn-cancel">取消</a>
@@ -192,6 +244,38 @@
     const urlParams = new URLSearchParams(window.location.search);
     const clubNameParam = urlParams.get('clubName');
 
+    // 获取当前用户身份并控制“优秀社团”按钮的显隐
+    fetch('/api/user/current')
+        .then(res => res.json())
+        .then(result => {
+            if (result.code === 200 && result.data) {
+                const userRight = result.data.userRight;
+                // userRight: 2-老师, 3-管理员
+                if (userRight === 2 || userRight === 3) {
+                    document.getElementById('great-club-row').style.display = 'flex';
+
+                    // 初始化优秀社团开关状态（确保在权限校验通过后才绑定和初始化）
+                    const greatClubSwitch = document.getElementById('greatClubSwitch');
+                    const greatClubText = document.getElementById('greatClubText');
+                    greatClubSwitch.checked = IS_GREAT;
+                    greatClubText.textContent = IS_GREAT ? '是' : '否';
+
+                    greatClubSwitch.addEventListener('change', function() {
+                        IS_GREAT = this.checked;
+                        greatClubText.textContent = this.checked ? '是' : '否';
+                    });
+                }
+            } else if (result.code === 401) {
+                openNotice26(false, { title: "权限校验失败", msg: "未登录或登录已失效", subMsg: "请重新登录后再试。" });
+            } else {
+                openNotice26(false, { title: "权限校验失败", msg: result.message || "无法获取用户身份", subMsg: "请刷新页面重试。" });
+            }
+        })
+        .catch(() => {
+            openNotice26(false, { title: "网络错误", msg: "获取用户身份失败", subMsg: "请检查网络连接或尝试关闭VPN。" });
+        });
+
+
     if (!clubNameParam) {
         openNotice26(false, {
             title: "操作失败",
@@ -207,6 +291,8 @@
     }
 
     let IS_GREAT = false;
+    let CLUB_URL;
+    let VIDEO_LIKE = 0;
 
     // 1. 页面加载时拉取原始数据回显到各个输入框中
     if (clubNameParam) {
@@ -237,7 +323,9 @@
                     document.getElementById("clubDescription").value = club.clubDescription || '';
                     document.getElementById("clubDescriptionEn").value = club.clubDescriptionEn || '';
 
-                    IS_GREAT = club.isGreatClub;
+                    IS_GREAT = club.greatClub === true || club.isGreatClub === true;
+                    CLUB_URL = club.clubURL;
+                    VIDEO_LIKE = club.videoLike ?? 0;
                 } else {
                     openNotice26(false, {
                         title: "拉取数据失败",
@@ -276,7 +364,9 @@
             sortDescriptionEn: document.getElementById("sortDescriptionEn").value,
             clubDescription: document.getElementById("clubDescription").value,
             clubDescriptionEn: document.getElementById("clubDescriptionEn").value,
-            isGreatClub: IS_GREAT,
+            greatClub: IS_GREAT,
+            clubURL: CLUB_URL,
+            videoLike: VIDEO_LIKE
         };
 
         // 发送 PUT 请求
@@ -322,7 +412,7 @@
         const file = e.target.files[0];
         if (!file) return;
 
-        const uploadBtn = document.querySelector('.upload-btn');
+        const uploadBtn = document.getElementById('logo-upload-btn');
         uploadBtn.disabled = true;
         uploadBtn.textContent = '上传中...';
 
@@ -363,19 +453,42 @@
         const file = e.target.files[0];
         if (!file) return;
 
-        const uploadBtn = document.querySelector('.upload-btn');
+        const uploadBtn = document.getElementById('video-upload-btn');
         uploadBtn.disabled = true;
         uploadBtn.textContent = '上传中...';
+
+        // 显示进度条
+        const progressContainer = document.getElementById('video-progress-container');
+        const progressBar = document.getElementById('video-progress-bar');
+        const progressText = document.getElementById('video-progress-text');
+        progressContainer.style.display = 'block';
+        progressText.style.display = 'block';
+        progressBar.style.width = '0%';
+        progressText.textContent = '上传进度: 0%';
+
+        // 清空之前的上传状态
+        document.getElementById('video-upload-status').innerHTML = '';
 
         const formData = new FormData();
         formData.append('file', file);
 
-        fetch('/api/upload/club-video', {
-            method: 'POST',
-            body: formData
-        })
-            .then(res => res.json())
-            .then(result => {
+        // 使用XMLHttpRequest来跟踪上传进度
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/api/upload/club-video');
+
+        // 监听上传进度
+        xhr.upload.addEventListener('progress', function(event) {
+            if (event.lengthComputable) {
+                const percent = Math.round((event.loaded / event.total) * 100);
+                progressBar.style.width = percent + '%';
+                progressText.textContent = '上传进度: ' + percent + '%';
+            }
+        });
+
+        // 上传完成处理
+        xhr.addEventListener('load', function() {
+            try {
+                const result = JSON.parse(xhr.responseText);
                 console.log('视频上传结果:', result);
                 if (result.code === 200) {
                     const urlInput = document.getElementById('video');
@@ -386,17 +499,30 @@
                     document.getElementById('video-upload-status').innerHTML =
                         `<span class="upload-error">✗ ${result.message}</span>`;
                 }
-            })
-            .catch(err => {
+            } catch (err) {
                 document.getElementById('video-upload-status').innerHTML =
-                    '<span class="upload-error">✗ 上传失败，请检查网络连接</span>';
-            })
-            .finally(() => {
-                uploadBtn.disabled = false;
-                uploadBtn.textContent = '上传视频';
-                // 重置文件输入
-                e.target.value = '';
-            });
+                    '<span class="upload-error">✗ 上传失败，服务器返回无效数据</span>';
+            }
+        });
+
+        // 上传失败处理
+        xhr.addEventListener('error', function() {
+            document.getElementById('video-upload-status').innerHTML =
+                '<span class="upload-error">✗ 上传失败，请检查网络连接</span>';
+        });
+
+        // 请求完成（无论成功失败）
+        xhr.addEventListener('loadend', function() {
+            uploadBtn.disabled = false;
+            uploadBtn.textContent = '上传视频';
+            // 隐藏进度条
+            progressContainer.style.display = 'none';
+            progressText.style.display = 'none';
+            // 重置文件输入
+            e.target.value = '';
+        });
+
+        xhr.send(formData);
     });
 </script>
 </body>

@@ -186,6 +186,27 @@ public class PageController {
         return "page/teacher-club-manage";
     }
 
+    @GetMapping("/club/add")
+    public String clubAddPage(
+            @CookieValue(value = "user_session", required = false) String email,
+            Model model) {
+        if (email == null || email.isBlank()) {
+            return "redirect:/page/user/login";
+        }
+
+        UserBase loginUser = userService.findByEmail(email);
+        if (loginUser == null) {
+            return "redirect:/page/user/login";
+        }
+
+        if (loginUser.getUserRight() < 3) {
+            return "redirect:/page/club/manage";
+        }
+
+        model.addAttribute("loginUser", loginUser);
+        return "page/club-add";
+    }
+
     /**
      * 导航进入“我的社团”多权限交互中心页面
      * 对应前端访问路径：GET /page/my-clubs
@@ -338,12 +359,12 @@ public class PageController {
 
         // 1. 如果没有登录，直接重定向到登录页面（或者你系统的首页）
         if (email == null || email.isBlank()) {
-            return "redirect:/page/login"; // 请根据你实际登录页路径调整
+            return "redirect:/page/user/login";
         }
 
         UserBase loginUser = userService.findByEmail(email);
         if (loginUser == null) {
-            return "redirect:/page/login";
+            return "redirect:/page/user/login";
         }
 
         // 2. 获取当前的社团实体
@@ -364,12 +385,12 @@ public class PageController {
         else if (loginUser instanceof com.qpwflshclub.formal_club.pojo.User.Teacher) {
             com.qpwflshclub.formal_club.pojo.User.Teacher t = (com.qpwflshclub.formal_club.pojo.User.Teacher) loginUser;
             // 指导老师必须负责这个社团
-            hasPermission = t.getClubs() != null && t.getClubs().stream().anyMatch(tc -> tc.getId() == c.getId());
+            hasPermission = t.getClubs() != null && t.getClubs().stream().anyMatch(tc -> Objects.equals(tc.getId(), c.getId()));
         }
         else if (loginUser instanceof com.qpwflshclub.formal_club.pojo.User.ClubPresident) {
             com.qpwflshclub.formal_club.pojo.User.ClubPresident cp = (com.qpwflshclub.formal_club.pojo.User.ClubPresident) loginUser;
             // 必须是该社团绑定的正/副社长
-            hasPermission = cp.getMainClub() != null && cp.getMainClub().getId() == c.getId();
+            hasPermission = cp.getMainClub() != null && Objects.equals(cp.getMainClub().getId(), c.getId());
         }
 
         /* // 方案 B：如果系统各 User 里面有统一的 getUserRight() 方法，也可以简化写为：

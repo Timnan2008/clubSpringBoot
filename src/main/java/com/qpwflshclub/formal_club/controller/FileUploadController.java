@@ -100,7 +100,13 @@ public class FileUploadController {
             return ResponseMessage.error("文件名不能为空");
         }
 
-        String extension = originalFilename.substring(originalFilename.lastIndexOf(".")).toLowerCase();
+        int extensionStart = originalFilename.lastIndexOf(".");
+        if (extensionStart <= 0 || extensionStart == originalFilename.length() - 1) {
+            logger.warn("上传失败：文件名格式不正确 {}", originalFilename);
+            return ResponseMessage.error("文件名格式不正确");
+        }
+
+        String extension = originalFilename.substring(extensionStart).toLowerCase();
         logger.info("文件扩展名：{}", extension);
 
         if ("logo".equals(type)) {

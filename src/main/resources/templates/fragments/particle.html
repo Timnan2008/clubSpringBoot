@@ -3,6 +3,7 @@
         // 创建动态粒子
         function createParticles() {
             const particlesContainer = document.getElementById('particles');
+            if (!particlesContainer) return;
             const particleCount = 30; // 减少粒子数量以提高性能
 
             for (let i = 0; i < particleCount; i++) {

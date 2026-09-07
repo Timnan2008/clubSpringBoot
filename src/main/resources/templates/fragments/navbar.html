@@ -1,318 +1,340 @@
 <!doctype html>
 <html xmlns:th="http://www.thymeleaf.org">
-  <body>
-    <div th:fragment="navbar">
-      <header class="navbar">
-        <!-- 左侧：学校名 -->
-        <div class="navbar-left">
-          <img
-            src="/other%20photo/WFL-logo.png"
-            class="navbar-logo"
-            id="navbar-logo-img"
-            alt="logo"
-          />
+<body>
+<div th:fragment="navbar">
+  <header class="navbar">
+    <!-- 左侧：学校名 -->
+    <div class="navbar-left">
+      <img
+              src="/other%20photo/WFL-logo.png"
+              class="navbar-logo"
+              id="navbar-logo-img"
+              alt="logo"
+      />
 
-          <div class="school-name-block">
-            <div class="school-cn" th:text="#{school.cn}"></div>
-            <div class="school-en" th:text="#{school.en}"></div>
+      <div class="school-name-block">
+        <div class="school-cn" th:text="#{school.cn}"></div>
+        <div class="school-en" th:text="#{school.en}"></div>
+      </div>
+
+      <th:block th:if="${#locale.language} == 'en'">
+        <div class="navbar-lang-login">
+          <!-- 语言切换 -->
+          <div class="dropdown">
+            <button type="button" class="dropbtn" aria-expanded="false">
+              🌐
+            </button>
+            <div class="dropdown-content">
+              <a href="?lang=zh" th:text="#{nav.lang.zh}"></a>
+              <a href="?lang=en" th:text="#{nav.lang.en}"></a>
+            </div>
           </div>
-
-          <th:block th:if="${#locale.language} == 'en'">
-            <div class="navbar-lang-login">
-              <!-- 语言切换 -->
-              <div class="dropdown">
-                <button type="button" class="dropbtn" aria-expanded="false">
-                  🌐
-                </button>
-                <div class="dropdown-content">
-                  <a href="?lang=zh" th:text="#{nav.lang.zh}"></a>
-                  <a href="?lang=en" th:text="#{nav.lang.en}"></a>
-                </div>
-              </div>
 
               <!-- 登录/注册按钮 -->
               <a
+                th:if="${loginUser == null}"
                 th:href="@{/page/user/login}"
                 class="navbar-login-btn"
                 th:text="#{nav.login}"
               ></a>
+              <div class="dropdown user-dropdown" th:if="${loginUser != null}">
+                <button type="button" class="dropbtn" aria-expanded="false">My</button>
+                <div class="dropdown-content">
+                  <a th:href="@{/page/user/profile}">Profile</a>
+                  <a th:if="${loginUser != null && loginUser.getUserRight() < 1}" th:href="@{/page/my-clubs}">My Clubs</a>
+                  <a th:if="${loginUser != null && loginUser.getUserRight() >= 1}" th:href="@{/page/club/manage}">Club Management</a>
+                  <a th:if="${loginUser != null && loginUser.getUserRight() >= 2}" th:href="@{/page/user-edit}">Account Management</a>
+                  <a href="#" onclick="event.preventDefault(); fetch('/api/user/logout').finally(() => window.location.href='/page/user/login');">Log out</a>
+                </div>
+              </div>
             </div>
           </th:block>
         </div>
 
-        <!-- 中间：搜索框 -->
-        <div class="navbar-center">
-          <div class="search">
-            <input
-              class="search__input"
-              type="text"
-              id="search-input"
-              th:placeholder="#{nav.search.placeholder}"
-            />
-            <button class="search__button" id="search-button" type="button">
-              <svg class="search__icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M21 21L16.5 16.5M19 11C19 15.4183 15.4183 19 11 19C6.58172 19 3 15.4183 3 11C3 6.58172 6.58172 3 11 3C15.4183 3 19 6.58172 19 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </button>
-            <div class="search-dropdown" id="search-dropdown"></div>
+    <!-- 中间：搜索框 -->
+    <div class="navbar-center">
+      <div class="search">
+        <input
+                class="search__input"
+                type="text"
+                id="search-input"
+                th:placeholder="#{nav.search.placeholder}"
+        />
+        <button class="search__button" id="search-button" type="button">
+          <svg class="search__icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M21 21L16.5 16.5M19 11C19 15.4183 15.4183 19 11 19C6.58172 19 3 15.4183 3 11C3 6.58172 6.58172 3 11 3C15.4183 3 19 6.58172 19 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <div class="search-dropdown" id="search-dropdown"></div>
+      </div>
+    </div>
+
+    <!-- 右侧：导航链接 -->
+    <nav class="navbar-links" th:classappend="${#locale.language} == 'en' ? 'navbar-english' : ''">
+      <a th:href="@{/page/index}">
+        <span th:text="#{nav.home}"></span>
+      </a>
+
+      <div class="dropdown">
+        <button
+                type="button"
+                class="dropbtn"
+                aria-expanded="false"
+                th:text="#{nav.allClubs}"
+        ></button>
+
+        <div class="dropdown-content">
+          <a th:href="@{/page/club-type/creativity}"
+          ><span th:text="#{nav.club.creativity}"></span
+          ></a>
+          <a th:href="@{/page/club-type/activity}"
+          ><span th:text="#{nav.club.activity}"></span
+          ></a>
+          <a th:href="@{/page/club-type/service}"
+          ><span th:text="#{nav.club.service}"></span
+          ></a>
+          <a th:href="@{/page/club-type/study}"
+          ><span th:text="#{nav.club.study}"></span
+          ></a>
+        </div>
+      </div>
+
+      <a th:href="@{/page/suggestion}" th:text="#{nav.suggestion}"></a>
+
+      <th:block th:if="${#locale.language} != 'en'">
+        <!-- 语言切换 -->
+        <div class="dropdown">
+          <button type="button" class="dropbtn" aria-expanded="false">
+            🌐
+          </button>
+          <div class="dropdown-content">
+            <a href="?lang=zh" th:text="#{nav.lang.zh}"></a>
+            <a href="?lang=en" th:text="#{nav.lang.en}"></a>
           </div>
         </div>
 
-        <!-- 右侧：导航链接 -->
-        <nav class="navbar-links" th:classappend="${#locale.language} == 'en' ? 'navbar-english' : ''">
-          <a th:href="@{/page/index}">
-            <span th:text="#{nav.home}"></span>
-          </a>
-
-          <div class="dropdown">
-            <button
-              type="button"
-              class="dropbtn"
-              aria-expanded="false"
-              th:text="#{nav.allClubs}"
-            ></button>
-
-            <div class="dropdown-content">
-              <a th:href="@{/page/club-type/creativity}"
-                ><span th:text="#{nav.club.creativity}"></span
-              ></a>
-              <a th:href="@{/page/club-type/activity}"
-                ><span th:text="#{nav.club.activity}"></span
-              ></a>
-              <a th:href="@{/page/club-type/service}"
-                ><span th:text="#{nav.club.service}"></span
-              ></a>
-              <a th:href="@{/page/club-type/study}"
-                ><span th:text="#{nav.club.study}"></span
-              ></a>
-            </div>
-          </div>
-
-          <a th:href="@{/page/suggestion}" th:text="#{nav.suggestion}"></a>
-
-          <th:block th:if="${#locale.language} != 'en'">
-            <!-- 语言切换 -->
-            <div class="dropdown">
-              <button type="button" class="dropbtn" aria-expanded="false">
-                🌐
-              </button>
-              <div class="dropdown-content">
-                <a href="?lang=zh" th:text="#{nav.lang.zh}"></a>
-                <a href="?lang=en" th:text="#{nav.lang.en}"></a>
-              </div>
-            </div>
-
             <!-- 登录/注册按钮 -->
             <a
+              th:if="${loginUser == null}"
               th:href="@{/page/user/login}"
               class="navbar-login-btn"
               th:text="#{nav.login}"
             ></a>
+            <div class="dropdown user-dropdown" th:if="${loginUser != null}">
+              <button type="button" class="dropbtn" aria-expanded="false">我的</button>
+              <div class="dropdown-content">
+                <a th:href="@{/page/user/profile}">个人资料</a>
+                <a th:if="${loginUser != null && loginUser.getUserRight() < 1}" th:href="@{/page/my-clubs}">我的社团</a>
+                <a th:if="${loginUser != null && loginUser.getUserRight() >= 1}" th:href="@{/page/club/manage}">社团管理</a>
+                <a th:if="${loginUser != null && loginUser.getUserRight() >= 2}" th:href="@{/page/user-edit}">账号管理</a>
+                <a href="#" onclick="event.preventDefault(); fetch('/api/user/logout').finally(() => window.location.href='/page/user/login');">退出登录</a>
+              </div>
+            </div>
           </th:block>
         </nav>
       </header>
 
-      <script>
-        (function () {
-          const logo = document.getElementById("navbar-logo-img");
-          if (!logo || logo.dataset.processed === "true") return;
+  <script>
+    (function () {
+      const logo = document.getElementById("navbar-logo-img");
+      if (!logo || logo.dataset.processed === "true") return;
 
-          function stripBackground() {
-            const canvas = document.createElement("canvas");
-            const ctx = canvas.getContext("2d");
-            const w = logo.naturalWidth;
-            const h = logo.naturalHeight;
-            if (!w || !h) return;
+      function stripBackground() {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        const w = logo.naturalWidth;
+        const h = logo.naturalHeight;
+        if (!w || !h) return;
 
-            canvas.width = w;
-            canvas.height = h;
-            ctx.drawImage(logo, 0, 0);
+        canvas.width = w;
+        canvas.height = h;
+        ctx.drawImage(logo, 0, 0);
 
-            const imageData = ctx.getImageData(0, 0, w, h);
-            const d = imageData.data;
-            for (let i = 0; i < d.length; i += 4) {
-              const r = d[i],
-                g = d[i + 1],
-                b = d[i + 2];
-              if (
-                r > 210 &&
-                g > 210 &&
-                b > 210 &&
-                Math.max(r, g, b) - Math.min(r, g, b) < 26
-              ) {
-                d[i + 3] = 0;
-              }
+        const imageData = ctx.getImageData(0, 0, w, h);
+        const d = imageData.data;
+        for (let i = 0; i < d.length; i += 4) {
+          const r = d[i],
+                  g = d[i + 1],
+                  b = d[i + 2];
+          if (
+                  r > 210 &&
+                  g > 210 &&
+                  b > 210 &&
+                  Math.max(r, g, b) - Math.min(r, g, b) < 26
+          ) {
+            d[i + 3] = 0;
+          }
+        }
+
+        ctx.putImageData(imageData, 0, 0);
+        logo.src = canvas.toDataURL("image/png");
+        logo.dataset.processed = "true";
+      }
+
+      if (logo.complete) {
+        stripBackground();
+      } else {
+        logo.addEventListener("load", stripBackground, { once: true });
+      }
+    })();
+
+    (function () {
+      const dropdowns = Array.from(
+              document.querySelectorAll(".navbar .dropdown"),
+      );
+
+      if (!dropdowns.length) return;
+
+      function closeAll(except) {
+        dropdowns.forEach((dropdown) => {
+          const button = dropdown.querySelector(".dropbtn");
+          if (dropdown !== except) {
+            dropdown.classList.remove("open");
+            if (button) {
+              button.setAttribute("aria-expanded", "false");
             }
-
-            ctx.putImageData(imageData, 0, 0);
-            logo.src = canvas.toDataURL("image/png");
-            logo.dataset.processed = "true";
           }
+        });
+      }
 
-          if (logo.complete) {
-            stripBackground();
-          } else {
-            logo.addEventListener("load", stripBackground, { once: true });
+      function updateDropdownPlacement(dropdown) {
+        const button = dropdown.querySelector(".dropbtn");
+        const menu = dropdown.querySelector(".dropdown-content");
+        if (!button || !menu) return;
+
+        menu.classList.remove("shift-right", "shift-up");
+        menu.style.left = "";
+        menu.style.right = "";
+        menu.style.top = "";
+        menu.style.bottom = "";
+
+        const buttonRect = button.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        const safeMargin = 12;
+        const menuWidth = Math.min(menu.offsetWidth || 220, viewportWidth - safeMargin * 2);
+        const spaceRight = viewportWidth - buttonRect.right - safeMargin;
+        const spaceLeft = buttonRect.left - safeMargin;
+        const spaceBelow = viewportHeight - buttonRect.bottom - safeMargin;
+        const spaceAbove = buttonRect.top - safeMargin;
+
+        if (menuWidth > spaceRight && spaceLeft >= menuWidth) {
+          menu.classList.add("shift-right");
+        }
+
+        const menuHeight = menu.offsetHeight;
+        if (menuHeight > spaceBelow && spaceAbove > spaceBelow) {
+          menu.classList.add("shift-up");
+        }
+      }
+
+      dropdowns.forEach((dropdown) => {
+        const button = dropdown.querySelector(".dropbtn");
+        const menu = dropdown.querySelector(".dropdown-content");
+
+        if (!button || !menu) return;
+
+        button.addEventListener("click", function (event) {
+          event.preventDefault();
+          event.stopPropagation();
+          const isOpen = dropdown.classList.contains("open");
+          closeAll(dropdown);
+          dropdown.classList.toggle("open", !isOpen);
+          button.setAttribute("aria-expanded", String(!isOpen));
+
+          if (!isOpen) {
+            window.requestAnimationFrame(() => updateDropdownPlacement(dropdown));
           }
-        })();
+        });
 
-        (function () {
-          const dropdowns = Array.from(
-            document.querySelectorAll(".navbar .dropdown"),
-          );
+        dropdown.addEventListener("mouseenter", function () {
+          if (dropdown.matches(":hover")) {
+            window.requestAnimationFrame(() => updateDropdownPlacement(dropdown));
+          }
+        });
 
-          if (!dropdowns.length) return;
+        menu.querySelectorAll("a").forEach((link) => {
+          link.addEventListener("click", function () {
+            dropdown.classList.remove("open");
+            button.setAttribute("aria-expanded", "false");
+          });
+        });
+      });
 
-          function closeAll(except) {
-            dropdowns.forEach((dropdown) => {
-              const button = dropdown.querySelector(".dropbtn");
-              if (dropdown !== except) {
-                dropdown.classList.remove("open");
-                if (button) {
-                  button.setAttribute("aria-expanded", "false");
+      window.addEventListener("resize", function () {
+        dropdowns.forEach((dropdown) => {
+          if (dropdown.classList.contains("open")) {
+            updateDropdownPlacement(dropdown);
+          }
+        });
+      });
+
+      window.addEventListener("scroll", function () {
+        dropdowns.forEach((dropdown) => {
+          if (dropdown.classList.contains("open")) {
+            updateDropdownPlacement(dropdown);
+          }
+        });
+      }, true);
+
+      document.addEventListener("click", function () {
+        closeAll();
+      });
+
+      document.addEventListener(
+              "touchstart",
+              function (event) {
+                if (!event.target.closest(".navbar .dropdown")) {
+                  closeAll();
                 }
-              }
-            });
-          }
+              },
+              { passive: true },
+      );
 
-          function updateDropdownPlacement(dropdown) {
-            const button = dropdown.querySelector(".dropbtn");
-            const menu = dropdown.querySelector(".dropdown-content");
-            if (!button || !menu) return;
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+          closeAll();
+        }
+      });
+    })();
 
-            menu.classList.remove("shift-right", "shift-up");
-            menu.style.left = "";
-            menu.style.right = "";
-            menu.style.top = "";
-            menu.style.bottom = "";
+    // Search functionality
+    (function () {
+      const searchInput = document.getElementById('search-input');
+      const searchButton = document.getElementById('search-button');
+      const searchDropdown = document.getElementById('search-dropdown');
 
-            const buttonRect = button.getBoundingClientRect();
-            const viewportWidth = window.innerWidth;
-            const viewportHeight = window.innerHeight;
-            const safeMargin = 12;
-            const menuWidth = Math.min(menu.offsetWidth || 220, viewportWidth - safeMargin * 2);
-            const spaceRight = viewportWidth - buttonRect.right - safeMargin;
-            const spaceLeft = buttonRect.left - safeMargin;
-            const spaceBelow = viewportHeight - buttonRect.bottom - safeMargin;
-            const spaceAbove = buttonRect.top - safeMargin;
+      if (!searchInput || !searchButton || !searchDropdown) return;
 
-            if (menuWidth > spaceRight && spaceLeft >= menuWidth) {
-              menu.classList.add("shift-right");
-            }
+      let debounceTimer;
 
-            const menuHeight = menu.offsetHeight;
-            if (menuHeight > spaceBelow && spaceAbove > spaceBelow) {
-              menu.classList.add("shift-up");
-            }
-          }
+      function performSearch(keyword) {
+        if (!keyword.trim()) {
+          searchDropdown.style.display = 'none';
+          return;
+        }
 
-          dropdowns.forEach((dropdown) => {
-            const button = dropdown.querySelector(".dropbtn");
-            const menu = dropdown.querySelector(".dropdown-content");
+        searchDropdown.innerHTML = '<div class="search-item search-loading"><span>正在加载...</span></div>';
+        searchDropdown.style.display = 'block';
 
-            if (!button || !menu) return;
+        fetch(`/api/club/search?keyword=${encodeURIComponent(keyword)}`)
+                .then(response => response.json())
+                .then(data => {
+                  if (data.code === 200 && data.data && data.data.length > 0) {
+                    renderDropdown(data.data);
+                  } else {
+                    searchDropdown.innerHTML = '<div class="no-results">没有找到匹配的社团</div>';
+                  }
+                })
+                .catch(error => {
+                  console.error('Search error:', error);
+                  searchDropdown.innerHTML = '<div class="no-results">搜索失败，请稍后再试</div>';
+                  searchDropdown.style.display = 'block';
+                });
+      }
 
-            button.addEventListener("click", function (event) {
-              event.preventDefault();
-              event.stopPropagation();
-              const isOpen = dropdown.classList.contains("open");
-              closeAll(dropdown);
-              dropdown.classList.toggle("open", !isOpen);
-              button.setAttribute("aria-expanded", String(!isOpen));
-
-              if (!isOpen) {
-                window.requestAnimationFrame(() => updateDropdownPlacement(dropdown));
-              }
-            });
-
-            dropdown.addEventListener("mouseenter", function () {
-              if (dropdown.matches(":hover")) {
-                window.requestAnimationFrame(() => updateDropdownPlacement(dropdown));
-              }
-            });
-
-            menu.querySelectorAll("a").forEach((link) => {
-              link.addEventListener("click", function () {
-                dropdown.classList.remove("open");
-                button.setAttribute("aria-expanded", "false");
-              });
-            });
-          });
-
-          window.addEventListener("resize", function () {
-            dropdowns.forEach((dropdown) => {
-              if (dropdown.classList.contains("open")) {
-                updateDropdownPlacement(dropdown);
-              }
-            });
-          });
-
-          window.addEventListener("scroll", function () {
-            dropdowns.forEach((dropdown) => {
-              if (dropdown.classList.contains("open")) {
-                updateDropdownPlacement(dropdown);
-              }
-            });
-          }, true);
-
-          document.addEventListener("click", function () {
-            closeAll();
-          });
-
-          document.addEventListener(
-            "touchstart",
-            function (event) {
-              if (!event.target.closest(".navbar .dropdown")) {
-                closeAll();
-              }
-            },
-            { passive: true },
-          );
-
-          document.addEventListener("keydown", function (event) {
-            if (event.key === "Escape") {
-              closeAll();
-            }
-          });
-        })();
-
-        // Search functionality
-        (function () {
-          const searchInput = document.getElementById('search-input');
-          const searchButton = document.getElementById('search-button');
-          const searchDropdown = document.getElementById('search-dropdown');
-
-          if (!searchInput || !searchButton || !searchDropdown) return;
-
-          let debounceTimer;
-
-          function performSearch(keyword) {
-            if (!keyword.trim()) {
-              searchDropdown.style.display = 'none';
-              return;
-            }
-
-            searchDropdown.innerHTML = '<div class="search-item search-loading"><span>正在加载...</span></div>';
-            searchDropdown.style.display = 'block';
-
-            fetch(`/api/club/search?keyword=${encodeURIComponent(keyword)}`)
-              .then(response => response.json())
-              .then(data => {
-                if (data.code === 200 && data.data && data.data.length > 0) {
-                  renderDropdown(data.data);
-                } else {
-                  searchDropdown.innerHTML = '<div class="no-results">没有找到匹配的社团</div>';
-                }
-              })
-              .catch(error => {
-                console.error('Search error:', error);
-                searchDropdown.innerHTML = '<div class="no-results">搜索失败，请稍后再试</div>';
-                searchDropdown.style.display = 'block';
-              });
-          }
-
-          function renderDropdown(clubs) {
-            const html = clubs.map(club => `
+      function renderDropdown(clubs) {
+        const html = clubs.map(club => `
               <div class="search-item" data-path="${club.detailPath}">
                 <div class="search-item-inner">
                   <img src="${club.logo || '/other%20photo/default-logo.png'}" alt="${club.name}" class="search-item-logo">
@@ -324,52 +346,52 @@
                 </div>
               </div>
             `).join('');
-            searchDropdown.innerHTML = html;
+        searchDropdown.innerHTML = html;
 
-            // Add click handlers
-            searchDropdown.querySelectorAll('.search-item').forEach(item => {
-              item.addEventListener('click', function() {
-                const detailPath = this.dataset.path;
-                window.location.href = `/${detailPath}`;
-              });
-            });
+        // Add click handlers
+        searchDropdown.querySelectorAll('.search-item').forEach(item => {
+          item.addEventListener('click', function() {
+            const detailPath = this.dataset.path;
+            window.location.href = `/${detailPath}`;
+          });
+        });
+      }
+
+      function debounceSearch() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+          const keyword = searchInput.value;
+          performSearch(keyword);
+        }, 300);
+      }
+
+      searchInput.addEventListener('input', debounceSearch);
+
+      searchInput.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          const keyword = searchInput.value.trim();
+          if (keyword) {
+            window.location.href = `/page/search?keyword=${encodeURIComponent(keyword)}`;
           }
+        }
+      });
 
-          function debounceSearch() {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => {
-              const keyword = searchInput.value;
-              performSearch(keyword);
-            }, 300);
-          }
+      searchButton.addEventListener('click', function() {
+        const keyword = searchInput.value.trim();
+        if (keyword) {
+          window.location.href = `/page/search?keyword=${encodeURIComponent(keyword)}`;
+        }
+      });
 
-          searchInput.addEventListener('input', debounceSearch);
-
-          searchInput.addEventListener('keydown', function(event) {
-            if (event.key === 'Enter') {
-              event.preventDefault();
-              const keyword = searchInput.value.trim();
-              if (keyword) {
-                window.location.href = `/page/search?keyword=${encodeURIComponent(keyword)}`;
-              }
-            }
-          });
-
-          searchButton.addEventListener('click', function() {
-            const keyword = searchInput.value.trim();
-            if (keyword) {
-              window.location.href = `/page/search?keyword=${encodeURIComponent(keyword)}`;
-            }
-          });
-
-          // Hide dropdown when clicking outside
-          document.addEventListener('click', function(event) {
-            if (!event.target.closest('.search')) {
-              searchDropdown.style.display = 'none';
-            }
-          });
-        })();
-      </script>
-    </div>
-  </body>
+      // Hide dropdown when clicking outside
+      document.addEventListener('click', function(event) {
+        if (!event.target.closest('.search')) {
+          searchDropdown.style.display = 'none';
+        }
+      });
+    })();
+  </script>
+</div>
+</body>
 </html>

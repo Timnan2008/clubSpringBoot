@@ -20,7 +20,10 @@
                 <p class="eyebrow-text" th:text="${managerRoleText}">管理账号</p>
                 <h1><span th:text="${loginUser.username}">用户</span>的社团管理</h1>
             </div>
-            <button class="ghost-btn" type="button" onclick="doLogout()">退出</button>
+            <div class="manager-actions">
+                <a class="primary-btn" th:if="${userRightValue >= 3}" th:href="@{/page/club/add}">新增社团</a>
+                <button class="ghost-btn" type="button" onclick="doLogout()">退出</button>
+            </div>
         </header>
 
         <div class="managed-summary">
@@ -103,7 +106,7 @@
             const members = await requestJson(`/api/club/${clubId}/members`);
             renderMembers(clubId, members || []);
         } catch (error) {
-            showToast(error.message, "error");
+            showToast(error.message, "方法与api被调用但加载失败");
         }
     }
 
@@ -142,6 +145,15 @@
         }
         if (button.dataset.action === "remove") {
             removeStudent(clubId, studentId);
+        }
+        if (button.dataset.action === "appoint-president") {
+            appointStaffRole(clubId, studentId, "president");
+        }
+        if (button.dataset.action === "appoint-vice-president") {
+            appointStaffRole(clubId, studentId, "vice_president");
+        }
+        if (button.dataset.action === "revoke-staff-role") {
+            appointStaffRole(clubId, studentId, "member");
         }
     }
 
@@ -182,8 +194,18 @@
         const canRemove = action === "remove"
             && userId !== CURRENT_USER_ID
             && (CURRENT_USER_RIGHT >= 2 || member.roleInClub === "member");
+        const canAppointStaff = action === "remove"
+            && userId !== CURRENT_USER_ID
+            && CURRENT_USER_RIGHT >= 1;
+        const staffActionHtml = canAppointStaff
+            ? `<div class="member-action-group">
+                    ${member.roleInClub === "president" ? "" : `<button class="staff-btn" type="button" data-action="appoint-president" data-club-id="${clubId}" data-user-id="${userId}">任命社长</button>`}
+                    ${member.roleInClub === "vice_president" ? "" : `<button class="staff-btn muted" type="button" data-action="appoint-vice-president" data-club-id="${clubId}" data-user-id="${userId}">任命副社长</button>`}
+                    ${member.roleInClub === "president" || member.roleInClub === "vice_president" ? `<button class="staff-btn revoke" type="button" data-action="revoke-staff-role" data-club-id="${clubId}" data-user-id="${userId}">${member.roleInClub === "vice_president" ? "撤销副社长" : "撤销社长"}</button>` : ""}
+               </div>`
+            : "";
         const actionHtml = canRemove
-            ? `<button class="danger-btn" type="button" data-action="remove" data-club-id="${clubId}" data-user-id="${userId}">移出</button>`
+            ? `<div class="member-actions">${staffActionHtml}<button class="danger-btn" type="button" data-action="remove" data-club-id="${clubId}" data-user-id="${userId}">移出</button></div>`
             : action === "add"
                 ? `<button class="primary-btn small" type="button" data-action="add" data-club-id="${clubId}" data-user-id="${userId}">加入</button>`
                 : action === "added"
@@ -209,6 +231,23 @@
                 body: JSON.stringify({ clubId, userId: studentId })
             });
             showToast("已加入社团");
+            await loadMembers(clubId);
+            await searchStudents(clubId);
+        } catch (error) {
+            showToast(error.message, "error");
+        }
+    }
+
+    async function appointStaffRole(clubId, studentId, roleInClub) {
+        const roleName = roleInClub === "vice_president" ? "副社长" : "社长";
+        const successMessage = roleInClub === "member" ? "已撤销职务" : `已任命${roleName}`;
+        try {
+            await requestJson("/api/club/member/update", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ clubId, userId: studentId, roleInClub })
+            });
+            showToast(successMessage);
             await loadMembers(clubId);
             await searchStudents(clubId);
         } catch (error) {

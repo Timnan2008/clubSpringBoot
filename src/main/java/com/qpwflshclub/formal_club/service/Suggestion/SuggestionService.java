@@ -38,7 +38,7 @@ public class SuggestionService implements ISuggestionService{
 
     @Override
     public List<Suggestion> findAll() {
-        return (List<Suggestion>) suggestionRepository.findAll();
+        return suggestionRepository.findAll();
     }
 
     @Override
@@ -55,7 +55,7 @@ public class SuggestionService implements ISuggestionService{
 
     @Override
     public List<Suggestion> onlyPass() {
-        List<Suggestion> s = (List<Suggestion>) suggestionRepository.findAll();
+        List<Suggestion> s = suggestionRepository.findAll();
         List<Suggestion> sa = s.stream()
                 .filter(Suggestion::isPass)
                 .toList();

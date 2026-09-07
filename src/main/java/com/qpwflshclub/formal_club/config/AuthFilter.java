@@ -19,9 +19,6 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.util.Set;
 
-public class AuthFilter{}
-
-/*
 @Component
 @Order(1)
 public class AuthFilter implements Filter {
@@ -46,8 +43,6 @@ public class AuthFilter implements Filter {
 
             "/api/user/add/user",
             "/api/user/add/teacher",
-            "/api/user/add/admin",
-            "/api/user/add/club-president",
 
             "/api/email/send",
             "/api/email/verify",
@@ -133,8 +128,4 @@ public class AuthFilter implements Filter {
         ResponseMessage<?> rm = new ResponseMessage<>(401, message, null);
         response.getWriter().write(new ObjectMapper().writeValueAsString(rm));
     }
-
-
 }
-
- */

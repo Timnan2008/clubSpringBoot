@@ -48,11 +48,14 @@ public class ClubController {
         return managedUser != null ? managedUser : user;
     }
 
-    private boolean isAdminOrTeacher(UserBase user) {
-        return user instanceof Admin || user instanceof Teacher || user.getUserRight() >= 2;
+    private boolean isAdmin(UserBase user) {
+        return user instanceof Admin || (user != null && user.getUserRight() >= 3);
     }
 
     private boolean canManageClub(UserBase user, Club club) {
+        if (user == null || club == null) {
+            return false;
+        }
         if (user instanceof Admin || user.getUserRight() >= 3) {
             return true;
         }
@@ -60,13 +63,13 @@ public class ClubController {
             List<Club> clubs = teacher.getClubs();
             if (clubs != null) {
                 for (Club c : clubs) {
-                    if (c.getId().equals(club.getId())) return true;
+                    if (sameClub(c, club)) return true;
                 }
             }
         }
         if (user instanceof ClubPresident president) {
             Club mainClub = president.getMainClub();
-            if (mainClub != null && mainClub.getId().equals(club.getId())) {
+            if (sameClub(mainClub, club)) {
                 return true;
             }
         }
@@ -76,8 +79,8 @@ public class ClubController {
     @PostMapping
     public ResponseMessage<Club> add(@Validated @RequestBody ClubDTO clubDTO, HttpServletRequest request){
         UserBase user = getCurrentUser(request);
-        if (!isAdminOrTeacher(user)) {
-            return ResponseMessage.error("无权限：只有管理员或教师可以创建社团");
+        if (!isAdmin(user)) {
+            return ResponseMessage.error("无权限：只有管理员可以创建社团");
         }
         Club club = clubService.add(clubDTO);
         return ResponseMessage.success(club);
@@ -136,27 +139,33 @@ public class ClubController {
 
         if(loginUser instanceof ClubPresident president){
             Club club = president.getMainClub();
-            if(club.equals(currentClub)){
+            if(sameClub(club, currentClub)){
                 hasPermission = true;
             }
         }
 
         if(loginUser instanceof Teacher teacher){
             List<Club> list = teacher.getClubs();
-            for (Club club : list) {
-                if (club.equals(currentClub)) {
-                    hasPermission = true;
-                    break;
+            if (list != null) {
+                for (Club club : list) {
+                    if (sameClub(club, currentClub)) {
+                        hasPermission = true;
+                        break;
+                    }
                 }
             }
         }
 
         // 在 @PutMapping("/name-en/{clubName}") 接口内部校验时：
-        if (loginUser.getUserRight() >= 3) {
+        if (loginUser != null && loginUser.getUserRight() >= 3) {
             // 如果是 admin 或 userright >= 3，直接判定有权修改，跳过社长交叉比对
             hasPermission = true;
         }
         return hasPermission;
+    }
+
+    private static boolean sameClub(Club a, Club b) {
+        return a != null && b != null && a.getId() != null && a.getId().equals(b.getId());
     }
 
     @PutMapping("/initialize-url/{clubName}")
@@ -250,7 +259,11 @@ public class ClubController {
 
     //删除
     @DeleteMapping("/{clubId}")
-    public ResponseMessage<Club> delete(@PathVariable Integer clubId){
+    public ResponseMessage<Club> delete(@PathVariable Integer clubId, HttpServletRequest request){
+        UserBase user = getCurrentUser(request);
+        if (!isAdmin(user)) {
+            return ResponseMessage.error("无权限：只有管理员可以删除社团");
+        }
         clubService.delate(clubId);
         return ResponseMessage.success();
     }
@@ -300,7 +313,7 @@ public class ClubController {
 
             vo.setId(c.getId());
             vo.setClubName(isEn ? c.getClubNameEn() : c.getClubName());
-            vo.setClubItem(c.getClubNameEn());
+            vo.setClubNameEn(c.getClubNameEn());
             vo.setSortDescription(isEn ? c.getSortDescriptionEn() : c.getSortDescription());
             vo.setClubItem(c.getClubItem());
             vo.setGreatClub(c.isGreatClub());
@@ -327,7 +340,7 @@ public class ClubController {
             vo.setId(c.getId());
             vo.setName(isEn? c.getClubNameEn() : c.getClubName());
             vo.setDescription(isEn ? c.getClubDescriptionEn() : c.getClubDescription());
-            vo.setBrief(isEn ? c.getSortDescriptionEn() : c.getClubDescription());
+            vo.setBrief(isEn ? c.getSortDescriptionEn() : c.getSortDescription());
             vo.setLogo(c.getClubItem());
             vo.setClubURL(c.getClubURL());
             String slug = c.getClubNameEn() != null && !c.getClubNameEn().isBlank() ? c.getClubNameEn() : c.getClubName();

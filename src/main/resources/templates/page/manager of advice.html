@@ -307,7 +307,7 @@
 <div id="permission-denied" class="permission-denied">
     <h2>🚫 权限不足</h2>
     <p>你没有访问该页面的权限，请使用管理员账号登录</p>
-    <a href="/page/login" class="admin-action-btn btn-approve-all">前往登录</a>
+    <a href="/page/user/login" class="admin-action-btn btn-approve-all">前往登录</a>
 </div>
 
 <!-- 管理员审核后台（默认隐藏） -->
@@ -642,7 +642,7 @@
         if (confirm("确定要退出登录吗？")) {
             // 实际项目清除Token/Cookie
             // document.cookie = "token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-            window.location.href = "/page/login";
+            window.location.href = "/page/user/login";
         }
     }
 

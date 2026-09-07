@@ -12,6 +12,7 @@ import org.springframework.data.repository.query.Param;
 
 @Repository
 public interface ClubRepository extends CrudRepository<Club, Integer> {
+    List<Club> findAll();
     Optional<Club> findByClubNameEn(String clubName);
 
     @Query("select c from Club c where " +
