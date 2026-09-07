@@ -292,7 +292,97 @@ public class UserController {
             // 处理 Teacher 类型
             return ResponseMessage.success((Teacher) user);
             else return ResponseMessage.error("用户名或密码错误");
-        } else if (user instanceof ClubPresident) {
+        } else if (user instanceof ClubPresident) {// 获取当前用户身份并控制“优秀社团”按钮的显隐
+    fetch('/api/user/current')
+        .then(res => res.json())
+        .then(result => {
+            if (result.code === 200 && result.data) {
+                const userRight = result.data.userRight;
+                // userRight: 2-老师, 3-管理员
+                if (userRight === 2 || userRight === 3) {
+                    document.getElementById('great-club-row').style.display = 'flex';
+
+                    // 初始化优秀社团开关状态（确保在权限校验通过后才绑定和初始化）
+                    const greatClubSwitch = document.getElementById('greatClubSwitch');
+                    const greatClubText = document.getElementById('greatClubText');
+                    greatClubSwitch.checked = IS_GREAT;
+                    greatClubText.textContent = IS_GREAT ? '是' : '否';
+
+                    greatClubSwitch.addEventListener('change', function() {
+                        IS_GREAT = this.checked;
+                        greatClubText.textContent = this.checked ? '是' : '否';
+                    });
+                }
+            } else if (result.code === 401) {
+                openNotice26(false, { title: "权限校验失败", msg: "未登录或登录已失效", subMsg: "请重新登录后再试。" });
+            } else {
+                openNotice26(false, { title: "权限校验失败", msg: result.message || "无法获取用户身份", subMsg: "请刷新页面重试。" });
+            }
+        })
+        .catch(() => {
+            openNotice26(false, { title: "网络错误", msg: "获取用户身份失败", subMsg: "请检查网络连接或尝试关闭VPN。" });
+        });
+// 获取当前用户身份并控制“优秀社团”按钮的显隐
+    fetch('/api/user/current')
+        .then(res => res.json())
+        .then(result => {
+            if (result.code === 200 && result.data) {
+                const userRight = result.data.userRight;
+                // userRight: 2-老师, 3-管理员
+                if (userRight === 2 || userRight === 3) {
+                    document.getElementById('great-club-row').style.display = 'flex';
+
+                    // 初始化优秀社团开关状态（确保在权限校验通过后才绑定和初始化）
+                    const greatClubSwitch = document.getElementById('greatClubSwitch');
+                    const greatClubText = document.getElementById('greatClubText');
+                    greatClubSwitch.checked = IS_GREAT;
+                    greatClubText.textContent = IS_GREAT ? '是' : '否';
+
+                    greatClubSwitch.addEventListener('change', function() {
+                        IS_GREAT = this.checked;
+                        greatClubText.textContent = this.checked ? '是' : '否';
+                    });
+                }
+            } else if (result.code === 401) {
+                openNotice26(false, { title: "权限校验失败", msg: "未登录或登录已失效", subMsg: "请重新登录后再试。" });
+            } else {
+                openNotice26(false, { title: "权限校验失败", msg: result.message || "无法获取用户身份", subMsg: "请刷新页面重试。" });
+            }
+        })
+        .catch(() => {
+            openNotice26(false, { title: "网络错误", msg: "获取用户身份失败", subMsg: "请检查网络连接或尝试关闭VPN。" });
+        });
+// 获取当前用户身份并控制“优秀社团”按钮的显隐
+    fetch('/api/user/current')
+        .then(res => res.json())
+        .then(result => {
+            if (result.code === 200 && result.data) {
+                const userRight = result.data.userRight;
+                // userRight: 2-老师, 3-管理员
+                if (userRight === 2 || userRight === 3) {
+                    document.getElementById('great-club-row').style.display = 'flex';
+
+                    // 初始化优秀社团开关状态（确保在权限校验通过后才绑定和初始化）
+                    const greatClubSwitch = document.getElementById('greatClubSwitch');
+                    const greatClubText = document.getElementById('greatClubText');
+                    greatClubSwitch.checked = IS_GREAT;
+                    greatClubText.textContent = IS_GREAT ? '是' : '否';
+
+                    greatClubSwitch.addEventListener('change', function() {
+                        IS_GREAT = this.checked;
+                        greatClubText.textContent = this.checked ? '是' : '否';
+                    });
+                }
+            } else if (result.code === 401) {
+                openNotice26(false, { title: "权限校验失败", msg: "未登录或登录已失效", subMsg: "请重新登录后再试。" });
+            } else {
+                openNotice26(false, { title: "权限校验失败", msg: result.message || "无法获取用户身份", subMsg: "请刷新页面重试。" });
+            }
+        })
+        .catch(() => {
+            openNotice26(false, { title: "网络错误", msg: "获取用户身份失败", subMsg: "请检查网络连接或尝试关闭VPN。" });
+        });
+
             if(Objects.equals(user.getPassword(), loginDTO.getPassword()))
             // 处理 ClubPresident 类型
             return ResponseMessage.success((ClubPresident) user);
