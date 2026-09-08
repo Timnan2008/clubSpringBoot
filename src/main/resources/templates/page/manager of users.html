@@ -588,10 +588,12 @@
 
     document.getElementById("btnDoDelete").addEventListener("click", () => {
         if (!currentUserToDelete) return;
+        const userRight = currentUserToDelete.userRight;
+        const userType = userRight === 1 ? "club-president" : userRight === 2 ? "teacher" : userRight === 3 ? "admin" : "user";
         fetch('/api/user/delete', {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ usernameEn: currentUserToDelete.usernameEn })
+            body: JSON.stringify({ usernameEn: displayNameEn(currentUserToDelete), userType: userType })
         })
             .then(res => res.json())
             .then(res => {
