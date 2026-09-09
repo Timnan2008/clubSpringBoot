@@ -1,0 +1,233 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Formal Club API Hub</title>
+<style>
+:root{
+  --bg:#070b12; --panel:rgba(15,22,34,.78); --panel2:rgba(20,29,44,.72);
+  --line:rgba(255,255,255,.09); --text:#edf4ff; --muted:#8b9ab0;
+  --blue:#65a9ff; --cyan:#62e6ff; --green:#67e8a5; --yellow:#ffd166;
+  --red:#ff7188; --shadow:0 20px 70px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box} html{scroll-behavior:smooth}
+body{margin:0;background:radial-gradient(circle at 80% 10%,#102d4d 0,transparent 28%),radial-gradient(circle at 10% 80%,#15233b 0,transparent 30%),var(--bg);color:var(--text);font-family:Inter,"Segoe UI","Microsoft YaHei",sans-serif;min-height:100vh;overflow-x:hidden}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.22;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:42px 42px;mask-image:linear-gradient(to bottom,black,transparent)}
+a{color:inherit;text-decoration:none}
+.layout{display:grid;grid-template-columns:270px 1fr;min-height:100vh}
+.sidebar{position:sticky;top:0;height:100vh;padding:28px 18px;border-right:1px solid var(--line);background:rgba(5,9,16,.72);backdrop-filter:blur(22px);z-index:5}
+.logo{display:flex;gap:12px;align-items:center;padding:8px 10px 28px}
+.logo-mark{width:40px;height:40px;border:1px solid rgba(98,230,255,.5);border-radius:12px;display:grid;place-items:center;color:var(--cyan);box-shadow:0 0 30px rgba(98,230,255,.14)}
+.logo b{font-size:15px}.logo span{display:block;color:var(--muted);font-size:11px;margin-top:3px}
+.nav-title{font-size:10px;color:#65758c;letter-spacing:1.5px;padding:15px 12px 8px;text-transform:uppercase}
+.nav a{display:flex;align-items:center;gap:10px;padding:11px 12px;margin:3px 0;border-radius:10px;color:#aebbd0;font-size:13px;transition:.2s}
+.nav a:hover,.nav a.active{background:rgba(101,169,255,.1);color:white}
+.nav a.active{box-shadow:inset 2px 0 var(--blue)}
+.method-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 12px var(--green)}
+main{padding:34px 42px 70px;max-width:1500px;width:100%;margin:auto}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-bottom:35px}
+.crumb{color:var(--muted);font-size:12px}.crumb strong{color:#dce7f7}
+.search{position:relative;width:min(390px,45vw)}
+.search input{width:100%;background:rgba(255,255,255,.055);border:1px solid var(--line);border-radius:12px;padding:12px 15px 12px 38px;color:white;outline:none}
+.search input:focus{border-color:rgba(98,230,255,.5);box-shadow:0 0 0 4px rgba(98,230,255,.05)}
+.search span{position:absolute;left:13px;top:10px;color:var(--muted)}
+.hero{padding:42px;border:1px solid var(--line);border-radius:24px;background:linear-gradient(135deg,rgba(20,35,56,.82),rgba(9,14,23,.75));box-shadow:var(--shadow);position:relative;overflow:hidden}
+.hero:after{content:"";position:absolute;width:330px;height:330px;right:-100px;top:-130px;border-radius:50%;background:radial-gradient(circle,rgba(98,230,255,.22),transparent 65%);animation:pulse 5s infinite}
+@keyframes pulse{50%{transform:scale(1.18);opacity:.65}}
+.eyebrow{color:var(--cyan);font-size:11px;letter-spacing:2px;text-transform:uppercase}
+.hero h1{font-size:clamp(34px,5vw,64px);line-height:1;margin:14px 0 18px;letter-spacing:-2px}
+.hero p{max-width:760px;color:#a9b8cc;line-height:1.8;font-size:14px}
+.tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:22px}
+.tag{padding:6px 10px;border:1px solid var(--line);border-radius:99px;background:rgba(255,255,255,.035);font-size:11px;color:#b7c6d9}
+.view-source{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 12px;color:#aebbd0;font-size:11px;cursor:pointer;transition:.2s;margin-top:10px}
+.view-source:hover{background:rgba(101,169,255,.1);color:white}
+.source-code{margin-top:20px}
+.source-tabs{display:flex;gap:5px;margin-bottom:10px}
+.source-tab{padding:6px 12px;border:1px solid var(--line);border-radius:6px;background:transparent;color:#9daec3;font-size:11px;cursor:pointer}
+.source-tab.active{background:rgba(101,169,255,.1);color:white}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin:18px 0 36px}
+.stat{padding:20px;border:1px solid var(--line);border-radius:16px;background:var(--panel);backdrop-filter:blur(16px);transition:.25s}
+.stat:hover{transform:translateY(-4px);border-color:rgba(101,169,255,.3)}
+.stat .num{font-size:27px;font-weight:700}.stat .label{color:var(--muted);font-size:11px;margin-top:6px}
+.section{margin-top:38px}.section-head{display:flex;justify-content:space-between;align-items:end;margin-bottom:15px}
+.section h2{margin:0;font-size:22px}.section-head p{margin:5px 0 0;color:var(--muted);font-size:12px}
+.filters{display:flex;gap:7px;flex-wrap:wrap}.filter{cursor:pointer;border:1px solid var(--line);background:transparent;color:#9daec3;border-radius:8px;padding:7px 11px;font-size:11px}.filter.active{color:white;background:rgba(101,169,255,.12);border-color:rgba(101,169,255,.3)}
+.api-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.api-card{border:1px solid var(--line);background:var(--panel);border-radius:16px;padding:18px;cursor:pointer;transition:.22s;position:relative;overflow:hidden}
+.api-card:hover{transform:translateY(-3px);background:var(--panel2);border-color:rgba(98,230,255,.24)}
+.api-top{display:flex;align-items:center;gap:10px}.method{font-weight:800;font-size:10px;padding:5px 7px;border-radius:6px;background:rgba(103,232,165,.12);color:var(--green)}.method.post{color:var(--yellow);background:rgba(255,209,102,.11)}.method.put{color:var(--blue);background:rgba(101,169,255,.12)}.method.delete{color:var(--red);background:rgba(255,113,136,.11)}
+.api-name{font-size:13px;font-weight:650}.path{font-family:Consolas,monospace;color:#91a7c1;font-size:12px;margin:12px 0;word-break:break-all}.desc{font-size:11px;color:var(--muted);line-height:1.6}.card-foot{display:flex;justify-content:space-between;margin-top:14px;color:#62738a;font-size:10px}.auth{color:#c4d2e5}
+.empty{display:none;padding:35px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:16px}
+.arch{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.arch-card{padding:20px;border:1px solid var(--line);border-radius:16px;background:var(--panel)}
+.arch-card h3{font-size:14px;margin:0 0 12px}.arch-card p,.arch-card li{color:var(--muted);font-size:12px;line-height:1.75}.arch-card ul{padding-left:18px}
+.code{background:#05080d;border:1px solid rgba(255,255,255,.07);padding:14px;border-radius:10px;font-family:Consolas,monospace;font-size:11px;color:#b7d7ff;overflow:auto;line-height:1.7}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.62);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:20px;z-index:20}.modal.show{display:flex}
+.modal-box{width:min(720px,100%);max-height:85vh;overflow:auto;border:1px solid var(--line);border-radius:20px;background:#0c131e;box-shadow:0 30px 100px #000;padding:25px;animation:pop .2s ease}
+@keyframes pop{from{transform:translateY(10px) scale(.98);opacity:0}to{transform:none;opacity:1}}
+.close{float:right;background:none;border:0;color:#8fa0b6;font-size:24px;cursor:pointer}.modal h2{margin:5px 0 10px}.detail-row{margin:17px 0}.detail-row label{display:block;color:#64758c;font-size:10px;text-transform:uppercase;letter-spacing:1px;margin-bottom:7px}
+.footer{margin-top:50px;padding-top:20px;border-top:1px solid var(--line);color:#53647a;font-size:11px;display:flex;justify-content:space-between}
+@media(max-width:900px){.layout{grid-template-columns:1fr}.sidebar{position:relative;height:auto;border-right:0;border-bottom:1px solid var(--line);padding:12px}.logo{padding:7px 10px}.nav{display:flex;overflow:auto}.nav-title{display:none}.nav a{white-space:nowrap}.nav a:nth-child(n+7){display:none}main{padding:22px}.api-grid,.arch{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.topbar{align-items:stretch;flex-direction:column}.search{width:100%}.hero{padding:26px}.stats{grid-template-columns:1fr 1fr}main{padding:16px}.hero h1{font-size:39px}}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+  <div class="logo"><div class="logo-mark">⌘</div><div><b>FORMAL CLUB</b><span>API DOCUMENTATION</span></div></div>
+  <div class="nav-title">Explorer</div>
+  <nav class="nav">
+    <a href="#overview" class="active">◈ Overview</a>
+    <a href="#apis">⌁ API Endpoints</a>
+    <a href="#architecture">▦ Architecture</a>
+    <a href="#models">◇ Data Models</a>
+    <a href="#frontend">◫ Frontend</a>
+    <a href="#tests">✓ Testing</a>
+  </nav>
+  <div class="nav-title">Modules</div>
+  <nav class="nav">
+    <a href="#apis">● Club</a><a href="#apis">● User</a><a href="#apis">● Suggestion</a><a href="#apis">● Email</a>
+  </nav>
+</aside>
+
+<main>
+  <div class="topbar">
+    <div class="crumb">PROJECT / <strong>FORMAL CLUB</strong> / API HUB</div>
+    <div class="search"><span>⌕</span><input id="search" placeholder="Search API, path, module..."></div>
+  </div>
+
+  <section class="hero" id="overview">
+    <div class="eyebrow">Spring Boot · Thymeleaf · MySQL · Redis</div>
+    <h1>Formal Club<br>API Hub.</h1>
+    <p>一个为社团网站维护而设计的内部 API 记录平台。集中记录 Controller、Service、Repository、DTO、Entity、页面模板与测试，让开发成员可以快速理解接口、权限和数据流。</p>
+    <div class="tags"><span class="tag">Spring Boot 3.x</span><span class="tag">REST API</span><span class="tag">Thymeleaf</span><span class="tag">JPA / Hibernate</span><span class="tag">Redis</span><span class="tag">Nginx</span></div>
+  </section>
+
+  <section class="stats">
+    <div class="stat"><div class="num" data-count="10">0</div><div class="label">API Controllers</div></div>
+    <div class="stat"><div class="num" data-count="6">0</div><div class="label">Service Groups</div></div>
+    <div class="stat"><div class="num" data-count="4">0</div><div class="label">User Roles</div></div>
+    <div class="stat"><div class="num" data-count="20">0</div><div class="label">+ Test / Model Files</div></div>
+  </section>
+
+  <section class="section" id="apis">
+    <div class="section-head"><div><h2>API Endpoints</h2><p>点击卡片查看请求说明、参数与调用示例</p></div><div class="filters"><button class="filter active" data-filter="all">ALL</button><button class="filter" data-filter="GET">GET</button><button class="filter" data-filter="POST">POST</button><button class="filter" data-filter="PUT">PUT</button><button class="filter" data-filter="DELETE">DELETE</button></div></div>
+    <div class="api-grid" id="apiGrid"></div><div class="empty" id="empty">没有找到匹配的 API。</div>
+  </section>
+
+  <section class="section" id="architecture">
+    <div class="section-head"><div><h2>Architecture</h2><p>从浏览器请求到数据库的一条完整链路</p></div></div>
+    <div class="arch">
+      <div class="arch-card"><h3>Request Flow</h3><div class="code">Browser
+  ↓
+Nginx / HTTPS
+  ↓
+Spring Boot Controller
+  ↓
+AuthFilter → Service
+  ↓
+Repository / JPA
+  ↓
+MySQL / Redis</div></div>
+      <div class="arch-card"><h3>Core Responsibilities</h3><ul><li><b>Controller</b>：定义 API 与页面路由</li><li><b>Service</b>：处理业务规则、事务和权限</li><li><b>Repository</b>：负责数据库访问</li><li><b>DTO / VO</b>：隔离输入数据与页面展示数据</li><li><b>Advice</b>：统一处理模型注入与异常</li></ul></div>
+    </div>
+  </section>
+
+  <section class="section" id="models">
+    <div class="section-head"><div><h2>Data Models</h2><p>项目中的核心实体、DTO 与 VO</p></div></div>
+    <div class="arch">
+      <div class="arch-card"><h3>User Role System</h3><p>UserBase → User / ClubPresident / Teacher / Admin</p><div class="code">0  User
+1  Club President
+2  Teacher
+3  Admin</div></div>
+      <div class="arch-card"><h3>Club Data</h3><p>Club 是核心 JPA Entity，配合 ClubVO、ClubInfoVO、SearchResultVO 提供列表、详情与搜索展示。</p><div class="code">Club
+ ├─ ClubVO
+ ├─ ClubInfoVO
+ ├─ SearchResultVO
+ └─ ClubLikeDevice</div></div>
+    </div>
+  </section>
+
+  <section class="section" id="frontend">
+    <div class="section-head"><div><h2>Frontend & Pages</h2><p>Thymeleaf 模板与静态资源组织</p></div></div>
+    <div class="arch">
+      <div class="arch-card"><h3>Fragments</h3><p>navbar.html · notice.html · particle.html</p><p>公共组件可以通过 Thymeleaf fragment 在多个页面复用。</p></div>
+      <div class="arch-card"><h3>Pages</h3><p>index.html · login.html · club-template.html · profile.html · teacher-club-manage.html</p><p>页面路由主要由 PageController / HomeController 管理。</p></div>
+    </div>
+  </section>
+
+  <section class="section" id="tests">
+    <div class="section-head"><div><h2>Testing</h2><p>让接口改动不会悄悄破坏已有功能</p></div></div>
+    <div class="arch"><div class="arch-card"><h3>Controller Tests</h3><p>ClubControllerTest · UserControllerTest · SuggestionControllerTest</p></div><div class="arch-card"><h3>Service / Config Tests</h3><p>ClubServiceTest · UserServicePresidentRoleTest · AuthFilterTest · ApplicationPropertiesTest</p></div></div>
+  </section>
+
+  <div class="footer"><span>FORMAL CLUB · INTERNAL DEVELOPER HUB</span><span>Spring Boot Project Documentation</span></div>
+</main>
+</div>
+
+<div class="modal" id="modal"><div class="modal-box"><button class="close" id="close">×</button><div id="detail"></div></div></div>
+
+<script>
+const APIs = [
+ {m:"GET", module:"Club", name:"获取英文社团名称", path:"/api/club/name-en/{clubName}", auth:"Public / configurable", desc:"根据社团名称获取英文名称，用于前端展示或国际化相关逻辑。", params:"clubName — Path Variable", example:"GET /api/club/name-en/Programming%20Club"},
+ {m:"PUT", module:"Club", name:"社团点赞 / 取消点赞", path:"/api/club/like/{clubName}", auth:"Device-ID", desc:"基于设备 ID 判断点赞状态，并执行点赞或取消点赞。", params:"clubName — Path Variable · Device-Id — Header", example:"PUT /api/club/like/Programming%20Club"},
+ {m:"GET", module:"Club", name:"社团搜索", path:"/api/club/search?keyword={keyword}", auth:"Public", desc:"按照关键字进行模糊搜索，返回 SearchResultVO。", params:"keyword — Query Parameter", example:"GET /api/club/search?keyword=programming"},
+ {m:"POST", module:"Club", name:"创建社团", path:"/api/club", auth:"Authenticated", desc:"创建新的 Club Entity，并完成基础数据校验。", params:"ClubDTO — JSON Body", example:'POST /api/club\\nContent-Type: application/json'},
+ {m:"POST", module:"File", name:"通用文件上传", path:"/api/file/upload", auth:"Authenticated", desc:"上传 Logo / Video 等文件，并按照配置写入服务器目录。", params:"multipart/form-data", example:"POST /api/file/upload"},
+ {m:"POST", module:"Email", name:"发送邮箱验证码", path:"/api/email/send", auth:"Public", desc:"生成验证码并通过 MailService 发送邮件，同时缓存验证码。", params:"email — JSON / Query", example:'POST /api/email/send'},
+ {m:"POST", module:"Email", name:"验证邮箱验证码", path:"/api/email/verify", auth:"Public", desc:"校验用户提交的验证码，并结合 EmailCodeService 进行缓存验证。", params:"email · code", example:"POST /api/email/verify"},
+ {m:"POST", module:"User", name:"用户登录", path:"/api/user/login", auth:"Public", desc:"处理普通用户及不同角色的登录逻辑。", params:"LoginDTO — JSON Body", example:'POST /api/user/login'},
+ {m:"POST", module:"User", name:"用户注册", path:"/api/user/sign", auth:"Public", desc:"通过 SignDTO 创建用户，并执行注册数据校验。", params:"SignDTO — JSON Body", example:'POST /api/user/sign'},
+ {m:"PUT", module:"User", name:"社长任命 / 角色转换", path:"/api/user/club-president", auth:"Admin / Teacher", desc:"处理用户角色转换、权限保留以及社团成员关系维护。", params:"ClubPresidentDTO — JSON Body", example:"PUT /api/user/club-president"},
+ {m:"GET", module:"Suggestion", name:"获取建议列表", path:"/api/suggestion", auth:"Admin", desc:"管理员获取用户提交的建议反馈。", params:"Optional filters", example:"GET /api/suggestion"},
+ {m:"POST", module:"Suggestion", name:"提交建议", path:"/api/suggestion", auth:"Authenticated", desc:"用户提交建议反馈，由 SuggestionService 持久化。", params:"SuggestionDTO — JSON Body", example:"POST /api/suggestion"},
+    {m:"GET", module:"Club", name:"获取所有社团", path:"/api/club", auth:"Public", desc:"获取系统中所有社团的列表数据。", params:"None", example:"GET /api/club"},
+    {m:"GET", module:"Club", name:"获取社团详情", path:"/api/club/{clubName}", auth:"Public", desc:"根据社团名称获取单个社团的完整详细信息。", params:"clubName — Path Variable", example:"GET /api/club/Programming%20Club"},
+    {m:"PUT", module:"Club", name:"修改社团信息", path:"/api/club", auth:"Admin / President", desc:"修改已有社团的属性信息，需提供完整 ClubDTO。", params:"ClubDTO — JSON Body", example:"PUT /api/club"},
+    {m:"DELETE", module:"Club", name:"删除社团", path:"/api/club/{clubName}", auth:"Admin", desc:"根据社团名称删除对应的社团记录。", params:"clubName — Path Variable", example:"DELETE /api/club/Programming%20Club"},
+    {m:"GET", module:"Club", name:"获取社团成员", path:"/api/club/members/{clubName}", auth:"Authenticated", desc:"获取指定社团下的所有成员列表。", params:"clubName — Path Variable", example:"GET /api/club/members/Programming%20Club"},
+    {m:"PUT", module:"Club", name:"更新社团成员", path:"/api/club/members", auth:"Admin / President", desc:"向指定社团中添加新的成员。", params:"Member operation DTO — JSON Body", example:"PUT /api/club/members"},
+    {m:"DELETE", module:"Club", name:"移除社团成员", path:"/api/club/members", auth:"Admin / President", desc:"从社团中移除指定成员（踢人操作）。", params:"Member operation DTO — JSON Body", example:"DELETE /api/club/members"},
+    {m:"POST", module:"Club", name:"社团文件上传", path:"/api/club/upload", auth:"Authenticated", desc:"针对社团专属的文件上传接口（如社团Logo更新）。", params:"multipart/form-data", example:"POST /api/club/upload"},
+    {m:"GET", module:"User", name:"获取所有用户", path:"/api/user", auth:"Admin", desc:"管理员获取系统中所有用户的列表数据。", params:"None", example:"GET /api/user"},
+    {m:"PUT", module:"User", name:"修改用户信息", path:"/api/user", auth:"Authenticated", desc:"修改当前用户或指定用户的属性信息。", params:"UserDTO — JSON Body", example:"PUT /api/user"},
+    {m:"DELETE", module:"User", name:"删除用户", path:"/api/user/{email}", auth:"Admin", desc:"根据用户邮箱删除对应的用户记录。", params:"email — Path Variable", example:"DELETE /api/user/test@example.com"},
+    {m:"PUT", module:"Suggestion", name:"审核通过建议", path:"/api/suggestion", auth:"Admin", desc:"管理员审核并标记用户建议为已通过状态。", params:"SuggestionDTO — JSON Body", example:"PUT /api/suggestion"}
+];
+
+const grid=document.getElementById("apiGrid"), search=document.getElementById("search"), empty=document.getElementById("empty");
+let currentFilter="all";
+function render(){
+ const q=search.value.toLowerCase().trim();
+ const list=APIs.filter(x=>(currentFilter==="all"||x.m===currentFilter) && [x.name,x.path,x.module,x.desc].join(" ").toLowerCase().includes(q));
+ grid.innerHTML=list.map((x,i)=>`<article class="api-card" data-index="${APIs.indexOf(x)}"><div class="api-top"><span class="method ${x.m.toLowerCase()}">${x.m}</span><span class="api-name">${x.name}</span></div><div class="path">${x.path}</div><div class="desc">${x.desc}</div><div class="card-foot"><span>${x.module}</span><span class="auth">${x.auth}</span></div></article>`).join("");
+ empty.style.display=list.length?"none":"block";
+ document.querySelectorAll(".api-card").forEach(c=>c.onclick=()=>openDetail(APIs[+c.dataset.index]));
+}
+function openDetail(x){
+ document.getElementById("detail").innerHTML=`<div class="eyebrow">${x.module} API</div><h2>${x.name}</h2><div class="path">${x.m} ${x.path}</div><div class="detail-row"><label>Authentication</label><div>${x.auth}</div></div><div class="detail-row"><label>Description</label><div style="color:#a9b8cc;line-height:1.7">${x.desc}</div></div><div class="detail-row"><label>Parameters</label><div>${x.params}</div></div><div class="detail-row"><label>Example</label><pre class="code">${x.example}</pre></div><div class="detail-row"><button class="view-source" data-path="${x.path}">View Source Code</button></div>`;
+ document.getElementById("modal").classList.add("show");
+}
+document.querySelectorAll(".filter").forEach(b=>b.onclick=()=>{document.querySelectorAll(".filter").forEach(x=>x.classList.remove("active"));b.classList.add("active");currentFilter=b.dataset.filter;render()});
+search.oninput=render;
+document.getElementById("close").onclick=()=>document.getElementById("modal").classList.remove("show");
+document.getElementById("modal").onclick=e=>{if(e.target.id==="modal")e.currentTarget.classList.remove("show")};
+document.addEventListener("keydown",e=>{if(e.key==="Escape")document.getElementById("modal").classList.remove("show")});
+document.querySelectorAll(".num").forEach(el=>{let target=+el.dataset.count,start=0;let t=setInterval(()=>{start+=Math.ceil(target/15);el.textContent=Math.min(start,target);if(start>=target)clearInterval(t)},45)});
+document.querySelectorAll(".nav a[href^='#']").forEach(link => {
+    link.addEventListener("click", e => {
+        e.preventDefault();
+        const target = document.querySelector(link.getAttribute("href"));
+        if (target) {
+            target.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+    });
+});
+
+
+render();
+</script>
+</body>
+</html>
