@@ -1,0 +1,57 @@
+<?php
+declare(strict_types=1);
+namespace MRBS\Session;
+
+use MRBS\User;
+use function MRBS\auth;
+
+/**
+ * Session management scheme that relies on OmniHttpd security for user
+ * authentication. This is suitable for few users because we have to create all
+ * users connecting to MRBS, since they will have to log in.
+ *
+ * To use this authentication scheme set the following things :
+ * - Edit your virtual server hosting MRBS.
+ * - Select security tab.
+ * - If not yet set, choose "User and Directory" security type.
+ * - Select "Users and groups" tab.
+ * - Here, select "New User" and create as many users (Username/passwords) as you have users using MRBS.
+ * - Select "New Group".
+ * - Type "MRBS" as group name and add all users you just created to this group.
+ * - Now select "Access Control list" tab.
+ * - Select New. ENTER the relative path to MRBS. FOR example, if you created
+ *   the MRBS folder on the root web folder, you should type /MRBS/.
+ * - Now go to the" user permission "tab, select " * ",
+ * - Select Properties", and type MRBS (remove the star) and select "Is group".
+ *
+ * That's all! Confirm all windows. Now it is the web server that authenticates each user.
+ *
+ * In config.inc.php:
+ *
+ *     $auth['type'] = 'none';
+ *     $auth['session'] = 'omni';
+ *
+ * Then, you may configure admin users:
+ *
+ *     $auth['admin'][] = 'user1';
+ *     $auth['admin'][] = 'user2';
+ */
+class SessionOmni extends Session
+{
+
+  // No need to prompt for a name - this is done by the server.
+  public function getCurrentUser() : ?User
+  {
+    global $server;
+
+    if ((!isset($server['REMOTE_USER'])) ||
+        (!is_string($server['REMOTE_USER'])) ||
+        (($server['REMOTE_USER'] === '')))
+    {
+      return parent::getCurrentUser();
+    }
+
+    return auth()->getUser($server['REMOTE_USER']);
+  }
+
+}

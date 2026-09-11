@@ -1,0 +1,34 @@
+# .scrutinizer.yml
+
+filter:
+    paths:
+        - 'src/*'
+    excluded_paths:
+        - 'tests/*'
+        - 'vendor/*'
+
+checks:
+    php:
+        code_rating: true
+        duplication: true
+
+build:
+    image: default-jammy
+    environment:
+        php: 8.2
+    dependencies:
+        override:
+            - composer install --no-interaction --no-scripts --ignore-platform-reqs
+    nodes:
+        analysis:
+            tests:
+                override:
+                    - php-scrutinizer-run
+        tests:
+            tests:
+                override:
+                    -
+                        command: 'XDEBUG_MODE=coverage bin/phpunit --coverage-clover=.coverage'
+                        coverage:
+                            file: '.coverage'
+                            format: 'clover'

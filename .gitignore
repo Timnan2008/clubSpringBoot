@@ -59,3 +59,16 @@ build/
 !.env.example
 *.pem
 *.key
+
+# Dependencies and private data of nested packages
+**/node_modules/
+**/.env
+**/.env.*
+!**/.env.example
+/deploy/*.env
+!deploy/*.env.example
+*.sql.gz
+
+/tests/e2e/accounts.local.json
+/tests/e2e/artifacts/
+__pycache__/

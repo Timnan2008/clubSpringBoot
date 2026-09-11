@@ -1,0 +1,274 @@
+README.sqlapi     - Database abstraction class for MRBS
+-----------------------------------------------------------------------------
+MRBS utilises a database abstraction class, currently implemented for
+MySQL (>= 5.1) and PostgreSQL (>= 8.2). It was written for MRBS but may
+be useful in other applications.
+
+The class supports multiple connections to arbitrary databases,
+but there is also a simple wrapper function to allow use of the default
+MRBS database without the user always passing a database object
+around. This is the function "db()" defined in dbsys.inc.
+
+The class supports multiple pending results for each connection. It
+can be configured to use PHP persistent (pooled) database connections,
+or normal (single use) connections.
+
+CAUTION: Before using PHP persistent database connections with PostgreSQL,
+be sure your PostgreSQL postmaster can support enough backends. In theory,
+and to be completely safe, it needs to be able to support at least as many
+concurrent connections as your Apache "MaxClients" setting times the number
+of unique persistent connection strings (PostgreSQL conninfo's, unique
+combinations of user/password/database) implemented on your site. Note that
+the default for PostgreSQL is a maximum of 32 connections, and the default
+for Apache MaxClients is 150. If you want to use persistent connections,
+see the $persist parameter to DBFactory::create() below.
+
+-----------------------------------------------------------------------------
+
+To use this package, include "dbsys.inc" after defining the following
+variables:
+     $dbsys = The database abstraction to use, 'mysql' or 'pgsql'
+     $db_host = The hostname of the database server, or "localhost"
+     $db_login = The username to use when connecting to the database
+     $db_password = The database account password
+     $db_database = The database name
+Optionally, you can define:
+     $db_persist = true;
+if you want to use persistent connections.
+
+If using PostgreSQL, and the database server is on the same host as the web
+server, you can specify $db_host="localhost" to use TCP, or $db_host="" to
+use Unix Domain Sockets. Generally this won't make much difference, but if
+your server runs without the -i option, it will only accept Unix Domain
+Socket connections, so you must use $db_host="".
+
+After your script includes the file, you can get the default database
+connection object by calling db().
+
+If an error occurs while trying to connect, a message will be output
+followed by a PHP exit.
+
+The way MRBS uses this is to define a configuration file config.inc.php with
+the above variables plus:
+     $dbsys = "pgsql";  //  or: $dbsys = "mysql";
+Then, each PHP script which wants to connect to the database starts with:
+     include "config.inc.php";
+     include "dbsys.inc";
+If you do this, be sure the web server will not serve config.inc.php to
+clients, for security reasons.
+
+-----------------------------------------------------------------------------
+Notes on improving SQL portability:
+
+  + Use standard SQL-92 as much as possible.
+  + Where it is not possible to use SQL-92, use or implement an sql_syntax_*
+    function which hides the database differences (see below).
+  + Don't use SQL-92 reserved words as column or table names.
+  + Use PHP functions rather than database functions where practical.
+  + Don't reply on specific formats for output of DATETIME types.
+  + Don't quote numeric type values in SQL statements.
+
+SQL-92 standard things to avoid because they cause trouble in MySQL:
+  + Double quoted identifiers: SELECT "MY COLUMN" from "MY TABLE"...
+  + The string concatenation operator ||
+  + Subselects
+
+SQL-92 standard things to avoid because they cause trouble in PostgreSQL:
+  + Outer joins.
+  + "table1 JOIN table2" syntax; use WHERE clause joins instead.
+
+Non-standard features used, available in both PostgreSQL and MySQL (this
+information is provided for anyone attempting to port MRBS to another
+database system):
+  + MySQL implicitly assigns "DEFAULT current_timestamp" to a timestamp
+    column; this must be done explicitly in other database systems.
+  + The column called TIMESTAMP is not legal in SQL-92. It would be legal
+    if double-quoted in SQL statements, but MySQL doesn't like that.
+    Changing the column name would break existing databases, and it turns
+    out both PostgreSQL and MySQL accept this, so it has been kept.
+  + Auto-commit is assumed. The database wrappers have begin/end calls to
+    bracket transactions, but MRBS generally uses them only to improve
+    performance with grouped inserts/deletes/updates. It is assumed that
+    a single insert/delete/update SQL statement commits right away. If
+    a database doesn't implement this, it may be possible to incorporate
+    this into sql_command(), which is used for all data modification.
+  + Portable use of auto-incrementing fields (PostgreSQL SERIAL, MySQL
+    AUTO_INCREMENT) requires that:
+      * Only one auto-increment field allowed per table; must be primary key.
+      * Use sql_insert_id() to retrieve the value after INSERT.
+      * Don't assume the value will either be MAX(field)+1, like MySQL,
+        or always incremented, like PostgreSQL. These can be different
+        when records have been deleted.
+
+-----------------------------------------------------------------------------
+
+The database class methods are documented here:
+
+To make a new connection to a database, use the method DBFactory::create(), as:
+
+DBFactory::create($db_system,
+                  $db_host,
+                  $db_username,
+                  $db_password,
+                  $db_name,
+                  $persist = 0,
+                  $db_port = null)
+  Here $db_system is either 'mysql' or 'pgsql' and $db_name is the name of
+  the database to access. This method returns an object of the class "DB".
+
+The "DB" class has the following object methods:
+
+->command($sql, $params)
+  Execute a non-SELECT SQL command (for example: insert, update, delete).
+  Returns the number of tuples affected if OK (a number >= 0).
+  Raises a "DBException" exception on error.
+
+->query($sql, $params)
+  Execute an SQL query. Returns an object of class "DBStatement" (see methods further below).
+
+->query1($sql, $params)
+  Execute an SQL query which should return a single non-negative number value.
+  Returns the value of the single column in the single row of the query                                                                                                |
+  result or -1 if the query returns no result, or a single NULL value, such as from
+  a MIN or MAX aggregate function applied over no rows.
+  Raises a "DBException" exception on error.
+  This is a short-cut alternative to ->query(), good for use with count(*)
+  and similar queries.
+
+->insert_id($table, $fieldname)
+  Return the value of an autoincrement/serial field from the last insert.
+  This must be called right after the insert on that table. The $fieldname
+  is the name of the autoincrement or serial field in the table. The
+  return result will be correct even if other processes are updating the
+  database at the same time.
+  NOTE: To make this work with different DBMS's, the field name must be
+  specified, and it must name the only autoincrement/serial field in the
+  row inserted by the most recent INSERT.
+
+->error()
+  Return the text of the last error message.
+
+->begin()
+  Begin a transaction, if the database supports it. This is used to
+  improve performance for multiple insert/delete/updates on databases
+  which support transactions, and using it is not required.  Do
+  not attempt to have both ->begin() and ->mutex_lock() active since
+  then both may be implemented with a shared underlying mechanism.
+
+->commit()
+  Commit (end) a transaction. See ->begin().
+
+->rollback()
+  Rollback a transaction. See ->begin().
+
+->mutex_lock($name)
+  Acquire a mutual-exclusion lock on the named table. For portability:
+  * This will not lock out SELECTs.
+  * It may lock out DELETE/UPDATE/INSERT or it may not.
+  * It will lock out other callers of this routine with the same name
+    argument (which is the main reason for using it).
+  * It may timeout in 20 seconds and return 0, or may wait forever.
+  * It returns 1 when the lock has been acquired.
+  * Caller must release the lock with sql_mutex_unlock().
+  * Caller must not have more than one mutex lock at any time.
+  You should be sure to release the lock with sql_mutex_unlock() before the
+  script exits, although this function also establishes a shutdown handler to
+  automatically release the lock if the script exits.  (With persistent
+  connections, the locks would not otherwise be released on exit, and a
+  deadlock will occur.)
+  This call effectively calls ->begin(), so do not use it inside an
+  ->begin()/->end() block, nor use ->begin() between calls to
+  ->mutex_lock() and ->mutex_unlock().
+
+->mutex_unlock($name)
+  Release a mutual-exclusion lock on the named table. See ->mutex_lock().
+  This also effectively calls ->commit().
+
+->version()
+  Return a string identifying the database system and version.
+
+-----------------------------------------------------------------------------
+
+The following ->syntax_* methods are intended to help you build up SQL
+statements using non-standard features. Each returns a portion of SQL (with
+leading and trailing spaces) which implements the named non-standard feature
+for the selected database. Some methods must also be passed (by reference) an
+array object for building the SQL parameters to pass to the query/command method.
+
+->syntax_limit($count, $offset)
+  Generate non-standard SQL for LIMIT clauses, to make the query return
+  no more than $count records, starting at position $offset (basis 0).
+
+->syntax_timestamp_to_unix($fieldname)
+  Generate non-standard SQL to output a TIMESTAMP as a Unix time_t. The
+  argument must be the name of a timestamp field.
+
+->syntax_caseless_contains($fieldname, $s, &$params)
+  Generate a non-standard SQL predicate clause which will be true if the
+  string $s is contained anywhere in the named field, using case insensitive
+  string compare. This uses LIKE or Regular Expression matching, depending
+  on the database system. This method modifies the passed $params array
+  to add the appropriate SQL parameters.
+
+->syntax_casesensitive_equals($fieldname, $string, &$params)
+  Generates a non-standard SQL predicate clause for a case-sensitive equals.
+  This method modifies the passed $params array to add the appropriate
+  SQL parameters.
+
+->syntax_addcolumn_after($fieldname)
+  Generate non-standard SQL to add a table column after another specified
+  column.
+
+->syntax_createtable_autoincrementcolumn()
+  Generate non-standard SQL to specify a column as an auto-incrementing
+  integer while doing a CREATE TABLE.
+
+->syntax_bitwise_xor()
+  Returns the syntax for a bitwise XOR operator.
+
+Example usage:
+  $sql = "SELECT * FROM mytable ORDER BY id" . $db_obj->syntax_limit(100,20);
+With PostgreSQL this gives you:
+  $sql = "SELECT * FROM mytable ORDER BY id LIMIT 100 OFFSET 20";
+With MySQL this gives you:
+  $sql = "SELECT * FROM mytable ORDER BY id LIMIT 20,100";
+
+-----------------------------------------------------------------------------
+
+DBStatement methods:
+
+->row($rownumber)
+  Return a row from a result. The first row is row number 0.
+  The row is returned as an array with index 0=first column, etc.
+  When called with i >= number of rows in the result, returns 0 to signify
+  the end of the result set. This is designed to be used in a loop
+  like this to retrieve all the rows:
+
+    for ($i = 0; (($row = $stmt->row($r, $i)); $i++) { ... process the row ... }
+
+->row_keyed($rownumber)
+  Return a row from a result. The first row is row number 0.
+  The row is returned as an associative array with column (field) names as
+  the indexes. (PHP also makes numeric indexes for the same data.)
+  When called with i >= number of rows in the result, returns 0 to signify
+  the end of the result set. This is designed to be used in a loop
+  like this to retrieve all the rows:
+
+    for ($i = 0; (($row = $stmt->row_keyed($i)); $i++) { ... }
+
+  NOTE: You should explicitly name each column in your SQL statement which
+  is not a simple field name, because databases differ in how they assume
+  a default name. For example, don't use ->row_keyed() on a query
+  like: SELECT name, COUNT(*) FROM ...
+  Instead use: SELECT name, COUNT(*) AS totals FROM ...
+  so you can reliably refer to the count as row["totals"].
+
+->all_rows_keyed
+  Return all the rows from a statement object, as an array of arrays
+  keyed on the column name.
+
+->count()
+  Returns the number of rows returned by the statement.
+
+->num_fields()
+  Returns the number of columns/fields returned by the statement.

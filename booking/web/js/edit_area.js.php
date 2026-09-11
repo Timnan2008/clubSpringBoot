@@ -1,0 +1,327 @@
+<?php
+declare(strict_types=1);
+namespace MRBS;
+
+require "../defaultincludes.inc";
+
+http_headers(array("Content-type: application/x-javascript"),
+             60*30);  // 30 minute expiry
+?>
+
+'use strict';
+
+<?php
+// Show or Hide the settings for Times and the note about Periods as
+// appropriate.  Also toggle the required property on the area_periods[]
+// inputs: if they are left as required when they are hidden, then the
+// browser will try and make you complete them, but throw an error because
+// they cannot be brought in to focus. ?>
+function toggleMode(speed)
+{
+  if (typeof speed === 'undefined')
+  {
+    speed = 'slow';
+  }
+
+  if ($('input:radio[name=area_enable_periods]:checked').val() === '0')
+  {
+    $('#book_ahead_periods_note').hide(speed);
+    $('#time_settings').show(speed);
+    $('#period_settings').hide(speed);
+    $('input[name="area_periods[]"]').prop('required', false);
+  }
+  else
+  {
+    $('#book_ahead_periods_note').show(speed);
+    $('#time_settings').hide(speed);
+    $('#period_settings').show(speed);
+    $('input[name="area_periods[]"]').prop('required', true);
+  }
+}
+
+
+function getTimeString(time, twentyfourhour_format)
+{
+   <?php
+   // Converts a time (in minutes since midnight) into a string
+   // of the form hh:mm if twentyfourhour_format is true,
+   // otherwise of the form hh:mm am/pm.
+
+   // This function doesn't do a great job of replicating the PHP
+   // internationalised format, but is probably sufficient for a
+   // rarely used admin page.
+   ?>
+   var ap,
+       timeString,
+       minutes = time % 60;
+   time -= minutes;
+   var hour = time/60;
+   if (!twentyfourhour_format)
+   {
+     if (hour > 11)
+     {
+       ap = "<?php echo datetime_format(array('pattern' => 'a'), mktime(14, 0, 0)) ?>";
+     }
+     else
+     {
+       ap = "<?php echo datetime_format(array('pattern' => 'a'), mktime(10, 0, 0)) ?>";
+     }
+     if (hour > 12)
+     {
+       hour = hour - 12;
+     }
+     if (hour === 0)
+     {
+       hour = 12;
+     }
+   }
+   if (hour < 10)
+   {
+     hour   = "0" + hour;
+   }
+   if (minutes < 10)
+   {
+     minutes = "0" + minutes;
+   }
+   timeString = hour + ':' + minutes;
+   if (!twentyfourhour_format)
+   {
+     timeString += ap;
+   }
+   return timeString;
+} // function getTimeString()
+
+
+<?php // Get the resolution in minutes ?>
+function getResolutionMinutes()
+{
+  return parseInt($('#area_res_mins').val(), 10);
+}
+
+
+<?php
+// Converts a time string in the format 'hh:mm' to minutes.
+// Returns null if the string is not properly formed.
+?>
+function hhmmToMins(hhmm)
+{
+  if (hhmm === null)
+  {
+    return null;
+  }
+
+  if (!<?php echo REGEX_HHMM ?>.test(hhmm))
+  {
+    return null;
+  }
+
+  var array = hhmm.split(':');
+  return (parseInt(array[0], 10) * 60) + parseInt(array[1], 10);
+}
+
+
+<?php // Gets the start of the first slot in minutes past midnight  ?>
+function getStartFirstSlot()
+{
+  return hhmmToMins($('input[name="area_start_first_slot"]').val());
+}
+
+
+<?php // Gets the start of the last slot in minutes past midnight  ?>
+function getStartLastSlot()
+{
+  return hhmmToMins($('[name="area_start_last_slot"]').val());
+}
+
+
+function generateLastSlotSelect()
+{
+  <?php
+  // Turn the last slot field into a select box that only contains permitted values
+  // given the first slot and resolution
+  ?>
+  var resMins, tCorrected,
+      firstSlot, lastSlot,
+      minsPerDay = <?php echo MINUTES_PER_DAY ?>;
+
+  resMins = getResolutionMinutes();
+  if (isNaN(resMins) || (resMins === null) || (resMins === 0))
+  {
+    return;  <?php // avoid endless loops and divide by zero errors ?>
+  }
+
+  firstSlot = getStartFirstSlot();
+  lastSlot = getStartLastSlot();
+
+  if (firstSlot === null)
+  {
+    return;
+  }
+
+  <?php
+  // Construct the <select> element.
+  // We allow the "day" to go all the way past midnight and up to the start of the
+  // next first slot.
+  ?>
+  var lastPossible = minsPerDay + firstSlot - resMins;
+  var name = 'area_start_last_slot';
+  var element = $('[name="' + name + '"]');
+
+  var select = $('<select>').attr('name', name);
+
+  for (var t=firstSlot; t <= lastPossible; t += resMins)
+  {
+    tCorrected = t % minsPerDay;  <?php // subtract one day if past midnight?>
+    <?php // Calculate the closest option to the old last slot ?>
+    if (Math.abs(lastSlot - tCorrected) <= resMins/2)
+    {
+      lastSlot = tCorrected;
+    }
+    select.append($('<option>')
+                  .val(getTimeString(tCorrected, true))
+                  .text(getTimeString(tCorrected, <?php echo (is_ampm() ? "false" : "true") ?>)));
+  }
+
+  <?php // and make the selected option the new last slot value ?>
+  select.val(getTimeString(lastSlot, true));
+  <?php // finally, replace the element with the new <select> ?>
+  element.replaceWith(select);
+  $('#last_slot').css('visibility', 'visible');
+}
+
+
+<?php
+// Check to see if there's only one period name left and, if so,
+// disable the delete button, to make sure there's always at least one
+// period.  (We could in theory have no period names, but it doesn't
+// have a practical use.  Besides, always having at least one makes the
+// code a little simpler because there will always be something to clone.)
+?>
+function checkForLastPeriodName()
+{
+  if ($('.period_name').length === 1)
+  {
+    $('.delete_period').hide();
+  }
+}
+
+
+
+
+$(document).on('page_ready', function() {
+
+  <?php
+  // We need to hide the sections of the form relating to times
+  // slots if the form is loaded with periods enabled.   We hide
+  // the times sections instantly by setting speed = 0;
+  // Also show or hide the periods note as appropriate
+  // [This method works if there are no periods-specific settings.
+  // When we get those we will have to do something different]
+  ?>
+  $('input:radio[name=area_enable_periods]').on('click', function() {
+      toggleMode('fast');
+    });
+  toggleMode(0);
+
+  <?php
+  // Work out if we can display the delete symbols, and then only
+  // after we have done that make them visible.  (This stops the
+  // delete symbol appearing for a moment and then being removed).
+  ?>
+  checkForLastPeriodName();
+  $('.delete_period')
+    .css('visibility', 'visible')
+    .on('click', function() {
+      <?php // Delete a period name input field ?>
+      $(this).parent().remove();
+      checkForLastPeriodName();
+    });
+
+  <?php
+  // When the Add Period button is clicked, duplicate the last period
+  // name input field, clearing its contents.  Re-enable all the delete
+  // icons because there must be more than one having added one.
+  ?>
+  $('#add_period').on('click', function() {
+      var lastPeriodName = $('#period_settings .period_name').last(),
+          clone = lastPeriodName.clone(true); <?php // duplicate data and events ?>
+
+      clone.find('input').val('');
+      clone.insertAfter(lastPeriodName).find('input').trigger('focus');
+      $('.delete_period').show();
+    });
+
+  <?php
+  // Show or hide the period times, depending on whether the use_period_times checkbox is checked.
+  // If use_period_times is unchecked, then disable the first input field so that the others are
+  // not lost, and disable any invalid fields so that they don't fail validation.
+  // If use_period_times is checked, then enable all the fields.
+  // TODO: Disabling just the first input is a temporary measure to avoid losing all the data until
+  // TODO: we start storing use_period_times in the database.
+  ?>
+  $('#use_period_times').on('change', function() {
+    const checked = $(this).prop('checked');
+    $('.period_times').toggle(checked).find('input').each(function(index) {
+      const input = $(this).get(0);
+      if (checked) {
+        input.disabled = false;
+      }
+      else if ((index === 0) || !input.checkValidity()) {
+        input.disabled = true;
+      }
+    });
+  }).trigger('change');
+
+  <?php // Validate the period times. ?>
+  $('form#edit_area').on('submit', function(event) {
+
+    if (($('[name=area_enable_periods]:checked').val() !== '1') || !$('#use_period_times').prop('checked'))
+    {
+      return;
+    }
+
+    let lastEndVal;
+
+    $('div.period_name').each(function(index) {
+      <?php // Check that the start time isn't before the last end time ?>
+      const start = $(this).find('input[name="period_starts[]"]').get(0);
+      const startVal = start.value;
+      if ((index > 0) && (startVal < lastEndVal))
+      {
+        start.setCustomValidity('<?php echo get_js_vocab('period_start_before_previous_end') ?>');
+        start.reportValidity();
+        event.preventDefault(); <?php // Stop form submission ?>
+      }
+
+      <?php // Check that the end time is after the start time ?>
+      const end = $(this).find('input[name="period_ends[]"]').get(0);
+      const endVal = end.value;
+      if (endVal <= startVal) {
+        end.setCustomValidity('<?php echo get_js_vocab('period_end_must_be_after_start') ?>');
+        end.reportValidity();
+        event.preventDefault(); <?php // Stop form submission ?>
+      }
+
+      lastEndVal = endVal;
+    });
+
+  });
+
+
+  <?php // Ensure the validity is cleared when the user changes the value. ?>
+  $('.period_times input').on('input change', function(event) {
+    event.target.setCustomValidity('');
+  });
+
+  <?php // Disable the default duration if "All day" is checked. ?>
+  $('input[name="area_def_duration_all_day"]').on('change', function() {
+      $('#area_def_duration_mins').prop('disabled', $(this).prop('checked'));
+    }).trigger('change');
+
+  $('input[name="area_start_first_slot"], input[name="area_res_mins"]')
+      .on('change', function() {
+          generateLastSlotSelect();
+        });
+  generateLastSlotSelect();
+
+});

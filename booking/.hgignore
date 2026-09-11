@@ -1,0 +1,18 @@
+# Glob syntax
+syntax: glob
+
+*~
+*.bak
+web/config.inc.php.*
+web/css/custom.css
+web/config.inc.php
+
+# Regexp syntax rules
+syntax: regexp
+
+^\.settings$
+^\.project$
+^\.buildpath
+^\.idea
+^hg-code.iml
+^nbproject

@@ -1,0 +1,58 @@
+services:
+  db:
+    image: mirror.gcr.io/library/mysql:8.4
+    restart: unless-stopped
+    command: --mysql-native-password=ON
+    environment:
+      MYSQL_DATABASE: mrbs
+      MYSQL_USER: mrbs
+      MYSQL_PASSWORD: ${MRBS_DB_PASSWORD:?Set MRBS_DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MRBS_ROOT_PASSWORD:?Set MRBS_ROOT_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 3s
+      timeout: 3s
+      retries: 40
+    volumes:
+      - ./tables.my.sql:/docker-entrypoint-initdb.d/010-tables.sql:ro
+      - ./school/020-school-data.sql:/docker-entrypoint-initdb.d/020-school-data.sql:ro
+      - mrbs_school_db:/var/lib/mysql
+
+  web:
+    image: ghcr.io/meeting-room-booking-system/mrbs:1.12.2
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      MRBS_URL_BASE: ${MRBS_URL_BASE:-}
+      MRBS_TIMEZONE: Asia/Shanghai
+      MRBS_DB_SYSTEM: mysql
+      MRBS_DB_HOST: db
+      MRBS_DB_DATABASE: mrbs
+      MRBS_DB_USER: mrbs
+      MRBS_DB_PASSWORD: ${MRBS_DB_PASSWORD:?Set MRBS_DB_PASSWORD}
+      CLUB_ACCOUNT_API: ${CLUB_ACCOUNT_API:-http://host.docker.internal:8088/booking/account}
+      CLUB_LOGIN_URL: ${CLUB_LOGIN_URL:-http://localhost:8088/page/user/login?next=%2Fpage%2Fbooking}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "127.0.0.1:${MRBS_PORT:-8765}:80"
+    volumes:
+      - ./school/teacher_queue.inc.php:/var/www/html/teacher_queue.inc.php:ro
+      - ./school/teacher_queue.php:/var/www/html/teacher_queue.php:ro
+      - ./school/teacher_queue_worker.php:/var/www/html/teacher_queue_worker.php:ro
+      - ./school/config.inc.php:/var/www/html/config.inc.php:ro
+      - ./school/modern.css:/var/www/html/css/school-modern.css:ro
+      - ./school/modern.js:/var/www/html/js/school-modern.js:ro
+      - ./school/aero-shards.bundle.css:/var/www/html/css/aero-shards.bundle.css:ro
+      - ./school/aero-shards.bundle.js:/var/www/html/js/aero-shards.bundle.js:ro
+      - ./school/edit_entry_handler.php:/var/www/html/edit_entry_handler.php:ro
+      - ./school/del_entry.php:/var/www/html/del_entry.php:ro
+      - ./school/my_bookings.php:/var/www/html/my_bookings.php:ro
+      - ./school/account.php:/var/www/html/account.php:ro
+      - ./school/delete_account.php:/var/www/html/delete_account.php:ro
+      - ./school/school_account.inc.php:/var/www/html/school_account.inc.php:ro
+
+volumes:
+  mrbs_school_db:

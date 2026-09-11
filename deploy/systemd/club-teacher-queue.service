@@ -1,0 +1,7 @@
+[Unit]
+Description=Resolve school teacher court requests after student priority
+After=docker.service
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/docker exec -w /var/www/html qpsw_mrbs_web_1 php teacher_queue_worker.php
+TimeoutStartSec=60

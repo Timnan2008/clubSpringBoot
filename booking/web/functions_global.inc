@@ -1,0 +1,342 @@
+<?php
+declare(strict_types=1);
+
+use MRBS\Mbstring\Mbstring;
+
+// These functions are deliberately in the global namespace so that they
+// can be used in classes.  They are either polyfills for PHP functions
+// that only exist in later versions of PHP, or else emulations of the
+// mb_ string functions that aren't always present.
+
+if (!function_exists('clamp')) // Introduced in PHP 8.6
+{
+  /**
+   * Return the given value if in range, otherwise return the nearest bound.
+   *
+   * @param mixed $value
+   * @param mixed $min
+   * @param mixed $max
+   * @return mixed
+   */
+  function clamp($value, $min, $max)
+  {
+    assert(version_compare(MRBS_MIN_PHP_VERSION, '8.0.0', '<'), "No need to test for PHP version in clamp()");
+
+    if (is_float($min) && is_nan($min)) {
+      $message = 'clamp(): Argument #2 ($min) must not be NAN';
+    }
+    elseif (is_float($max) && is_nan($max)) {
+      $message = 'clamp(): Argument #3 ($max) must not be NAN';
+    }
+    elseif ($max < $min) {
+      $message = 'clamp(): Argument #2 ($min) must be smaller than or equal to argument #3 ($max)';
+    }
+
+    if (isset($message)) {
+      if (version_compare(PHP_VERSION, '8.0', '>=')) {
+        throw new ValueError($message);
+      }
+      else {
+        throw new UnexpectedValueException($message);
+      }
+    }
+
+    if ($value > $max) {
+      return $max;
+    }
+
+    if ($value < $min) {
+      return $min;
+    }
+
+    return $value;
+  }
+}
+
+
+if (!function_exists('get_debug_type'))  // Introduced in PHP 8.0
+{
+  /**
+   * Gets the type name of a variable in a way that is suitable for debugging
+   *
+   * @copyright Fabien Potencier <fabien@symfony.com>
+   */
+  function get_debug_type($value): string
+  {
+    // Taken from https://github.com/symfony/polyfill-php80
+    //
+    // Copyright (c) 2020-present Fabien Potencier
+    //
+    // Permission is hereby granted, free of charge, to any person obtaining a copy
+    // of this software and associated documentation files (the "Software"), to deal
+    // in the Software without restriction, including without limitation the rights
+    // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    // copies of the Software, and to permit persons to whom the Software is furnished
+    // to do so, subject to the following conditions:
+    //
+    // The above copyright notice and this permission notice shall be included in all
+    // copies or substantial portions of the Software.
+    //
+    // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    // AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+    // THE SOFTWARE.
+
+    switch (true) {
+      case null === $value: return 'null';
+      case \is_bool($value): return 'bool';
+      case \is_string($value): return 'string';
+      case \is_array($value): return 'array';
+      case \is_int($value): return 'int';
+      case \is_float($value): return 'float';
+      case \is_object($value): break;
+      case $value instanceof \__PHP_Incomplete_Class: return '__PHP_Incomplete_Class';
+      default:
+        if (null === $type = @get_resource_type($value)) {
+          return 'unknown';
+        }
+
+        if ('Unknown' === $type) {
+          $type = 'closed';
+        }
+
+        return "resource ($type)";
+    }
+
+    $class = \get_class($value);
+
+    if (false === strpos($class, '@')) {
+      return $class;
+    }
+
+    return (get_parent_class($class) ?: key(class_implements($class)) ?: 'class').'@anonymous';
+  }
+}
+
+
+if (!function_exists('json_validate'))  // Introduced in PHP 8.3
+{
+  function json_validate(string $json, int $depth = 512, int $flags = 0): bool
+  {
+    json_decode($json, null, $depth, $flags);
+    return json_last_error() === JSON_ERROR_NONE;
+  }
+}
+
+
+// Emulation of mb_check_encoding()
+if (!function_exists('mb_check_encoding'))
+{
+  function mb_check_encoding($value = null, ?string $encoding = null): bool
+  {
+    return Mbstring::mb_check_encoding($value, $encoding);
+  }
+}
+
+
+// Emulation of mb_ord()
+if (!function_exists('mb_ord'))
+{
+  function mb_ord(string $string, ?string $encoding=null)
+  {
+    return Mbstring::mb_ord($string, $encoding);
+  }
+}
+
+
+// Emulation of mb_regex_encoding()
+if (!function_exists('mb_regex_encoding'))
+{
+  function mb_regex_encoding(?string $encoding=null)
+  {
+    if (version_compare(PHP_VERSION, '8.6', '>='))
+    {
+      $message = 'Function mb_regex_encoding() is deprecated since 8.6, because the underlying library is no longer maintained';
+      trigger_error($message, E_USER_DEPRECATED);
+    }
+    return Mbstring::mb_regex_encoding($encoding);
+  }
+}
+
+
+// Emulation of mb_split()
+if (!function_exists('mb_split'))
+{
+  function mb_split(string $pattern, string $string, int $limit = -1)
+  {
+    return Mbstring::mb_split($pattern, $string, $limit);
+  }
+}
+
+
+// Emulation of mb_str_split()
+// Note that it was only introduced in PHP 7.4, but we offer it anyway even if the PHP version is less than 7.4, as
+// some code may rely on it.
+if (!function_exists('mb_str_split'))
+{
+  function mb_str_split(string $string, int $length = 1, ?string $encoding = null)
+  {
+    if ($length < 1)
+    {
+      if (version_compare(PHP_VERSION, '8.0', '>='))
+      {
+        throw new ValueError('Argument #2 ($length) must be greater than 0');
+      }
+      else
+      {
+        trigger_error('mb_str_split(): The length of each segment must be greater than zero', E_USER_WARNING);
+        return false;
+      }
+    }
+    return Mbstring::mb_str_split($string, $length, $encoding);
+  }
+}
+
+
+// Emulation of mb_stripos()
+if (!function_exists('mb_stripos'))
+{
+  function mb_stripos(string $haystack, string $needle, int $offset=0, ?string $encoding = null)
+  {
+    return Mbstring::mb_stripos($haystack, $needle, $offset, $encoding);
+  }
+}
+
+
+// Emulation of mb_strlen()
+// Use mb_strlen() with '8bit' encoding to get a string's length in bytes
+// because strlen() may have been overloaded by mb_strlen().
+if (!function_exists('mb_strlen'))
+{
+  function mb_strlen(string $string, ?string $encoding=null) : int
+  {
+    return Mbstring::mb_strlen($string, $encoding);
+  }
+}
+
+
+// Emulation of mb_strpos()
+if (!function_exists('mb_strpos'))
+{
+  function mb_strpos(string $haystack, string $needle, int $offset=0, ?string $encoding=null)
+  {
+    return Mbstring::mb_strpos($haystack, $needle, $offset, $encoding);
+  }
+}
+
+
+// Emulation of mb_strripos()
+if (!function_exists('mb_strripos'))
+{
+  function mb_strripos(string $haystack, string $needle, int $offset=0, ?string $encoding=null)
+  {
+    return Mbstring::mb_strripos($haystack, $needle, $offset, $encoding);
+  }
+}
+
+
+// Emulation of mb_strrpos()
+if (!function_exists('mb_strrpos'))
+{
+  function mb_strrpos(string $haystack, string $needle, int $offset=0, ?string $encoding=null)
+  {
+    return Mbstring::mb_strrpos($haystack, $needle, $offset, $encoding);
+  }
+}
+
+
+// Emulation of mb_strtolower()
+if (!function_exists('mb_strtolower'))
+{
+  function mb_strtolower(string $string, ?string $encoding=null) : string
+  {
+    return Mbstring::mb_strtolower($string, $encoding);
+  }
+}
+
+
+// Emulation of mb_strtoupper()
+if (!function_exists('mb_strtoupper'))
+{
+  function mb_strtoupper(string $string, ?string $encoding=null) : string
+  {
+    return Mbstring::mb_strtoupper($string, $encoding);
+  }
+}
+
+
+// Emulation of mb_substr()
+if (!function_exists('mb_substr'))
+{
+  function mb_substr(string $string, int $start, ?int $length = null, ?string $encoding = null): string
+  {
+    return Mbstring::mb_substr($string, $start, $length, $encoding);
+  }
+}
+
+
+// Emulates the PHP 8 function str_contains()
+if (!function_exists('str_contains'))  // Introduced in PHP 8.0
+{
+  function str_contains(string $haystack, string $needle) : bool
+  {
+    if ($needle === '')
+    {
+      // This is the way the PHP function behaves
+      return true;
+    }
+    else
+    {
+      // This works with multibyte characters because
+      // we are not worried about the actual position.
+      return (strpos($haystack, $needle) !== false);
+    }
+  }
+}
+
+
+// Emulates the PHP 8 function str_starts_with()
+if (!function_exists('str_starts_with'))  // Introduced in PHP 8.0
+{
+  function str_starts_with(string $haystack, string $needle) : bool
+  {
+    if ($needle === '')
+    {
+      // This is the way the PHP function behaves
+      return true;
+    }
+    else
+    {
+      // This works with multibyte characters because
+      // we are looking for position zero.
+      return (strpos($haystack, $needle) === 0);
+    }
+  }
+}
+
+
+// Emulates the PHP 8 function str_ends_with()
+if (!function_exists('str_ends_with'))  // Introduced in PHP 8.0
+{
+  function str_ends_with(string $haystack, string $needle) : bool
+  {
+    if ($needle === '')
+    {
+      // This is the way the PHP function behaves
+      return true;
+    }
+    else
+    {
+      $pos = mb_strrpos($haystack, $needle);
+      if ($pos === false)
+      {
+        // The needle doesn't exist at all, so the haystack can't end with it.
+        return false;
+      }
+      return ($pos === (mb_strlen($haystack) - mb_strlen($needle)));
+    }
+  }
+}

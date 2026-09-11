@@ -1,0 +1,10 @@
+.gooey-nav-container { position: relative; }
+.gooey-nav-container nav, .gooey-nav-container nav ul { display: flex; position: relative; }
+.gooey-nav-container nav ul { gap: 2em; list-style: none; padding: 0 1em; margin: 0; z-index: 3; }
+.gooey-nav-container nav li { border-radius: 100vw; position: relative; cursor: pointer; }
+.gooey-nav-container nav a { display: inline-block; padding: .6em 1em; }
+.gooey-nav-container .effect { position: absolute; pointer-events: none; display: grid; place-items: center; z-index: 1; }
+.gooey-nav-container .effect.filter { filter: blur(7px) contrast(100); mix-blend-mode: lighten; }
+.gooey-nav-container .particle, .gooey-nav-container .point { display: block; opacity: 0; width: 20px; height: 20px; border-radius: 100%; transform-origin: center; }
+.gooey-nav-container .particle { position: absolute; top: calc(50% - 8px); left: calc(50% - 8px); animation: booking-particle var(--time) ease 1 -350ms; }
+.gooey-nav-container .point { background: var(--color); opacity: 1; animation: booking-point var(--time) ease 1 -350ms; }

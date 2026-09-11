@@ -1,0 +1,17 @@
+[Unit]
+Description=Club App Spring Boot
+After=network.target mysql.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/club-app
+EnvironmentFile=/opt/club-app/club-app.env
+ExecStart=/usr/bin/java -Xms128m -Xmx384m -XX:MaxMetaspaceSize=192m -XX:+UseG1GC -jar /opt/club-app/formal_club3.0.jar --server.port=8088 --spring.jpa.hibernate.ddl-auto=none
+Restart=always
+RestartSec=10
+StandardOutput=append:/opt/club-app/app.log
+StandardError=append:/opt/club-app/app.log
+
+[Install]
+WantedBy=multi-user.target

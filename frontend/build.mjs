@@ -25,7 +25,7 @@ const uiBuild=await build({
   outdir: "src/main/resources/static/javascript/ui",
 });
 
-await build({...shared,entryPoints:['frontend/booking-nav.jsx'],outfile:process.env.BOOKING_ASSET_FILE || (existsSync('../outputs/qpsw-mrbs/school') ? '../outputs/qpsw-mrbs/school/aero-shards.bundle.js' : 'src/main/resources/static/javascript/booking/aero-shards.bundle.js'),format:'iife'});
+await build({...shared,entryPoints:['frontend/booking-nav.jsx'],outfile:process.env.BOOKING_ASSET_FILE || (existsSync('booking/school') ? 'booking/school/aero-shards.bundle.js' : existsSync('../outputs/qpsw-mrbs/school') ? '../outputs/qpsw-mrbs/school/aero-shards.bundle.js' : 'src/main/resources/static/javascript/booking/aero-shards.bundle.js'),format:'iife'});
 
 // Discover critical module dependencies from this build instead of serial browser discovery.
 const outputs=uiBuild.metafile.outputs;
