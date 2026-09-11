@@ -4,15 +4,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <link rel="icon" type="image/png" href="/other%20photo/WFL-logo.png">
-    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/common.css?v=20260909-4">
     <link rel="stylesheet" href="/css/club-type-template_style.css">
     <title id="title">加载中...</title>
 </head>
 <body>
 <div id="particles"></div>
-<div th:replace="fragments/notice :: notice"></div>
-<div th:replace="fragments/navbar :: navbar"></div>
-<div th:replace="fragments/particle :: particle"></div>
+<div th:replace="~{fragments/notice :: notice}"></div>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+<div th:replace="~{fragments/particle :: particle}"></div>
 
 <div id="Top" class="tab-buttons"></div>
 
@@ -140,14 +140,13 @@
                     }
                     const card = document.createElement('div');
                     card.className = 'card';
-                    card.innerHTML = `
-                        <img src="${club.clubItem}" alt="${club.clubName}">
-                        <div class="card-content">
-                          <h2>${club.clubName}</h2>
-                          <p>${club.sortDescription}</p>
-                          <a class="button" href="/${club.clubURL}">${i18n.viewDetail}</a>
-                        </div>
-                      `;
+                    const image = document.createElement('img');
+                    image.src = club.clubItem || ''; image.alt = club.clubName || '';
+                    const content = document.createElement('div'); content.className = 'card-content';
+                    const heading = document.createElement('h2'); heading.textContent = club.clubName || '';
+                    const slogan = document.createElement('p'); slogan.textContent = club.sortDescription || '';
+                    const detail = document.createElement('a'); detail.className = 'button'; detail.href = '/' + String(club.clubURL || '').replace(/^\/+/, ''); detail.textContent = i18n.viewDetail;
+                    content.append(heading, slogan, detail); card.append(image, content);
                     container.appendChild(card);
 
                 }

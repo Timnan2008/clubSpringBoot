@@ -15,6 +15,7 @@ public interface UserBase {
     void setUsername(String username);
     String getUsernameEn();
     void setUsernameEn(String usernameEn);
+    @com.fasterxml.jackson.annotation.JsonIgnore
     String getPassword();
     void setPassword(String password);
     String getEmail();

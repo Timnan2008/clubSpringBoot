@@ -1,0 +1,76 @@
+.club-stepper {
+  width: 100%;
+}
+.club-stepper .step-circle-container {
+  border: 0 !important;
+  width: 100%;
+}
+.club-stepper .step-indicator-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 4px 0 30px;
+}
+.club-stepper .step-connector {
+  position: relative;
+  height: 2px;
+  flex: 1;
+  background: #e5e2eb;
+  margin-top: 16px;
+  overflow: hidden;
+}
+.club-stepper .step-connector-inner {
+  height: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+.club-stepper .step-content-default {
+  padding: 3px;
+  margin: -3px;
+}
+.club-stepper .step-default {
+  width: 100%;
+}
+.club-stepper .footer-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 28px;
+}
+.club-stepper .footer-nav.end {
+  justify-content: flex-end;
+}
+.club-stepper .next-button,
+.club-stepper .back-button {
+  min-height: 46px;
+  padding: 12px 22px;
+  border-radius: 12px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.club-stepper .next-button {
+  background: #17151c;
+  color: white;
+  border: 1px solid #17151c;
+}
+.club-stepper .next-button:hover {
+  background: #4c2879;
+}
+.club-stepper .back-button {
+  background: transparent;
+  border: 1px solid #dedbe5;
+  color: #53505c;
+}
+.club-stepper button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+.club-stepper button:focus-visible {
+  outline: 3px solid #ad8ed4;
+  outline-offset: 3px;
+}
+.club-stepper .step-indicator{border:0;background:transparent;padding:0;flex:0 0 32px;min-width:32px;cursor:pointer;opacity:1!important}.club-stepper .step-indicator-inner{display:flex;align-items:center;justify-content:center;height:32px;width:32px;border-radius:50%;font-weight:600}.club-stepper .active-dot{height:10px;width:10px;border-radius:50%;background:#fff}.club-stepper .step-number{font-size:14px;color:#b0b8c2}.club-stepper .check-icon{height:16px;width:16px;color:#fff}.password-recovery .auth-recovery-note{font-size:12px;line-height:1.6;color:#a9adb5}.password-recovery .step-default h3{margin:0 0 20px;font-size:16px}.password-recovery .step-default{padding-bottom:8px}.password-recovery .auth-text-button{margin:12px 0}.password-recovery .auth-error{padding:12px;border-radius:10px;background:#dc35451a;color:#ff9595}.password-recovery .auth-info{font-size:13px;line-height:1.6}.password-recovery .club-stepper .step-indicator-inner{background:#252931}.password-recovery .club-stepper .step-indicator-row{padding:24px 28px!important}

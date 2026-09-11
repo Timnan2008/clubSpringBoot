@@ -1,0 +1,29 @@
+/* Shared by campus-wall cards, profile cards and post details. */
+body .post-reply-composer.inline-reply{display:block!important;width:100%;min-width:0;box-sizing:border-box;padding:16px 0!important;margin:4px 0 0!important;border:0!important;background:transparent}
+body .inline-reply .inline-reply-row{display:grid;grid-template-columns:44px minmax(0,1fr);align-items:start;gap:12px;width:100%;min-width:0}
+body .inline-reply .inline-reply-avatar{display:flex;align-items:center;justify-content:center;width:44px;height:48px;overflow:hidden;flex:none}
+body .inline-reply .inline-reply-avatar>.campus-avatar{width:30px;height:30px;min-width:30px;min-height:30px;margin:0!important;flex:none}
+body .inline-reply .inline-reply-field{display:flex;align-items:flex-end;gap:10px;min-width:0;min-height:48px;box-sizing:border-box;padding:7px 7px 7px 16px;border:1px solid #34383c;border-radius:25px;background:#16181c;transition:border-color .16s,box-shadow .16s}
+body .inline-reply .inline-reply-field:focus-within{border-color:#1d9bf0;box-shadow:0 0 0 3px #1d9bf014}
+body .post-reply-composer.inline-reply textarea,body .post-reply-composer.inline-reply textarea:focus{display:block;flex:1;width:100%;min-width:0;min-height:24px;max-height:120px;box-sizing:border-box;margin:4px 0!important;padding:0!important;border:0!important;outline:0!important;box-shadow:none!important;border-radius:0!important;resize:none;background:transparent!important;color:#e7e9ea!important;font:inherit;font-size:14px;line-height:24px;overflow-wrap:anywhere}
+body .inline-reply textarea::placeholder{color:#8b98a5;opacity:1}
+body .post-reply-composer.inline-reply .inline-reply-send{display:flex;align-items:center;justify-content:center;flex:none;min-width:64px;height:32px;min-height:32px;box-sizing:border-box;padding:0 15px!important;margin:0!important;border:0!important;border-radius:999px;background:#1d9bf0!important;color:#fff!important;font:inherit;font-size:13px;font-weight:600;line-height:1;box-shadow:none;cursor:pointer;transition:background .16s}
+body .post-reply-composer.inline-reply .inline-reply-send:hover:not(:disabled){background:#168bd8!important}
+body .post-reply-composer.inline-reply .inline-reply-send:disabled{background:#203444!important;color:#8dabc0!important;opacity:1!important;cursor:default}
+body .post-reply-composer.inline-reply .inline-reply-send:focus-visible{outline:2px solid #8acbfa;outline-offset:3px}
+body .inline-reply>.reply-target{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 8px 0 56px;margin:0 0 8px;color:#8b98a5;font-size:12px}
+body .inline-reply>.reply-target button{border:0!important;padding:4px 8px!important;background:transparent!important;color:#1d9bf0!important;font-size:12px;box-shadow:none}
+@media(max-width:600px){body .inline-reply .inline-reply-row{grid-template-columns:32px minmax(0,1fr);gap:8px}body .inline-reply .inline-reply-avatar{width:32px;height:46px}body .inline-reply .inline-reply-avatar>.campus-avatar{width:24px;height:24px;min-width:24px;min-height:24px}body .inline-reply .inline-reply-field{gap:6px;padding-left:12px;min-height:46px}body .post-reply-composer.inline-reply .inline-reply-send{min-width:52px;padding:0 11px!important}body .inline-reply>.reply-target{padding-left:40px}}
+@media(prefers-reduced-motion:reduce){body .inline-reply .inline-reply-field,body .inline-reply .inline-reply-send{transition:none}}
+
+/* Comment reply actions share a quiet icon treatment on wall and profile cards. */
+body .social-post .reply-thread-button{display:inline-flex;align-items:center;justify-content:center;gap:6px;flex:none;width:auto;min-width:34px;height:34px;min-height:34px;padding:7px 9px!important;margin:0!important;border:0!important;border-radius:999px!important;background:transparent!important;color:#8b98a5!important;box-shadow:none!important;font:inherit;font-size:12px;line-height:1;cursor:pointer;transition:color .15s,background .15s}
+body .social-post .reply-thread-button>svg{width:18px;height:18px;flex:none}
+body .social-post .reply-thread-button:hover:not(:disabled),body .social-post .reply-thread-button[aria-expanded=true]{color:#1d9bf0!important;background:#1d9bf015!important}
+body .social-post .reply-thread-button:focus-visible{outline:2px solid #1d9bf0;outline-offset:2px}
+body .social-post .post-featured-comment{gap:8px;align-items:center}
+body .social-post .reply-body>.reply-composer-transition>.inline-reply{padding-top:12px!important;padding-bottom:0!important;margin-top:0!important}
+@media(prefers-reduced-motion:reduce){body .social-post .reply-thread-button{transition:none}}
+
+body .reply-composer-transition{width:100%;min-width:0;display:flow-root}
+body .reply-composer-transition[inert]{pointer-events:none}

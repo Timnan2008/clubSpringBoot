@@ -51,7 +51,7 @@ public class FileUploadController {
     @PostMapping("/club-logo")
     public ResponseMessage<String> uploadClubLogo(
             @RequestParam("file") MultipartFile file,
-            @CookieValue(value = "user_session", required = false) String email) {
+            @RequestAttribute(value = "verifiedEmail", required = false) String email) {
 
         if (email == null || email.isBlank()) {
             return ResponseMessage.error("未登录，无权上传");
@@ -71,7 +71,7 @@ public class FileUploadController {
     @PostMapping("/club-video")
     public ResponseMessage<String> uploadClubVideo(
             @RequestParam("file") MultipartFile file,
-            @CookieValue(value = "user_session", required = false) String email) {
+            @RequestAttribute(value = "verifiedEmail", required = false) String email) {
 
         if (email == null || email.isBlank()) {
             return ResponseMessage.error("未登录，无权上传");

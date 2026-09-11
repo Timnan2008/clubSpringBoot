@@ -40,3 +40,22 @@ build/
 
 # IntelliJ/构建输出
 /out/
+
+# Homepage build dependencies
+/node_modules/
+
+# Private club workspace submissions and calendar/application metadata
+/data/club-workspace/
+
+/data/campus-social/
+
+# Runtime and private local files
+/data/
+/uploads/
+/work/
+*.log
+.env
+.env.*
+!.env.example
+*.pem
+*.key

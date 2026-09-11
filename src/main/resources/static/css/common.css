@@ -265,6 +265,18 @@ body::after {
   flex: 0 0 auto;
 }
 
+.navbar-brand {
+  display: inline-flex;
+  align-items: center;
+  color: inherit;
+  text-decoration: none;
+  border-radius: 6px;
+}
+.navbar-brand:focus-visible {
+  outline: 2px solid #111;
+  outline-offset: 5px;
+}
+
 .navbar-logo {
   height: 42px;
   margin-right: 10px;
@@ -995,28 +1007,25 @@ body::after {
   }
 }
 /* -- Navbar Login/Register Button -- */
-.navbar-login-btn {
+.navbar .navbar-login-btn {
   margin-left: 6px;
   padding: 7px 16px !important;
-  background: linear-gradient(
-    135deg,
-    rgba(14, 165, 233, 0.9),
-    rgba(6, 182, 212, 0.85)
-  );
-  color: white !important;
+  background: #111;
+  color: #fff !important;
+  border: 1px solid #111;
   font-weight: 600 !important;
   border-radius: var(--radius-pill) !important;
-  transition: all 0.25s var(--ease-fluid) !important;
-  box-shadow: 0 2px 10px var(--primary-shadow);
+  transition: background .25s, color .25s, transform .25s !important;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, .12);
   white-space: nowrap;
 }
-.navbar-login-btn:hover {
-  background: linear-gradient(
-    135deg,
-    rgba(14, 165, 233, 1),
-    rgba(6, 182, 212, 1)
-  ) !important;
+.navbar .navbar-login-btn:hover {
+  background: #fff;
+  color: #111 !important;
   transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(14, 165, 233, 0.25) !important;
-  color: white !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, .16);
+}
+.navbar .navbar-login-btn:focus-visible {
+  outline: 2px solid #111;
+  outline-offset: 4px;
 }

@@ -1,117 +1,38 @@
 /* ============================================
-   INDEX_STYLE.CSS — Ultra-Glass Parallax Homepage
+   INDEX_STYLE.CSS — DarkVeil Homepage
    Requires: common.css loaded first
    ============================================ */
 
 /* ── Body: scrollable, dark base ── */
 body {
-    background: #01040d;
+    background: #06050c;
     margin: 0; padding: 0;
     min-height: 100vh;
     overflow-x: hidden;
-    font-family: 'Arial Black', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
     color: #fff;
 }
 body::before, body::after { display: none; }
 
-/* ── Fixed parallax background (viewport > stage) ── */
+/* CSS flow is present before JavaScript and remains available without WebGL. */
 .bg-viewport {
     position: fixed;
     inset: 0;
-    width: 100vw;
-    height: 100vh;
-    perspective: 2000px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
     z-index: 0;
     pointer-events: none;
     overflow: hidden;
+    background: #08040f;
 }
-
-.bg-stage {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    transform-style: preserve-3d;
-    transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-.bg-card-wrapper {
+.darkveil-layer, .darkveil-fallback {
     position: absolute;
-    animation: bg-floating 6s ease-in-out infinite alternate;
-    will-change: transform;
-    transform-style: preserve-3d;
+    inset: 0;
 }
-
-.bg-card {
-    position: relative;
-    width: 680px;
-    height: 200px;
-    background: linear-gradient(135deg, var(--main) 20%, var(--glow) 120%);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    transform: rotateX(15deg) rotateY(-15deg);
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 3px;
-    box-shadow:
-        -30px 45px 75px rgba(0, 0, 0, 0.85),
-        -5px 10px 20px rgba(0, 0, 0, 0.4),
-        inset 0 0 0 1px rgba(255, 255, 255, 0.15);
-}
-
-.bg-card::before {
-    content: '';
-    position: absolute;
-    top: -1.5px;
-    left: 0;
-    width: 100%;
-    height: 1.5px;
-    background: linear-gradient(90deg, rgba(255,255,255,0.8), rgba(255,255,255,0.2));
-    transform: skewX(-45deg);
-    transform-origin: bottom;
-}
-
-.bg-card::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -1.5px;
-    width: 1.5px;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    transform: skewY(-45deg);
-    transform-origin: right;
-}
-
-.bg-text {
-    font-size: 162px;
-    font-weight: 900;
-    letter-spacing: -11px;
-    color: #01040d;
-    margin: 0;
-    line-height: 1;
-    user-select: none;
-    text-shadow:
-        -1.5px 2px 4px rgba(0,0,0,0.6),
-        1px -1px 1px rgba(255,255,255,0.25);
-    transform: translateX(-1%);
-}
-
-@keyframes bg-floating {
-    from { transform: translate3d(0, 0, 0) scale(1); }
-    to { transform: translate3d(var(--fx, -12px), var(--fy, -20px), var(--fz, 25px)) scale(1.02); }
-}
-
-/* Layer color variables */
-.bg-viewport .lv1 { --main: rgba(218, 233, 247, 0.94); --glow: rgba(255, 255, 255, 0.5); z-index: 50; }
-.bg-viewport .lv2 { --main: rgba(118, 175, 245, 0.90); --glow: rgba(214, 232, 255, 0.4); z-index: 40; }
-.bg-viewport .lv3 { --main: rgba(42, 118, 244, 0.86); --glow: rgba(130, 177, 255, 0.3); z-index: 30; }
-.bg-viewport .lv4 { --main: rgba(19, 68, 188, 0.82); --glow: rgba(61, 124, 255, 0.2); z-index: 20; }
-.bg-viewport .lv5 { --main: rgba(7, 34, 116, 0.76); --glow: rgba(26, 77, 255, 0.15); z-index: 10; }
+.darkveil-layer { z-index: 1; }
+/* Match the rendered dark base from the first paint; no oversized blurred purple layers. */
+.darkveil-fallback { z-index:0; background:#06050c; }
+.darkveil-fallback::before { content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 35% 65%,#30264435,transparent 55%),radial-gradient(ellipse at 80% 25%,#1e294035,transparent 50%); }
+/* Keep the base underneath the canvas, including context loss and slow connections. */
+.bg-viewport::after{content:'';position:absolute;inset:0;z-index:2;background:linear-gradient(180deg,rgba(5,3,12,.12),rgba(5,3,12,.38));}
 
 /* ── Page content (scrollable) ── */
 .page-content {
@@ -125,7 +46,7 @@ body::before, body::after { display: none; }
 /* ── Hero section ── */
 .hero-section {
     text-align: center;
-    padding: 56px 20px 44px;
+    padding: 100px 20px 88px;
     animation: fadeUp .5s ease both;
 }
 .eyebrow {
@@ -140,7 +61,7 @@ body::before, body::after { display: none; }
     letter-spacing: 1.6px;
 }
 .hero-section h1 {
-    font-size: clamp(30px, 5vw, 48px);
+    font-size: clamp(32px, 5vw, 56px);
     font-weight: 750; color: #fff;
     margin: 0 0 12px; letter-spacing: -0.03em; line-height: 1.1;
     text-shadow: 0 10px 30px rgba(0, 7, 22, 0.36);
@@ -148,13 +69,13 @@ body::before, body::after { display: none; }
 .hero-subtitle {
     max-width: 520px; margin: 0 auto;
     color: rgba(255,255,255,0.78);
-    font-size: 15px; line-height: 1.7;
+    font-size: 16px; line-height: 1.8;
     text-shadow: 0 8px 24px rgba(0, 7, 22, 0.26);
 }
 .hero-btn {
     display: inline-block; margin-top: 24px;
     padding: 12px 28px; border-radius: 999px;
-    background: rgba(255,255,255,0.92); color: #0839b7;
+    background: rgba(255,255,255,0.92); color: #44216c;
     font-size: 15px; font-weight: 700;
     text-decoration: none;
     border: 1px solid rgba(255,255,255,0.4);
@@ -168,7 +89,7 @@ body::before, body::after { display: none; }
 
 /* ── Glass card base ── */
 .glass-card {
-    background: rgba(10,18,42,0.34);
+    background: rgba(15,9,27,0.58);
     backdrop-filter: blur(18px) saturate(135%);
     -webkit-backdrop-filter: blur(18px) saturate(135%);
     border: 1px solid rgba(255,255,255,0.14);
@@ -190,7 +111,7 @@ body::before, body::after { display: none; }
 .notice, .notice-important, .notice-critical {
     background: rgba(255,255,255,0.1);
     backdrop-filter: blur(8px);
-    padding: 14px 16px; font-size: 13px;
+    padding: 14px 16px; font-size: 14px;
     color: rgba(255,255,255,0.88);
     border-radius: 12px; line-height: 1.65;
     word-wrap: break-word;
@@ -206,17 +127,20 @@ body::before, body::after { display: none; }
 .clubs-section { margin-top: 36px; padding: 24px; }
 .scroll-wrapper { position: relative; overflow: hidden; }
 .scroll-container {
-    display: flex; gap: 16px; padding: 8px 0;
-    animation: marquee 35s linear infinite;
+    display: flex; gap: 16px; padding: 8px 4px 18px;
+    overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin;
+    scrollbar-color: #ffffff40 transparent; scroll-padding-inline:4px;
+    -webkit-overflow-scrolling:touch;
 }
-@keyframes marquee { 0%{transform:translateX(0%)} 100%{transform:translateX(-50%)} }
+
 .fade-left, .fade-right {
     position: absolute; top: 0; width: 50px; height: 100%; z-index: 1; pointer-events: none;
 }
-.fade-left  { left: 0;  background: linear-gradient(to right, rgba(0,17,65,0.7), transparent); }
-.fade-right { right: 0; background: linear-gradient(to left,  rgba(0,17,65,0.7), transparent); }
+.fade-left  { left: 0;  background: linear-gradient(to right, rgba(15,9,27,0.8), transparent); }
+.fade-right { right: 0; background: linear-gradient(to left,  rgba(15,9,27,0.8), transparent); }
 
 .card {
+    text-decoration:none; color:inherit; display:flex; flex-direction:column;
     flex: 0 0 auto; width: 220px;
     background: rgba(255,255,255,0.1);
     backdrop-filter: blur(10px);
@@ -224,13 +148,13 @@ body::before, body::after { display: none; }
     border: 1px solid rgba(255,255,255,0.12);
     transition: transform .3s ease, box-shadow .3s ease;
 }
-.card:hover { transform: scale(1.03); box-shadow: 0 12px 32px rgba(0,16,66,0.2); }
+.card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(0,16,66,0.2); }
 .card img { width: 100%; aspect-ratio: 1/1; object-fit: cover; display: block; }
-.card-content { padding: 12px; }
+.card-content { padding: 16px; display:flex;flex-direction:column;flex:1;gap:4px; }
 .card h2 { margin: 0 0 6px; font-size: 15px; font-weight: 600; color: #fff; }
 .card p  { font-size: 12px; color: rgba(255,255,255,0.7); line-height: 1.5; }
-.card .button {
-    display: inline-block; margin-top: 10px;
+.card .card-visit {
+    display: inline-flex; align-self:flex-start; margin-top:auto;
     padding: 6px 14px; border-radius: 999px;
     background: rgba(255,255,255,0.16); color: #fff;
     font-size: 12px; font-weight: 600;
@@ -238,7 +162,7 @@ body::before, body::after { display: none; }
     border: 1px solid rgba(255,255,255,0.2);
     transition: background .2s;
 }
-.card .button:hover { background: rgba(255,255,255,0.25); }
+.card:hover .card-visit { background: rgba(255,255,255,0.25); }
 
 /* ── Footer ── */
 .site-footer { text-align: center; padding: 30px 0; margin-top: 40px; }
@@ -253,9 +177,22 @@ body::before, body::after { display: none; }
     .hero-subtitle { font-size: 14px; }
     .notice-board { grid-template-columns: 1fr; }
     .card { width: 180px; }
-    .bg-card {
-        width: 520px;
-        height: 150px;
-    }
-    .bg-text { font-size: 110px; }
+    .hero-section { padding: 68px 0 52px; }
 }
+.hero-btn:focus-visible { outline: 3px solid #c4a4ff; outline-offset: 5px; }
+.scroll-wrapper:hover .scroll-container,
+.scroll-wrapper:focus-within .scroll-container { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) {
+    .hero-section, .scroll-container { animation: none; }
+    .scroll-wrapper { overflow-x: auto; }
+    .hero-btn, .card, .notice { transition: none; }
+}
+
+@media (max-width: 800px) { .page-content { padding-top: 75px; } }
+
+.scroll-container{min-height:300px}.club-skeleton{width:280px;height:300px;flex:0 0 280px;border-radius:18px;background:linear-gradient(145deg,#ffffff12,#ffffff05)}.scroll-container:has(.club-skeleton){animation:none!important}.card img{object-fit:contain}.glass-card{backdrop-filter:none}.scroll-wrapper{content-visibility:auto;contain-intrinsic-size:auto 340px}@media(prefers-reduced-motion:reduce){.scroll-container{animation:none!important}}
+
+
+.scroll-wrapper:focus-within .scroll-container{animation-play-state:paused}
+
+.scroll-container>.card:focus-visible{outline:2px solid #9dccff;outline-offset:2px}.scroll-container:focus-visible{outline:2px solid #9dccff;outline-offset:-2px}.fade-left,.fade-right{display:none}.card p{margin:6px 0 16px}.card .card-visit{padding:0;border:0;background:none;color:#bbc9ed}.card:hover .card-visit{background:none;color:#fff}

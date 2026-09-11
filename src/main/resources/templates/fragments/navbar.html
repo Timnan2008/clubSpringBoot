@@ -1,12 +1,15 @@
-<!doctype html>
+<!-- ui-module-preloads --><link rel="modulepreload" href="/javascript/ui/chunks/chunk-7UPQ4K5P.js"/><link rel="modulepreload" href="/javascript/ui/chunks/chunk-PE5IHXMR.js"/><link rel="modulepreload" href="/javascript/ui/chunks/chunk-S5J4HU5L.js"/><link rel="modulepreload" href="/javascript/ui/chunks/chunk-IAPHJUY3.js"/><link rel="modulepreload" href="/javascript/ui/chunks/chunk-2RUN43TJ.js"/><!-- /ui-module-preloads --><!doctype html>
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
 <div th:fragment="navbar">
-  <header class="navbar">
+  <link rel="stylesheet" href="/javascript/ui/navigation.css?v=20260910-22" />
+  <script type="module" src="/javascript/ui/navigation.js?v=20260910-22"></script>
+  <header class="navbar" th:attr="data-language=${#locale.language}">
     <!-- 左侧：学校名 -->
     <div class="navbar-left">
+      <a class="navbar-brand" th:href="@{/}" th:aria-label="#{nav.home}">
       <img
-              src="/other%20photo/WFL-logo.png"
+              src="/other%20photo/WFL-crest.svg"
               class="navbar-logo"
               id="navbar-logo-img"
               alt="logo"
@@ -16,6 +19,7 @@
         <div class="school-cn" th:text="#{school.cn}"></div>
         <div class="school-en" th:text="#{school.en}"></div>
       </div>
+      </a>
 
       <th:block th:if="${#locale.language} == 'en'">
         <div class="navbar-lang-login">
@@ -42,7 +46,7 @@
                 <div class="dropdown-content">
                   <a th:href="@{/page/user/profile}">Profile</a>
                   <a th:if="${loginUser != null && loginUser.getUserRight() < 1}" th:href="@{/page/my-clubs}">My Clubs</a>
-                  <a th:if="${loginUser != null && loginUser.getUserRight() >= 1}" th:href="@{/page/club/manage}">Club Management</a>
+                  <a th:if="${loginUser != null && (loginUser.getUserRight() == 1 || loginUser.getUserRight() == 2)}" th:href="@{/page/club/workspace}">Club Management</a>
                   <a th:if="${loginUser != null && loginUser.getUserRight() >= 2}" th:href="@{/page/user-edit}">Account Management</a>
                   <a href="#" onclick="event.preventDefault(); fetch('/api/user/logout').finally(() => window.location.href='/page/user/login');">Log out</a>
                 </div>
@@ -125,9 +129,9 @@
               <div class="dropdown-content">
                 <a th:href="@{/page/user/profile}">个人资料</a>
                 <a th:if="${loginUser != null && loginUser.getUserRight() < 1}" th:href="@{/page/my-clubs}">我的社团</a>
-                <a th:if="${loginUser != null && loginUser.getUserRight() >= 1}" th:href="@{/page/club/manage}">社团管理</a>
+                <a th:if="${loginUser != null && (loginUser.getUserRight() == 1 || loginUser.getUserRight() == 2)}" th:href="@{/page/club/workspace}">社团管理</a>
                 <a th:if="${loginUser != null && loginUser.getUserRight() >= 2}" th:href="@{/page/user-edit}">账号管理</a>
-                <a href="#" onclick="event.preventDefault(); fetch('/api/user/logout').finally(() => window.location.href='/page/user/login');">退出登录</a>
+                <a href="#" onclick="event.preventDefault(); fetch('/api/user/logout').finally(() => window.location.href='/page/user/login');" th:text="${#locale.language == 'en' ? 'Sign out' : '退出登录'}">退出登录</a>
               </div>
             </div>
           </th:block>
@@ -135,49 +139,6 @@
       </header>
 
   <script>
-    (function () {
-      const logo = document.getElementById("navbar-logo-img");
-      if (!logo || logo.dataset.processed === "true") return;
-
-      function stripBackground() {
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
-        const w = logo.naturalWidth;
-        const h = logo.naturalHeight;
-        if (!w || !h) return;
-
-        canvas.width = w;
-        canvas.height = h;
-        ctx.drawImage(logo, 0, 0);
-
-        const imageData = ctx.getImageData(0, 0, w, h);
-        const d = imageData.data;
-        for (let i = 0; i < d.length; i += 4) {
-          const r = d[i],
-                  g = d[i + 1],
-                  b = d[i + 2];
-          if (
-                  r > 210 &&
-                  g > 210 &&
-                  b > 210 &&
-                  Math.max(r, g, b) - Math.min(r, g, b) < 26
-          ) {
-            d[i + 3] = 0;
-          }
-        }
-
-        ctx.putImageData(imageData, 0, 0);
-        logo.src = canvas.toDataURL("image/png");
-        logo.dataset.processed = "true";
-      }
-
-      if (logo.complete) {
-        stripBackground();
-      } else {
-        logo.addEventListener("load", stripBackground, { once: true });
-      }
-    })();
-
     (function () {
       const dropdowns = Array.from(
               document.querySelectorAll(".navbar .dropdown"),
@@ -298,99 +259,7 @@
       });
     })();
 
-    // Search functionality
-    (function () {
-      const searchInput = document.getElementById('search-input');
-      const searchButton = document.getElementById('search-button');
-      const searchDropdown = document.getElementById('search-dropdown');
 
-      if (!searchInput || !searchButton || !searchDropdown) return;
-
-      let debounceTimer;
-
-      function performSearch(keyword) {
-        if (!keyword.trim()) {
-          searchDropdown.style.display = 'none';
-          return;
-        }
-
-        searchDropdown.innerHTML = '<div class="search-item search-loading"><span>正在加载...</span></div>';
-        searchDropdown.style.display = 'block';
-
-        fetch(`/api/club/search?keyword=${encodeURIComponent(keyword)}`)
-                .then(response => response.json())
-                .then(data => {
-                  if (data.code === 200 && data.data && data.data.length > 0) {
-                    renderDropdown(data.data);
-                  } else {
-                    searchDropdown.innerHTML = '<div class="no-results">没有找到匹配的社团</div>';
-                  }
-                })
-                .catch(error => {
-                  console.error('Search error:', error);
-                  searchDropdown.innerHTML = '<div class="no-results">搜索失败，请稍后再试</div>';
-                  searchDropdown.style.display = 'block';
-                });
-      }
-
-      function renderDropdown(clubs) {
-        const html = clubs.map(club => `
-              <div class="search-item" data-path="${club.detailPath}">
-                <div class="search-item-inner">
-                  <img src="${club.logo || '/other%20photo/default-logo.png'}" alt="${club.name}" class="search-item-logo">
-                  <div class="search-item-content">
-                    <div class="search-item-title">${club.name}</div>
-                    <div class="search-item-meta">${club.brief || club.description || ''}</div>
-                  </div>
-                  <div class="search-item-action">›</div>
-                </div>
-              </div>
-            `).join('');
-        searchDropdown.innerHTML = html;
-
-        // Add click handlers
-        searchDropdown.querySelectorAll('.search-item').forEach(item => {
-          item.addEventListener('click', function() {
-            const detailPath = this.dataset.path;
-            window.location.href = `/${detailPath}`;
-          });
-        });
-      }
-
-      function debounceSearch() {
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => {
-          const keyword = searchInput.value;
-          performSearch(keyword);
-        }, 300);
-      }
-
-      searchInput.addEventListener('input', debounceSearch);
-
-      searchInput.addEventListener('keydown', function(event) {
-        if (event.key === 'Enter') {
-          event.preventDefault();
-          const keyword = searchInput.value.trim();
-          if (keyword) {
-            window.location.href = `/page/search?keyword=${encodeURIComponent(keyword)}`;
-          }
-        }
-      });
-
-      searchButton.addEventListener('click', function() {
-        const keyword = searchInput.value.trim();
-        if (keyword) {
-          window.location.href = `/page/search?keyword=${encodeURIComponent(keyword)}`;
-        }
-      });
-
-      // Hide dropdown when clicking outside
-      document.addEventListener('click', function(event) {
-        if (!event.target.closest('.search')) {
-          searchDropdown.style.display = 'none';
-        }
-      });
-    })();
   </script>
 </div>
 </body>

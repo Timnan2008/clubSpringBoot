@@ -40,6 +40,7 @@ public class AuthFilter implements Filter {
 
     private static final Set<String> PUBLIC_POST_PATHS = Set.of(
             "/api/user/login",
+            "/api/user/password-reset/code", "/api/user/password-reset/verify", "/api/user/password-reset/complete",
 
             "/api/user/add/user",
             "/api/user/add/teacher",
@@ -64,6 +65,12 @@ public class AuthFilter implements Filter {
         String path = httpRequest.getRequestURI();
         String method = httpRequest.getMethod();
 
+        if (path.equals("/api/club-workspace") || path.startsWith("/api/club-workspace/") || path.equals("/api/campus-social") || path.startsWith("/api/campus-social/")) {
+            // Workspace controllers verify the server-side session, club scope and mutation token.
+            chain.doFilter(request, response);
+            return;
+        }
+
         if (!path.startsWith("/api/")) {
             chain.doFilter(request, response);
             return;
@@ -74,7 +81,8 @@ public class AuthFilter implements Filter {
             return;
         }
 
-        String email = extractEmailFromCookie(httpRequest);
+        var session = httpRequest.getSession(false);
+        String email = session != null && session.getAttribute("authenticatedEmail") instanceof String value ? value : null;
         if (email == null || email.isBlank()) {
             writeUnauthorizedResponse(httpResponse, "未登录或会话已过期");
             return;
@@ -109,17 +117,6 @@ public class AuthFilter implements Filter {
             }
         }
         return false;
-    }
-
-    private String extractEmailFromCookie(HttpServletRequest request) {
-        Cookie[] cookies = request.getCookies();
-        if (cookies == null) return null;
-        for (Cookie cookie : cookies) {
-            if ("user_session".equals(cookie.getName())) {
-                return cookie.getValue();
-            }
-        }
-        return null;
     }
 
     private void writeUnauthorizedResponse(HttpServletResponse response, String message) throws IOException {

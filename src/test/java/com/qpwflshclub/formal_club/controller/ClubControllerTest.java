@@ -45,6 +45,7 @@ class ClubControllerTest {
     void setUp() {
         controller = new ClubController();
         controller.clubService = clubService;
+        ReflectionTestUtils.setField(controller,"publicCatalog",new com.qpwflshclub.formal_club.service.Club.PublicClubCatalog(clubService));
         ReflectionTestUtils.setField(controller, "userService", userService);
         LocaleContextHolder.setLocale(Locale.CHINA);
     }
@@ -120,14 +121,14 @@ class ClubControllerTest {
         assertThat(response.getData()).hasSize(1);
         assertThat(response.getData().getFirst().getClubName()).isEqualTo("编程社");
         assertThat(response.getData().getFirst().getClubNameEn()).isEqualTo("Codecraft");
-        assertThat(response.getData().getFirst().getClubURL()).isEqualTo("page/club-watch/Codecraft?lang=zh");
+        assertThat(response.getData().getFirst().getClubURL()).isEqualTo("page/clubs/1");
     }
 
     @Test
     void searchUsesShortDescriptionAsBriefInChineseLocale() {
         Club club = club();
 
-        when(clubService.search("编程")).thenReturn(List.of(club));
+        when(clubService.findAll()).thenReturn(List.of(club));
 
         ResponseMessage<List<SearchResultVO>> response = controller.search("编程");
 
@@ -136,7 +137,7 @@ class ClubControllerTest {
     }
 
     @Test
-    void updateNameEnAllowsTeacherWhenManagedClubIdsMatch() {
+    void updateNameEnRejectsTeacherEvenWhenAssigned() {
         Teacher teacher = new Teacher();
         Club managedClub = new Club();
         managedClub.setId(1);
@@ -147,13 +148,11 @@ class ClubControllerTest {
 
         when(userService.findByEmail("teacher@example.com")).thenReturn(teacher);
         when(clubService.findByName("Codecraft")).thenReturn(currentClub);
-        when(clubService.update(dto)).thenReturn(updatedClub);
 
         ResponseMessage<Club> response = controller.updateNameEn("Codecraft", dto, "teacher@example.com");
 
-        assertThat(response.getCode()).isEqualTo(200);
-        assertThat(response.getData()).isSameAs(updatedClub);
-        assertThat(dto.getClubId()).isEqualTo(1);
+        assertThat(response.getCode()).isEqualTo(400);
+        verify(clubService, never()).update(dto);
     }
 
     private static ClubDTO clubDTO() {

@@ -1,0 +1,1 @@
+export function pageWindow(page,pages){const total=Math.max(1,Math.floor(pages)||1),current=Math.max(1,Math.min(total,Math.floor(page)||1)),start=Math.max(1,Math.min(current-2,total-4));return Array.from({length:Math.min(5,total)},(_,i)=>start+i)}

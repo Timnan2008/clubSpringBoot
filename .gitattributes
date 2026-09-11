@@ -1,2 +1,5 @@
 /mvnw text eol=lf
 *.cmd text eol=crlf
+
+# Bundled shader source includes intentional whitespace.
+src/main/resources/static/javascript/** -whitespace

@@ -1,0 +1,9 @@
+.darkveil-canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+  opacity: 0;
+  transition: opacity 700ms ease;
+}
+
+@media(prefers-reduced-motion:reduce){.darkveil-canvas{transition:none}}

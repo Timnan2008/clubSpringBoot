@@ -19,8 +19,7 @@ public class ClubLikeService{
     private ClubRepository clubRepo;
 
     public boolean like(String clubName, String deviceId) {
-
-        System.out.println(deviceRepo.existsByClubNameEnAndDeviceId(clubName, deviceId));
+        Club club = clubRepo.lockByName(clubName).orElseThrow();
 
         // 1. 检查是否点赞过
         if (deviceRepo.existsByClubNameEnAndDeviceId(clubName, deviceId)) {
@@ -28,7 +27,7 @@ public class ClubLikeService{
         }
 
         // 2. 点赞数 +1
-        Club club = clubRepo.findByClubNameEn(clubName).get();
+
         club.setVideoLike(club.getVideoLike() + 1);
         clubRepo.save(club);
 
@@ -42,8 +41,7 @@ public class ClubLikeService{
     }
 
     public boolean dislike(String clubNameEn, String deviceId) {
-
-        System.out.println(deviceRepo.existsByClubNameEnAndDeviceId(clubNameEn, deviceId));
+        Club club = clubRepo.lockByName(clubNameEn).orElseThrow();
 
         // 1. 检查设备是否点过赞
         if (!deviceRepo.existsByClubNameEnAndDeviceId(clubNameEn, deviceId)) {
@@ -51,8 +49,8 @@ public class ClubLikeService{
         }
 
         // 2. 点赞数 -1
-        Club club = clubRepo.findByClubNameEn(clubNameEn).get();
-        club.setVideoLike(club.getVideoLike() - 1);
+
+        club.setVideoLike(Math.max(0,club.getVideoLike() - 1));
         clubRepo.save(club);
 
         // 3. 删除点赞记录

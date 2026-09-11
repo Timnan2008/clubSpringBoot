@@ -41,12 +41,16 @@ public class UserService implements IUserService{
     @Autowired
     ClubRepository clubRepository;
 
+    @Autowired
+    private com.qpwflshclub.formal_club.social.AccountProfiles accountProfiles;
+
     //增
     @Override
     public Teacher addTeacher(TeacherDTO teacherDTO) {
         Teacher teacher = new Teacher();
         BeanUtils.copyProperties(teacherDTO, teacher, "id", "clubs");
         teacher.setClubs(findClubsByIds(teacherDTO.getClubs()));
+        teacher.setPassword(com.qpwflshclub.formal_club.config.PasswordCodec.encode(teacher.getPassword()));
         return teacherRepository.save(teacher);
     }
 
@@ -60,6 +64,7 @@ public class UserService implements IUserService{
             user.setClubs(clubs);
         }
 
+        user.setPassword(com.qpwflshclub.formal_club.config.PasswordCodec.encode(user.getPassword()));
         return userRepository.save(user);
     }
 
@@ -70,6 +75,7 @@ public class UserService implements IUserService{
         cp.setClubs(findClubsByIds(cpDTO.getClubs()));
         cp.setMainClub(findClubByLongId(cpDTO.getMainClubId()));
         cp.setVicePresident(cpDTO.isVicePresident());
+        cp.setPassword(com.qpwflshclub.formal_club.config.PasswordCodec.encode(cp.getPassword()));
         return clubPresidentRepository.save(cp);
     }
 
@@ -78,22 +84,28 @@ public class UserService implements IUserService{
         Admin admin = new Admin();
         BeanUtils.copyProperties(adminDTO, admin, "id", "clubs");
         admin.setClubs(findClubsByIds(adminDTO.getClubs()));
+        admin.setPassword(com.qpwflshclub.formal_club.config.PasswordCodec.encode(admin.getPassword()));
         return adminRepository.save(admin);
     }
 
 
     //改
     @Override
+    @Transactional
     public Teacher update(TeacherDTO teacherDTO) {
         Teacher existingTeacher = teacherRepository.findById(teacherDTO.getId())
                 .orElseThrow(() -> new IllegalArgumentException("没有找到该教师"));
 
+        var previous=new ArrayList<>(existingTeacher.getClubs()==null?List.<Club>of():existingTeacher.getClubs());
         BeanUtils.copyProperties(teacherDTO, existingTeacher, "id", "clubs");
         if (teacherDTO.getClubs() != null) {
             existingTeacher.setClubs(findClubsByIds(teacherDTO.getClubs()));
         }
 
-        return teacherRepository.save(existingTeacher);
+        Teacher saved=teacherRepository.save(existingTeacher);
+        previous.addAll(saved.getClubs()==null?List.of():saved.getClubs());
+        for(Club club:previous){java.util.StringJoiner zh=new java.util.StringJoiner("、"),en=new java.util.StringJoiner(", ");for(Teacher t:teacherRepository.findAll())if(t.getClubs()!=null&&t.getClubs().stream().anyMatch(c->Objects.equals(c.getId(),club.getId()))){zh.add(t.getUsername());en.add(t.getUsernameEn());}club.setTeacher(zh.toString());club.setTeacherEn(en.toString());clubRepository.save(club);}
+        return saved;
 
     }
 
@@ -396,7 +408,8 @@ public class UserService implements IUserService{
         }
 
         return containsIgnoreCase(user.getUsername(), keyword)
-                || containsIgnoreCase(user.getUsernameEn(), keyword);
+                || containsIgnoreCase(user.getUsernameEn(), keyword)
+                || (accountProfiles != null && containsIgnoreCase(accountProfiles.get(user.getEmail()).nickname(), keyword));
     }
 
     private boolean containsIgnoreCase(String value, String keyword) {
@@ -502,6 +515,7 @@ public class UserService implements IUserService{
             item.put("userId", student.getId());
             item.put("username", student.getUsername());
             item.put("usernameEn", student.getUsernameEn());
+            item.put("nickname", accountProfiles == null ? "" : accountProfiles.get(student.getEmail()).nickname());
             item.put("member", isMember);
             item.put("roleInClub", isMember ? "member" : "none");
             result.add(item);

@@ -18,26 +18,29 @@ public class EmailController {
 
     @PostMapping("/send")
     public ResponseMessage<?> send(@RequestParam String email) {
-        System.out.println(email);
+
         try {
             emailCodeService.sendCode(email);
             return ResponseMessage.success("验证码已发送");
+        } catch (org.springframework.web.server.ResponseStatusException e) {
+            throw e;
         } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseMessage.error("邮件发送失败：" + e.getMessage());
+
+            return ResponseMessage.error("邮件发送失败，请稍后重试");
         }
     }
 
     @PostMapping("/verify")
     public ResponseMessage<?> verify(
             @RequestParam String email,
-            @RequestParam String code
+            @RequestParam String code, jakarta.servlet.http.HttpServletRequest request
     ) {
         boolean ok = emailCodeService.verifyCode(email, code);
         if (ok) {
+            com.qpwflshclub.formal_club.config.RegistrationProof.verified(request,email);
             return ResponseMessage.success("验证成功");
         } else {
-            return ResponseMessage.error("超时");
+            return ResponseMessage.error("验证码错误或已过期，请重新获取 / Email code is invalid or expired; request a new code");
         }
     }
 

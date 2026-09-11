@@ -35,24 +35,22 @@ class PageControllerTest {
     }
 
     @Test
-    void editClubPageRedirectsUnauthenticatedUsersToExistingLoginPage() {
+    void legacyEditorUsesGuardedWorkspace() {
         String view = controller.editClubPage("Codecraft", null, new ExtendedModelMap());
 
-        assertThat(view).isEqualTo("redirect:/page/user/login");
+        assertThat(view).isEqualTo("redirect:/page/club/workspace");
     }
 
     @Test
-    void editClubPageAllowsTeacherWhenManagedClubIdsMatch() {
+    void legacyEditorCannotOpenTeacherEditor() {
         Teacher teacher = new Teacher();
         Club managedClub = club(1000);
         Club currentClub = club(1000);
         teacher.setClubs(List.of(managedClub));
-        when(userService.findByEmail("teacher@example.com")).thenReturn(teacher);
-        when(clubService.findByName("Codecraft")).thenReturn(currentClub);
 
         String view = controller.editClubPage("Codecraft", "teacher@example.com", new ExtendedModelMap());
 
-        assertThat(view).isEqualTo("page/club-edit");
+        assertThat(view).isEqualTo("redirect:/page/club/workspace");
     }
 
     private static Club club(Integer id) {

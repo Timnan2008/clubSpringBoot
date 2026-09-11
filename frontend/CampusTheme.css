@@ -1,0 +1,55 @@
+/* Preserve the original light shared navigation on every host page. */
+body .campus-top{--campus-bg:#f6f5f3;--campus-panel:#fff;--campus-line:#e4e1e6;--campus-text:#242127;--campus-muted:#777179;--campus-accent:#685777;color:var(--campus-text);color-scheme:light;background:var(--campus-bg)}
+body .campus-top .card-nav{background:#fff;border-color:var(--campus-line);box-shadow:0 3px 12px #211a2805}
+body .campus-top .card-nav-logo,body .campus-top .card-nav-toggle,body .campus-top .campus-back{color:var(--campus-text)}
+body .campus-top .card-nav-lines i{background:var(--campus-text)}
+body .campus-top .card-nav-account{background:#232025;color:#fff}
+body .campus-top .card-nav-account:hover{background:#39333e;color:#fff}
+body .campus-top .card-nav-search{background:#f6f5f7;color:#777179;border-color:#d9d5dd}
+body .campus-top .card-nav-search button{background:transparent;color:inherit}
+body .campus-top .campus-subnav{border-color:#e2dfe4;background:var(--campus-bg)}
+body .campus-top .campus-subnav a{color:#514957}
+body .campus-top .campus-subnav a:hover,body .campus-top .campus-subnav a[aria-current]{color:#26212c}
+body .campus-top .campus-subnav a[aria-current]:after{background:#30283b}
+body .campus-top .campus-language{background:#eee8f3;color:#675078;border:0}
+body .campus-top .nav-card{background:#1b1722;color:#fff;border:0}
+body .campus-top .nav-card.card-tone-1{background:#2f293a}
+body .campus-top .nav-card.card-tone-2{background:#42394f}
+body .campus-top .nav-card a,body .campus-top .nav-card h2{color:#f4eff8}
+body .campus-top :focus-visible{outline-color:var(--campus-accent)}
+body.account-page{background:#000;color:#e7e9ea;color-scheme:dark}
+body.account-page .account-layout{--line:#2f3336;--muted:#8b98a5}
+body.account-page .account-card,body.account-page .account-club-card{background:#000;border-color:var(--line);color:#e7e9ea}
+body.account-page .account-identity>.campus-avatar,body.account-page .account-club-cover{background:#16181c;color:#e7e9ea;box-shadow:none}
+body.account-page .account-sidebar nav a{color:#8b98a5}
+body.account-page .account-sidebar nav a.active,body.account-page .account-sidebar nav a:hover{background:#16181c;color:#e7e9ea}
+body.account-page .account-main>header p,body.account-page .account-identity p,body.account-page .account-card label,body.account-page .account-hint,body.account-page .account-key-status,body.account-page .account-backup-filename,body.account-page .verification-label,body.account-page .avatar-status,body.account-page .account-club-info p,body.account-page .account-empty p{color:#8b98a5}
+body.account-page .account-card input,body.account-page .account-card select,body.account-page .account-card textarea{background:#16181c;color:#e7e9ea;border-color:#536471;color-scheme:dark}
+body.account-page .account-card input:read-only{background:#101214;color:#8b98a5}
+body.account-page .account-card button{background:#eff3f4;color:#0f1419;border-color:#eff3f4}
+body.account-page .account-card .account-secondary,body.account-page .account-file,body.account-page .avatar-editor-actions label,body.account-page .appearance-upload,body.account-page .account-confirm-actions .account-cancel{background:transparent;color:#e7e9ea;border-color:#536471}
+body.account-page .account-card .account-danger{background:#be343c;color:#fff;border-color:#be343c}
+body.account-page .avatar-editor-actions .avatar-remove{color:#8b98a5!important}
+body.account-page .account-card :focus-visible{outline-color:#1d9bf0}
+body.account-page .account-error{background:#2b1118;color:#ff9db8}
+body.account-page .account-notice{background:#082318;color:#7be0aa}
+body.account-page .account-club-summary{border-color:#2f3336}
+body.account-page .account-club-summary>strong,body.account-page .account-club-info a,body.account-page .account-empty a{color:#1d9bf0}
+body .account-main>header.account-page-header{display:flex;align-items:flex-start;justify-content:space-between;gap:24px}
+body .account-page-header .account-home-link{margin-left:auto;flex-shrink:0;padding:6px 0;color:#1d9bf0;text-decoration:none;font-size:14px;line-height:24px}
+body .account-page-header .account-home-link:hover{text-decoration:underline}
+@media(max-width:600px){body .account-main>header.account-page-header{gap:12px;flex-wrap:wrap}body .account-page-header .account-home-link{font-size:12px}body .campus-top .campus-subnav{overflow-x:auto;justify-content:flex-start}body .campus-top .campus-subnav>*{flex-shrink:0}}
+
+body.account-page .campus-avatar{background:#202327;color:#e7e9ea}
+body .campus-top .campus-language{box-shadow:-8px 0 10px #f6f5f3}
+
+body:is(.social-network-theme,.account-page) .campus-top{--campus-bg:#000;--campus-panel:#16181c;--campus-line:#2f3336;--campus-text:#e7e9ea;--campus-muted:#8b98a5;--campus-accent:#1d9bf0;color-scheme:dark}
+body:is(.social-network-theme,.account-page) .campus-top .card-nav{background:#000;border-color:#2f3336;box-shadow:none}
+body:is(.social-network-theme,.account-page) .campus-top .card-nav-account{background:#eff3f4;color:#0f1419}
+body:is(.social-network-theme,.account-page) .campus-top .card-nav-search{background:#16181c;border-color:#2f3336;color:#8b98a5}
+body:is(.social-network-theme,.account-page) .campus-top .campus-subnav{background:#000;border-color:#2f3336}
+body:is(.social-network-theme,.account-page) .campus-top .campus-subnav a{color:#8b98a5}
+body:is(.social-network-theme,.account-page) .campus-top .campus-subnav a[aria-current]{color:#e7e9ea}
+body:is(.social-network-theme,.account-page) .campus-top .campus-subnav a[aria-current]:after{background:#1d9bf0}
+body:is(.social-network-theme,.account-page) .campus-top .campus-language{background:#16181c;color:#e7e9ea;box-shadow:-8px 0 10px #000}
+body:is(.social-network-theme,.account-page) .campus-top .nav-card{background:#16181c;border:1px solid #2f3336}

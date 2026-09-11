@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>账号管理后台</title>
     <link rel="icon" type="image/png" href="/other%20photo/WFL-logo.png" />
-    <link rel="stylesheet" href="/css/common.css" />
+    <link rel="stylesheet" href="/css/common.css?v=20260909-4" />
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -588,12 +588,10 @@
 
     document.getElementById("btnDoDelete").addEventListener("click", () => {
         if (!currentUserToDelete) return;
-        const userRight = currentUserToDelete.userRight;
-        const userType = userRight === 1 ? "club-president" : userRight === 2 ? "teacher" : userRight === 3 ? "admin" : "user";
         fetch('/api/user/delete', {
             method: 'DELETE',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ usernameEn: displayNameEn(currentUserToDelete), userType: userType })
+            body: JSON.stringify({ id: currentUserToDelete.id, userType: ['user','club-president','teacher','admin'][currentUserToDelete.userRight] || 'user' })
         })
             .then(res => res.json())
             .then(res => {

@@ -1,0 +1,34 @@
+/* Reply actions share comfortable targets across the wall and public profiles. */
+body.social-network-theme .social-post-actions :is(button,a){display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:42px;min-width:42px;padding:9px 13px;border:0;border-radius:999px;text-decoration:none;white-space:nowrap;cursor:pointer}
+body.social-network-theme .social-post-actions :is(button,a):hover:not(:disabled){background:#202327}
+body.social-network-theme .social-post-actions svg{flex-shrink:0}
+body.social-network-theme .social-replies .reply-delete{display:inline-flex;align-items:center;gap:5px;margin-left:12px;padding:6px 10px;border:0;background:transparent;color:#8b98a5;font-size:12px;border-radius:999px}
+body.social-network-theme .social-replies .reply-delete:hover{color:#ff8291;background:#f4212e15}
+body.social-network-theme .social-replies form{display:flex;gap:10px;align-items:center;margin-top:16px}
+body.social-network-theme .social-replies form input{min-width:0;flex:1}
+/* Message rows are transparent; only the content bubble carries color. */
+body.social-network-theme .refined-chat .social-chat-header{height:auto;min-height:82px;padding:14px 18px;gap:12px;align-items:center;background:#000}
+body.social-network-theme .refined-chat .social-chat-header>.campus-avatar{width:42px;height:42px;flex:0 0 42px}
+body.social-network-theme .refined-chat .social-chat-header>a{flex:1;min-width:0;overflow-wrap:anywhere}
+body.social-network-theme .refined-chat .person-identity{min-width:0}
+body.social-network-theme .refined-chat .chat-preference-actions{flex:0 0 auto;gap:6px;margin-left:auto;align-items:center}
+body.social-network-theme .refined-chat .chat-preference-actions button{box-sizing:border-box;width:34px;height:34px;min-width:34px;min-height:34px;padding:0;margin:0;border:0;display:grid;place-items:center;border-radius:50%;background:transparent;color:#8b98a5}
+body.social-network-theme .refined-chat .chat-preference-actions svg{display:block;width:20px;height:20px;margin:0;flex:none}
+body.social-network-theme .refined-chat .chat-preference-actions button:hover{background:#202327}
+body.social-network-theme .refined-chat .chat-preference-actions button[aria-pressed=true]{color:#0a84ff}
+body.social-network-theme .refined-chat .social-chat-scroll{padding:20px 18px;scrollbar-gutter:stable;overscroll-behavior:contain}
+body.social-network-theme .refined-chat .social-message{background:transparent!important;animation:none;margin:0 0 13px;gap:4px;padding:0;min-width:0}
+body.social-network-theme .refined-chat .social-message>p{box-sizing:border-box;position:relative;width:fit-content;max-width:78%;background:#262629;color:#f5f5f7;border-radius:20px 20px 20px 6px;padding:9px 14px;margin:0;font-size:15px;line-height:1.45;white-space:pre-wrap;overflow-wrap:anywhere;transform-origin:bottom left}
+body.social-network-theme .refined-chat .social-message.own>p{background:#0a84ff;color:#fff;border-radius:20px 20px 6px 20px;transform-origin:bottom right}
+body.social-network-theme .refined-chat .social-message small{margin:0 5px;color:#8e8e93;font-size:10px;line-height:1.4;background:transparent}
+body.social-network-theme .refined-chat .social-chat-compose{flex-shrink:0;align-items:flex-end;padding:10px 14px max(10px,env(safe-area-inset-bottom));gap:9px;background:#000;border-top:1px solid #2f3336}
+body.social-network-theme .refined-chat .social-chat-compose textarea{box-sizing:border-box;display:block;flex:1;min-width:0;width:100%;height:38px;min-height:38px;max-height:160px;margin:0;resize:none;padding:8px 14px;border:1px solid #424245;border-radius:20px;line-height:20px;font-size:15px;background:#161618;color:#f5f5f7;overflow-y:hidden;outline:0!important;box-shadow:none!important}
+body.social-network-theme .refined-chat .social-chat-compose textarea:focus{border-color:#0a84ff}
+body.social-network-theme .refined-chat .social-chat-compose .social-primary{box-sizing:border-box;flex:0 0 34px;width:34px;height:34px;min-width:34px;margin:0 0 2px;padding:0;display:grid;place-items:center;border-radius:50%;background:#0a84ff!important}
+body.social-network-theme .refined-chat .social-chat-compose .social-primary svg{display:block;margin:0;width:22px;height:22px}
+.chat-security-dialog{box-sizing:border-box;background:#16181c;color:#e7e9ea;border:1px solid #424245;border-radius:20px;max-width:460px;width:calc(100vw - 36px);padding:22px;box-shadow:0 20px 70px #0007}
+.chat-security-dialog::backdrop{background:#0009}.chat-security-dialog header{display:flex;align-items:flex-start;gap:12px}.chat-security-dialog h2{font-size:18px;line-height:1.4;margin:0;flex:1}.chat-security-dialog header button{display:grid;place-items:center;width:32px;height:32px;padding:0;background:transparent;border:0;color:#8b98a5}.chat-security-dialog p{font-size:14px;line-height:1.6}.chat-security-dialog code{display:block;overflow-wrap:anywhere;font-size:12px;color:#8b98a5}.chat-security-dialog a{display:block;margin-top:18px;color:#0a84ff!important;font-size:14px}
+@keyframes message-send{0%{opacity:0;transform:translateY(22px) scale(.82)}65%{opacity:1;transform:translateY(-2px) scale(1.015)}100%{opacity:1;transform:translateY(0) scale(1)}}
+body.social-network-theme .refined-chat .message-arriving>p{animation:message-send 420ms cubic-bezier(.2,.8,.25,1) both}
+@media(max-width:700px){body.social-network-theme .refined-chat .social-chat-header{padding:10px 12px;gap:8px;min-height:76px}body.social-network-theme .refined-chat .chat-preference-actions{gap:0}body.social-network-theme .refined-chat .chat-preference-actions button{width:30px;min-width:30px}body.social-network-theme .refined-chat .social-chat-header>.campus-avatar{width:34px;height:34px;flex-basis:34px}body.social-network-theme .refined-chat .social-message>p{max-width:88%}body.social-network-theme .refined-chat .social-chat-compose textarea{font-size:16px}body.social-network-theme .social-post-actions{gap:2px}body.social-network-theme .social-post-actions :is(button,a){padding:9px 10px}}
+@media(prefers-reduced-motion:reduce){body.social-network-theme .refined-chat .message-arriving>p{animation:none}}

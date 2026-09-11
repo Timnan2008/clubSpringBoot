@@ -59,14 +59,6 @@ public class ClubController {
         if (user instanceof Admin || user.getUserRight() >= 3) {
             return true;
         }
-        if (user instanceof Teacher teacher) {
-            List<Club> clubs = teacher.getClubs();
-            if (clubs != null) {
-                for (Club c : clubs) {
-                    if (sameClub(c, club)) return true;
-                }
-            }
-        }
         if (user instanceof ClubPresident president) {
             Club mainClub = president.getMainClub();
             if (sameClub(mainClub, club)) {
@@ -103,7 +95,7 @@ public class ClubController {
     public ResponseMessage<Club> updateNameEn(
             @PathVariable String clubName,
             @Validated @RequestBody ClubDTO clubDTO,
-            @CookieValue(value = "user_session", required = false) String email) {
+            @RequestAttribute(value = "verifiedEmail", required = false) String email) {
 
         // 1. 验证登录状态
         if (email == null || email.isBlank()) {
@@ -141,18 +133,6 @@ public class ClubController {
             Club club = president.getMainClub();
             if(sameClub(club, currentClub)){
                 hasPermission = true;
-            }
-        }
-
-        if(loginUser instanceof Teacher teacher){
-            List<Club> list = teacher.getClubs();
-            if (list != null) {
-                for (Club club : list) {
-                    if (sameClub(club, currentClub)) {
-                        hasPermission = true;
-                        break;
-                    }
-                }
             }
         }
 
@@ -199,6 +179,12 @@ public class ClubController {
 
     @Autowired
     private ClubLikeService clubLikeService;
+    @Autowired private com.qpwflshclub.formal_club.social.SchoolAccounts likeAccounts;
+    @Autowired private com.qpwflshclub.formal_club.workspace.WorkspaceAccess likeAccess;
+    @Autowired private com.qpwflshclub.formal_club.repository.Club.ClubLikeDeviceRepository likeDevices;
+    @Autowired private com.qpwflshclub.formal_club.repository.Club.ClubRepository likeClubs;
+    @GetMapping("/like-state/{id}") public Object likeState(@PathVariable int id,HttpServletRequest request){var u=likeAccounts.current(request);var club=likeClubs.findById(id).orElseThrow(()->new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND));return java.util.Map.of("liked",likeDevices.existsByClubNameEnAndDeviceId(club.getClubNameEn(),com.qpwflshclub.formal_club.social.SchoolAccounts.key(u.getEmail())),"count",club.getVideoLike(),"token",likeAccess.token(request));}
+
 
     @PutMapping("/reverse")
     public ResponseMessage<List<Club>> reverse(HttpServletRequest request){
@@ -225,12 +211,9 @@ public class ClubController {
     @PutMapping("/like/{clubName}")
     public ResponseMessage<Club> like(
             @PathVariable String clubName,
-            @RequestHeader("Device-Id") String deviceId) {
-
-        System.out.println("clubName: " + clubName);
-        System.out.println("deviceId: " + deviceId);
+            @RequestHeader(value="Device-Id",required=false) String deviceId, HttpServletRequest request) {
+        deviceId=com.qpwflshclub.formal_club.social.SchoolAccounts.key(likeAccounts.current(request).getEmail());likeAccess.mutation(request);
         boolean ok = clubLikeService.like(clubName, deviceId);
-        System.out.println("ok: " + ok);
         if (!ok) {
             return ResponseMessage.error("不能刷赞");
         }
@@ -244,7 +227,8 @@ public class ClubController {
     @PutMapping("/dislike/{clubName}")
     public ResponseMessage<Club> dislike(
             @PathVariable String clubName,
-            @RequestHeader("X-Device-Id") String deviceId) {
+            @RequestHeader(value="X-Device-Id",required=false) String deviceId, HttpServletRequest request) {
+        deviceId=com.qpwflshclub.formal_club.social.SchoolAccounts.key(likeAccounts.current(request).getEmail());likeAccess.mutation(request);
 
         boolean ok = clubLikeService.dislike(clubName, deviceId);
         if (!ok) {
@@ -279,7 +263,6 @@ public class ClubController {
     public ResponseMessage<ClubInfoVO> findByName(@PathVariable String clubName){
         Locale locale = LocaleContextHolder.getLocale();
         boolean isEn = locale.getLanguage().equals("en");
-        System.out.println("clubName: " + clubName);
         Club club = clubService.findByName(clubName);
         ClubInfoVO clubInfoVO = new ClubInfoVO();
         clubInfoVO.setClubDescription(isEn? club.getClubDescriptionEn() : club.getClubDescription());
@@ -300,13 +283,15 @@ public class ClubController {
         return ResponseMessage.success(club);
     }
 
+    @Autowired
+    private com.qpwflshclub.formal_club.service.Club.PublicClubCatalog publicCatalog;
+
     @GetMapping("/all")
     public ResponseMessage<List<ClubVO>> findAll(){
         Locale locale = LocaleContextHolder.getLocale();
         boolean isEn = locale.getLanguage().equals("en");
-        System.out.println("isEn: " + isEn);
 
-        List<Club> clubs = clubService.findAll();
+        List<Club> clubs = publicCatalog.all();
 
         List<ClubVO> list = clubs.stream().map(c -> {
             ClubVO vo = new ClubVO();
@@ -317,22 +302,18 @@ public class ClubController {
             vo.setSortDescription(isEn ? c.getSortDescriptionEn() : c.getSortDescription());
             vo.setClubItem(c.getClubItem());
             vo.setGreatClub(c.isGreatClub());
-            vo.setClubURL(isEn
-                    ? "page/club-watch/" + c.getClubNameEn() + "?lang=en"
-                    : "page/club-watch/" + c.getClubNameEn() + "?lang=zh");
+            vo.setClubURL("page/clubs/" + c.getId());
             vo.setClubClass(c.getClubClass());
 
             return vo;
         }).toList();
-
-        System.out.println(list);
 
         return ResponseMessage.success(list);
     }
 
     @GetMapping("/search")
     public ResponseMessage<List<SearchResultVO>> search(@RequestParam String keyword) {
-        List<Club> clubs = clubService.search(keyword);
+        List<Club> clubs = publicCatalog.search(keyword);
         Locale locale = LocaleContextHolder.getLocale();
         boolean isEn = locale.getLanguage().equals("en");
         List<SearchResultVO> results = clubs.stream().map(c -> {
@@ -345,7 +326,7 @@ public class ClubController {
             vo.setClubURL(c.getClubURL());
             String slug = c.getClubNameEn() != null && !c.getClubNameEn().isBlank() ? c.getClubNameEn() : c.getClubName();
             slug = URLEncoder.encode(slug, StandardCharsets.UTF_8);
-            vo.setDetailPath("page/club-watch/" + slug);
+            vo.setDetailPath("page/clubs/" + c.getId());
             return vo;
         }).toList();
         return ResponseMessage.success(results);
@@ -365,7 +346,7 @@ public class ClubController {
      */
     @GetMapping("/my-list")
     public ResponseMessage<List<Map<String, Object>>> getMyClubs(
-            @CookieValue(value = "user_session", required = false) String email) {
+            @RequestAttribute(value = "verifiedEmail", required = false) String email) {
         if (email == null || email.isBlank()) {
             return ResponseMessage.error("未登录或会话已过期");
         }
@@ -499,15 +480,13 @@ public class ClubController {
     public ResponseMessage<String> handleClubAction(
             @PathVariable Integer clubId,
             @RequestParam("type") String actionType,
-            @CookieValue(value = "user_session", required = false) String email) {
-        if (email == null) return ResponseMessage.error("未登录或登录失效");
-        UserBase loginUser = userService.findByEmail(email);
+            HttpServletRequest request) {
+        UserBase loginUser = (UserBase) request.getAttribute("currentUser");
         if (loginUser == null) return ResponseMessage.error("未找到当前账号信息");
 
         try {
             if ("join".equals(actionType)) {
-                userService.addStudentToClubRelationship(loginUser.getId(), clubId);
-                return ResponseMessage.success("成功加入社团");
+                return ResponseMessage.error("学生不能主动加入社团，请联系社长或指导教师添加");
             } else if ("leave".equals(actionType)) {
                 userService.removeStudentFromClubRelationship(loginUser.getId(), clubId);
                 return ResponseMessage.success("已成功退出该社团");

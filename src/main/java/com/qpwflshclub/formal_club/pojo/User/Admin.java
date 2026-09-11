@@ -44,6 +44,7 @@ public class Admin implements UserBase{
         this.adminNameEn = adminNameEn;
     }
 
+    @JsonIgnore
     public String getAdminPassword() {
         return adminPassword;
     }
@@ -65,6 +66,7 @@ public class Admin implements UserBase{
     @Column(name = "admin_name_en")
     private String adminNameEn;
     @Column(name = "admin_password")
+    @JsonIgnore
     public String adminPassword;
     @Column(name = "admin_email")
     public String adminEmail;

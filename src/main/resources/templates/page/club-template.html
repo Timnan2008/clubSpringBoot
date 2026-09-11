@@ -11,10 +11,10 @@
 
 <body>
 <div id="particles"></div>
-<div th:replace="fragments/notice :: notice"></div>
-<div th:replace="fragments/notice-repeat :: notice"></div>
-<div th:replace="fragments/navbar :: navbar"></div>
-<div th:replace="fragments/particle :: particle"></div>
+<div th:replace="~{fragments/notice :: notice}"></div>
+<div th:replace="~{fragments/notice-repeat :: notice}"></div>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+<div th:replace="~{fragments/particle :: particle}"></div>
 
 
 <script th:inline="javascript">

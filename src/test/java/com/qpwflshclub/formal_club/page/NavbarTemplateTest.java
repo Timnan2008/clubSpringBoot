@@ -15,7 +15,7 @@ class NavbarTemplateTest {
 
         assertThat(template).contains("<a th:if=\"${loginUser != null && loginUser.getUserRight() < 1}\" th:href=\"@{/page/my-clubs}\">My Clubs</a>");
         assertThat(template).contains("<a th:if=\"${loginUser != null && loginUser.getUserRight() < 1}\" th:href=\"@{/page/my-clubs}\">我的社团</a>");
-        assertThat(template).contains("<a th:if=\"${loginUser != null && loginUser.getUserRight() >= 1}\" th:href=\"@{/page/club/manage}\">Club Management</a>");
-        assertThat(template).contains("<a th:if=\"${loginUser != null && loginUser.getUserRight() >= 1}\" th:href=\"@{/page/club/manage}\">社团管理</a>");
+        assertThat(template).contains("<a th:if=\"${loginUser != null && (loginUser.getUserRight() == 1 || loginUser.getUserRight() == 2)}\" th:href=\"@{/page/club/workspace}\">Club Management</a>");
+        assertThat(template).contains("<a th:if=\"${loginUser != null && (loginUser.getUserRight() == 1 || loginUser.getUserRight() == 2)}\" th:href=\"@{/page/club/workspace}\">社团管理</a>");
     }
 }

@@ -5,19 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" type="image/png" href="/other%20photo/WFL-logo.png">
     <meta name="description" content="QPWFLHS Club - Discover and explore campus clubs at Shanghai Qingpu World Foreign Language High School.">
-    <link rel="stylesheet" href="/css/common.css">
-    <link rel="stylesheet" href="/css/index_style.css">
+    <link rel="stylesheet" href="/css/common.css?v=20260909-4">
+    <link rel="stylesheet" href="/css/index_style.css?v=20260910-22">
+    <link rel="stylesheet" href="/javascript/darkveil/home.css?v=20260909-4">
     <title th:text="#{nav.home}">首页</title>
 </head>
-
 <body>
-    <div th:replace="fragments/navbar :: navbar"></div>
-    <div th:replace="fragments/notice :: notice"></div>
-    <div th:replace="~{fragments/notice-media :: notice}"></div>
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    <div th:replace="~{fragments/notice :: notice}"></div>
 
-    <!-- Ultra-Glass Parallax Matrix background -->
-    <div class="bg-viewport" aria-hidden="true"></div>
-    <script src="/javascript/ibm-background.js"></script>
+    <!-- React Bits DarkVeil background -->
+    <div class="bg-viewport" aria-hidden="true">
+        <div id="darkveil-background" class="darkveil-layer"></div>
+        <div class="darkveil-fallback"></div>
+    </div>
+    <script defer src="/javascript/darkveil/home.js?v=20260910-22"></script>
 
     <!-- Scrollable page content -->
     <div class="page-content">
@@ -25,9 +27,9 @@
         <!-- Hero -->
         <section class="hero-section">
             <div class="eyebrow">QPWFLHS CLUBS</div>
-            <h1 th:text="#{index.title}">发现你真正想加入的社团</h1>
-            <p class="hero-subtitle" th:text="#{index.subtitle}">探索丰富的校园社团活动，找到属于你的热爱与归属。</p>
-            <a href="/page/club-type/creativity" class="hero-btn" th:text="#{index.btn}">浏览全部社团</a>
+            <h1 th:text="#{index.title}">让热爱，成为校园日常</h1>
+            <p class="hero-subtitle" th:text="#{index.subtitle}">加入喜欢的社团，遇见同频的伙伴，一起创造课堂之外的精彩。</p>
+            <a href="/page/search" class="hero-btn" th:text="#{index.btn}">浏览全部社团</a>
         </section>
 
         <!-- Notice Board -->
@@ -46,7 +48,7 @@
             <div class="scroll-wrapper">
                 <div class="fade-left"></div>
                 <div class="fade-right"></div>
-                <div id="club-scroll" class="scroll-container"></div>
+                <div id="club-scroll" class="scroll-container" role="region" tabindex="0" aria-label="优秀社团展示" th:aria-label="#{index.clubs.title}" aria-busy="true"><div class="club-skeleton"></div><div class="club-skeleton"></div><div class="club-skeleton"></div></div>
             </div>
         </section>
 
@@ -65,22 +67,24 @@
                 const data = Array.isArray(result.data) ? result.data : [];
                 const container = document.getElementById('club-scroll');
                 const greats = data.filter(c => c.greatClub);
-                const source = greats.length > 0 ? greats : data;
-                const items = [...source, ...source];
-                container.innerHTML = '';
+                const source = [...greats, ...data.filter(c => !c.greatClub)].slice(0, Math.max(6,greats.length));
+                const items = source;
+                container.replaceChildren();container.setAttribute('aria-busy','false');
                 items.forEach(c => {
-                    const card = document.createElement('div');
+                    const card = document.createElement('a');
+                    card.href='/page/clubs/'+Number(c.id);
                     card.className = 'card';
-                    card.innerHTML =
-                        '<img src="' + c.clubItem + '" alt="' + c.clubName + '">' +
-                        '<div class="card-content">' +
-                        '<h2>' + c.clubName + '</h2>' +
-                        '<p>' + c.sortDescription + '</p>' +
-                        '<a class="button" href="/' + c.clubURL + '">' + btnText + '</a>' +
-                        '</div>';
+                    const img=document.createElement('img');img.alt=c.clubName;img.loading='lazy';img.decoding='async';img.width=280;img.height=170;
+                    const url=new URL(c.clubItem||'/other%20photo/WFL-crest.svg',location.origin);img.src=['http:','https:'].includes(url.protocol)?url.href:'/other%20photo/WFL-crest.svg';
+                    img.onerror=()=>{img.onerror=null;img.src='/other%20photo/WFL-crest.svg';};
+                    const copy=document.createElement('div');copy.className='card-content';
+                    const title=document.createElement('h2');title.textContent=c.clubName;
+                    const description=document.createElement('p');description.textContent=c.sortDescription;
+                    const link=document.createElement('span');link.className='card-visit';link.textContent=btnText+' ↗';
+                    copy.append(title,description,link);card.append(img,copy);
                     container.appendChild(card);
                 });
-            });
+            }).catch(()=>{const box=document.getElementById('club-scroll');box.replaceChildren();const a=document.createElement('a');a.href='/page/search';a.textContent=btnText;box.append(a);box.setAttribute('aria-busy','false');});
     </script>
 </body>
 </html>

@@ -1,0 +1,8 @@
+package com.qpwflshclub.formal_club.social;
+import org.junit.jupiter.api.Test;import com.fasterxml.jackson.databind.ObjectMapper;import java.util.*;import static org.assertj.core.api.Assertions.*;import static org.mockito.Mockito.*;
+class MessageKeyVaultTest {
+ private String envelope(String id)throws Exception{return new ObjectMapper().writeValueAsString(Map.of("version",1,"account",id,"iv",Base64.getEncoder().encodeToString(new byte[12]),"salt",Base64.getEncoder().encodeToString(new byte[16]),"ciphertext",Base64.getEncoder().encodeToString(new byte[64])));}
+ @Test void rejectsAnotherAccountsBackupAndPlaintext()throws Exception{var repo=mock(MessageKeyBackupRepository.class);var vault=new MessageKeyVault(repo,new ObjectMapper());String a="a".repeat(64),b="b".repeat(64);vault.validate(a,envelope(a));assertThatThrownBy(()->vault.create(a,envelope(b))).hasMessageContaining("400");assertThatThrownBy(()->vault.create(a,"private key text")).hasMessageContaining("400");verifyNoInteractions(repo);}
+ @Test void creationCannotOverwriteAnExistingBackup()throws Exception{var repo=mock(MessageKeyBackupRepository.class);var vault=new MessageKeyVault(repo,new ObjectMapper());String a="a".repeat(64);when(repo.existsById(a)).thenReturn(true);assertThatThrownBy(()->vault.create(a,envelope(a))).hasMessageContaining("409");verify(repo,never()).save(any());}
+ @Test void replaceUpdatesExistingVersionedEntity()throws Exception{var repo=mock(MessageKeyBackupRepository.class);var vault=new MessageKeyVault(repo,new ObjectMapper());String a="a".repeat(64);var row=new MessageKeyBackup(a,"old envelope");when(repo.findById(a)).thenReturn(Optional.of(row));vault.replace(a,envelope(a));assertThat(row.envelope).isEqualTo(envelope(a));verify(repo).save(row);}
+}

@@ -151,6 +151,16 @@ class UserServicePresidentRoleTest {
         verify(userRepository, never()).save(unrelatedStudentWithSameId);
     }
 
+    @Test
+    void teacherBindingUpdatesOldAndNewAdvisersUsingClubIdValues() {
+        var old=club(200,"Old");var next=club(201,"New");var detached=club(Integer.valueOf("201"),"New");
+        var teacher=new com.qpwflshclub.formal_club.pojo.User.Teacher();teacher.setId(9L);teacher.setClubs(List.of(old));
+        var dto=new com.qpwflshclub.formal_club.pojo.dto.User.TeacherDTO();dto.setId(9L);dto.setTeacherName("张老师");dto.setTeacherNameEn("Ms Zhang");dto.setClubs(List.of(201L));
+        when(teacherRepository.findById(9L)).thenReturn(Optional.of(teacher));when(clubRepository.findAllById(List.of(201))).thenReturn(List.of(detached));
+        when(teacherRepository.save(any())).thenAnswer(i->i.getArgument(0));when(teacherRepository.findAll()).thenReturn(List.of(teacher));
+        userService.update(dto);assertThat(old.getTeacher()).isEmpty();assertThat(detached.getTeacher()).isEqualTo("张老师");assertThat(detached.getTeacherEn()).isEqualTo("Ms Zhang");
+    }
+
     private static Club club(Integer id, String nameEn) {
         Club club = new Club();
         club.setId(id);

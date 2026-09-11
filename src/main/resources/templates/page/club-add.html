@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/png" href="/other%20photo/WFL-logo.png">
-    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/common.css?v=20260909-4">
     <title>新增社团</title>
     <style>
         body {
@@ -268,8 +268,8 @@
     </style>
 </head>
 <body>
-<div th:replace="fragments/navbar :: navbar"></div>
-<div th:replace="fragments/particle :: particle"></div>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+<div th:replace="~{fragments/particle :: particle}"></div>
 
 <main class="create-page">
     <section class="create-panel">

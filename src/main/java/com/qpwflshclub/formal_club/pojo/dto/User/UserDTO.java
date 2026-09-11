@@ -10,12 +10,18 @@ import java.util.List;
 @JsonTypeName("User")
 public class UserDTO implements UserBaseDTO{
 
+    private String studentNumber,nickname;
+    public String getStudentNumber(){return studentNumber;} public void setStudentNumber(String value){studentNumber=value;}
+    public String getNickname(){return nickname;} public void setNickname(String value){nickname=value;}
+    private String emailCode;
+    public String getEmailCode(){return emailCode;} public void setEmailCode(String value){emailCode=value;}
+    private String turnstileToken;
+    public String getTurnstileToken(){return turnstileToken;}
+    public void setTurnstileToken(String token){turnstileToken=token;}
     private Long id;
 
-    @NotNull(message = "用户名不能为空")
-    private String username;
-    @NotNull(message = "用户名英文不能为空")
-    private String usernameEn;
+    private String username = "";
+    private String usernameEn = "";
     @NotNull(message = "密码不能为空")
     private String password;
     @NotNull(message = "邮箱不能为空")

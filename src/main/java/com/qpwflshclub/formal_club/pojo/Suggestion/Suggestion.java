@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 @Entity
 @Table(name = "tb_suggestions")
 public class Suggestion {
+    @Transient private String nameEn;
+    public String getNameEn(){return nameEn;} public void setNameEn(String name){nameEn=name;}
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -12,7 +14,7 @@ public class Suggestion {
     @Column(name = "title")
     private String title;
 
-    @Column(name = "context")
+    @Column(name = "context", length = 500)
     private String context;
 
     @Column(name = "is_anonymous")

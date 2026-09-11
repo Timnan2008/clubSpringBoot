@@ -9,6 +9,14 @@ import java.util.List;
 @JsonTypeName("Teacher")
 public class TeacherDTO implements UserBaseDTO{
 
+    private String studentNumber,nickname;
+    public String getStudentNumber(){return studentNumber;} public void setStudentNumber(String value){studentNumber=value;}
+    public String getNickname(){return nickname;} public void setNickname(String value){nickname=value;}
+    private String emailCode;
+    public String getEmailCode(){return emailCode;} public void setEmailCode(String value){emailCode=value;}
+    private String turnstileToken;
+    public String getTurnstileToken(){return turnstileToken;}
+    public void setTurnstileToken(String token){turnstileToken=token;}
     private Long id;
 
     public void setId(Long id) {
@@ -58,11 +66,9 @@ public class TeacherDTO implements UserBaseDTO{
         this.id = id;
     }
 
-    @NotNull(message = "教师名称不能为空")
-    private String teacherName;
+    private String teacherName = "";
 
-    @NotNull(message = "教师英文名称不能为空")
-    private String teacherNameEn;
+    private String teacherNameEn = "";
 
     @NotNull(message = "教师密码不能为空")
     private String teacherPassword;

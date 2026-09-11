@@ -21,6 +21,10 @@ public class MailService {
      */
     public void sendCode(String smtpHost, int smtpPort, String smtpUser, String smtpPass, String to, String code) {
 
+        send(smtpHost,smtpPort,smtpUser,smtpPass,to,"【验证码】邮箱验证","您的验证码是："+code+"\n有效期 5 分钟，请勿泄露给他人。");
+    }
+    public void sendRecoveryCode(String host,int port,String user,String password,String to,String code,boolean en){send(host,port,user,password,to,en?"Reset your QPWFLHS Clubs password":"重置校园社团账号密码",en?"Your password reset code is: "+code+"\nExpires in 5 minutes. If you did not request this, ignore this email.":"你的密码重置验证码是："+code+"\n5 分钟内有效。若非本人操作，请忽略此邮件。");}
+    private void send(String smtpHost,int smtpPort,String smtpUser,String smtpPass,String to,String subject,String text){
         JavaMailSenderImpl sender = new JavaMailSenderImpl();
         sender.setHost(smtpHost);
         sender.setPort(smtpPort);
@@ -37,14 +41,17 @@ public class MailService {
             // 端口 587 使用 STARTTLS
             props.put("mail.smtp.starttls.enable", "true");
         }
-        props.put("mail.smtp.ssl.trust", "*"); // 信任所有 SSL/TLS 证书
+        props.put("mail.smtp.connectiontimeout", "5000");
+        props.put("mail.smtp.timeout", "10000");
+        props.put("mail.smtp.writetimeout", "10000");
+        props.put("mail.smtp.ssl.checkserveridentity", "true");
 
         // 构建邮件
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(smtpUser);
         message.setTo(to);
-        message.setSubject("【验证码】邮箱验证");
-        message.setText("您的验证码是：" + code + "\n有效期 5 分钟，请勿泄露给他人。");
+        message.setSubject(subject);
+        message.setText(text);
 
         sender.send(message);
     }

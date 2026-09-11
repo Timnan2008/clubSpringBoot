@@ -14,6 +14,9 @@ import org.springframework.data.repository.query.Param;
 public interface ClubRepository extends CrudRepository<Club, Integer> {
     List<Club> findAll();
     Optional<Club> findByClubNameEn(String clubName);
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Query("select c from Club c where c.clubNameEn = :name")
+    Optional<Club> lockByName(@Param("name") String name);
 
     @Query("select c from Club c where " +
            "lower(c.clubName) like lower(concat('%', :keyword, '%')) or " +

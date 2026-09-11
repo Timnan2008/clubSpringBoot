@@ -95,8 +95,8 @@
     </style>
 </head>
 <body>
-<div th:replace="fragments/navbar :: navbar"></div>
-<div th:replace="fragments/notice :: notice"></div>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+<div th:replace="~{fragments/notice :: notice}"></div>
 <div class="edit-container">
     <h2>📝 修改社团核心信息</h2>
     <form id="edit-club-form">
