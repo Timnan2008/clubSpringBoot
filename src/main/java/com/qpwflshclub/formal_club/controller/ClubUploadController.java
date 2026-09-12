@@ -1,6 +1,5 @@
 package com.qpwflshclub.formal_club.controller;
 
-
 import com.qpwflshclub.formal_club.pojo.Club.Club;
 import com.qpwflshclub.formal_club.pojo.ResponseMessage;
 import com.qpwflshclub.formal_club.pojo.User.Admin;
@@ -9,13 +8,12 @@ import com.qpwflshclub.formal_club.pojo.User.Teacher;
 import com.qpwflshclub.formal_club.pojo.User.UserBase;
 import com.qpwflshclub.formal_club.service.Club.IClubService;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.File;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/club")
@@ -29,10 +27,10 @@ public class ClubUploadController {
 
     @PostMapping("/upload/logo/{clubId}")
     public ResponseMessage<String> uploadLogo(
-            @PathVariable Integer clubId,
-            @RequestParam("file") MultipartFile file,
-            HttpServletRequest request){
-
+        @PathVariable Integer clubId,
+        @RequestParam("file") MultipartFile file,
+        HttpServletRequest request
+    ) {
         if (file.isEmpty()) {
             return ResponseMessage.error("文件为空");
         }
@@ -76,7 +74,6 @@ public class ClubUploadController {
             clubService.update(club.toDTO());
 
             return ResponseMessage.success(fileUrl);
-
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseMessage.error("上传失败: " + e.getMessage());

@@ -2,7 +2,6 @@ package com.qpwflshclub.formal_club.pojo.User;
 
 import com.qpwflshclub.formal_club.pojo.Club.Club;
 import jakarta.persistence.*;
-
 import java.util.List;
 
 @Inheritance(strategy = InheritanceType.JOINED)
@@ -15,8 +14,10 @@ public interface UserBase {
     void setUsername(String username);
     String getUsernameEn();
     void setUsernameEn(String usernameEn);
+
     @com.fasterxml.jackson.annotation.JsonIgnore
     String getPassword();
+
     void setPassword(String password);
     String getEmail();
     void setEmail(String email);

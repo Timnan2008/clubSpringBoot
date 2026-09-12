@@ -5,19 +5,12 @@ import com.qpwflshclub.formal_club.pojo.Club.ClubInfoVO;
 import com.qpwflshclub.formal_club.pojo.Club.ClubVO;
 import com.qpwflshclub.formal_club.pojo.Club.SearchResultVO;
 import com.qpwflshclub.formal_club.pojo.ResponseMessage;
+import com.qpwflshclub.formal_club.pojo.User.*;
 import com.qpwflshclub.formal_club.pojo.User.UserBase;
 import com.qpwflshclub.formal_club.pojo.dto.Club.ClubDTO;
 import com.qpwflshclub.formal_club.service.Club.ClubLikeService;
 import com.qpwflshclub.formal_club.service.Club.IClubService;
-import com.qpwflshclub.formal_club.pojo.User.*;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.i18n.LocaleContextHolder;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.File;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -25,12 +18,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/club")
 public class ClubController {
-
-
 
     @Autowired
     IClubService clubService;
@@ -69,7 +66,10 @@ public class ClubController {
     }
 
     @PostMapping
-    public ResponseMessage<Club> add(@Validated @RequestBody ClubDTO clubDTO, HttpServletRequest request){
+    public ResponseMessage<Club> add(
+        @Validated @RequestBody ClubDTO clubDTO,
+        HttpServletRequest request
+    ) {
         UserBase user = getCurrentUser(request);
         if (!isAdmin(user)) {
             return ResponseMessage.error("无权限：只有管理员可以创建社团");
@@ -79,7 +79,11 @@ public class ClubController {
     }
 
     @PutMapping("/{clubId}")
-    public ResponseMessage<Club> update(@PathVariable Integer clubId, @Validated @RequestBody ClubDTO clubDTO, HttpServletRequest request){
+    public ResponseMessage<Club> update(
+        @PathVariable Integer clubId,
+        @Validated @RequestBody ClubDTO clubDTO,
+        HttpServletRequest request
+    ) {
         UserBase user = getCurrentUser(request);
         Club club = clubService.find(clubId);
         if (!canManageClub(user, club)) {
@@ -93,10 +97,10 @@ public class ClubController {
     //严格修改
     @PutMapping("/name-en/{clubName}")
     public ResponseMessage<Club> updateNameEn(
-            @PathVariable String clubName,
-            @Validated @RequestBody ClubDTO clubDTO,
-            @RequestAttribute(value = "verifiedEmail", required = false) String email) {
-
+        @PathVariable String clubName,
+        @Validated @RequestBody ClubDTO clubDTO,
+        @RequestAttribute(value = "verifiedEmail", required = false) String email
+    ) {
         // 1. 验证登录状态
         if (email == null || email.isBlank()) {
             return ResponseMessage.error("未登录，无权修改");
@@ -129,9 +133,9 @@ public class ClubController {
     private static boolean isHasPermission(UserBase loginUser, Club currentClub) {
         boolean hasPermission = false;
 
-        if(loginUser instanceof ClubPresident president){
+        if (loginUser instanceof ClubPresident president) {
             Club club = president.getMainClub();
-            if(sameClub(club, currentClub)){
+            if (sameClub(club, currentClub)) {
                 hasPermission = true;
             }
         }
@@ -149,7 +153,10 @@ public class ClubController {
     }
 
     @PutMapping("/initialize-url/{clubName}")
-    public ResponseMessage<Club> initializeUrl(@PathVariable String clubName, HttpServletRequest request){
+    public ResponseMessage<Club> initializeUrl(
+        @PathVariable String clubName,
+        HttpServletRequest request
+    ) {
         UserBase user = getCurrentUser(request);
         Club club = clubService.findByName(clubName);
         if (!canManageClub(user, club)) {
@@ -161,16 +168,22 @@ public class ClubController {
     }
 
     @PutMapping("/video-all")
-    public ResponseMessage<List<Club>> updateAll(HttpServletRequest request){
+    public ResponseMessage<List<Club>> updateAll(HttpServletRequest request) {
         UserBase user = getCurrentUser(request);
         if (!(user instanceof Admin) && user.getUserRight() < 3) {
             return ResponseMessage.error("无权限：只有管理员可以批量更新视频");
         }
         List<Club> clubs = clubService.findAll();
 
-        for(Club club : clubs){
+        for (Club club : clubs) {
             ClubDTO clubDto = club.toDTO();
-            clubDto.setVideo("http://123.57.189.22/media/video/" + club.getClubClass() + "/" + club.getClubNameEn() + ".mp4");
+            clubDto.setVideo(
+                "http://123.57.189.22/media/video/" +
+                    club.getClubClass() +
+                    "/" +
+                    club.getClubNameEn() +
+                    ".mp4"
+            );
             clubService.update(clubDto);
         }
 
@@ -179,15 +192,44 @@ public class ClubController {
 
     @Autowired
     private ClubLikeService clubLikeService;
-    @Autowired private com.qpwflshclub.formal_club.social.SchoolAccounts likeAccounts;
-    @Autowired private com.qpwflshclub.formal_club.workspace.WorkspaceAccess likeAccess;
-    @Autowired private com.qpwflshclub.formal_club.repository.Club.ClubLikeDeviceRepository likeDevices;
-    @Autowired private com.qpwflshclub.formal_club.repository.Club.ClubRepository likeClubs;
-    @GetMapping("/like-state/{id}") public Object likeState(@PathVariable int id,HttpServletRequest request){var u=likeAccounts.current(request);var club=likeClubs.findById(id).orElseThrow(()->new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND));return java.util.Map.of("liked",likeDevices.existsByClubNameEnAndDeviceId(club.getClubNameEn(),com.qpwflshclub.formal_club.social.SchoolAccounts.key(u.getEmail())),"count",club.getVideoLike(),"token",likeAccess.token(request));}
 
+    @Autowired
+    private com.qpwflshclub.formal_club.social.SchoolAccounts likeAccounts;
+
+    @Autowired
+    private com.qpwflshclub.formal_club.workspace.WorkspaceAccess likeAccess;
+
+    @Autowired
+    private com.qpwflshclub.formal_club.repository.Club.ClubLikeDeviceRepository likeDevices;
+
+    @Autowired
+    private com.qpwflshclub.formal_club.repository.Club.ClubRepository likeClubs;
+
+    @GetMapping("/like-state/{id}")
+    public Object likeState(@PathVariable int id, HttpServletRequest request) {
+        var u = likeAccounts.current(request);
+        var club = likeClubs
+            .findById(id)
+            .orElseThrow(() ->
+                new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.NOT_FOUND
+                )
+            );
+        return java.util.Map.of(
+            "liked",
+            likeDevices.existsByClubNameEnAndDeviceId(
+                club.getClubNameEn(),
+                com.qpwflshclub.formal_club.social.SchoolAccounts.key(u.getEmail())
+            ),
+            "count",
+            club.getVideoLike(),
+            "token",
+            likeAccess.token(request)
+        );
+    }
 
     @PutMapping("/reverse")
-    public ResponseMessage<List<Club>> reverse(HttpServletRequest request){
+    public ResponseMessage<List<Club>> reverse(HttpServletRequest request) {
         UserBase user = getCurrentUser(request);
         if (!(user instanceof Admin) && user.getUserRight() < 3) {
             return ResponseMessage.error("无权限：只有管理员可以交换社长/副社长");
@@ -207,12 +249,16 @@ public class ClubController {
         return ResponseMessage.success(clubs);
     }
 
-
     @PutMapping("/like/{clubName}")
     public ResponseMessage<Club> like(
-            @PathVariable String clubName,
-            @RequestHeader(value="Device-Id",required=false) String deviceId, HttpServletRequest request) {
-        deviceId=com.qpwflshclub.formal_club.social.SchoolAccounts.key(likeAccounts.current(request).getEmail());likeAccess.mutation(request);
+        @PathVariable String clubName,
+        @RequestHeader(value = "Device-Id", required = false) String deviceId,
+        HttpServletRequest request
+    ) {
+        deviceId = com.qpwflshclub.formal_club.social.SchoolAccounts.key(
+            likeAccounts.current(request).getEmail()
+        );
+        likeAccess.mutation(request);
         boolean ok = clubLikeService.like(clubName, deviceId);
         if (!ok) {
             return ResponseMessage.error("不能刷赞");
@@ -223,12 +269,16 @@ public class ClubController {
         return ResponseMessage.success(club);
     }
 
-
     @PutMapping("/dislike/{clubName}")
     public ResponseMessage<Club> dislike(
-            @PathVariable String clubName,
-            @RequestHeader(value="X-Device-Id",required=false) String deviceId, HttpServletRequest request) {
-        deviceId=com.qpwflshclub.formal_club.social.SchoolAccounts.key(likeAccounts.current(request).getEmail());likeAccess.mutation(request);
+        @PathVariable String clubName,
+        @RequestHeader(value = "X-Device-Id", required = false) String deviceId,
+        HttpServletRequest request
+    ) {
+        deviceId = com.qpwflshclub.formal_club.social.SchoolAccounts.key(
+            likeAccounts.current(request).getEmail()
+        );
+        likeAccess.mutation(request);
 
         boolean ok = clubLikeService.dislike(clubName, deviceId);
         if (!ok) {
@@ -239,11 +289,9 @@ public class ClubController {
         return ResponseMessage.success(club);
     }
 
-
-
     //删除
     @DeleteMapping("/{clubId}")
-    public ResponseMessage<Club> delete(@PathVariable Integer clubId, HttpServletRequest request){
+    public ResponseMessage<Club> delete(@PathVariable Integer clubId, HttpServletRequest request) {
         UserBase user = getCurrentUser(request);
         if (!isAdmin(user)) {
             return ResponseMessage.error("无权限：只有管理员可以删除社团");
@@ -254,31 +302,33 @@ public class ClubController {
 
     //查询
     @GetMapping("/id/{clubId}")
-    public ResponseMessage<Club> find(@PathVariable Integer clubId){
+    public ResponseMessage<Club> find(@PathVariable Integer clubId) {
         Club club = clubService.find(clubId);
         return ResponseMessage.success(club);
     }
 
     @GetMapping("/name-en/{clubName}")
-    public ResponseMessage<ClubInfoVO> findByName(@PathVariable String clubName){
+    public ResponseMessage<ClubInfoVO> findByName(@PathVariable String clubName) {
         Locale locale = LocaleContextHolder.getLocale();
         boolean isEn = locale.getLanguage().equals("en");
         Club club = clubService.findByName(clubName);
         ClubInfoVO clubInfoVO = new ClubInfoVO();
-        clubInfoVO.setClubDescription(isEn? club.getClubDescriptionEn() : club.getClubDescription());
-        clubInfoVO.setClubName(isEn? club.getClubNameEn() : club.getClubName());
+        clubInfoVO.setClubDescription(
+            isEn ? club.getClubDescriptionEn() : club.getClubDescription()
+        );
+        clubInfoVO.setClubName(isEn ? club.getClubNameEn() : club.getClubName());
         clubInfoVO.setClubItem(club.getClubItem());
         clubInfoVO.setVideo(club.getVideo());
         clubInfoVO.setVideoLike(club.getVideoLike());
-        clubInfoVO.setPresident(isEn? club.getPresidentEn() : club.getPresident());
-        clubInfoVO.setVicePresident(isEn? club.getVicePresidentEn() : club.getVicePresident());
-        clubInfoVO.setTeacher(isEn? club.getTeacherEn() : club.getTeacher());
+        clubInfoVO.setPresident(isEn ? club.getPresidentEn() : club.getPresident());
+        clubInfoVO.setVicePresident(isEn ? club.getVicePresidentEn() : club.getVicePresident());
+        clubInfoVO.setTeacher(isEn ? club.getTeacherEn() : club.getTeacher());
 
         return ResponseMessage.success(clubInfoVO);
     }
 
     @GetMapping("/name-en/all-info/{clubNameEn}")
-    public ResponseMessage<Club>findByname(@PathVariable String clubNameEn){
+    public ResponseMessage<Club> findByname(@PathVariable String clubNameEn) {
         Club club = clubService.findByName(clubNameEn);
         return ResponseMessage.success(club);
     }
@@ -287,26 +337,29 @@ public class ClubController {
     private com.qpwflshclub.formal_club.service.Club.PublicClubCatalog publicCatalog;
 
     @GetMapping("/all")
-    public ResponseMessage<List<ClubVO>> findAll(){
+    public ResponseMessage<List<ClubVO>> findAll() {
         Locale locale = LocaleContextHolder.getLocale();
         boolean isEn = locale.getLanguage().equals("en");
 
         List<Club> clubs = publicCatalog.all();
 
-        List<ClubVO> list = clubs.stream().map(c -> {
-            ClubVO vo = new ClubVO();
+        List<ClubVO> list = clubs
+            .stream()
+            .map(c -> {
+                ClubVO vo = new ClubVO();
 
-            vo.setId(c.getId());
-            vo.setClubName(isEn ? c.getClubNameEn() : c.getClubName());
-            vo.setClubNameEn(c.getClubNameEn());
-            vo.setSortDescription(isEn ? c.getSortDescriptionEn() : c.getSortDescription());
-            vo.setClubItem(c.getClubItem());
-            vo.setGreatClub(c.isGreatClub());
-            vo.setClubURL("page/clubs/" + c.getId());
-            vo.setClubClass(c.getClubClass());
+                vo.setId(c.getId());
+                vo.setClubName(isEn ? c.getClubNameEn() : c.getClubName());
+                vo.setClubNameEn(c.getClubNameEn());
+                vo.setSortDescription(isEn ? c.getSortDescriptionEn() : c.getSortDescription());
+                vo.setClubItem(c.getClubItem());
+                vo.setGreatClub(c.isGreatClub());
+                vo.setClubURL("page/clubs/" + c.getId());
+                vo.setClubClass(c.getClubClass());
 
-            return vo;
-        }).toList();
+                return vo;
+            })
+            .toList();
 
         return ResponseMessage.success(list);
     }
@@ -316,22 +369,27 @@ public class ClubController {
         List<Club> clubs = publicCatalog.search(keyword);
         Locale locale = LocaleContextHolder.getLocale();
         boolean isEn = locale.getLanguage().equals("en");
-        List<SearchResultVO> results = clubs.stream().map(c -> {
-            SearchResultVO vo = new SearchResultVO();
-            vo.setId(c.getId());
-            vo.setName(isEn? c.getClubNameEn() : c.getClubName());
-            vo.setDescription(isEn ? c.getClubDescriptionEn() : c.getClubDescription());
-            vo.setBrief(isEn ? c.getSortDescriptionEn() : c.getSortDescription());
-            vo.setLogo(c.getClubItem());
-            vo.setClubURL(c.getClubURL());
-            String slug = c.getClubNameEn() != null && !c.getClubNameEn().isBlank() ? c.getClubNameEn() : c.getClubName();
-            slug = URLEncoder.encode(slug, StandardCharsets.UTF_8);
-            vo.setDetailPath("page/clubs/" + c.getId());
-            return vo;
-        }).toList();
+        List<SearchResultVO> results = clubs
+            .stream()
+            .map(c -> {
+                SearchResultVO vo = new SearchResultVO();
+                vo.setId(c.getId());
+                vo.setName(isEn ? c.getClubNameEn() : c.getClubName());
+                vo.setDescription(isEn ? c.getClubDescriptionEn() : c.getClubDescription());
+                vo.setBrief(isEn ? c.getSortDescriptionEn() : c.getSortDescription());
+                vo.setLogo(c.getClubItem());
+                vo.setClubURL(c.getClubURL());
+                String slug =
+                    c.getClubNameEn() != null && !c.getClubNameEn().isBlank()
+                        ? c.getClubNameEn()
+                        : c.getClubName();
+                slug = URLEncoder.encode(slug, StandardCharsets.UTF_8);
+                vo.setDetailPath("page/clubs/" + c.getId());
+                return vo;
+            })
+            .toList();
         return ResponseMessage.success(results);
     }
-
 
     /* ========================================================================= */
     /* 以下为新添加的“我的社团”全交互 API                    */
@@ -346,7 +404,8 @@ public class ClubController {
      */
     @GetMapping("/my-list")
     public ResponseMessage<List<Map<String, Object>>> getMyClubs(
-            @RequestAttribute(value = "verifiedEmail", required = false) String email) {
+        @RequestAttribute(value = "verifiedEmail", required = false) String email
+    ) {
         if (email == null || email.isBlank()) {
             return ResponseMessage.error("未登录或会话已过期");
         }
@@ -362,26 +421,32 @@ public class ClubController {
         List<Club> allClubs = clubService.findAll(); // 确保你的 clubService 实现了基本查询全量的方法
 
         // ClubController.java 里的 getMyClubs 方法内
-        List<Map<String, Object>> resultList = allClubs.stream().map(c -> {
-            Map<String, Object> map = new HashMap<>();
-            map.put("id", c.getId());
-            map.put("clubName", c.getClubName());
-            map.put("clubNameEn", c.getClubNameEn());
-            map.put("clubItem", c.getClubItem());
+        List<Map<String, Object>> resultList = allClubs
+            .stream()
+            .map(c -> {
+                Map<String, Object> map = new HashMap<>();
+                map.put("id", c.getId());
+                map.put("clubName", c.getClubName());
+                map.put("clubNameEn", c.getClubNameEn());
+                map.put("clubItem", c.getClubItem());
 
-            // 1. 获取原有的社团内特定身份
-            String roleStr = "none";
-            if (loginUser instanceof Teacher) { /* ...原逻辑... */ roleStr = "teacher"; }
-            else if (loginUser instanceof ClubPresident) { /* ...原逻辑... */ roleStr = "president"; }
-            // ...保持你原有的交叉计算逻辑...
-            map.put("currentUserRole", roleStr);
+                // 1. 获取原有的社团内特定身份
+                String roleStr = "none";
+                if (loginUser instanceof Teacher) {
+                    /* ...原逻辑... */ roleStr = "teacher";
+                } else if (loginUser instanceof ClubPresident) {
+                    /* ...原逻辑... */ roleStr = "president";
+                }
+                // ...保持你原有的交叉计算逻辑...
+                map.put("currentUserRole", roleStr);
 
-            // 2. 🌟 新增：直接把当前用户的全局 userright 等级塞进返回结果中
-            // 假设你的 UserBase 实体类中有 getUserright() 方法，如果没有，请替换为你系统中实际的获取权限字段
-            map.put("userright", loginUser.getUserRight());
+                // 2. 🌟 新增：直接把当前用户的全局 userright 等级塞进返回结果中
+                // 假设你的 UserBase 实体类中有 getUserright() 方法，如果没有，请替换为你系统中实际的获取权限字段
+                map.put("userright", loginUser.getUserRight());
 
-            return map;
-        }).toList();
+                return map;
+            })
+            .toList();
         return ResponseMessage.success(resultList);
     }
 
@@ -391,7 +456,10 @@ public class ClubController {
      */
     @Transactional(readOnly = true)
     @GetMapping("/{clubId}/members")
-    public ResponseMessage<List<Map<String, Object>>> getClubMembers(@PathVariable Integer clubId, HttpServletRequest request) {
+    public ResponseMessage<List<Map<String, Object>>> getClubMembers(
+        @PathVariable Integer clubId,
+        HttpServletRequest request
+    ) {
         UserBase user = getManagedCurrentUser(request);
         Club club = clubService.find(clubId);
         if (!canManageClub(user, club)) {
@@ -404,9 +472,10 @@ public class ClubController {
     @Transactional(readOnly = true)
     @GetMapping("/{clubId}/students/search")
     public ResponseMessage<List<Map<String, Object>>> searchStudentsForClub(
-            @PathVariable Integer clubId,
-            @RequestParam(value = "keyword", required = false) String keyword,
-            HttpServletRequest request) {
+        @PathVariable Integer clubId,
+        @RequestParam(value = "keyword", required = false) String keyword,
+        HttpServletRequest request
+    ) {
         UserBase user = getManagedCurrentUser(request);
         Club club = clubService.find(clubId);
         if (!canManageClub(user, club)) {
@@ -417,7 +486,10 @@ public class ClubController {
 
     @Transactional
     @PostMapping("/member/add")
-    public ResponseMessage<String> addMember(@RequestBody Map<String, Object> payload, HttpServletRequest request) {
+    public ResponseMessage<String> addMember(
+        @RequestBody Map<String, Object> payload,
+        HttpServletRequest request
+    ) {
         UserBase user = getManagedCurrentUser(request);
         Integer clubId = Integer.valueOf(payload.get("clubId").toString());
         Club club = clubService.find(clubId);
@@ -435,7 +507,10 @@ public class ClubController {
 
     @Transactional
     @PutMapping("/member/update")
-    public ResponseMessage<String> updateMemberRole(@RequestBody Map<String, Object> payload, HttpServletRequest request) {
+    public ResponseMessage<String> updateMemberRole(
+        @RequestBody Map<String, Object> payload,
+        HttpServletRequest request
+    ) {
         UserBase user = getManagedCurrentUser(request);
         Integer clubId = Integer.valueOf(payload.get("clubId").toString());
         Club club = clubService.find(clubId);
@@ -455,7 +530,10 @@ public class ClubController {
 
     @Transactional
     @DeleteMapping("/member/kick")
-    public ResponseMessage<String> kickMember(@RequestBody Map<String, Object> payload, HttpServletRequest request) {
+    public ResponseMessage<String> kickMember(
+        @RequestBody Map<String, Object> payload,
+        HttpServletRequest request
+    ) {
         UserBase user = getManagedCurrentUser(request);
         Integer clubId = Integer.valueOf(payload.get("clubId").toString());
         Club club = clubService.find(clubId);
@@ -478,9 +556,10 @@ public class ClubController {
      */
     @PostMapping("/{clubId}/action")
     public ResponseMessage<String> handleClubAction(
-            @PathVariable Integer clubId,
-            @RequestParam("type") String actionType,
-            HttpServletRequest request) {
+        @PathVariable Integer clubId,
+        @RequestParam("type") String actionType,
+        HttpServletRequest request
+    ) {
         UserBase loginUser = (UserBase) request.getAttribute("currentUser");
         if (loginUser == null) return ResponseMessage.error("未找到当前账号信息");
 
@@ -543,5 +622,4 @@ public class ClubController {
         }
     }
     ========================= */
-
 }

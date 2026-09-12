@@ -1,13 +1,20 @@
 package com.qpwflshclub.formal_club.pojo.dto.Suggestion;
 
-
 import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotNull;
 
 public class SuggestionDTO {
+
     private String turnstileToken;
-    public String getTurnstileToken(){return turnstileToken;}
-    public void setTurnstileToken(String token){turnstileToken=token;}
+
+    public String getTurnstileToken() {
+        return turnstileToken;
+    }
+
+    public void setTurnstileToken(String token) {
+        turnstileToken = token;
+    }
+
     private Long id;
 
     @NotNull(message = "内容不能为空")

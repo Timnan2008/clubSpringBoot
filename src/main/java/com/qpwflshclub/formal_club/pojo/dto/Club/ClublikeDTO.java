@@ -3,9 +3,12 @@ package com.qpwflshclub.formal_club.pojo.dto.Club;
 import jakarta.validation.constraints.NotNull;
 
 public class ClublikeDTO {
+
     private Long id;
+
     @NotNull
     private String clubNameEn;
+
     @NotNull
     private String deviceId;
 

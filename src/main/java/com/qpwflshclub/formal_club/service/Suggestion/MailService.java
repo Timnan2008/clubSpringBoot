@@ -1,10 +1,9 @@
 package com.qpwflshclub.formal_club.service.Suggestion;
 
-import org.springframework.stereotype.Service;
+import java.util.Properties;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
-
-import java.util.Properties;
+import org.springframework.stereotype.Service;
 
 @Service
 public class MailService {
@@ -19,12 +18,58 @@ public class MailService {
      * @param to 收件人邮箱
      * @param code 验证码内容
      */
-    public void sendCode(String smtpHost, int smtpPort, String smtpUser, String smtpPass, String to, String code) {
-
-        send(smtpHost,smtpPort,smtpUser,smtpPass,to,"【验证码】邮箱验证","您的验证码是："+code+"\n有效期 5 分钟，请勿泄露给他人。");
+    public void sendCode(
+        String smtpHost,
+        int smtpPort,
+        String smtpUser,
+        String smtpPass,
+        String to,
+        String code
+    ) {
+        send(
+            smtpHost,
+            smtpPort,
+            smtpUser,
+            smtpPass,
+            to,
+            "【验证码】邮箱验证",
+            "您的验证码是：" + code + "\n有效期 5 分钟，请勿泄露给他人。"
+        );
     }
-    public void sendRecoveryCode(String host,int port,String user,String password,String to,String code,boolean en){send(host,port,user,password,to,en?"Reset your QPWFLHS Clubs password":"重置校园社团账号密码",en?"Your password reset code is: "+code+"\nExpires in 5 minutes. If you did not request this, ignore this email.":"你的密码重置验证码是："+code+"\n5 分钟内有效。若非本人操作，请忽略此邮件。");}
-    private void send(String smtpHost,int smtpPort,String smtpUser,String smtpPass,String to,String subject,String text){
+
+    public void sendRecoveryCode(
+        String host,
+        int port,
+        String user,
+        String password,
+        String to,
+        String code,
+        boolean en
+    ) {
+        send(
+            host,
+            port,
+            user,
+            password,
+            to,
+            en ? "Reset your QPWFLHS Clubs password" : "重置校园社团账号密码",
+            en
+                ? "Your password reset code is: " +
+                      code +
+                      "\nExpires in 5 minutes. If you did not request this, ignore this email."
+                : "你的密码重置验证码是：" + code + "\n5 分钟内有效。若非本人操作，请忽略此邮件。"
+        );
+    }
+
+    private void send(
+        String smtpHost,
+        int smtpPort,
+        String smtpUser,
+        String smtpPass,
+        String to,
+        String subject,
+        String text
+    ) {
         JavaMailSenderImpl sender = new JavaMailSenderImpl();
         sender.setHost(smtpHost);
         sender.setPort(smtpPort);
@@ -56,5 +101,3 @@ public class MailService {
         sender.send(message);
     }
 }
-
-

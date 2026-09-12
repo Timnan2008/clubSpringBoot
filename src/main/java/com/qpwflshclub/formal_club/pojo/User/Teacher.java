@@ -3,16 +3,15 @@ package com.qpwflshclub.formal_club.pojo.User;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.qpwflshclub.formal_club.pojo.Club.Club;
 import jakarta.persistence.*;
-
 import java.util.List;
 
 @Entity
 @Table(name = "user_teacher")
-public class Teacher implements UserBase{
+public class Teacher implements UserBase {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
-
 
     @Override
     public void setId(Long id) {
@@ -31,19 +30,22 @@ public class Teacher implements UserBase{
 
     @Column(name = "teacher_name")
     private String teacherName;
+
     @Column(name = "teacher_name_en")
     private String teacherNameEn;
+
     @Column(name = "teacher_password")
     private String password;
+
     @Column(name = "teacher_email")
     private String email;
 
     @JsonIgnore // 🌟 添加这一行
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
-            name = "teacher_club",
-            joinColumns = @JoinColumn(name = "teacher_id"),
-            inverseJoinColumns = @JoinColumn(name = "club_id")
+        name = "teacher_club",
+        joinColumns = @JoinColumn(name = "teacher_id"),
+        inverseJoinColumns = @JoinColumn(name = "club_id")
     )
     private List<Club> clubs;
 
@@ -59,7 +61,6 @@ public class Teacher implements UserBase{
     public void setUsername(String username) {
         this.teacherName = username;
     }
-
 
     @Override
     public String getUsernameEn() {

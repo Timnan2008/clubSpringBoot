@@ -2,14 +2,18 @@
 
 Spring Boot / Thymeleaf 后端与 React 前端。包含社团目录及工作台、校园墙、评论与 @ 用户、站内通知、私信及附件、密码找回、个人资料与日历。
 
+## 从哪里开始读代码
+
+先看 [前端页面与组件导航](frontend/README.md) 和 [代码维护指南](docs/代码维护指南.md)。指南说明了后端模块、请求流向、空文件用途，以及源码与构建产物的区别。统一格式使用 `npm run format`，只检查使用 `npm run format:check`。
+
 ## 项目组成
 
 | 目录 | 内容 |
 | --- | --- |
 | `frontend/` | 新版 React 页面、校园墙、聊天、通知、个人资料、动画与共享导航 |
 | `src/main/` | Spring Boot 服务、Thymeleaf 模板、静态资源 |
-| `booking/web/` | MRBS 预约系统完整 PHP 源码 |
-| `booking/school/` | 学校预约界面、时段规则、教师队列、账号联动及注销清理 |
+| `booking/web/` | 旧版 MRBS 预约系统源码，保留用于迁移和回退 |
+| `booking/school/` | 旧版预约适配与复用背景组件 |
 | `database/` | 主站无数据建表结构与旧版升级 SQL |
 | `deploy/` | Nginx、systemd、环境变量示例及主站发布脚本 |
 | `src/test/`、`frontend/tests/*.test.mjs`、`tests/e2e/` | 后端、前端及浏览器回归测试 |
@@ -38,18 +42,13 @@ java -jar target/formal_club-0.0.1-SNAPSHOT.jar
 
 密码找回后的聊天恢复采用服务器加密保管恢复密钥。聊天密钥与登录密码独立，恢复依赖已有备份；没有任何备份的旧密钥无法补回。服务器能够恢复这些密钥，因此此恢复方案不属于服务器无法访问密钥的纯端到端加密。
 
-## 预约系统集成
+## 主站预约后端
 
-MRBS 预约系统的完整源码现在位于 `booking/`，与主站分开运行。主站 `club.booking.url` 配置预约服务地址。根目录 `npm run build` 会同时构建共享预约导航到 `booking/school/aero-shards.bundle.js`，无需原开发电脑的外部目录。
+新版预约页面与接口统一运行在 Spring Boot，场地、规则、预约及教师队列统一存放在主站 MySQL。代码位于 Java 的 `booking/` 包和 `frontend/booking.jsx`。不再通过 PHP 提交预约或等待浏览器触发教师分配。
 
-```sh
-cp booking/.env.example booking/.env
-# 为 booking/.env 中两个数据库密码填写不同的新值
-cd booking
-docker compose -p qpsw_mrbs -f compose.school.yml up -d
-```
+先执行 `database/migrations/20260912-booking.sql`，迁移旧数据并核对，再设置 `CLUB_BOOKING_BACKEND=main`。保留 `ddl-auto=none`；不会在请求过程中自动建表。访问路径仍为 `/page/booking`。
 
-默认访问 `http://localhost:8765/`，复用 `http://localhost:8088/` 的主站登录。试运行时段为工作日 11:30–12:50、16:30–18:30，每段 20 分钟。完整规则与组件来源见 [预约系统说明](booking/README-青浦世外.md)。
+完整模块、接口、数据库和迁移回退说明见 [预约后端维护指南](docs/预约后端.md)。`booking/` 下的旧 MRBS 源码与数据库初始化文件保留供迁移回退使用，不能与新版同时开放写入。
 
 ## 部署和测试
 

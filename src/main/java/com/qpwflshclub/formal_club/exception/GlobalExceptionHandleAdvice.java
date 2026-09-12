@@ -12,8 +12,12 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandleAdvice {
 
     @ExceptionHandler(org.springframework.web.server.ResponseStatusException.class)
-    public org.springframework.http.ResponseEntity<?> status(org.springframework.web.server.ResponseStatusException e) {
-        return org.springframework.http.ResponseEntity.status(e.getStatusCode()).body(new ResponseMessage<>(e.getStatusCode().value(),e.getReason(),null));
+    public org.springframework.http.ResponseEntity<?> status(
+        org.springframework.web.server.ResponseStatusException e
+    ) {
+        return org.springframework.http.ResponseEntity.status(e.getStatusCode()).body(
+            new ResponseMessage<>(e.getStatusCode().value(), e.getReason(), null)
+        );
     }
 
     @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
@@ -22,13 +26,20 @@ public class GlobalExceptionHandleAdvice {
     }
 
     @ExceptionHandler(org.springframework.web.bind.MethodArgumentNotValidException.class)
-    public org.springframework.http.ResponseEntity<?> invalid(){return org.springframework.http.ResponseEntity.badRequest().body(new ResponseMessage<>(400,"请检查填写的信息 / Please check your details",null));}
+    public org.springframework.http.ResponseEntity<?> invalid() {
+        return org.springframework.http.ResponseEntity.badRequest().body(
+            new ResponseMessage<>(400, "请检查填写的信息 / Please check your details", null)
+        );
+    }
 
     Logger log = LoggerFactory.getLogger(GlobalExceptionHandleAdvice.class);
 
-    @ExceptionHandler({Exception.class})
-    public ResponseMessage handleException(Exception e, HttpServletRequest request, HttpServletResponse response){
-
+    @ExceptionHandler({ Exception.class })
+    public ResponseMessage handleException(
+        Exception e,
+        HttpServletRequest request,
+        HttpServletResponse response
+    ) {
         //记录日志
         log.error("请求地址：{}，异常信息：{}", request.getRequestURI(), e.getMessage());
 

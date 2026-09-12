@@ -1,17 +1,18 @@
 package com.qpwflshclub.formal_club.page;
 
-import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
 class TeacherClubManageTemplateTest {
 
     @Test
     void memberRowsExposePresidentAppointmentActions() throws Exception {
-        String template = Files.readString(Path.of("src/main/resources/templates/page/teacher-club-manage.html"));
+        String template = Files.readString(
+            Path.of("src/main/resources/templates/page/teacher-club-manage.html")
+        );
 
         assertThat(template).contains("data-action=\"appoint-president\"");
         assertThat(template).contains("data-action=\"appoint-vice-president\"");
@@ -24,7 +25,9 @@ class TeacherClubManageTemplateTest {
 
     @Test
     void adminOnlyCreateClubEntryIsShownOnManagePage() throws Exception {
-        String template = Files.readString(Path.of("src/main/resources/templates/page/teacher-club-manage.html"));
+        String template = Files.readString(
+            Path.of("src/main/resources/templates/page/teacher-club-manage.html")
+        );
 
         assertThat(template).contains("th:if=\"${userRightValue >= 3}\"");
         assertThat(template).contains("th:href=\"@{/page/club/add}\"");

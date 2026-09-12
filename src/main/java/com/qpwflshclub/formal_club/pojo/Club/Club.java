@@ -1,7 +1,5 @@
 package com.qpwflshclub.formal_club.pojo.Club;
 
-
-
 import com.qpwflshclub.formal_club.pojo.dto.Club.ClubDTO;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
@@ -9,6 +7,7 @@ import jakarta.validation.constraints.Size;
 @Entity
 @Table(name = "tb_user")
 public class Club {
+
     public Integer getId() {
         return id;
     }
@@ -68,8 +67,6 @@ public class Club {
     @Column(name = "is_great_club")
     private boolean isGreatClub;
 
-
-
     public String getPresidentEn() {
         return presidentEn;
     }
@@ -127,14 +124,13 @@ public class Club {
         this.sortDescription = sortDescription;
     }
 
-    public String getClubURL(){
+    public String getClubURL() {
         return clubURL;
     }
 
-    public void setClubURL(String clubURL){
+    public void setClubURL(String clubURL) {
         this.clubURL = clubURL;
     }
-
 
     public String getClubClass() {
         return clubClass;
@@ -254,15 +250,29 @@ public class Club {
 
     @Override
     public String toString() {
-        return "Club{" +
-                "id=" + id +
-                ", clubName='" + clubName + '\'' +
-                ", clubItem='" + clubItem + '\'' +
-                ", president='" + president + '\'' +
-                ", vicePresident='" + vicePresident + '\'' +
-                ", teacher='" + teacher + '\'' +
-                ", clubDescription='" + clubDescription + '\'' +
-                '}';
+        return (
+            "Club{" +
+            "id=" +
+            id +
+            ", clubName='" +
+            clubName +
+            '\'' +
+            ", clubItem='" +
+            clubItem +
+            '\'' +
+            ", president='" +
+            president +
+            '\'' +
+            ", vicePresident='" +
+            vicePresident +
+            '\'' +
+            ", teacher='" +
+            teacher +
+            '\'' +
+            ", clubDescription='" +
+            clubDescription +
+            '\'' +
+            '}'
+        );
     }
-
 }

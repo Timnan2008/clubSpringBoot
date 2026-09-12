@@ -6,4 +6,8 @@
   transition: opacity 700ms ease;
 }
 
-@media(prefers-reduced-motion:reduce){.darkveil-canvas{transition:none}}
+@media (prefers-reduced-motion: reduce) {
+  .darkveil-canvas {
+    transition: none;
+  }
+}

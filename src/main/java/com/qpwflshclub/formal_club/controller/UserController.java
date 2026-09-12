@@ -1,10 +1,22 @@
 package com.qpwflshclub.formal_club.controller;
 
+import com.qpwflshclub.formal_club.config.RegistrationVerification;
+import com.qpwflshclub.formal_club.pojo.Club.Club;
+import com.qpwflshclub.formal_club.pojo.ResponseMessage;
+import com.qpwflshclub.formal_club.pojo.User.Admin;
+import com.qpwflshclub.formal_club.pojo.User.ClubPresident;
+import com.qpwflshclub.formal_club.pojo.User.Teacher;
+import com.qpwflshclub.formal_club.pojo.User.User;
+import com.qpwflshclub.formal_club.pojo.User.UserBase;
 import com.qpwflshclub.formal_club.pojo.dto.User.*;
+import com.qpwflshclub.formal_club.service.User.IUserService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -17,34 +29,53 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.qpwflshclub.formal_club.pojo.ResponseMessage;
-import com.qpwflshclub.formal_club.pojo.User.Admin;
-import com.qpwflshclub.formal_club.pojo.User.ClubPresident;
-import com.qpwflshclub.formal_club.pojo.User.Teacher;
-import com.qpwflshclub.formal_club.pojo.User.User;
-import com.qpwflshclub.formal_club.pojo.User.UserBase;
-import com.qpwflshclub.formal_club.service.User.IUserService;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import com.qpwflshclub.formal_club.pojo.Club.Club;
-
 @RestController
 @RequestMapping("/api/user")
 public class UserController {
 
     @Autowired
     IUserService userService;
-    @Autowired com.qpwflshclub.formal_club.social.AccountProfiles profiles;
-    @Autowired com.qpwflshclub.formal_club.social.MessageKeyVault keyVault;
-    @Autowired com.qpwflshclub.formal_club.service.Suggestion.TurnstileService turnstile;
-    @Autowired com.qpwflshclub.formal_club.service.Suggestion.EmailCodeService registrationCodes;
-    private void verifyRegistrationEmail(HttpServletRequest request,String email,String code){
-        if(com.qpwflshclub.formal_club.config.RegistrationProof.valid(request,email))return;
-        if(code==null||!registrationCodes.verifyCode(email,code.strip()))throw com.qpwflshclub.formal_club.social.SchoolAccounts.error(400,"验证码错误或已过期，请重新获取 / Email code is invalid or expired; request a new code");
-        com.qpwflshclub.formal_club.config.RegistrationProof.verified(request,email);
+
+    @Autowired
+    com.qpwflshclub.formal_club.social.AccountProfiles profiles;
+
+    @Autowired
+    com.qpwflshclub.formal_club.social.MessageKeyVault keyVault;
+
+    @Autowired
+    com.qpwflshclub.formal_club.service.Suggestion.TurnstileService turnstile;
+
+    @Autowired
+    com.qpwflshclub.formal_club.service.Suggestion.EmailCodeService registrationCodes;
+
+    public record SignupVerification(String email, String role, String turnstileToken) {}
+
+    @PostMapping("/registration-verification")
+    public ResponseMessage<?> verifySignup(
+        @RequestBody SignupVerification body,
+        HttpServletRequest request
+    ) {
+        long expires = RegistrationVerification.require(
+            request,
+            body.email(),
+            body.role(),
+            body.turnstileToken(),
+            turnstile
+        );
+        return ResponseMessage.success(Map.of("expires", expires));
     }
+
+    private void verifyRegistrationEmail(HttpServletRequest request, String email, String code) {
+        if (com.qpwflshclub.formal_club.config.RegistrationProof.valid(request, email)) return;
+        if (
+            code == null || !registrationCodes.verifyCode(email, code.strip())
+        ) throw com.qpwflshclub.formal_club.social.SchoolAccounts.error(
+            400,
+            "验证码错误或已过期，请重新获取 / Email code is invalid or expired; request a new code"
+        );
+        com.qpwflshclub.formal_club.config.RegistrationProof.verified(request, email);
+    }
+
     @Autowired
     com.qpwflshclub.formal_club.repository.User.UserRepository userRepository;
 
@@ -58,7 +89,10 @@ public class UserController {
 
     @PostMapping("/add/admin")
     @ResponseBody
-    public ResponseMessage<Admin> add(@Validated @RequestBody AdminDTO adminDTO, HttpServletRequest request) {
+    public ResponseMessage<Admin> add(
+        @Validated @RequestBody AdminDTO adminDTO,
+        HttpServletRequest request
+    ) {
         UserBase currentUser = currentUserFromRequest(request);
         if (!isAdmin(currentUser)) {
             return ResponseMessage.error("无权限：只有管理员可以创建管理员账号");
@@ -71,22 +105,51 @@ public class UserController {
 
     @PostMapping("/add/teacher")
     @ResponseBody
-    public ResponseMessage<Teacher> add(@Validated @RequestBody TeacherDTO teacherDTO, HttpServletRequest request) {
-        com.qpwflshclub.formal_club.config.RegistrationNames.validate(teacherDTO.getUsername(),teacherDTO.getUsernameEn());
-        turnstile.verify(teacherDTO.getTurnstileToken(),"register");
+    public ResponseMessage<Teacher> add(
+        @Validated @RequestBody TeacherDTO teacherDTO,
+        HttpServletRequest request
+    ) {
+        com.qpwflshclub.formal_club.config.RegistrationNames.validate(
+            teacherDTO.getUsername(),
+            teacherDTO.getUsernameEn()
+        );
+        RegistrationVerification.require(
+            request,
+            teacherDTO.getEmail(),
+            "teacher",
+            teacherDTO.getTurnstileToken(),
+            turnstile
+        );
         com.qpwflshclub.formal_club.config.PasswordPolicy.require(teacherDTO.getPassword());
-        if(!com.qpwflshclub.formal_club.config.LoginEmails.normalize(teacherDTO.getEmail()).endsWith("@shwfl.edu.cn"))throw com.qpwflshclub.formal_club.social.SchoolAccounts.error(400,"教师请使用 @shwfl.edu.cn 邮箱 / Teachers must use @shwfl.edu.cn");
-        verifyRegistrationEmail(request,teacherDTO.getEmail(),teacherDTO.getEmailCode());
+        if (
+            !com.qpwflshclub.formal_club.config.LoginEmails.normalize(
+                teacherDTO.getEmail()
+            ).endsWith("@shwfl.edu.cn")
+        ) throw com.qpwflshclub.formal_club.social.SchoolAccounts.error(
+            400,
+            "教师请使用 @shwfl.edu.cn 邮箱 / Teachers must use @shwfl.edu.cn"
+        );
+        verifyRegistrationEmail(request, teacherDTO.getEmail(), teacherDTO.getEmailCode());
         teacherDTO.setClubs(List.of());
         if (loginEmails != null) loginEmails.requireAvailable(teacherDTO.getEmail());
-        Teacher teacher = profiles.register(teacherDTO.getEmail(),"",teacherDTO.getNickname(),false,()->userService.addTeacher(teacherDTO));
+        Teacher teacher = profiles.register(
+            teacherDTO.getEmail(),
+            "",
+            teacherDTO.getNickname(),
+            false,
+            () -> userService.addTeacher(teacherDTO)
+        );
         com.qpwflshclub.formal_club.config.RegistrationProof.consume(request);
+        RegistrationVerification.consume(request);
         return ResponseMessage.success(teacher);
     }
 
     @PostMapping("/add/club-president")
     @ResponseBody
-    public ResponseMessage<ClubPresident> add(@Validated @RequestBody ClubPresidentDTO clubPresidentDTO, HttpServletRequest request) {
+    public ResponseMessage<ClubPresident> add(
+        @Validated @RequestBody ClubPresidentDTO clubPresidentDTO,
+        HttpServletRequest request
+    ) {
         UserBase currentUser = currentUserFromRequest(request);
         if (!isAdmin(currentUser)) {
             return ResponseMessage.error("无权限：只有管理员可以创建社长账号");
@@ -99,47 +162,108 @@ public class UserController {
 
     @PostMapping("/add/user")
     @ResponseBody
-    public ResponseMessage<User> add(@Validated @RequestBody UserDTO userDTO, HttpServletRequest request) {
-
-        com.qpwflshclub.formal_club.config.RegistrationNames.validate(userDTO.getUsername(),userDTO.getUsernameEn());
-        turnstile.verify(userDTO.getTurnstileToken(),"register");
+    public ResponseMessage<User> add(
+        @Validated @RequestBody UserDTO userDTO,
+        HttpServletRequest request
+    ) {
+        com.qpwflshclub.formal_club.config.RegistrationNames.validate(
+            userDTO.getUsername(),
+            userDTO.getUsernameEn()
+        );
+        RegistrationVerification.require(
+            request,
+            userDTO.getEmail(),
+            "user",
+            userDTO.getTurnstileToken(),
+            turnstile
+        );
         com.qpwflshclub.formal_club.config.PasswordPolicy.require(userDTO.getPassword());
-        verifyRegistrationEmail(request,userDTO.getEmail(),userDTO.getEmailCode());
+        verifyRegistrationEmail(request, userDTO.getEmail(), userDTO.getEmailCode());
         userDTO.setClubs(List.of());
         if (loginEmails != null) loginEmails.requireAvailable(userDTO.getEmail());
-        User user = profiles.register(userDTO.getEmail(),userDTO.getStudentNumber(),userDTO.getNickname(),true,()->userService.addUser(userDTO));
+        User user = profiles.register(
+            userDTO.getEmail(),
+            userDTO.getStudentNumber(),
+            userDTO.getNickname(),
+            true,
+            () -> userService.addUser(userDTO)
+        );
         com.qpwflshclub.formal_club.config.RegistrationProof.consume(request);
+        RegistrationVerification.consume(request);
         return ResponseMessage.success(user);
     }
 
-//    @PostMapping("/add/{userType}")
-//    public ResponseMessage<Object> add(@Validated @RequestBody UserBaseDTO userDTO, @PathVariable String userType){
-//        Object result = switch (userType) {
-//            case "teacher" -> userService.addTeacher((TeacherDTO) userDTO);
-//            case "user" -> userService.addUser((UserDTO) userDTO);
-//            case "club-president" -> userService.addClubPresident((ClubPresidentDTO) userDTO);
-//            case "admin" -> userService.addAdmin((AdminDTO) userDTO);
-//            default -> throw new IllegalArgumentException("不支持的用户类型");
-//        };
-//
-//        return new ResponseMessage<>(200, "添加成功", result);
-//    }
+    //    @PostMapping("/add/{userType}")
+    //    public ResponseMessage<Object> add(@Validated @RequestBody UserBaseDTO userDTO, @PathVariable String userType){
+    //        Object result = switch (userType) {
+    //            case "teacher" -> userService.addTeacher((TeacherDTO) userDTO);
+    //            case "user" -> userService.addUser((UserDTO) userDTO);
+    //            case "club-president" -> userService.addClubPresident((ClubPresidentDTO) userDTO);
+    //            case "admin" -> userService.addAdmin((AdminDTO) userDTO);
+    //            default -> throw new IllegalArgumentException("不支持的用户类型");
+    //        };
+    //
+    //        return new ResponseMessage<>(200, "添加成功", result);
+    //    }
 
     //更新用户
     @PutMapping("/update/{userType}")
-    public ResponseMessage<Object> update(@Validated @RequestBody UserBaseDTO userDTO, @PathVariable String userType, HttpServletRequest request) {
+    public ResponseMessage<Object> update(
+        @Validated @RequestBody UserBaseDTO userDTO,
+        @PathVariable String userType,
+        HttpServletRequest request
+    ) {
         UserBase currentUser = currentUserFromRequest(request);
         if (!canModifyUser(currentUser, userDTO, userType)) {
             return ResponseMessage.error("无权限：只能修改自己的账号");
         }
-        com.qpwflshclub.formal_club.config.RegistrationNames.validate(userDTO.getUsername(), userDTO.getUsernameEn());
+        com.qpwflshclub.formal_club.config.RegistrationNames.validate(
+            userDTO.getUsername(),
+            userDTO.getUsernameEn()
+        );
         if (!isAdmin(currentUser)) {
-            var memberships=currentUser.getClubs();
-            userDTO.setClubs(memberships==null?List.of():memberships.stream().map(c->c.getId().longValue()).toList());
+            var memberships = currentUser.getClubs();
+            userDTO.setClubs(
+                memberships == null
+                    ? List.of()
+                    : memberships
+                          .stream()
+                          .map(c -> c.getId().longValue())
+                          .toList()
+            );
             userDTO.setEmail(currentUser.getEmail());
-            if(currentUser instanceof ClubPresident cp && userDTO instanceof ClubPresidentDTO dto){dto.setMainClubId(cp.getMainClub()==null?null:cp.getMainClub().getId().longValue());dto.setVicePresident(cp.isVicePresident());}
+            if (
+                currentUser instanceof ClubPresident cp && userDTO instanceof ClubPresidentDTO dto
+            ) {
+                dto.setMainClubId(
+                    cp.getMainClub() == null ? null : cp.getMainClub().getId().longValue()
+                );
+                dto.setVicePresident(cp.isVicePresident());
+            }
         }
-        if(userDTO.getPassword()!=null&&!userDTO.getPassword().isBlank()&&!Objects.equals(userDTO.getPassword(),currentUser.getPassword())){if(keyVault!=null&&!keyVault.get(com.qpwflshclub.formal_club.social.SchoolAccounts.key(currentUser.getEmail())).isBlank())throw com.qpwflshclub.formal_club.social.SchoolAccounts.error(400,"请在个人资料页面更新密码 / Change your password in Profile");com.qpwflshclub.formal_club.config.PasswordPolicy.require(userDTO.getPassword());userDTO.setPassword(com.qpwflshclub.formal_club.config.PasswordCodec.encode(userDTO.getPassword()));}
+        if (
+            userDTO.getPassword() != null &&
+            !userDTO.getPassword().isBlank() &&
+            !Objects.equals(userDTO.getPassword(), currentUser.getPassword())
+        ) {
+            if (
+                keyVault != null &&
+                !keyVault
+                    .get(
+                        com.qpwflshclub.formal_club.social.SchoolAccounts.key(
+                            currentUser.getEmail()
+                        )
+                    )
+                    .isBlank()
+            ) throw com.qpwflshclub.formal_club.social.SchoolAccounts.error(
+                400,
+                "请在个人资料页面更新密码 / Change your password in Profile"
+            );
+            com.qpwflshclub.formal_club.config.PasswordPolicy.require(userDTO.getPassword());
+            userDTO.setPassword(
+                com.qpwflshclub.formal_club.config.PasswordCodec.encode(userDTO.getPassword())
+            );
+        }
         preserveCurrentPasswordIfProfileLeftBlank(currentUser, userDTO, userType);
         Object result = switch (userType) {
             case "teacher" -> userService.update((TeacherDTO) userDTO);
@@ -150,8 +274,6 @@ public class UserController {
         };
         return new ResponseMessage<>(200, "更新成功", result);
     }
-
-
 
     /*
     @PutMapping("/update/user")
@@ -181,13 +303,28 @@ public class UserController {
      */
 
     @DeleteMapping("/delete")
-    public ResponseMessage<String> delete(@RequestBody UserBaseDTO userDTO, HttpServletRequest request) {
+    public ResponseMessage<String> delete(
+        @RequestBody UserBaseDTO userDTO,
+        HttpServletRequest request
+    ) {
         UserBase currentUser = currentUserFromRequest(request);
-        String type = userDTO instanceof TeacherDTO ? "teacher" : userDTO instanceof ClubPresidentDTO ? "club-president" : userDTO instanceof AdminDTO ? "admin" : "user";
+        String type =
+            userDTO instanceof TeacherDTO
+                ? "teacher"
+                : userDTO instanceof ClubPresidentDTO
+                  ? "club-president"
+                  : userDTO instanceof AdminDTO
+                    ? "admin"
+                    : "user";
         if (userDTO.getId() <= 0 || !canModifyUser(currentUser, userDTO, type)) {
             return ResponseMessage.error("无权限：只能删除自己的账号");
         }
-        int role = switch (type) { case "teacher" -> 2; case "club-president" -> 1; case "admin" -> 3; default -> 0; };
+        int role = switch (type) {
+            case "teacher" -> 2;
+            case "club-president" -> 1;
+            case "admin" -> 3;
+            default -> 0;
+        };
         // Names are not unique identifiers. Delete only the selected typed account.
         userService.delete(userDTO.getId(), role);
         return new ResponseMessage<>(200, "删除成功", Long.toString(userDTO.getId()));
@@ -208,16 +345,28 @@ public class UserController {
         return isAdmin(currentUser) || isSameTypedUser(currentUser, targetUser, targetType);
     }
 
-    private boolean isSameTypedUser(UserBase currentUser, UserBaseDTO targetUser, String targetType) {
-        return currentUser != null
-                && targetUser != null
-                && currentUser.getId() == targetUser.getId()
-                && Objects.equals(userTypeOf(currentUser), targetType);
+    private boolean isSameTypedUser(
+        UserBase currentUser,
+        UserBaseDTO targetUser,
+        String targetType
+    ) {
+        return (
+            currentUser != null &&
+            targetUser != null &&
+            currentUser.getId() == targetUser.getId() &&
+            Objects.equals(userTypeOf(currentUser), targetType)
+        );
     }
 
-    private void preserveCurrentPasswordIfProfileLeftBlank(UserBase currentUser, UserBaseDTO targetUser, String targetType) {
-        if (isSameTypedUser(currentUser, targetUser, targetType)
-                && (targetUser.getPassword() == null || targetUser.getPassword().isBlank())) {
+    private void preserveCurrentPasswordIfProfileLeftBlank(
+        UserBase currentUser,
+        UserBaseDTO targetUser,
+        String targetType
+    ) {
+        if (
+            isSameTypedUser(currentUser, targetUser, targetType) &&
+            (targetUser.getPassword() == null || targetUser.getPassword().isBlank())
+        ) {
             targetUser.setPassword(currentUser.getPassword());
         }
     }
@@ -226,7 +375,9 @@ public class UserController {
         if (currentUser == null || targetUsernameEn == null || targetUsernameEn.isBlank()) {
             return false;
         }
-        return isAdmin(currentUser) || Objects.equals(currentUser.getUsernameEn(), targetUsernameEn);
+        return (
+            isAdmin(currentUser) || Objects.equals(currentUser.getUsernameEn(), targetUsernameEn)
+        );
     }
 
     private String userTypeOf(UserBase user) {
@@ -251,17 +402,32 @@ public class UserController {
     @GetMapping("/find-name/{type}/{name-en}")
     public ResponseMessage<UserBase> find(@PathVariable String type, @PathVariable String nameEn) {
         if (type.equals("user")) {
-            return new ResponseMessage<>(200, "查询成功", userService.findUserById(Long.parseLong(nameEn)));
+            return new ResponseMessage<>(
+                200,
+                "查询成功",
+                userService.findUserById(Long.parseLong(nameEn))
+            );
         }
         if (type.equals("admin")) {
-            return new ResponseMessage<>(200, "查询成功", userService.findAdminByID(Long.parseLong(nameEn)));
+            return new ResponseMessage<>(
+                200,
+                "查询成功",
+                userService.findAdminByID(Long.parseLong(nameEn))
+            );
         }
         if (type.equals("teacher")) {
-            return new ResponseMessage<>(200, "查询成功", userService.findTeacherByID(Long.parseLong(nameEn)));
-
+            return new ResponseMessage<>(
+                200,
+                "查询成功",
+                userService.findTeacherByID(Long.parseLong(nameEn))
+            );
         }
         if (type.equals("club-president")) {
-            return new ResponseMessage<>(200, "查询成功", userService.findClubPresidentByID(Long.parseLong(nameEn)));
+            return new ResponseMessage<>(
+                200,
+                "查询成功",
+                userService.findClubPresidentByID(Long.parseLong(nameEn))
+            );
         }
         return ResponseMessage.error("查不到");
     }
@@ -289,30 +455,45 @@ public class UserController {
         }
     }
 
-    @Autowired private com.qpwflshclub.formal_club.config.LoginProtection loginProtection;
+    @Autowired
+    private com.qpwflshclub.formal_club.config.LoginProtection loginProtection;
+
     @PostMapping("/login")
     @ResponseBody
-    public ResponseMessage<UserBase> login(@RequestBody LoginDTO loginDTO, HttpServletResponse response, HttpServletRequest request) {
+    public ResponseMessage<UserBase> login(
+        @RequestBody LoginDTO loginDTO,
+        HttpServletResponse response,
+        HttpServletRequest request
+    ) {
         // 按 email 在 user / teacher 表查找（可按需扩展）
         String email = loginDTO.getEmail();
         String canonical = loginEmails == null ? email : loginEmails.resolve(email);
-        String throttleEmail=canonical==null?email:canonical;
-        if(loginProtection!=null)loginProtection.check(throttleEmail,request.getRemoteAddr());
+        String throttleEmail = canonical == null ? email : canonical;
+        if (loginProtection != null) loginProtection.check(throttleEmail, request.getRemoteAddr());
         UserBase user = canonical == null ? null : userService.findByEmail(canonical);
 
         if (user == null) {
-            if(loginProtection!=null)loginProtection.failed(throttleEmail,request.getRemoteAddr());
+            if (loginProtection != null) loginProtection.failed(
+                throttleEmail,
+                request.getRemoteAddr()
+            );
             return ResponseMessage.error("用户名或密码错误 / Incorrect email or password");
         }
 
         String inputPassword = loginDTO.getPassword();
         boolean isPasswordCorrect = false;
 
-        isPasswordCorrect = com.qpwflshclub.formal_club.config.PasswordCodec.matches(user.getPassword(), inputPassword);
+        isPasswordCorrect = com.qpwflshclub.formal_club.config.PasswordCodec.matches(
+            user.getPassword(),
+            inputPassword
+        );
 
         // 校验密码结果
         if (!isPasswordCorrect) {
-            if(loginProtection!=null)loginProtection.failed(throttleEmail,request.getRemoteAddr());
+            if (loginProtection != null) loginProtection.failed(
+                throttleEmail,
+                request.getRemoteAddr()
+            );
             return ResponseMessage.error("用户名或密码错误 / Incorrect email or password");
         }
 
@@ -437,7 +618,7 @@ public class UserController {
         if (oldSession != null) oldSession.invalidate();
         HttpSession authenticatedSession = request.getSession(true);
         authenticatedSession.setAttribute("authenticatedEmail", user.getEmail());
-        if(loginProtection!=null)loginProtection.success(throttleEmail);
+        if (loginProtection != null) loginProtection.success(throttleEmail);
         authenticatedSession.setMaxInactiveInterval(7 * 24 * 60 * 60);
 
         if (rememberMe != null) {
@@ -455,7 +636,10 @@ public class UserController {
     }
 
     @GetMapping("/logout")
-    public ResponseMessage<String> logout(HttpServletRequest request, HttpServletResponse response) {
+    public ResponseMessage<String> logout(
+        HttpServletRequest request,
+        HttpServletResponse response
+    ) {
         if (rememberMe != null) rememberMe.revoke(request, response);
         // 1. 让 session 失效
         HttpSession session = request.getSession(false);
@@ -472,9 +656,15 @@ public class UserController {
     }
 
     @PostMapping("/tern-admin")
-    public ResponseMessage<Admin> ternAdmin(@RequestBody UserBaseDTO userbase, HttpServletRequest request) {
+    public ResponseMessage<Admin> ternAdmin(
+        @RequestBody UserBaseDTO userbase,
+        HttpServletRequest request
+    ) {
         UserBase currentUser = (UserBase) request.getAttribute("currentUser");
-        if (currentUser == null || !(currentUser instanceof Admin) && currentUser.getUserRight() < 3) {
+        if (
+            currentUser == null ||
+            (!(currentUser instanceof Admin) && currentUser.getUserRight() < 3)
+        ) {
             return ResponseMessage.error("无权限：只有管理员可以将用户提升为管理员");
         }
 
@@ -516,7 +706,10 @@ public class UserController {
      * newRole: 0-普通用户, 2-老师, 3-管理员
      */
     @PostMapping("/change-role")
-    public ResponseMessage<UserBase> changeRole(@RequestBody java.util.Map<String, Object> requestBody, HttpServletRequest request) {
+    public ResponseMessage<UserBase> changeRole(
+        @RequestBody java.util.Map<String, Object> requestBody,
+        HttpServletRequest request
+    ) {
         UserBase currentUser = (UserBase) request.getAttribute("currentUser");
         // 只有管理员（UserRight == 3）可以改变用户职位
         if (currentUser == null || currentUser.getUserRight() != 3) {
@@ -530,7 +723,9 @@ public class UserController {
             return ResponseMessage.error("用户名不能为空");
         }
         if (newRole == null || (newRole != 0 && newRole != 2 && newRole != 3)) {
-            return ResponseMessage.error("无效的目标职位：只能转换为普通用户(0)、老师(2)或管理员(3)");
+            return ResponseMessage.error(
+                "无效的目标职位：只能转换为普通用户(0)、老师(2)或管理员(3)"
+            );
         }
 
         try {
@@ -549,9 +744,9 @@ public class UserController {
      */
     @PostMapping("/appoint-president")
     public ResponseMessage<ClubPresident> appointPresident(
-            @RequestBody java.util.Map<String, Object> requestBody,
-            HttpServletRequest request) {
-
+        @RequestBody java.util.Map<String, Object> requestBody,
+        HttpServletRequest request
+    ) {
         UserBase currentUser = (UserBase) request.getAttribute("currentUser");
         if (currentUser == null || currentUser.getUserRight() < 2) {
             return ResponseMessage.error("无权限：只有老师和管理员可以任命社长");
@@ -575,8 +770,10 @@ public class UserController {
         if (currentUser.getUserRight() == 2 && currentUser instanceof Teacher teacher) {
             boolean hasPermission = false;
             if (teacher.getClubs() != null) {
-                hasPermission = teacher.getClubs().stream()
-                        .anyMatch(club -> Objects.equals(club.getId(), clubId));
+                hasPermission = teacher
+                    .getClubs()
+                    .stream()
+                    .anyMatch(club -> Objects.equals(club.getId(), clubId));
             }
             if (!hasPermission) {
                 return ResponseMessage.error("无权限：您只能任命自己指导的社团的社长");
@@ -584,7 +781,11 @@ public class UserController {
         }
 
         try {
-            ClubPresident newPresident = userService.appointPresident(targetUsernameEn, clubId, isVicePresident);
+            ClubPresident newPresident = userService.appointPresident(
+                targetUsernameEn,
+                clubId,
+                isVicePresident
+            );
             return ResponseMessage.success(newPresident);
         } catch (IllegalArgumentException e) {
             return ResponseMessage.error(e.getMessage());
@@ -599,9 +800,9 @@ public class UserController {
      */
     @PostMapping("/revoke-president")
     public ResponseMessage<String> revokePresident(
-            @RequestBody Map<String, Object> requestBody,
-            HttpServletRequest request) {
-
+        @RequestBody Map<String, Object> requestBody,
+        HttpServletRequest request
+    ) {
         UserBase currentUser = (UserBase) request.getAttribute("currentUser");
         if (currentUser == null || currentUser.getUserRight() < 2) {
             return ResponseMessage.error("无权限：只有老师和管理员可以撤销社长");
@@ -618,9 +819,12 @@ public class UserController {
 
             if (currentUser.getUserRight() == 2 && currentUser instanceof Teacher teacher) {
                 Club targetClub = targetPresident.getMainClub();
-                boolean hasPermission = targetClub != null
-                        && teacher.getClubs() != null
-                        && teacher.getClubs().stream()
+                boolean hasPermission =
+                    targetClub != null &&
+                    teacher.getClubs() != null &&
+                    teacher
+                        .getClubs()
+                        .stream()
                         .anyMatch(club -> Objects.equals(club.getId(), targetClub.getId()));
 
                 if (!hasPermission) {

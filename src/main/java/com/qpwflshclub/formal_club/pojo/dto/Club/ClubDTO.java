@@ -39,7 +39,7 @@ public class ClubDTO {
     private String clubClass;
 
     @NotNull(message = "简短简介不能为空")
-    @Size(max = 20 , message = "简介不能超过20个字")
+    @Size(max = 20, message = "简介不能超过20个字")
     private String sortDescription;
 
     @NotNull(message = "社团描述不能为空")
@@ -47,11 +47,11 @@ public class ClubDTO {
     private String clubDescription;
 
     @NotNull(message = "社团英文描述不能为空")
-    @Size(max = 1000 , message = "英文简介不能超过1000个字")
+    @Size(max = 1000, message = "英文简介不能超过1000个字")
     private String clubDescriptionEn;
 
     @NotNull(message = "简介英文不能为空")
-    @Size(max = 200 , message = "英文简介不能超过50个字")
+    @Size(max = 200, message = "英文简介不能超过50个字")
     private String sortDescriptionEn;
 
     public String getPresidentEn() {
@@ -213,8 +213,6 @@ public class ClubDTO {
     public void setClubName(String clubName) {
         this.clubName = clubName;
     }
-
-
 
     public String getClubURL() {
         return clubURL;

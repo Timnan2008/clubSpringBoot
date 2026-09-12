@@ -1,5 +1,8 @@
 package com.qpwflshclub.formal_club.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
+
 import com.qpwflshclub.formal_club.pojo.User.User;
 import com.qpwflshclub.formal_club.pojo.dto.User.LoginDTO;
 import com.qpwflshclub.formal_club.service.User.IUserService;
@@ -8,18 +11,21 @@ import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
-
 class BookingControllerTest {
+
     private final IUserService users = mock(IUserService.class);
-    private final BookingController booking = new BookingController(users, "http://localhost:8765/");
+    private final BookingController booking = new BookingController(
+        users,
+        "http://localhost:8765/"
+    );
 
     @Test
     void visitorAndForgedEmailCannotEnterBooking() {
         var request = new MockHttpServletRequest();
         request.setCookies(new Cookie("user_session", "student@example.com"));
-        assertThat(booking.booking(request)).isEqualTo("redirect:/page/user/login?next=%2Fpage%2Fbooking");
+        assertThat(booking.booking(request)).isEqualTo(
+            "redirect:/page/user/login?next=%2Fpage%2Fbooking"
+        );
         assertThat(booking.currentAccount(request).getStatusCode().value()).isEqualTo(401);
         verifyNoInteractions(users);
     }
@@ -44,7 +50,9 @@ class BookingControllerTest {
         assertThat(booking.booking(request)).isEqualTo("redirect:http://localhost:8765/");
         var account = booking.currentAccount(request);
         assertThat(account.getStatusCode().value()).isEqualTo(200);
-        assertThat(account.getBody().toString()).contains(user.getEmail()).doesNotContain(user.getPassword());
+        assertThat(account.getBody().toString())
+            .contains(user.getEmail())
+            .doesNotContain(user.getPassword());
         controller.logout(request, response);
         assertThat(booking.currentAccount(request).getStatusCode().value()).isEqualTo(401);
     }
@@ -61,7 +69,9 @@ class BookingControllerTest {
         dto.setEmail(user.getEmail());
         dto.setPassword("wrong");
         var request = new MockHttpServletRequest();
-        assertThat(controller.login(dto, new MockHttpServletResponse(), request).getCode()).isNotEqualTo(200);
+        assertThat(
+            controller.login(dto, new MockHttpServletResponse(), request).getCode()
+        ).isNotEqualTo(200);
         assertThat(request.getSession(false)).isNull();
         assertThat(booking.currentAccount(request).getStatusCode().value()).isEqualTo(401);
     }

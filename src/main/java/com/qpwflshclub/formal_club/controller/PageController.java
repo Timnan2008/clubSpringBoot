@@ -1,54 +1,80 @@
 package com.qpwflshclub.formal_club.controller;
 
 import com.qpwflshclub.formal_club.pojo.Club.Club;
+import com.qpwflshclub.formal_club.pojo.User.*;
 import com.qpwflshclub.formal_club.pojo.User.UserBase;
 import com.qpwflshclub.formal_club.repository.User.UserRepository;
 import com.qpwflshclub.formal_club.service.Club.ClubNotFoundException;
 import com.qpwflshclub.formal_club.service.Club.IClubService;
 import com.qpwflshclub.formal_club.service.User.IUserService;
-import com.qpwflshclub.formal_club.pojo.User.*;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import org.hibernate.Internal;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Objects;
-
 @Controller
 @RequestMapping("/page")
 public class PageController {
+
     private String sessionEmail(HttpServletRequest request) {
-        var session=request.getSession(false);
-        return session!=null && session.getAttribute("authenticatedEmail") instanceof String email && userService.findByEmail(email)!=null ? email : null;
+        var session = request.getSession(false);
+        return session != null &&
+            session.getAttribute("authenticatedEmail") instanceof String email &&
+            userService.findByEmail(email) != null
+            ? email
+            : null;
     }
-    @Autowired private com.qpwflshclub.formal_club.social.SchoolAccounts schoolAccounts;
+
+    @Autowired
+    private com.qpwflshclub.formal_club.social.SchoolAccounts schoolAccounts;
 
     @Autowired
     IClubService clubService;
+
     @Autowired
     IUserService userService;
 
-    @GetMapping({"/club-watch/{clubName}", "/club-watch/En/{clubName}"})
+    @GetMapping({ "/club-watch/{clubName}", "/club-watch/En/{clubName}" })
     public String clubPage(@PathVariable String clubName, Model model) {
-        String decoded=clubName.replace('+',' ');
-        return clubRepository.findAll().stream()
-            .filter(c -> Objects.equals(c.getClubNameEn(),clubName) || Objects.equals(c.getClubName(),clubName) || Objects.equals(c.getClubNameEn(),decoded))
-            .findFirst().map(c -> "redirect:/page/clubs/"+c.getId())
-            .orElse("redirect:/page/search?keyword="+java.net.URLEncoder.encode(decoded,java.nio.charset.StandardCharsets.UTF_8));
+        String decoded = clubName.replace('+', ' ');
+        return clubRepository
+            .findAll()
+            .stream()
+            .filter(
+                c ->
+                    Objects.equals(c.getClubNameEn(), clubName) ||
+                    Objects.equals(c.getClubName(), clubName) ||
+                    Objects.equals(c.getClubNameEn(), decoded)
+            )
+            .findFirst()
+            .map(c -> "redirect:/page/clubs/" + c.getId())
+            .orElse(
+                "redirect:/page/search?keyword=" +
+                    java.net.URLEncoder.encode(decoded, java.nio.charset.StandardCharsets.UTF_8)
+            );
     }
+
     @GetMapping("/clubs/{id}")
     public String clubDetail(@PathVariable int id, Model model) {
-        if(!clubRepository.existsById(id)) throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND,"社团不存在");
-        model.addAttribute("clubId",id); model.addAttribute("catalogMode","detail");
+        if (
+            !clubRepository.existsById(id)
+        ) throw new org.springframework.web.server.ResponseStatusException(
+            org.springframework.http.HttpStatus.NOT_FOUND,
+            "社团不存在"
+        );
+        model.addAttribute("clubId", id);
+        model.addAttribute("catalogMode", "detail");
         return "page/club-catalog";
     }
+
     @GetMapping("/index")
     public String index(HttpServletRequest request, Model model) {
         model.addAttribute("currentUri", request.getRequestURI());
@@ -62,22 +88,32 @@ public class PageController {
 
     @GetMapping("/club-type/{type}")
     public String clubTypePage(@PathVariable String type, Model model) {
-
-        if(type.equals("activity") || type.equals("creativity") || type.equals("study") || type.equals("service")){
+        if (
+            type.equals("activity") ||
+            type.equals("creativity") ||
+            type.equals("study") ||
+            type.equals("service")
+        ) {
             model.addAttribute("type", type);
-            model.addAttribute("catalogMode","category"); return "page/club-catalog";
-        }else{
+            model.addAttribute("catalogMode", "category");
+            return "page/club-catalog";
+        } else {
             return "page/fall_to_get_club";
         }
     }
 
     @GetMapping("/club-type/En/{type}")
     public String clubTypePageEn(@PathVariable String type, Model model) {
-
-        if(type.equals("activity") || type.equals("creativity") || type.equals("study") || type.equals("service")){
+        if (
+            type.equals("activity") ||
+            type.equals("creativity") ||
+            type.equals("study") ||
+            type.equals("service")
+        ) {
             model.addAttribute("type", type);
-            model.addAttribute("catalogMode","category"); return "page/club-catalog";
-        }else{
+            model.addAttribute("catalogMode", "category");
+            return "page/club-catalog";
+        } else {
             return "page/fall_to_get_club";
         }
     }
@@ -98,39 +134,55 @@ public class PageController {
         model.addAttribute("currentUri", "/page/suggestion/history");
         return "page/suggestion-history";
     }
+
     @GetMapping("/suggestion/manage")
     public String suggestionManagePage() {
         return "page/manager of advice";
     }
 
-    @GetMapping({"/search","/clubs"})
+    @GetMapping({ "/search", "/clubs" })
     public String searchPage(Model model) {
-        model.addAttribute("catalogMode","search"); return "page/club-catalog";
+        model.addAttribute("catalogMode", "search");
+        return "page/club-catalog";
     }
 
-    @GetMapping({"/user/profile","/user/home"})
+    @GetMapping({ "/user/profile", "/user/home" })
     public String profile(HttpServletRequest request, Model model) {
-        try { model.addAttribute("loginUser",schoolAccounts.current(request)); } catch (org.springframework.web.server.ResponseStatusException e) { return "redirect:/page/user/login?next="+java.net.URLEncoder.encode(request.getRequestURI()+(request.getQueryString()==null?"":"?"+request.getQueryString()),java.nio.charset.StandardCharsets.UTF_8); }
+        try {
+            model.addAttribute("loginUser", schoolAccounts.current(request));
+        } catch (org.springframework.web.server.ResponseStatusException e) {
+            return (
+                "redirect:/page/user/login?next=" +
+                java.net.URLEncoder.encode(
+                    request.getRequestURI() +
+                        (request.getQueryString() == null ? "" : "?" + request.getQueryString()),
+                    java.nio.charset.StandardCharsets.UTF_8
+                )
+            );
+        }
         return "page/profile";
     }
-
 
     /* ========================================================================= */
     /* 以下为新添加的“我的社团”页面跳转渲染控制器                                  */
     /* ========================================================================= */
 
-
     @Autowired
     private com.qpwflshclub.formal_club.repository.Club.ClubRepository clubRepository;
 
     @GetMapping("/club/manage")
-    public String teacherClubManagePage(@RequestAttribute(value="verifiedEmail",required=false) String email, Model model) {
+    public String teacherClubManagePage(
+        @RequestAttribute(value = "verifiedEmail", required = false) String email,
+        Model model
+    ) {
         return "redirect:/page/club/workspace";
     }
+
     @GetMapping("/club/add")
     public String clubAddPage(
-            @RequestAttribute(value = "verifiedEmail", required = false) String email,
-            Model model) {
+        @RequestAttribute(value = "verifiedEmail", required = false) String email,
+        Model model
+    ) {
         if (email == null || email.isBlank()) {
             return "redirect:/page/user/login";
         }
@@ -154,7 +206,11 @@ public class PageController {
      */
     @GetMapping("/my-clubs")
     public String myClubsPage(HttpServletRequest request, Model model) {
-        try { model.addAttribute("loginUser",schoolAccounts.current(request)); } catch (org.springframework.web.server.ResponseStatusException e) { return "redirect:/page/user/login?next=/page/my-clubs"; }
+        try {
+            model.addAttribute("loginUser", schoolAccounts.current(request));
+        } catch (org.springframework.web.server.ResponseStatusException e) {
+            return "redirect:/page/user/login?next=/page/my-clubs";
+        }
         return "page/my-clubs";
     }
 
@@ -169,9 +225,7 @@ public class PageController {
             putClub(clubs, president.getMainClub());
         }
 
-        return clubs.values().stream()
-                .map(this::toClubManageMap)
-                .toList();
+        return clubs.values().stream().map(this::toClubManageMap).toList();
     }
 
     private void putClubs(Map<Integer, Club> target, List<Club> clubs) {
@@ -209,16 +263,20 @@ public class PageController {
         return "管理账号";
     }
 
-
     /**
      * 🌟 新增：社团修改页面的跳转 API
      * 路由：GET /page/club-edit
      * 访问示例：/page/club-edit?clubName=WFL-CS-Club
      */
     @GetMapping("/club-edit")
-    public String editClubPage(@RequestParam String clubName, @RequestAttribute(value="verifiedEmail",required=false) String email, Model model) {
+    public String editClubPage(
+        @RequestParam String clubName,
+        @RequestAttribute(value = "verifiedEmail", required = false) String email,
+        Model model
+    ) {
         return "redirect:/page/club/workspace";
     }
+
     @Autowired
     UserRepository userRepository;
 

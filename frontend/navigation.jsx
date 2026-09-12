@@ -1,3 +1,5 @@
+import Notifications from "./Notifications";
+import PersonalWelcome from "./PersonalWelcome";
 import React from "react";
 import { createRoot } from "react-dom/client";
 import StaggeredMenu from "./StaggeredMenu";
@@ -5,6 +7,9 @@ import Search from "./Search";
 import "./navigation.css";
 const navbar = document.querySelector(".navbar");
 if (navbar) {
+  const welcomeHost = document.createElement("div");
+  document.body.append(welcomeHost);
+  createRoot(welcomeHost).render(<PersonalWelcome />);
   const language = navbar.dataset.language || "zh",
     en = language === "en";
   const items = [
@@ -21,15 +26,16 @@ if (navbar) {
     { label: en ? "Badminton booking" : "羽毛球场预约", link: "/page/booking" },
     { label: en ? "QingYuan Studio" : "青源智造", link: "/page/suggestion" },
   ];
-  navbar
-    .querySelectorAll(".user-dropdown .dropdown-content a")
-    .forEach((a) =>
-      items.push({
-        label: a.textContent.trim(),
-        link: a.getAttribute("href") === "/page/club/manage" ? "/page/club/workspace" : a.getAttribute("href"),
-        action: a.getAttribute("href") === "#" ? "logout" : undefined,
-      }),
-    );
+  navbar.querySelectorAll(".user-dropdown .dropdown-content a").forEach((a) =>
+    items.push({
+      label: a.textContent.trim(),
+      link:
+        a.getAttribute("href") === "/page/club/manage"
+          ? "/page/club/workspace"
+          : a.getAttribute("href"),
+      action: a.getAttribute("href") === "#" ? "logout" : undefined,
+    }),
+  );
   const login = navbar.querySelector(".navbar-login-btn");
   const nav = navbar.querySelector(".navbar-links");
   if (login && nav) nav.append(login);
@@ -40,6 +46,12 @@ if (navbar) {
     });
   const search = navbar.querySelector(".navbar-center");
   if (search) createRoot(search).render(<Search en={en} />);
+  if (navbar.querySelector(".user-dropdown")) {
+    const notifications = document.createElement("div");
+    notifications.className = "navbar-notifications-host";
+    (nav || navbar).prepend(notifications);
+    createRoot(notifications).render(<Notifications enabled />);
+  }
   const menu = document.createElement("div");
   menu.className = "navbar-menu-host";
   navbar.append(menu);
@@ -63,6 +75,8 @@ if (navbar) {
   navbar.classList.add("navbar-enhanced");
 }
 
-window.addEventListener("pageshow", event => { if(event.persisted) location.reload(); });
+window.addEventListener("pageshow", (event) => {
+  if (event.persisted) location.reload();
+});
 
-import './CampusMotion.css';
+import "./CampusMotion.css";

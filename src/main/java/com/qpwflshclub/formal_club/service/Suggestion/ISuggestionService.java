@@ -2,7 +2,6 @@ package com.qpwflshclub.formal_club.service.Suggestion;
 
 import com.qpwflshclub.formal_club.pojo.Suggestion.Suggestion;
 import com.qpwflshclub.formal_club.pojo.dto.Suggestion.SuggestionDTO;
-
 import java.util.List;
 
 public interface ISuggestionService {

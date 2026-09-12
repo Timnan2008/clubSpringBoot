@@ -4,11 +4,6 @@ import com.qpwflshclub.formal_club.pojo.ResponseMessage;
 import com.qpwflshclub.formal_club.pojo.User.UserBase;
 import com.qpwflshclub.formal_club.service.User.IUserService;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -16,9 +11,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.UUID;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/upload")
@@ -50,9 +48,9 @@ public class FileUploadController {
      */
     @PostMapping("/club-logo")
     public ResponseMessage<String> uploadClubLogo(
-            @RequestParam("file") MultipartFile file,
-            @RequestAttribute(value = "verifiedEmail", required = false) String email) {
-
+        @RequestParam("file") MultipartFile file,
+        @RequestAttribute(value = "verifiedEmail", required = false) String email
+    ) {
         if (email == null || email.isBlank()) {
             return ResponseMessage.error("未登录，无权上传");
         }
@@ -70,9 +68,9 @@ public class FileUploadController {
      */
     @PostMapping("/club-video")
     public ResponseMessage<String> uploadClubVideo(
-            @RequestParam("file") MultipartFile file,
-            @RequestAttribute(value = "verifiedEmail", required = false) String email) {
-
+        @RequestParam("file") MultipartFile file,
+        @RequestAttribute(value = "verifiedEmail", required = false) String email
+    ) {
         if (email == null || email.isBlank()) {
             return ResponseMessage.error("未登录，无权上传");
         }
@@ -86,9 +84,13 @@ public class FileUploadController {
     }
 
     private ResponseMessage<String> uploadFile(MultipartFile file, String type) {
-        logger.info("开始上传文件，类型：{}，原始文件名：{}，大小：{} bytes", 
-                   type, file.getOriginalFilename(), file.getSize());
-        
+        logger.info(
+            "开始上传文件，类型：{}，原始文件名：{}，大小：{} bytes",
+            type,
+            file.getOriginalFilename(),
+            file.getSize()
+        );
+
         if (file.isEmpty()) {
             logger.warn("上传失败：文件为空");
             return ResponseMessage.error("请选择要上传的文件");
@@ -128,7 +130,7 @@ public class FileUploadController {
 
             Path targetDir = Paths.get(uploadDir, type).toAbsolutePath().normalize();
             logger.info("目标目录：{}", targetDir);
-            
+
             if (!Files.exists(targetDir)) {
                 logger.info("目标目录不存在，创建目录：{}", targetDir);
                 Files.createDirectories(targetDir);
@@ -142,7 +144,7 @@ public class FileUploadController {
                 logger.info("开始复制文件...");
                 Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
             }
-            
+
             if (Files.exists(filePath)) {
                 logger.info("文件上传成功！文件大小：{} bytes", Files.size(filePath));
             } else {
@@ -153,7 +155,6 @@ public class FileUploadController {
             String accessPath = accessPathPrefix + "/" + type + "/" + newFilename;
             logger.info("返回访问路径：{}", accessPath);
             return ResponseMessage.success(accessPath);
-
         } catch (IOException e) {
             logger.error("文件上传失败：{}", e.getMessage(), e);
             return ResponseMessage.error("文件上传失败：" + e.getMessage());

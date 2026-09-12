@@ -1,19 +1,38 @@
 <!doctype html>
 <html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" type="image/png" href="/other%20photo/WFL-logo.png" />
-  <link rel="stylesheet" href="/css/common.css?v=20260909-4" />
-  <link rel="stylesheet" href="/javascript/ui/auth.css?v=20260910-22" />
-  <title th:text="#{login.pageTitle}">登录 / 注册</title>
-<!-- ui-module-preloads --><link rel="modulepreload" href="/javascript/ui/chunks/chunk-5AFER4MZ.js"/><link rel="modulepreload" href="/javascript/ui/chunks/chunk-7R43NYFB.js"/><link rel="modulepreload" href="/javascript/ui/chunks/chunk-S5J4HU5L.js"/><link rel="modulepreload" href="/javascript/ui/chunks/chunk-IAPHJUY3.js"/><link rel="modulepreload" href="/javascript/ui/chunks/chunk-2RUN43TJ.js"/><link rel="modulepreload" href="/javascript/ui/chunks/chunk-LNPNOCO5.js"/><link rel="modulepreload" href="/javascript/ui/chunks/chunk-6JJME3OT.js"/><!-- /ui-module-preloads --></head>
-<body class="auth-page">
-  <div th:replace="~{fragments/navbar :: navbar}"></div>
-  <div id="club-auth" th:attr="data-language=${#locale.language}">
-    <p style="text-align:center;padding:80px 20px" th:text="${#locale.language == 'en' ? 'Loading your account page…' : '正在加载账号页面…'}"></p>
-    <noscript><p style="text-align:center" th:text="${#locale.language == 'en' ? 'Please enable JavaScript to sign in or register.' : '请启用 JavaScript 以登录或注册。'}"></p></noscript>
-  </div>
-  <script type="module" src="/javascript/ui/auth.js?v=20260910-22"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="/other%20photo/WFL-logo.png" />
+    <link rel="stylesheet" href="/css/common.css?v=20260912-25" />
+    <link rel="stylesheet" href="/javascript/ui/auth.css?v=20260912-25" />
+    <title th:text="#{login.pageTitle}">登录 / 注册</title>
+
+    <!-- ui-module-preloads -->
+    <link rel="modulepreload" href="/javascript/ui/chunks/chunk-2PIMEEYG.js" />
+    <link rel="modulepreload" href="/javascript/ui/chunks/chunk-5F56GLDG.js" />
+    <link rel="modulepreload" href="/javascript/ui/chunks/chunk-XPM3KSV7.js" />
+    <link rel="modulepreload" href="/javascript/ui/chunks/chunk-6B6QSKQG.js" />
+    <link rel="modulepreload" href="/javascript/ui/chunks/chunk-ZPVJVPU6.js" />
+    <link rel="modulepreload" href="/javascript/ui/chunks/chunk-DUGEIZY5.js" />
+    <link rel="modulepreload" href="/javascript/ui/chunks/chunk-6XG2V6KF.js" />
+    <link rel="modulepreload" href="/javascript/ui/chunks/chunk-YMN3KVQI.js" />
+    <!-- /ui-module-preloads -->
+  </head>
+  <body class="auth-page">
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    <div id="club-auth" th:attr="data-language=${#locale.language}">
+      <p
+        style="text-align:center;padding:80px 20px"
+        th:text="${#locale.language == 'en' ? 'Loading your account page…' : '正在加载账号页面…'}"
+      ></p>
+      <noscript
+        ><p
+          style="text-align:center"
+          th:text="${#locale.language == 'en' ? 'Please enable JavaScript to sign in or register.' : '请启用 JavaScript 以登录或注册。'}"
+        ></p
+      ></noscript>
+    </div>
+    <script type="module" src="/javascript/ui/auth.js?v=20260912-25"></script>
+  </body>
 </html>

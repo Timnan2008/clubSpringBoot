@@ -1,17 +1,18 @@
 package com.qpwflshclub.formal_club.page;
 
-import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
 class ClubEditTemplateTest {
 
     @Test
     void editPayloadPreservesGreatClubAndVideoLike() throws Exception {
-        String template = Files.readString(Path.of("src/main/resources/templates/page/club-edit.html"));
+        String template = Files.readString(
+            Path.of("src/main/resources/templates/page/club-edit.html")
+        );
 
         assertThat(template).contains("IS_GREAT = club.greatClub");
         assertThat(template).contains("VIDEO_LIKE = club.videoLike");

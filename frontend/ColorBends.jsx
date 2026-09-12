@@ -142,10 +142,7 @@ export default function ColorBends({
     const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
 
     const geometry = new THREE.PlaneGeometry(2, 2);
-    const uColorsArray = Array.from(
-      { length: MAX_COLORS },
-      () => new THREE.Vector3(0, 0, 0),
-    );
+    const uColorsArray = Array.from({ length: MAX_COLORS }, () => new THREE.Vector3(0, 0, 0));
     const material = new THREE.ShaderMaterial({
       vertexShader: vert,
       fragmentShader: frag,
@@ -218,14 +215,16 @@ export default function ColorBends({
 
     function loop(now = performance.now()) {
       if (failed || document.hidden || !container.clientWidth) return;
-      if(now-lastTime<1000/30&&!motionQuery.matches){rafRef.current=requestAnimationFrame(loop);return;}
+      if (now - lastTime < 1000 / 30 && !motionQuery.matches) {
+        rafRef.current = requestAnimationFrame(loop);
+        return;
+      }
       const dt = Math.min((now - lastTime) / 1000, 0.1);
       lastTime = now;
       if (!motionQuery.matches) elapsed += dt;
       material.uniforms.uTime.value = motionQuery.matches ? 0 : elapsed;
       const deg =
-        (rotationRef.current % 360) +
-        (motionQuery.matches ? 0 : autoRotateRef.current * elapsed);
+        (rotationRef.current % 360) + (motionQuery.matches ? 0 : autoRotateRef.current * elapsed);
       const rad = (deg * Math.PI) / 180;
       material.uniforms.uRot.value.set(Math.cos(rad), Math.sin(rad));
       if (motionQuery.matches) material.uniforms.uPointer.value.set(0, 0);
@@ -261,9 +260,13 @@ export default function ColorBends({
       if (failed) return;
       const w = container.clientWidth || 1,
         h = container.clientHeight || 1;
-      if(renderer.domElement.width!==Math.floor(w*renderer.getPixelRatio())||renderer.domElement.height!==Math.floor(h*renderer.getPixelRatio())) renderer.setSize(w, h, false);
+      if (
+        renderer.domElement.width !== Math.floor(w * renderer.getPixelRatio()) ||
+        renderer.domElement.height !== Math.floor(h * renderer.getPixelRatio())
+      )
+        renderer.setSize(w, h, false);
       material.uniforms.uCanvas.value.set(w, h);
-      renderer.render(scene,camera);
+      renderer.render(scene, camera);
       resume();
     };
     handleResize();
@@ -328,16 +331,8 @@ export default function ColorBends({
       const h = hex.replace("#", "").trim();
       const v =
         h.length === 3
-          ? [
-              parseInt(h[0] + h[0], 16),
-              parseInt(h[1] + h[1], 16),
-              parseInt(h[2] + h[2], 16),
-            ]
-          : [
-              parseInt(h.slice(0, 2), 16),
-              parseInt(h.slice(2, 4), 16),
-              parseInt(h.slice(4, 6), 16),
-            ];
+          ? [parseInt(h[0] + h[0], 16), parseInt(h[1] + h[1], 16), parseInt(h[2] + h[2], 16)]
+          : [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
       return new THREE.Vector3(v[0] / 255, v[1] / 255, v[2] / 255);
     };
 
@@ -389,11 +384,5 @@ export default function ColorBends({
     };
   }, []);
 
-  return (
-    <div
-      ref={containerRef}
-      className={`color-bends-container ${className}`}
-      style={style}
-    />
-  );
+  return <div ref={containerRef} className={`color-bends-container ${className}`} style={style} />;
 }

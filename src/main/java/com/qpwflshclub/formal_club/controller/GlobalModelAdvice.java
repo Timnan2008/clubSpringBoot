@@ -12,4 +12,3 @@ public class GlobalModelAdvice {
         return request.getRequestURI();
     }
 }
-

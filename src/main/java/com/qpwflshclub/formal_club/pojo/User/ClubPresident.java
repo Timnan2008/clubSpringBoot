@@ -3,15 +3,14 @@ package com.qpwflshclub.formal_club.pojo.User;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.qpwflshclub.formal_club.pojo.Club.Club;
 import com.qpwflshclub.formal_club.pojo.dto.User.ClubPresidentDTO;
+import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-
-import jakarta.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * 社长实体类，用于持久化社长信息。
@@ -21,7 +20,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString(exclude = {"password", "clubs", "mainClub"})
+@ToString(exclude = { "password", "clubs", "mainClub" })
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class ClubPresident implements UserBase {
 
@@ -45,9 +44,9 @@ public class ClubPresident implements UserBase {
     @JsonIgnore // 🌟 添加这一行
     @ManyToMany
     @JoinTable(
-            name = "president_club",
-            joinColumns = @JoinColumn(name = "president_id"),
-            inverseJoinColumns = @JoinColumn(name = "club_id")
+        name = "president_club",
+        joinColumns = @JoinColumn(name = "president_id"),
+        inverseJoinColumns = @JoinColumn(name = "club_id")
     )
     private List<Club> clubs;
 

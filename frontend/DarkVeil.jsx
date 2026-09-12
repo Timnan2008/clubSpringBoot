@@ -1,6 +1,6 @@
-import { useRef, useEffect } from 'react';
-import { Renderer, Program, Mesh, Triangle, Vec2 } from 'ogl';
-import './DarkVeil.css';
+import { useRef, useEffect } from "react";
+import { Renderer, Program, Mesh, Triangle, Vec2 } from "ogl";
+import "./DarkVeil.css";
 
 const vertex = `
 attribute vec2 position;
@@ -87,16 +87,16 @@ void main(){
 `;
 
 export default function DarkVeil({
-                                   hueShift = 0,
-                                   noiseIntensity = 0,
-                                   scanlineIntensity = 0,
-                                   speed = 0.5,
-                                   scanlineFrequency = 0,
-                                   warpAmount = 0,
-                                   resolutionScale = 1,
-                                   verticalOffset = 0,
-                                   lightMode = false
-                                 }) {
+  hueShift = 0,
+  noiseIntensity = 0,
+  scanlineIntensity = 0,
+  speed = 0.5,
+  scanlineFrequency = 0,
+  warpAmount = 0,
+  resolutionScale = 1,
+  verticalOffset = 0,
+  lightMode = false,
+}) {
   const ref = useRef(null);
   useEffect(() => {
     const canvas = ref.current;
@@ -107,24 +107,27 @@ export default function DarkVeil({
     let elapsed = 0;
     let lastTime = performance.now();
     let failed = false;
-    const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
-    canvas.style.opacity = '0';
+    const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    canvas.style.opacity = "0";
     delete parent.dataset.renderer;
 
     const fallback = () => {
       failed = true;
       cancelAnimationFrame(frame);
-      canvas.style.opacity = '0';
+      canvas.style.opacity = "0";
       delete parent.dataset.renderer;
     };
     const render = () => {
       if (failed) return;
       try {
-        if (renderer.gl.isContextLost()) { fallback(); return; }
+        if (renderer.gl.isContextLost()) {
+          fallback();
+          return;
+        }
         program.uniforms.uTime.value = motion.matches ? 0 : elapsed * speed;
         renderer.render({ scene: mesh });
-        canvas.style.opacity = '1';
-        parent.dataset.renderer = 'webgl';
+        canvas.style.opacity = "1";
+        parent.dataset.renderer = "webgl";
       } catch (error) {
         fallback();
       }
@@ -137,14 +140,20 @@ export default function DarkVeil({
         const scale = Math.min(1, Math.max(0.25, resolutionScale));
         renderer.setSize(Math.round(w * scale), Math.round(h * scale));
         // gl_FragCoord uses physical pixels, including DPR and resolutionScale.
-        program.uniforms.uResolution.value.set(renderer.gl.drawingBufferWidth, renderer.gl.drawingBufferHeight);
+        program.uniforms.uResolution.value.set(
+          renderer.gl.drawingBufferWidth,
+          renderer.gl.drawingBufferHeight,
+        );
         render();
       } catch (error) {
         fallback();
       }
     };
-    const loop = now => {
-      if(now-lastTime<1000/30){frame=requestAnimationFrame(loop);return;}
+    const loop = (now) => {
+      if (now - lastTime < 1000 / 30) {
+        frame = requestAnimationFrame(loop);
+        return;
+      }
       elapsed += Math.min((now - lastTime) / 1000, 0.1);
       lastTime = now;
       render();
@@ -157,7 +166,7 @@ export default function DarkVeil({
       render();
       if (!failed && !motion.matches) frame = requestAnimationFrame(loop);
     };
-    const contextLost = event => {
+    const contextLost = (event) => {
       event.preventDefault();
       fallback();
     };
@@ -165,12 +174,15 @@ export default function DarkVeil({
     try {
       renderer = new Renderer({
         dpr: 1,
-        canvas, alpha: false, antialias: false
+        canvas,
+        alpha: false,
+        antialias: false,
       });
       const gl = renderer.gl;
       geometry = new Triangle(gl);
       program = new Program(gl, {
-        vertex, fragment,
+        vertex,
+        fragment,
         uniforms: {
           uTime: { value: 0 },
           uResolution: { value: new Vec2() },
@@ -180,20 +192,20 @@ export default function DarkVeil({
           uScanFreq: { value: scanlineFrequency },
           uWarp: { value: warpAmount },
           uVerticalOffset: { value: verticalOffset },
-          uLightMode: { value: lightMode ? 1 : 0 }
-        }
+          uLightMode: { value: lightMode ? 1 : 0 },
+        },
       });
       // OGL may log shader errors without throwing. Keep CSS visible in that case.
       if (!gl.getProgramParameter(program.program, gl.LINK_STATUS)) {
-        throw new Error('DarkVeil shader could not be linked');
+        throw new Error("DarkVeil shader could not be linked");
       }
       mesh = new Mesh(gl, { geometry, program });
       observer = new ResizeObserver(resize);
       observer.observe(parent);
-      window.addEventListener('resize', resize);
-      document.addEventListener('visibilitychange', resume);
-      motion.addEventListener('change', resume);
-      canvas.addEventListener('webglcontextlost', contextLost);
+      window.addEventListener("resize", resize);
+      document.addEventListener("visibilitychange", resume);
+      motion.addEventListener("change", resume);
+      canvas.addEventListener("webglcontextlost", contextLost);
       resize();
       resume();
     } catch (error) {
@@ -203,15 +215,25 @@ export default function DarkVeil({
     return () => {
       fallback();
       observer?.disconnect();
-      window.removeEventListener('resize', resize);
-      document.removeEventListener('visibilitychange', resume);
-      motion.removeEventListener('change', resume);
-      canvas.removeEventListener('webglcontextlost', contextLost);
+      window.removeEventListener("resize", resize);
+      document.removeEventListener("visibilitychange", resume);
+      motion.removeEventListener("change", resume);
+      canvas.removeEventListener("webglcontextlost", contextLost);
       geometry?.remove();
       program?.remove();
-      renderer?.gl?.getExtension('WEBGL_lose_context')?.loseContext();
+      renderer?.gl?.getExtension("WEBGL_lose_context")?.loseContext();
     };
-  }, [hueShift, noiseIntensity, scanlineIntensity, speed, scanlineFrequency, warpAmount, resolutionScale, verticalOffset, lightMode]);
+  }, [
+    hueShift,
+    noiseIntensity,
+    scanlineIntensity,
+    speed,
+    scanlineFrequency,
+    warpAmount,
+    resolutionScale,
+    verticalOffset,
+    lightMode,
+  ]);
 
   return <canvas ref={ref} className="darkveil-canvas" />;
 }

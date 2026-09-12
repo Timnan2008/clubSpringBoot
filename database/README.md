@@ -4,6 +4,8 @@
 
 `upgrade-existing-site.sql` 保存旧站升级用的增量 DDL。已有环境可能已执行这些变更，执行前应逐项检查表、列和索引，并先备份；该文件不自动判断索引是否已存在。
 
-预约系统的独立库使用 `booking/tables.my.sql`，`booking/school/020-school-data.sql` 只初始化学校、球场及试运行时段。Docker Compose 在新建预约数据库卷时自动执行这两份脚本。
+旧版预约系统的独立库使用 `booking/tables.my.sql`，`booking/school/020-school-data.sql` 只初始化学校、球场及试运行时段。Docker Compose 在新建预约数据库卷时自动执行这两份脚本。
 
 主站账号资料、聊天、附件、恢复密钥等私有文件位于运行目录 `data/`。完整迁移需要同时迁移数据库、这些目录和服务器环境配置，不能只恢复 JAR。
+
+新版预约已支持主站 MySQL：执行 `migrations/20260912-booking.sql` 新增四张预约表，再迁移旧库数据、启用 `CLUB_BOOKING_BACKEND=main`。详细流程见 [预约后端](../docs/预约后端.md)。不要对现有数据库执行全量 `schema.sql`。

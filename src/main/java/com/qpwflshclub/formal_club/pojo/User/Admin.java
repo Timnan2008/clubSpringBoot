@@ -3,13 +3,11 @@ package com.qpwflshclub.formal_club.pojo.User;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.qpwflshclub.formal_club.pojo.Club.Club;
 import jakarta.persistence.*;
-
 import java.util.List;
 
 @Entity
 @Table(name = "user_admin")
-public class Admin implements UserBase{
-
+public class Admin implements UserBase {
 
     public long getId() {
         return id;
@@ -63,23 +61,26 @@ public class Admin implements UserBase{
 
     @Column(name = "admin_name")
     public String adminName;
+
     @Column(name = "admin_name_en")
     private String adminNameEn;
+
     @Column(name = "admin_password")
     @JsonIgnore
     public String adminPassword;
+
     @Column(name = "admin_email")
     public String adminEmail;
 
     @Column(name = "user_right")
-    public final static Integer userRight = 3;
+    public static final Integer userRight = 3;
 
     @JsonIgnore // 🌟 添加这一行
     @ManyToMany
     @JoinTable(
-            name = "admin_club",
-            joinColumns = @JoinColumn(name = "admin_id"),
-            inverseJoinColumns = @JoinColumn(name = "club_id")
+        name = "admin_club",
+        joinColumns = @JoinColumn(name = "admin_id"),
+        inverseJoinColumns = @JoinColumn(name = "club_id")
     )
     public List<Club> clubs;
 
@@ -87,38 +88,47 @@ public class Admin implements UserBase{
     public String getUsername() {
         return adminName;
     }
+
     @Override
     public void setUsername(String username) {
         this.adminName = username;
     }
+
     @Override
     public String getUsernameEn() {
         return adminNameEn;
     }
+
     @Override
     public void setUsernameEn(String usernameEn) {
         this.adminNameEn = usernameEn;
     }
+
     @Override
     public String getPassword() {
         return adminPassword;
     }
+
     @Override
     public void setPassword(String password) {
         this.adminPassword = password;
     }
+
     @Override
     public String getEmail() {
         return adminEmail;
     }
+
     @Override
     public void setEmail(String email) {
         this.adminEmail = email;
     }
+
     @Override
     public List<Club> getClubs() {
         return clubs;
     }
+
     @Override
     public void setClubs(List<Club> clubs) {
         this.clubs = clubs;
@@ -128,6 +138,4 @@ public class Admin implements UserBase{
     public int getUserRight() {
         return 3; // 明确告诉程序，管理员的权限数字是 3
     }
-
-
 }

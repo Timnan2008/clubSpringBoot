@@ -1,0 +1,14 @@
+# Generated browser assets: edit frontend/ and rebuild instead.
+src/main/resources/static/
+booking/school/*.bundle.*
+# Third-party MRBS code and dependencies keep their upstream formatting.
+booking/web/
+booking/test/
+node_modules/
+**/node_modules/
+target/
+package-lock.json
+# Private runtime files are never formatting targets.
+data/
+uploads/
+secret.properties

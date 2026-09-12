@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Transactional
-public class ClubLikeService{
+public class ClubLikeService {
 
     @Autowired
     private ClubLikeDeviceRepository deviceRepo;
@@ -50,7 +50,7 @@ public class ClubLikeService{
 
         // 2. 点赞数 -1
 
-        club.setVideoLike(Math.max(0,club.getVideoLike() - 1));
+        club.setVideoLike(Math.max(0, club.getVideoLike() - 1));
         clubRepo.save(club);
 
         // 3. 删除点赞记录
@@ -59,4 +59,3 @@ public class ClubLikeService{
         return true;
     }
 }
-

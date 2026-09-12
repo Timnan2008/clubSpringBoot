@@ -23,14 +23,7 @@
 .color-bends-container::before {
   background:
     radial-gradient(ellipse at 30% 50%, #8771ad99, transparent 40%),
-    conic-gradient(
-      from 120deg at 50% 50%,
-      #100c19,
-      #687fbd,
-      #66749f88,
-      #8771ad88,
-      #100c19
-    );
+    conic-gradient(from 120deg at 50% 50%, #100c19, #687fbd, #66749f88, #8771ad88, #100c19);
   animation: color-bends-flow 16s ease-in-out infinite alternate;
 }
 .color-bends-container::after {

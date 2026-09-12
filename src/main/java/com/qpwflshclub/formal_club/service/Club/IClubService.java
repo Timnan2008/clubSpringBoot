@@ -2,12 +2,9 @@ package com.qpwflshclub.formal_club.service.Club;
 
 import com.qpwflshclub.formal_club.pojo.Club.Club;
 import com.qpwflshclub.formal_club.pojo.dto.Club.ClubDTO;
-
 import java.util.List;
 
 public interface IClubService {
-
-
     Club add(ClubDTO clubDTO);
 
     Club find(Integer id);
@@ -17,7 +14,6 @@ public interface IClubService {
     void delate(Integer clubId);
 
     Club findByName(String clubName);
-
 
     List<Club> findAll();
 

@@ -1,21 +1,19 @@
 package com.qpwflshclub.formal_club.service.User;
 
-import com.qpwflshclub.formal_club.pojo.User.Teacher;
-import com.qpwflshclub.formal_club.pojo.User.*;
-import com.qpwflshclub.formal_club.pojo.dto.User.*;
 import com.qpwflshclub.formal_club.pojo.Club.Club;
-
+import com.qpwflshclub.formal_club.pojo.User.*;
+import com.qpwflshclub.formal_club.pojo.User.Teacher;
+import com.qpwflshclub.formal_club.pojo.dto.User.*;
 import java.util.List;
 import java.util.Map;
 
 public interface IUserService {
-
     Teacher addTeacher(TeacherDTO teacherDTO);
     User addUser(UserDTO userDTO);
     ClubPresident addClubPresident(ClubPresidentDTO cpDTO);
     Admin addAdmin(AdminDTO adminDTO);
 
-    Teacher update(TeacherDTO  teacherDTO);
+    Teacher update(TeacherDTO teacherDTO);
     Admin update(AdminDTO adminDTO);
     ClubPresident update(ClubPresidentDTO clubPresidentDTO);
     User update(UserDTO userDTO);
@@ -51,12 +49,15 @@ public interface IUserService {
     UserBase changeRole(String usernameEn, int newRole);
 
     // 任命社长方法
-    ClubPresident appointPresident(String targetUsernameEn, Integer clubId, boolean isVicePresident);
+    ClubPresident appointPresident(
+        String targetUsernameEn,
+        Integer clubId,
+        boolean isVicePresident
+    );
 
     // 撤销社长方法
     void revokePresident(Long presidentId);
 
     // 获取所有社团
     List<Club> getAllClubs();
-
 }

@@ -1,8 +1,12 @@
 package com.qpwflshclub.formal_club.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
+
 import com.qpwflshclub.formal_club.pojo.ResponseMessage;
 import com.qpwflshclub.formal_club.pojo.User.Admin;
 import com.qpwflshclub.formal_club.service.User.IUserService;
+import java.nio.file.Path;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,11 +15,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
-
-import java.nio.file.Path;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class FileUploadControllerTest {
@@ -39,7 +38,12 @@ class FileUploadControllerTest {
     void uploadClubLogoRejectsFilenameWithoutExtension() {
         Admin admin = new Admin();
         when(userService.findByEmail("admin@example.com")).thenReturn(admin);
-        MockMultipartFile file = new MockMultipartFile("file", "logo", "image/png", "fake".getBytes());
+        MockMultipartFile file = new MockMultipartFile(
+            "file",
+            "logo",
+            "image/png",
+            "fake".getBytes()
+        );
 
         ResponseMessage<String> response = controller.uploadClubLogo(file, "admin@example.com");
 

@@ -12,12 +12,11 @@ import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
-
-import java.io.IOException;
-import java.util.Set;
 
 @Component
 @Order(1)
@@ -27,45 +26,51 @@ public class AuthFilter implements Filter {
     private IUserService userService;
 
     private static final Set<String> PUBLIC_GET_PATHS = Set.of(
-            "/api/club/all",
-            "/api/club/search",
-            "/api/suggestion/pass_only",
-            "/api/user/logout"
+        "/api/club/all",
+        "/api/club/search",
+        "/api/suggestion/pass_only",
+        "/api/user/logout"
     );
 
     private static final Set<String> PUBLIC_GET_PREFIXES = Set.of(
-            "/api/club/id/",
-            "/api/club/name-en/"
+        "/api/club/id/",
+        "/api/club/name-en/"
     );
 
     private static final Set<String> PUBLIC_POST_PATHS = Set.of(
-            "/api/user/login",
-            "/api/user/password-reset/code", "/api/user/password-reset/verify", "/api/user/password-reset/complete",
+        "/api/user/login",
+        "/api/user/password-reset/code",
+        "/api/user/password-reset/verify",
+        "/api/user/password-reset/complete",
 
-            "/api/user/add/user",
-            "/api/user/add/teacher",
+        "/api/user/add/user",
+        "/api/user/add/teacher",
 
-            "/api/email/send",
-            "/api/email/verify",
-            "/api/suggestion"
+        "/api/email/send",
+        "/api/email/verify",
+        "/api/suggestion"
     );
 
     private static final Set<String> PUBLIC_PUT_PREFIXES = Set.of(
-            "/api/club/like/",
-            "/api/club/dislike/"
+        "/api/club/like/",
+        "/api/club/dislike/"
     );
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-            throws IOException, ServletException {
-
+        throws IOException, ServletException {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
         String path = httpRequest.getRequestURI();
         String method = httpRequest.getMethod();
 
-        if (path.equals("/api/club-workspace") || path.startsWith("/api/club-workspace/") || path.equals("/api/campus-social") || path.startsWith("/api/campus-social/")) {
+        if (
+            path.equals("/api/club-workspace") ||
+            path.startsWith("/api/club-workspace/") ||
+            path.equals("/api/campus-social") ||
+            path.startsWith("/api/campus-social/")
+        ) {
             // Workspace controllers verify the server-side session, club scope and mutation token.
             chain.doFilter(request, response);
             return;
@@ -82,7 +87,10 @@ public class AuthFilter implements Filter {
         }
 
         var session = httpRequest.getSession(false);
-        String email = session != null && session.getAttribute("authenticatedEmail") instanceof String value ? value : null;
+        String email =
+            session != null && session.getAttribute("authenticatedEmail") instanceof String value
+                ? value
+                : null;
         if (email == null || email.isBlank()) {
             writeUnauthorizedResponse(httpResponse, "未登录或会话已过期");
             return;
@@ -119,7 +127,8 @@ public class AuthFilter implements Filter {
         return false;
     }
 
-    private void writeUnauthorizedResponse(HttpServletResponse response, String message) throws IOException {
+    private void writeUnauthorizedResponse(HttpServletResponse response, String message)
+        throws IOException {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json;charset=UTF-8");
         ResponseMessage<?> rm = new ResponseMessage<>(401, message, null);

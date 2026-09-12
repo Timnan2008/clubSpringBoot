@@ -168,7 +168,7 @@
 
 .pc-shine::before,
 .pc-shine::after {
-  content: '';
+  content: "";
   background-position: center;
   background-size: cover;
   grid-area: 1/1;
@@ -200,7 +200,11 @@
       var(--sunpillar-2),
       var(--sunpillar-3)
     ),
-    radial-gradient(circle at var(--pointer-x) var(--pointer-y), hsl(0, 0%, 70%) 0%, hsla(0, 0%, 30%, 0.2) 90%),
+    radial-gradient(
+      circle at var(--pointer-x) var(--pointer-y),
+      hsl(0, 0%, 70%) 0%,
+      hsla(0, 0%, 30%, 0.2) 90%
+    ),
     var(--grain);
   background-size:
     250% 250%,
@@ -211,8 +215,8 @@
     center,
     calc(var(--pointer-x) * 0.01) calc(var(--pointer-y) * 0.01);
   background-blend-mode: color-dodge;
-  filter: brightness(calc(2 - var(--pointer-from-center))) contrast(calc(var(--pointer-from-center) + 2))
-    saturate(calc(0.5 + var(--pointer-from-center)));
+  filter: brightness(calc(2 - var(--pointer-from-center)))
+    contrast(calc(var(--pointer-from-center) + 2)) saturate(calc(0.5 + var(--pointer-from-center)));
   mix-blend-mode: luminosity;
 }
 
@@ -255,7 +259,8 @@
   left: 50%;
   transform-origin: 50% 100%;
   transform: translateX(calc(-50% + (var(--pointer-from-left) - 0.5) * 6px)) translateZ(0)
-    scaleY(calc(1 + (var(--pointer-from-top) - 0.5) * 0.02)) scaleX(calc(1 + (var(--pointer-from-left) - 0.5) * 0.01));
+    scaleY(calc(1 + (var(--pointer-from-top) - 0.5) * 0.02))
+    scaleX(calc(1 + (var(--pointer-from-left) - 0.5) * 0.01));
   bottom: -1px;
   backface-visibility: hidden;
   will-change: transform;
@@ -263,7 +268,7 @@
 }
 
 .pc-avatar-content::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
   z-index: 1;
@@ -561,12 +566,143 @@
   }
 }
 
+.club-logo-card {
+  width: 100%;
+  max-width: 360px;
+  justify-self: end;
+  --behind-glow-color: #997bcf55;
+}
+.club-logo-card .pc-card {
+  height: auto;
+  max-height: none;
+  width: 100%;
+  aspect-ratio: 1/1.12;
+  box-shadow: 0 16px 42px #32263815;
+}
+.club-logo-card .pc-avatar-content {
+  mix-blend-mode: normal;
+}
+.club-logo-card .pc-avatar-content .avatar {
+  width: 65%;
+  height: 60%;
+  object-fit: contain;
+  bottom: 8%;
+  border-radius: 16px;
+}
+.club-logo-card .pc-details {
+  top: 22px;
+  padding: 0 18px;
+  box-sizing: border-box;
+}
+.club-logo-card .pc-details h3 {
+  font-size: 24px;
+}
+.club-logo-card .pc-details p {
+  top: 8px;
+  font-size: 12px;
+  white-space: normal;
+  width: auto;
+}
+.club-logo-card .pc-shine {
+  opacity: 0.32;
+}
+.club-logo-card .pc-glare {
+  opacity: 0.35;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pc-card,
+  .pc-shine {
+    animation: none !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+@media (max-width: 700px) {
+  .club-logo-card {
+    max-width: 320px;
+    justify-self: center;
+  }
+}
 
-.club-logo-card{width:100%;max-width:360px;justify-self:end;--behind-glow-color:#997bcf55}.club-logo-card .pc-card{height:auto;max-height:none;width:100%;aspect-ratio:1/1.12;box-shadow:0 16px 42px #32263815}.club-logo-card .pc-avatar-content{mix-blend-mode:normal}.club-logo-card .pc-avatar-content .avatar{width:65%;height:60%;object-fit:contain;bottom:8%;border-radius:16px}.club-logo-card .pc-details{top:22px;padding:0 18px;box-sizing:border-box}.club-logo-card .pc-details h3{font-size:24px}.club-logo-card .pc-details p{top:8px;font-size:12px;white-space:normal;width:auto}.club-logo-card .pc-shine{opacity:.32}.club-logo-card .pc-glare{opacity:.35}@media(prefers-reduced-motion:reduce){.pc-card,.pc-shine{animation:none!important;transform:none!important;transition:none!important}}@media(max-width:700px){.club-logo-card{max-width:320px;justify-self:center}}
-
-.club-logo-card .pc-details h3,.club-logo-card .pc-details p{background:none;-webkit-text-fill-color:#35283f;color:#35283f;text-shadow:none;filter:none}.club-logo-card .pc-content:not(.pc-avatar-content){mix-blend-mode:normal}
+.club-logo-card .pc-details h3,
+.club-logo-card .pc-details p {
+  background: none;
+  -webkit-text-fill-color: #35283f;
+  color: #35283f;
+  text-shadow: none;
+  filter: none;
+}
+.club-logo-card .pc-content:not(.pc-avatar-content) {
+  mix-blend-mode: normal;
+}
 
 /* Keep print, logo and foil on the same moving card plane. */
-.club-logo-card .pc-card{animation:none;isolation:isolate}.club-logo-card .pc-content:not(.pc-avatar-content){transform:none;z-index:5}.club-logo-card .pc-avatar-content{z-index:4;mix-blend-mode:normal;transform:none}.club-logo-card .pc-avatar-content::before{display:none}.club-logo-card .pc-avatar-content .avatar{transform:translateX(-50%);transition:none;filter:none;mix-blend-mode:normal;object-fit:contain;image-rendering:auto;border-radius:8px}.club-logo-card .pc-shine{z-index:2;mix-blend-mode:screen;opacity:.5;filter:none;mask-size:100%;animation:none}.club-logo-card .pc-shine::after{mix-blend-mode:screen}.club-logo-card .pc-glare{z-index:3;mix-blend-mode:soft-light;opacity:.25}.club-logo-card .pc-details h3,.club-logo-card .pc-details p{color:#f8f5ff;-webkit-text-fill-color:#f8f5ff}.club-logo-card .pc-content{border-radius:0}
+.club-logo-card .pc-card {
+  animation: none;
+  isolation: isolate;
+}
+.club-logo-card .pc-content:not(.pc-avatar-content) {
+  transform: none;
+  z-index: 5;
+}
+.club-logo-card .pc-avatar-content {
+  z-index: 4;
+  mix-blend-mode: normal;
+  transform: none;
+}
+.club-logo-card .pc-avatar-content::before {
+  display: none;
+}
+.club-logo-card .pc-avatar-content .avatar {
+  transform: translateX(-50%);
+  transition: none;
+  filter: none;
+  mix-blend-mode: normal;
+  object-fit: contain;
+  image-rendering: auto;
+  border-radius: 8px;
+}
+.club-logo-card .pc-shine {
+  z-index: 2;
+  mix-blend-mode: screen;
+  opacity: 0.5;
+  filter: none;
+  mask-size: 100%;
+  animation: none;
+}
+.club-logo-card .pc-shine::after {
+  mix-blend-mode: screen;
+}
+.club-logo-card .pc-glare {
+  z-index: 3;
+  mix-blend-mode: soft-light;
+  opacity: 0.25;
+}
+.club-logo-card .pc-details h3,
+.club-logo-card .pc-details p {
+  color: #f8f5ff;
+  -webkit-text-fill-color: #f8f5ff;
+}
+.club-logo-card .pc-content {
+  border-radius: 0;
+}
 
-.club-logo-card .pc-shine{mask-size:100% 100%;mask-repeat:no-repeat;mask-position:center;opacity:.65;background:radial-gradient(ellipse at var(--pointer-x) var(--pointer-y),#faf4ff 0%,#c2b2de 26%,#79679d 65%,#c5b4df 100%);background-size:100% 100%;mix-blend-mode:screen}.club-logo-card .pc-shine::before,.club-logo-card .pc-shine::after{display:none}
+.club-logo-card .pc-shine {
+  mask-size: 100% 100%;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  opacity: 0.65;
+  background: radial-gradient(
+    ellipse at var(--pointer-x) var(--pointer-y),
+    #faf4ff 0%,
+    #c2b2de 26%,
+    #79679d 65%,
+    #c5b4df 100%
+  );
+  background-size: 100% 100%;
+  mix-blend-mode: screen;
+}
+.club-logo-card .pc-shine::before,
+.club-logo-card .pc-shine::after {
+  display: none;
+}

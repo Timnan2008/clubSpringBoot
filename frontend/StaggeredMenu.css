@@ -11,9 +11,22 @@
   cursor: pointer;
   white-space: nowrap;
 }
-.sm-toggle-plus { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; flex: 0 0 24px; line-height: 1; }
-.sm-toggle > span:first-child { line-height: 24px; display: block; }
-.sm-toggle-plus svg { display: block; }
+.sm-toggle-plus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  line-height: 1;
+}
+.sm-toggle > span:first-child {
+  line-height: 24px;
+  display: block;
+}
+.sm-toggle-plus svg {
+  display: block;
+}
 .staggered-menu-wrapper {
   position: fixed;
   inset: 0;

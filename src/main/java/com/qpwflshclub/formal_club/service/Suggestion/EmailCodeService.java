@@ -1,9 +1,80 @@
 package com.qpwflshclub.formal_club.service.Suggestion;
-import org.springframework.stereotype.Service;import org.springframework.beans.factory.annotation.*;import java.util.*;import java.security.SecureRandom;import com.qpwflshclub.formal_club.social.SchoolAccounts;import com.qpwflshclub.formal_club.config.LoginEmails;
-@Service public class EmailCodeService {
- @Autowired private MailService mailService;
- @Value("${spring.mail.host:smtp.qiye.aliyun.com}")private String smtpHost;@Value("${spring.mail.port:465}")private int smtpPort;@Value("${spring.mail.username:}")private String smtpUser;@Value("${spring.mail.password:}")private String smtpPass;
- private record Code(String value,long sent,long expires,int attempts){}private final Map<String,Code> codes=new HashMap<>();private final SecureRandom random=new SecureRandom();
- public void sendCode(String address){String email=LoginEmails.normalize(address);if(email.length()>254||!email.matches("[^\\s@]+@[^\\s@]+\\.[^\\s@]+"))throw SchoolAccounts.error(400,"邮箱格式不正确");long now=System.currentTimeMillis();String value=String.format(Locale.ROOT,"%06d",random.nextInt(1000000));synchronized(codes){codes.entrySet().removeIf(e->e.getValue().expires()<now);var old=codes.get(email);if(old!=null&&old.sent()+60000>now)throw SchoolAccounts.error(429,"请等待 60 秒后重试");if(codes.size()>10000)throw SchoolAccounts.error(429,"请稍后重试");codes.put(email,new Code(value,now,now+300000,0));}try{mailService.sendCode(smtpHost,smtpPort,smtpUser,smtpPass,email,value);}catch(RuntimeException e){synchronized(codes){codes.remove(email);}throw e;}}
- public boolean verifyCode(String email,String value){email=LoginEmails.normalize(email);synchronized(codes){Code c=codes.get(email);if(c==null||c.expires()<System.currentTimeMillis()||c.attempts()>=5)return false;codes.put(email,new Code(c.value(),c.sent(),c.expires(),c.attempts()+1));if(java.security.MessageDigest.isEqual(c.value().getBytes(java.nio.charset.StandardCharsets.UTF_8),Objects.toString(value,"").getBytes(java.nio.charset.StandardCharsets.UTF_8))){codes.remove(email);return true;}return false;}}
+
+import com.qpwflshclub.formal_club.config.LoginEmails;
+import com.qpwflshclub.formal_club.social.SchoolAccounts;
+import java.security.SecureRandom;
+import java.util.*;
+import org.springframework.beans.factory.annotation.*;
+import org.springframework.stereotype.Service;
+
+@Service
+public class EmailCodeService {
+
+    @Autowired
+    private MailService mailService;
+
+    @Value("${spring.mail.host:smtp.qiye.aliyun.com}")
+    private String smtpHost;
+
+    @Value("${spring.mail.port:465}")
+    private int smtpPort;
+
+    @Value("${spring.mail.username:}")
+    private String smtpUser;
+
+    @Value("${spring.mail.password:}")
+    private String smtpPass;
+
+    private record Code(String value, long sent, long expires, int attempts) {}
+
+    private final Map<String, Code> codes = new HashMap<>();
+    private final SecureRandom random = new SecureRandom();
+
+    public void sendCode(String address) {
+        String email = LoginEmails.normalize(address);
+        if (
+            email.length() > 254 || !email.matches("[^\\s@]+@[^\\s@]+\\.[^\\s@]+")
+        ) throw SchoolAccounts.error(400, "邮箱格式不正确");
+        long now = System.currentTimeMillis();
+        String value = String.format(Locale.ROOT, "%06d", random.nextInt(1000000));
+        synchronized (codes) {
+            codes.entrySet().removeIf(e -> e.getValue().expires() < now);
+            var old = codes.get(email);
+            if (old != null && old.sent() + 60000 > now) throw SchoolAccounts.error(
+                429,
+                "请等待 60 秒后重试"
+            );
+            if (codes.size() > 10000) throw SchoolAccounts.error(429, "请稍后重试");
+            codes.put(email, new Code(value, now, now + 300000, 0));
+        }
+        try {
+            mailService.sendCode(smtpHost, smtpPort, smtpUser, smtpPass, email, value);
+        } catch (RuntimeException e) {
+            synchronized (codes) {
+                codes.remove(email);
+            }
+            throw e;
+        }
+    }
+
+    public boolean verifyCode(String email, String value) {
+        email = LoginEmails.normalize(email);
+        synchronized (codes) {
+            Code c = codes.get(email);
+            if (
+                c == null || c.expires() < System.currentTimeMillis() || c.attempts() >= 5
+            ) return false;
+            codes.put(email, new Code(c.value(), c.sent(), c.expires(), c.attempts() + 1));
+            if (
+                java.security.MessageDigest.isEqual(
+                    c.value().getBytes(java.nio.charset.StandardCharsets.UTF_8),
+                    Objects.toString(value, "").getBytes(java.nio.charset.StandardCharsets.UTF_8)
+                )
+            ) {
+                codes.remove(email);
+                return true;
+            }
+            return false;
+        }
+    }
 }

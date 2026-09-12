@@ -1,551 +1,466 @@
-<div th:fragment="notice"
-     id="clubNotice"
-     class="club-notice">
-
-    <!-- =========================
+<div th:fragment="notice" id="clubNotice" class="club-notice">
+  <!-- =========================
          Notice 内容
          ========================= -->
 
-    <div class="notice-overlay"></div>
+  <div class="notice-overlay"></div>
 
-    <div class="notice-modal">
+  <div class="notice-modal">
+    <button class="notice-x" id="noticeX">×</button>
 
-        <button
-                class="notice-x"
-                id="noticeX">
-            ×
-        </button>
+    <!-- 视频区域 -->
+    <div class="notice-video-container">
+      <button class="notice-arrow notice-prev" id="noticePrev">‹</button>
 
-        <!-- 视频区域 -->
-        <div class="notice-video-container">
-
-            <button
-                    class="notice-arrow notice-prev"
-                    id="noticePrev">
-                ‹
-            </button>
-
-            <div class="notice-slides">
-
-                <!-- 视频 1：网站整体焕新 -->
-                <div class="notice-slide active">
-                    <video
-                            class="notice-video"
-                            muted
-                            playsinline
-                            preload="metadata">
-
-                        <source
-                                src="/media/notice/video-01.mp4"
-                                type="video/mp4">
-
-                    </video>
-                </div>
-
-                <!-- 视频 2：登录 / 注册 -->
-                <div class="notice-slide">
-                    <video
-                            class="notice-video"
-                            muted
-                            playsinline
-                            preload="metadata">
-
-                        <source
-                                src="/media/notice/video-02.mp4"
-                                type="video/mp4">
-
-                    </video>
-                </div>
-
-                <!-- 视频 3：新功能 ① -->
-                <div class="notice-slide">
-                    <video
-                            class="notice-video"
-                            muted
-                            playsinline
-                            preload="metadata">
-
-                        <source
-                                src="/media/notice/video-03.mp4"
-                                type="video/mp4">
-
-                    </video>
-                </div>
-
-                <!-- 视频 4：新功能 ② -->
-                <div class="notice-slide">
-                    <video
-                            class="notice-video"
-                            muted
-                            playsinline
-                            preload="metadata">
-
-                        <source
-                                src="/media/notice/video-04.mp4"
-                                type="video/mp4">
-
-                    </video>
-                </div>
-
-                <!-- 视频 5：其他更新 -->
-                <div class="notice-slide">
-                    <video
-                            class="notice-video"
-                            muted
-                            playsinline
-                            preload="metadata">
-
-                        <source
-                                src="/media/notice/video-05.mp4"
-                                type="video/mp4">
-
-                    </video>
-                </div>
-
-                <!-- 视频 6：社长修改功能 -->
-                <div class="notice-slide">
-                    <video
-                            class="notice-video"
-                            muted
-                            playsinline
-                            preload="metadata">
-
-                        <source
-                                src="/media/notice/video-06.mp4"
-                                type="video/mp4">
-
-                    </video>
-                </div>
-
-            </div>
-
-            <button
-                    class="notice-arrow notice-next"
-                    id="noticeNext">
-                ›
-            </button>
-
+      <div class="notice-slides">
+        <!-- 视频 1：网站整体焕新 -->
+        <div class="notice-slide active">
+          <video class="notice-video" muted playsinline preload="metadata">
+            <source src="/media/notice/video-01.mp4" type="video/mp4" />
+          </video>
         </div>
 
-        <!-- 小点点 -->
-        <div
-                class="notice-dots"
-                id="noticeDots">
+        <!-- 视频 2：登录 / 注册 -->
+        <div class="notice-slide">
+          <video class="notice-video" muted playsinline preload="metadata">
+            <source src="/media/notice/video-02.mp4" type="video/mp4" />
+          </video>
         </div>
 
-        <!-- 按钮 -->
-        <div class="notice-buttons">
-
-            <button
-                    class="notice-btn notice-close"
-                    id="noticeClose">
-                关闭
-            </button>
-
-            <button
-                    class="notice-btn notice-never"
-                    id="noticeNever">
-                已知晓，不再播放
-            </button>
-
+        <!-- 视频 3：新功能 ① -->
+        <div class="notice-slide">
+          <video class="notice-video" muted playsinline preload="metadata">
+            <source src="/media/notice/video-03.mp4" type="video/mp4" />
+          </video>
         </div>
 
+        <!-- 视频 4：新功能 ② -->
+        <div class="notice-slide">
+          <video class="notice-video" muted playsinline preload="metadata">
+            <source src="/media/notice/video-04.mp4" type="video/mp4" />
+          </video>
+        </div>
+
+        <!-- 视频 5：其他更新 -->
+        <div class="notice-slide">
+          <video class="notice-video" muted playsinline preload="metadata">
+            <source src="/media/notice/video-05.mp4" type="video/mp4" />
+          </video>
+        </div>
+
+        <!-- 视频 6：社长修改功能 -->
+        <div class="notice-slide">
+          <video class="notice-video" muted playsinline preload="metadata">
+            <source src="/media/notice/video-06.mp4" type="video/mp4" />
+          </video>
+        </div>
+      </div>
+
+      <button class="notice-arrow notice-next" id="noticeNext">›</button>
     </div>
 
+    <!-- 小点点 -->
+    <div class="notice-dots" id="noticeDots"></div>
 
+    <!-- 按钮 -->
+    <div class="notice-buttons">
+      <button class="notice-btn notice-close" id="noticeClose">关闭</button>
 
+      <button class="notice-btn notice-never" id="noticeNever">已知晓，不再播放</button>
+    </div>
+  </div>
 
-<style>
-    /* ================================
-   Notice 弹窗
-   ================================ */
+  <style>
+     /* ================================
+    Notice 弹窗
+    ================================ */
 
-    * {
-        box-sizing: border-box;
-    }
+     * {
+         box-sizing: border-box;
+     }
 
-    /* 整个 Notice 遮罩层 */
-    .club-notice {
-        position: fixed;
-        inset: 0;
-        z-index: 99999;
+     /* 整个 Notice 遮罩层 */
+     .club-notice {
+         position: fixed;
+         inset: 0;
+         z-index: 99999;
 
-        display: flex;
-        align-items: center;
-        justify-content: center;
+         display: flex;
+         align-items: center;
+         justify-content: center;
 
-        visibility: hidden;
-        opacity: 0;
+         visibility: hidden;
+         opacity: 0;
 
-        transition:
-                opacity 0.35s ease,
-                visibility 0.35s ease;
-    }
+         transition:
+                 opacity 0.35s ease,
+                 visibility 0.35s ease;
+     }
 
-    /* JS 添加 .show 后显示 */
-    .club-notice.show {
-        visibility: visible;
-        opacity: 1;
-    }
+     /* JS 添加 .show 后显示 */
+     .club-notice.show {
+         visibility: visible;
+         opacity: 1;
+     }
 
 
-    /* ================================
-       背景遮罩
-       ================================ */
+     /* ================================
+        背景遮罩
+        ================================ */
 
-    .notice-overlay {
-        position: absolute;
-        inset: 0;
+     .notice-overlay {
+         position: absolute;
+         inset: 0;
 
-        background: rgba(0, 0, 0, 0.68);
+         background: rgba(0, 0, 0, 0.68);
 
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-    }
+         backdrop-filter: blur(12px);
+         -webkit-backdrop-filter: blur(12px);
+     }
 
 
-    /* ================================
-       弹窗主体
-       ================================ */
+     /* ================================
+        弹窗主体
+        ================================ */
 
-    .notice-modal {
-        position: relative;
+     .notice-modal {
+         position: relative;
 
-        width: min(900px, 90vw);
+         width: min(900px, 90vw);
 
-        background: #ffffff;
+         background: #ffffff;
 
-        border-radius: 24px;
+         border-radius: 24px;
 
-        overflow: hidden;
+         overflow: hidden;
 
-        box-shadow:
-                0 30px 80px rgba(0, 0, 0, 0.35);
+         box-shadow:
+                 0 30px 80px rgba(0, 0, 0, 0.35);
 
-        transform: scale(0.94);
+         transform: scale(0.94);
 
-        transition: transform 0.35s ease;
-    }
+         transition: transform 0.35s ease;
+     }
 
-    /* 弹窗出现时放大 */
-    .club-notice.show .notice-modal {
-        transform: scale(1);
-    }
+     /* 弹窗出现时放大 */
+     .club-notice.show .notice-modal {
+         transform: scale(1);
+     }
 
 
-    /* ================================
-       右上角关闭按钮
-       ================================ */
+     /* ================================
+        右上角关闭按钮
+        ================================ */
 
-    .notice-x {
-        position: absolute;
+     .notice-x {
+         position: absolute;
 
-        top: 15px;
-        right: 15px;
+         top: 15px;
+         right: 15px;
 
-        z-index: 20;
+         z-index: 20;
 
-        width: 38px;
-        height: 38px;
+         width: 38px;
+         height: 38px;
 
-        border: none;
-        border-radius: 50%;
+         border: none;
+         border-radius: 50%;
 
-        background: rgba(0, 0, 0, 0.45);
+         background: rgba(0, 0, 0, 0.45);
 
-        color: #ffffff;
+         color: #ffffff;
 
-        font-size: 24px;
-        line-height: 38px;
+         font-size: 24px;
+         line-height: 38px;
 
-        text-align: center;
+         text-align: center;
 
-        cursor: pointer;
+         cursor: pointer;
 
-        transition:
-                background 0.2s ease,
-                transform 0.2s ease;
-    }
+         transition:
+                 background 0.2s ease,
+                 transform 0.2s ease;
+     }
 
-    .notice-x:hover {
-        background: rgba(0, 0, 0, 0.7);
+     .notice-x:hover {
+         background: rgba(0, 0, 0, 0.7);
 
-        transform: scale(1.08);
-    }
+         transform: scale(1.08);
+     }
 
 
-    /* ================================
-       视频区域
-       ================================ */
+     /* ================================
+        视频区域
+        ================================ */
 
-    .notice-video-container {
-        position: relative;
+     .notice-video-container {
+         position: relative;
 
-        width: 100%;
+         width: 100%;
 
-        background: #000000;
+         background: #000000;
 
-        overflow: hidden;
-    }
+         overflow: hidden;
+     }
 
 
-    /* 每一个视频 */
-    .notice-slide {
-        display: none;
+     /* 每一个视频 */
+     .notice-slide {
+         display: none;
 
-        width: 100%;
-    }
+         width: 100%;
+     }
 
 
-    /* 当前显示的视频 */
-    .notice-slide.active {
-        display: block;
-    }
+     /* 当前显示的视频 */
+     .notice-slide.active {
+         display: block;
+     }
 
 
-    /* 视频本身 */
-    .notice-video {
-        display: block;
+     /* 视频本身 */
+     .notice-video {
+         display: block;
 
-        width: 100%;
-        height: auto;
+         width: 100%;
+         height: auto;
 
-        max-height: 70vh;
+         max-height: 70vh;
 
-        object-fit: contain;
+         object-fit: contain;
 
-        background: #000000;
-    }
+         background: #000000;
+     }
 
 
-    /* ================================
-       左右切换按钮
-       ================================ */
+     /* ================================
+        左右切换按钮
+        ================================ */
 
-    .notice-arrow {
-        position: absolute;
+     .notice-arrow {
+         position: absolute;
 
-        top: 50%;
+         top: 50%;
 
-        z-index: 10;
+         z-index: 10;
 
-        width: 46px;
-        height: 70px;
+         width: 46px;
+         height: 70px;
 
-        border: none;
-        border-radius: 12px;
+         border: none;
+         border-radius: 12px;
 
-        background: rgba(0, 0, 0, 0.35);
+         background: rgba(0, 0, 0, 0.35);
 
-        color: #ffffff;
+         color: #ffffff;
 
-        font-size: 48px;
+         font-size: 48px;
 
-        line-height: 60px;
+         line-height: 60px;
 
-        cursor: pointer;
+         cursor: pointer;
 
-        transform: translateY(-50%);
+         transform: translateY(-50%);
 
-        transition:
-                background 0.2s ease,
-                transform 0.2s ease;
-    }
+         transition:
+                 background 0.2s ease,
+                 transform 0.2s ease;
+     }
 
 
-    /* 左箭头 */
-    .notice-prev {
-        left: 15px;
-    }
+     /* 左箭头 */
+     .notice-prev {
+         left: 15px;
+     }
 
 
-    /* 右箭头 */
-    .notice-next {
-        right: 15px;
-    }
+     /* 右箭头 */
+     .notice-next {
+         right: 15px;
+     }
 
 
-    /* 鼠标悬停 */
-    .notice-arrow:hover {
-        background: rgba(0, 0, 0, 0.65);
+     /* 鼠标悬停 */
+     .notice-arrow:hover {
+         background: rgba(0, 0, 0, 0.65);
 
-        transform: translateY(-50%) scale(1.05);
-    }
+         transform: translateY(-50%) scale(1.05);
+     }
 
 
-    /* ================================
-       视频下方的小圆点
-       ================================ */
+     /* ================================
+        视频下方的小圆点
+        ================================ */
 
-    .notice-dots {
-        display: flex;
+     .notice-dots {
+         display: flex;
 
-        justify-content: center;
-        align-items: center;
+         justify-content: center;
+         align-items: center;
 
-        gap: 8px;
+         gap: 8px;
 
-        padding: 18px 10px 10px;
-    }
+         padding: 18px 10px 10px;
+     }
 
 
-    /* 普通圆点 */
-    .notice-dot {
-        width: 7px;
-        height: 7px;
+     /* 普通圆点 */
+     .notice-dot {
+         width: 7px;
+         height: 7px;
 
-        padding: 0;
+         padding: 0;
 
-        border: none;
-        border-radius: 50%;
+         border: none;
+         border-radius: 50%;
 
-        background: #c7c7c7;
+         background: #c7c7c7;
 
-        cursor: pointer;
+         cursor: pointer;
 
-        transition:
-                width 0.25s ease,
-                background 0.25s ease;
-    }
+         transition:
+                 width 0.25s ease,
+                 background 0.25s ease;
+     }
 
 
-    /* 当前视频的圆点 */
-    .notice-dot.active {
-        width: 22px;
+     /* 当前视频的圆点 */
+     .notice-dot.active {
+         width: 22px;
 
-        border-radius: 10px;
+         border-radius: 10px;
 
-        background: #333333;
-    }
+         background: #333333;
+     }
 
 
-    /* ================================
-       底部按钮区域
-       ================================ */
+     /* ================================
+        底部按钮区域
+        ================================ */
 
-    .notice-buttons {
-        display: flex;
+     .notice-buttons {
+         display: flex;
 
-        justify-content: center;
-        align-items: center;
+         justify-content: center;
+         align-items: center;
 
-        gap: 12px;
+         gap: 12px;
 
-        padding: 10px 25px 25px;
-    }
+         padding: 10px 25px 25px;
+     }
 
 
-    /* 所有底部按钮 */
-    .notice-btn {
-        padding: 10px 22px;
+     /* 所有底部按钮 */
+     .notice-btn {
+         padding: 10px 22px;
 
-        border-radius: 10px;
+         border-radius: 10px;
 
-        font-size: 14px;
+         font-size: 14px;
 
-        cursor: pointer;
+         cursor: pointer;
 
-        transition:
-                background 0.2s ease,
-                transform 0.2s ease;
-    }
+         transition:
+                 background 0.2s ease,
+                 transform 0.2s ease;
+     }
 
 
-    /* 普通关闭 */
-    .notice-close {
-        border: 1px solid #dddddd;
+     /* 普通关闭 */
+     .notice-close {
+         border: 1px solid #dddddd;
 
-        background: #f5f5f5;
+         background: #f5f5f5;
 
-        color: #333333;
-    }
+         color: #333333;
+     }
 
-    .notice-close:hover {
-        background: #e9e9e9;
+     .notice-close:hover {
+         background: #e9e9e9;
 
-        transform: translateY(-1px);
-    }
+         transform: translateY(-1px);
+     }
 
 
-    /* 永久关闭 */
-    .notice-never {
-        border: none;
+     /* 永久关闭 */
+     .notice-never {
+         border: none;
 
-        background: #111111;
+         background: #111111;
 
-        color: #ffffff;
-    }
+         color: #ffffff;
+     }
 
-    .notice-never:hover {
-        background: #333333;
+     .notice-never:hover {
+         background: #333333;
 
-        transform: translateY(-1px);
-    }
+         transform: translateY(-1px);
+     }
 
 
-    /* ================================
-       手机端适配
-       ================================ */
+     /* ================================
+        手机端适配
+        ================================ */
 
-    @media (max-width: 600px) {
+     @media (max-width: 600px) {
 
-        .notice-modal {
-            width: 94vw;
+         .notice-modal {
+             width: 94vw;
 
-            border-radius: 18px;
-        }
+             border-radius: 18px;
+         }
 
-        .notice-video {
-            max-height: 65vh;
-        }
+         .notice-video {
+             max-height: 65vh;
+         }
 
-        .notice-arrow {
-            width: 38px;
-            height: 56px;
+         .notice-arrow {
+             width: 38px;
+             height: 56px;
 
-            font-size: 36px;
+             font-size: 36px;
 
-            line-height: 48px;
-        }
+             line-height: 48px;
+         }
 
-        .notice-prev {
-            left: 8px;
-        }
+         .notice-prev {
+             left: 8px;
+         }
 
-        .notice-next {
-            right: 8px;
-        }
+         .notice-next {
+             right: 8px;
+         }
 
-        .notice-buttons {
-            flex-direction: column;
+         .notice-buttons {
+             flex-direction: column;
 
-            gap: 8px;
+             gap: 8px;
 
-            padding: 8px 20px 20px;
-        }
+             padding: 8px 20px 20px;
+         }
 
-        .notice-btn {
-            width: 100%;
+         .notice-btn {
+             width: 100%;
 
-            padding: 11px 15px;
-        }
+             padding: 11px 15px;
+         }
 
-        .notice-x {
-            width: 34px;
-            height: 34px;
+         .notice-x {
+             width: 34px;
+             height: 34px;
 
-            font-size: 21px;
+             font-size: 21px;
 
-            line-height: 34px;
-        }
-    }
-</style>
+             line-height: 34px;
+         }
+     }
+  </style>
 
-<!-- =========================================================
+  <!-- =========================================================
      JavaScript
      ========================================================= -->
 
-<script>
+  <script>
 
     document.addEventListener(
         "DOMContentLoaded",
@@ -954,7 +869,7 @@
 
             /* =================================================
                关闭 Notice
-               
+
                注意：
 
                这里不会保存 localStorage。
@@ -1136,6 +1051,5 @@
 
         }
     );
-
-</script>
+  </script>
 </div>

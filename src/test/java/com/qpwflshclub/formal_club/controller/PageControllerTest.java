@@ -1,20 +1,19 @@
 package com.qpwflshclub.formal_club.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
+
 import com.qpwflshclub.formal_club.pojo.Club.Club;
 import com.qpwflshclub.formal_club.pojo.User.Teacher;
 import com.qpwflshclub.formal_club.service.Club.IClubService;
 import com.qpwflshclub.formal_club.service.User.IUserService;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ui.ExtendedModelMap;
-
-import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class PageControllerTest {
@@ -48,7 +47,11 @@ class PageControllerTest {
         Club currentClub = club(1000);
         teacher.setClubs(List.of(managedClub));
 
-        String view = controller.editClubPage("Codecraft", "teacher@example.com", new ExtendedModelMap());
+        String view = controller.editClubPage(
+            "Codecraft",
+            "teacher@example.com",
+            new ExtendedModelMap()
+        );
 
         assertThat(view).isEqualTo("redirect:/page/club/workspace");
     }

@@ -300,16 +300,99 @@
 }
 
 /* Explicit dimensions avoid inherited button padding and font baselines. */
-.club-search .club-search-submit { padding: 0; margin: 0; min-width: 32px; line-height: 1; align-self: center; box-sizing: border-box; }
-.club-search-submit svg { display: block; width: 20px; height: 20px; }
-
-
-@media (min-width:1200px){
- .navbar.navbar-enhanced{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(320px,min(40vw,600px)) minmax(0,1fr);align-items:center;gap:24px}
- .navbar-enhanced .navbar-left{grid-column:1;grid-row:1;min-width:0;max-width:100%}
- .navbar-enhanced .navbar-center{grid-column:2;grid-row:1;width:100%!important;max-width:none!important;margin:0!important;justify-self:center}
- .navbar-enhanced .navbar-menu-host{grid-column:3;grid-row:1;justify-self:end}
- .navbar-enhanced .school-name-block{min-width:0;overflow:hidden}.navbar-enhanced .school-en{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.club-search .club-search-submit {
+  padding: 0;
+  margin: 0;
+  min-width: 32px;
+  line-height: 1;
+  align-self: center;
+  box-sizing: border-box;
+}
+.club-search-submit svg {
+  display: block;
+  width: 20px;
+  height: 20px;
 }
 
-@media(min-width:1200px){.navbar-enhanced .navbar-links{grid-column:3;grid-row:1;justify-self:end;margin-right:105px;min-width:0;width:auto}.navbar.navbar-enhanced{grid-template-rows:1fr}}
+@media (min-width: 1200px) {
+  .navbar.navbar-enhanced {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(320px, min(40vw, 600px)) minmax(0, 1fr);
+    align-items: center;
+    gap: 24px;
+  }
+  .navbar-enhanced .navbar-left {
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .navbar-enhanced .navbar-center {
+    grid-column: 2;
+    grid-row: 1;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    justify-self: center;
+  }
+  .navbar-enhanced .navbar-menu-host {
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: end;
+  }
+  .navbar-enhanced .school-name-block {
+    min-width: 0;
+    overflow: hidden;
+  }
+  .navbar-enhanced .school-en {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+@media (min-width: 1200px) {
+  .navbar-enhanced .navbar-links {
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: end;
+    margin-right: 105px;
+    min-width: 0;
+    width: auto;
+  }
+  .navbar.navbar-enhanced {
+    grid-template-rows: 1fr;
+  }
+}
+
+.navbar-enhanced .navbar-links {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.navbar-notifications-host {
+  flex: 0 0 auto;
+}
+.navbar .notification-panel {
+  right: 0;
+}
+.navbar:has(.notification-panel) {
+  overflow: visible;
+  z-index: 1100;
+}
+@media (max-width: 480px) {
+  .navbar .notification-panel {
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    top: 80px;
+  }
+}
+
+.navbar-notifications-host {
+  color: #27232c;
+}
+.navbar .notification-panel {
+  white-space: normal;
+  text-align: left;
+}

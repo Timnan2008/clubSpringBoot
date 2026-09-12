@@ -1,5 +1,10 @@
 package com.qpwflshclub.formal_club.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.qpwflshclub.formal_club.pojo.Club.Club;
 import com.qpwflshclub.formal_club.pojo.Club.ClubVO;
 import com.qpwflshclub.formal_club.pojo.Club.SearchResultVO;
@@ -10,6 +15,8 @@ import com.qpwflshclub.formal_club.pojo.dto.Club.ClubDTO;
 import com.qpwflshclub.formal_club.service.Club.IClubService;
 import com.qpwflshclub.formal_club.service.User.IUserService;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.List;
+import java.util.Locale;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,14 +25,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.test.util.ReflectionTestUtils;
-
-import java.util.List;
-import java.util.Locale;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ClubControllerTest {
@@ -45,7 +44,11 @@ class ClubControllerTest {
     void setUp() {
         controller = new ClubController();
         controller.clubService = clubService;
-        ReflectionTestUtils.setField(controller,"publicCatalog",new com.qpwflshclub.formal_club.service.Club.PublicClubCatalog(clubService));
+        ReflectionTestUtils.setField(
+            controller,
+            "publicCatalog",
+            new com.qpwflshclub.formal_club.service.Club.PublicClubCatalog(clubService)
+        );
         ReflectionTestUtils.setField(controller, "userService", userService);
         LocaleContextHolder.setLocale(Locale.CHINA);
     }
@@ -149,7 +152,11 @@ class ClubControllerTest {
         when(userService.findByEmail("teacher@example.com")).thenReturn(teacher);
         when(clubService.findByName("Codecraft")).thenReturn(currentClub);
 
-        ResponseMessage<Club> response = controller.updateNameEn("Codecraft", dto, "teacher@example.com");
+        ResponseMessage<Club> response = controller.updateNameEn(
+            "Codecraft",
+            dto,
+            "teacher@example.com"
+        );
 
         assertThat(response.getCode()).isEqualTo(400);
         verify(clubService, never()).update(dto);

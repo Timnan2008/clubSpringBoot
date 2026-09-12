@@ -4,7 +4,10 @@
   "version": "1.0.0",
   "scripts": {
     "build:home": "node frontend/build.mjs",
-    "build": "node frontend/build.mjs"
+    "build": "node frontend/build.mjs",
+    "format": "prettier --write \"frontend/**/*.{js,jsx,mjs,css,json}\" \"src/{main,test}/java/**/*.java\" \"src/main/resources/templates/**/*.html\"",
+    "format:check": "prettier --check \"frontend/**/*.{js,jsx,mjs,css,json}\" \"src/{main,test}/java/**/*.java\" \"src/main/resources/templates/**/*.html\"",
+    "test:frontend": "node --test frontend/tests/*.test.mjs"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",
@@ -13,7 +16,8 @@
     "ogl": "1.0.11",
     "react": "19.1.1",
     "react-dom": "19.1.1",
-    "three": "0.180.0"
+    "three": "0.180.0",
+    "vgpu": "0.3.1"
   },
   "devDependencies": {
     "@babel/generator": "^8.0.0",
@@ -21,6 +25,8 @@
     "@babel/traverse": "^8.0.4",
     "@babel/types": "^8.0.4",
     "esbuild": "0.25.9",
-    "playwright-core": "1.63.0"
+    "playwright-core": "1.63.0",
+    "prettier": "3.9.6",
+    "prettier-plugin-java": "2.10.3"
   }
 }

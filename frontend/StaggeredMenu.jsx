@@ -41,9 +41,7 @@ export default function StaggeredMenu({
       initial.current = false;
       return;
     }
-    const reduced = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const duration = reduced ? 0 : 0.55;
     const tl = gsap.timeline();
     timeline.current = tl;
@@ -57,11 +55,7 @@ export default function StaggeredMenu({
           reduced ? 0 : i * 0.07,
         ),
       );
-      tl.to(
-        panel.current,
-        { xPercent: 0, duration, ease: "power4.out" },
-        reduced ? 0 : 0.14,
-      );
+      tl.to(panel.current, { xPercent: 0, duration, ease: "power4.out" }, reduced ? 0 : 0.14);
       tl.fromTo(
         panel.current.querySelectorAll(".sm-panel-itemLabel"),
         { yPercent: 140, rotate: 8, opacity: 0 },
@@ -102,9 +96,7 @@ export default function StaggeredMenu({
     document.body.style.overflow = "hidden";
     // Keep keyboard and assistive navigation inside the open drawer.
     const outside = [...document.body.children].filter(
-      (e) =>
-        e !== overlay.current &&
-        !["SCRIPT", "STYLE", "LINK"].includes(e.tagName),
+      (e) => e !== overlay.current && !["SCRIPT", "STYLE", "LINK"].includes(e.tagName),
     );
     const states = outside.map((e) => e.inert);
     outside.forEach((e) => (e.inert = true));
@@ -114,9 +106,7 @@ export default function StaggeredMenu({
         shut();
       }
       if (e.key === "Tab") {
-        const focusable = [
-          ...panel.current.querySelectorAll("a[href],button:not(:disabled)"),
-        ];
+        const focusable = [...panel.current.querySelectorAll("a[href],button:not(:disabled)")];
         const first = focusable[0],
           last = focusable.at(-1);
         if (e.shiftKey && document.activeElement === first) {
@@ -133,9 +123,7 @@ export default function StaggeredMenu({
       document.body.style.overflow = previous;
       outside.forEach((e, i) => (e.inert = states[i]));
       document.removeEventListener("keydown", key);
-      requestAnimationFrame(() =>
-        toggle.current?.focus({ preventScroll: true }),
-      );
+      requestAnimationFrame(() => toggle.current?.focus({ preventScroll: true }));
     };
   }, [open]);
   return (
@@ -152,7 +140,15 @@ export default function StaggeredMenu({
       >
         <span>{en ? "Menu" : "菜单"}</span>
         <span className="sm-toggle-plus" aria-hidden="true">
-          <svg viewBox="0 0 24 24" width="24" height="24"><path d="M12 4v16M4 12h16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
+          <svg viewBox="0 0 24 24" width="24" height="24">
+            <path
+              d="M12 4v16M4 12h16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+            />
+          </svg>
         </span>
       </button>
       {createPortal(
@@ -165,17 +161,10 @@ export default function StaggeredMenu({
           inert={!open}
           style={{ "--sm-accent": accentColor }}
         >
-          <div
-            className="sm-backdrop"
-            onClick={() => closeOnClickAway && shut()}
-          />
+          <div className="sm-backdrop" onClick={() => closeOnClickAway && shut()} />
           <div className="sm-prelayers" ref={layer} aria-hidden="true">
             {colors.slice(0, 4).map((color, i) => (
-              <div
-                key={i}
-                className="sm-prelayer"
-                style={{ background: color }}
-              />
+              <div key={i} className="sm-prelayer" style={{ background: color }} />
             ))}
           </div>
           <aside
@@ -187,30 +176,16 @@ export default function StaggeredMenu({
             aria-label={en ? "Site navigation" : "网站导航"}
           >
             <div className="sm-panel-top">
-              <a
-                href="/"
-                className="sm-logo"
-                aria-label={en ? "Home" : "返回首页"}
-              >
+              <a href="/" className="sm-logo" aria-label={en ? "Home" : "返回首页"}>
                 <img src={logoUrl} alt="" />
                 <span>QPWFLHS CLUBS</span>
               </a>
-              <button
-                type="button"
-                ref={close}
-                className="sm-close"
-                onClick={shut}
-              >
+              <button type="button" ref={close} className="sm-close" onClick={shut}>
                 {en ? "Close" : "关闭"} <span aria-hidden="true">×</span>
               </button>
             </div>
-            <p className="sm-caption">
-              {en ? "EXPLORE YOUR CAMPUS" : "探索校园，发现热爱"}
-            </p>
-            <ul
-              className="sm-panel-list"
-              data-numbering={displayItemNumbering || undefined}
-            >
+            <p className="sm-caption">{en ? "EXPLORE YOUR CAMPUS" : "探索校园，发现热爱"}</p>
+            <ul className="sm-panel-list" data-numbering={displayItemNumbering || undefined}>
               {items.map((it, i) => (
                 <li key={i} className="sm-panel-itemWrap">
                   <a

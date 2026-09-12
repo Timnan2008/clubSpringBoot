@@ -4,12 +4,10 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.qpwflshclub.formal_club.pojo.Club.Club;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
-
 import java.util.List;
 
 @JsonTypeName("Admin")
-public class AdminDTO implements UserBaseDTO{
-
+public class AdminDTO implements UserBaseDTO {
 
     @Override
     public void setId(Long id) {
@@ -30,10 +28,13 @@ public class AdminDTO implements UserBaseDTO{
 
     @NotNull(message = "管理员名称不能为空")
     public String adminName;
+
     @NotNull(message = "管理员英文名称不能为空")
     private String adminNameEn;
+
     @NotNull(message = "管理员密码不能为空")
     public String adminPassword;
+
     @NotNull(message = "管理员邮箱不能为空")
     @Email(message = "邮箱格式不正确")
     public String adminEmail;
@@ -81,39 +82,44 @@ public class AdminDTO implements UserBaseDTO{
     public void setUsername(String username) {
         this.adminName = username;
     }
+
     @Override
     public String getUsernameEn() {
         return adminNameEn;
     }
+
     @Override
     public void setUsernameEn(String usernameEn) {
         this.adminNameEn = usernameEn;
     }
+
     @Override
     public String getPassword() {
         return adminPassword;
     }
+
     @Override
     public void setPassword(String password) {
         this.adminPassword = password;
     }
+
     @Override
     public String getEmail() {
         return adminEmail;
     }
+
     @Override
     public void setEmail(String email) {
         this.adminEmail = email;
     }
+
     @Override
     public List<Long> getClubs() {
         return clubs;
     }
+
     @Override
     public void setClubs(List<Long> clubs) {
         this.clubs = clubs;
     }
-
-
-
 }

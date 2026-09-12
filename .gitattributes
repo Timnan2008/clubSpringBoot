@@ -1,5 +1,6 @@
-/mvnw text eol=lf
-*.cmd text eol=crlf
-
-# Bundled shader source includes intentional whitespace.
-src/main/resources/static/javascript/** -whitespace
+# Keep GitHub reviews focused on source; generated files remain available for deployment.
+src/main/resources/static/javascript/ui/** linguist-generated=true
+src/main/resources/static/javascript/darkveil/** linguist-generated=true
+booking/school/*.bundle.* linguist-generated=true
+booking/web/** linguist-vendored=true
+booking/test/** linguist-vendored=true

@@ -3,11 +3,12 @@ package com.qpwflshclub.formal_club.pojo.Club;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "tb_club_like_device",
-        uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"club_name_en", "device_id"})
-        })
+@Table(
+    name = "tb_club_like_device",
+    uniqueConstraints = { @UniqueConstraint(columnNames = { "club_name_en", "device_id" }) }
+)
 public class ClubLikeDevice {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

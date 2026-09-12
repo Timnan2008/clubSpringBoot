@@ -1,20 +1,19 @@
 package com.qpwflshclub.formal_club.pojo.dto.User;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.qpwflshclub.formal_club.pojo.User.ClubPresident;
 import com.qpwflshclub.formal_club.pojo.Club.Club;
+import com.qpwflshclub.formal_club.pojo.User.ClubPresident;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * 社长 DTO，用于请求与响应之间的数据传输。
@@ -45,7 +44,7 @@ public class ClubPresidentDTO implements UserBaseDTO {
 
     private List<Long> clubs;
 
-    @NotBlank(message="主要社团不能为空")
+    @NotBlank(message = "主要社团不能为空")
     private Long mainClubId;
 
     private boolean vicePresident;
@@ -155,16 +154,22 @@ public class ClubPresidentDTO implements UserBaseDTO {
         dto.setPassword(entity.getPassword());
         dto.setEmail(entity.getEmail());
         dto.setVicePresident(entity.isVicePresident());
-        dto.setMainClubId(entity.getMainClub() != null && entity.getMainClub().getId() != null
+        dto.setMainClubId(
+            entity.getMainClub() != null && entity.getMainClub().getId() != null
                 ? entity.getMainClub().getId().longValue()
-                : null);
+                : null
+        );
         if (entity.getClubs() != null) {
-            dto.setClubs(entity.getClubs().stream()
+            dto.setClubs(
+                entity
+                    .getClubs()
+                    .stream()
                     .filter(Objects::nonNull)
                     .map(Club::getId)
                     .filter(Objects::nonNull)
                     .map(Integer::longValue)
-                    .collect(Collectors.toList()));
+                    .collect(Collectors.toList())
+            );
         }
         return dto;
     }

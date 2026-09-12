@@ -1,17 +1,15 @@
 package com.qpwflshclub.formal_club.service.Club;
 
-
 import com.qpwflshclub.formal_club.pojo.Club.Club;
 import com.qpwflshclub.formal_club.pojo.Club.ClubLikeDevice;
 import com.qpwflshclub.formal_club.pojo.dto.Club.ClubDTO;
 import com.qpwflshclub.formal_club.repository.Club.ClubLikeDeviceRepository;
 import com.qpwflshclub.formal_club.repository.Club.ClubRepository;
+import java.util.ArrayList;
+import java.util.List;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 public class ClubService implements IClubService {
@@ -21,20 +19,19 @@ public class ClubService implements IClubService {
 
     @Override
     public Club add(ClubDTO clubDTO) {
-
         Club club = new Club();
         BeanUtils.copyProperties(clubDTO, club);
 
         return clubRepository.save(club);
         //调用数据访问类
-
     }
 
     @Override
     public Club update(ClubDTO clubDTO) {
         // 先从数据库查找现有的club对象
-        Club existingClub = clubRepository.findById(clubDTO.getClubId())
-                .orElseThrow(() -> new IllegalArgumentException("没有找到该社团"));
+        Club existingClub = clubRepository
+            .findById(clubDTO.getClubId())
+            .orElseThrow(() -> new IllegalArgumentException("没有找到该社团"));
         Integer existingVideoLike = existingClub.getVideoLike();
         String existingClubURL = existingClub.getClubURL();
 
@@ -71,12 +68,16 @@ public class ClubService implements IClubService {
 
     @Override
     public void updateVideoAll(List<Club> clubs) {
-
         clubs.stream().forEach(club -> {
-            club.setVideo("http://123.57.189.22/media/vedio/" + club.getClubClass() + "/" + club.getClubNameEn() + ".mp4");
+            club.setVideo(
+                "http://123.57.189.22/media/vedio/" +
+                    club.getClubClass() +
+                    "/" +
+                    club.getClubNameEn() +
+                    ".mp4"
+            );
         });
     }
-
 
     @Override
     public Club find(Integer id) {
@@ -113,5 +114,4 @@ public class ClubService implements IClubService {
         }
         return clubRepository.searchByKeyword(keyword.trim());
     }
-
 }

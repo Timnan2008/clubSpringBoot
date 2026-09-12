@@ -3,20 +3,49 @@ package com.qpwflshclub.formal_club.pojo.dto.User;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
-
 import java.util.List;
 
 @JsonTypeName("Teacher")
-public class TeacherDTO implements UserBaseDTO{
+public class TeacherDTO implements UserBaseDTO {
 
-    private String studentNumber,nickname;
-    public String getStudentNumber(){return studentNumber;} public void setStudentNumber(String value){studentNumber=value;}
-    public String getNickname(){return nickname;} public void setNickname(String value){nickname=value;}
+    private String studentNumber, nickname;
+
+    public String getStudentNumber() {
+        return studentNumber;
+    }
+
+    public void setStudentNumber(String value) {
+        studentNumber = value;
+    }
+
+    public String getNickname() {
+        return nickname;
+    }
+
+    public void setNickname(String value) {
+        nickname = value;
+    }
+
     private String emailCode;
-    public String getEmailCode(){return emailCode;} public void setEmailCode(String value){emailCode=value;}
+
+    public String getEmailCode() {
+        return emailCode;
+    }
+
+    public void setEmailCode(String value) {
+        emailCode = value;
+    }
+
     private String turnstileToken;
-    public String getTurnstileToken(){return turnstileToken;}
-    public void setTurnstileToken(String token){turnstileToken=token;}
+
+    public String getTurnstileToken() {
+        return turnstileToken;
+    }
+
+    public void setTurnstileToken(String token) {
+        turnstileToken = token;
+    }
+
     private Long id;
 
     public void setId(Long id) {
@@ -60,7 +89,6 @@ public class TeacherDTO implements UserBaseDTO{
         this.teacherEmail = teacherEmail;
     }
 
-
     @Override
     public void setId(long id) {
         this.id = id;
@@ -72,12 +100,12 @@ public class TeacherDTO implements UserBaseDTO{
 
     @NotNull(message = "教师密码不能为空")
     private String teacherPassword;
+
     @NotNull(message = "教师邮箱不能为空")
     @Email(message = "邮箱格式不正确")
     private String teacherEmail;
 
-    public final static Integer userRight = 2;
-
+    public static final Integer userRight = 2;
 
     public List<Long> Clubs;
 
@@ -90,7 +118,6 @@ public class TeacherDTO implements UserBaseDTO{
     public void setUsername(String username) {
         this.teacherName = username;
     }
-
 
     @Override
     public String getUsernameEn() {
@@ -131,5 +158,4 @@ public class TeacherDTO implements UserBaseDTO{
     public void setClubs(List<Long> clubs) {
         this.Clubs = clubs;
     }
-
 }

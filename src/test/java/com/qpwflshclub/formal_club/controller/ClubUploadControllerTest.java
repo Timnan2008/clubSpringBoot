@@ -1,5 +1,11 @@
 package com.qpwflshclub.formal_club.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.qpwflshclub.formal_club.pojo.Club.Club;
 import com.qpwflshclub.formal_club.pojo.ResponseMessage;
 import com.qpwflshclub.formal_club.pojo.User.Admin;
@@ -13,12 +19,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ClubUploadControllerTest {
@@ -42,7 +42,12 @@ class ClubUploadControllerTest {
         Club club = new Club();
         club.setId(1);
         Teacher teacher = new Teacher();
-        MockMultipartFile file = new MockMultipartFile("file", "logo.png", "image/png", "fake".getBytes());
+        MockMultipartFile file = new MockMultipartFile(
+            "file",
+            "logo.png",
+            "image/png",
+            "fake".getBytes()
+        );
         when(clubService.find(1)).thenReturn(club);
         when(request.getAttribute("currentUser")).thenReturn(teacher);
 
@@ -58,7 +63,12 @@ class ClubUploadControllerTest {
         Club club = new Club();
         club.setId(1);
         Admin admin = new Admin();
-        MockMultipartFile file = new MockMultipartFile("file", "logo.txt", "text/plain", "fake".getBytes());
+        MockMultipartFile file = new MockMultipartFile(
+            "file",
+            "logo.txt",
+            "text/plain",
+            "fake".getBytes()
+        );
         when(clubService.find(1)).thenReturn(club);
         when(request.getAttribute("currentUser")).thenReturn(admin);
 

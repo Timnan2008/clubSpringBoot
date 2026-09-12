@@ -36,13 +36,8 @@ export default function Stepper({
     pendingRef.current = true;
     setPending(true);
     try {
-      if (
-        newStep > currentStep &&
-        (await beforeStepChange(currentStep, newStep)) === false
-      )
-        return;
-      if (newStep > totalSteps && (await onFinalStepCompleted()) === false)
-        return;
+      if (newStep > currentStep && (await beforeStepChange(currentStep, newStep)) === false) return;
+      if (newStep > totalSteps && (await onFinalStepCompleted()) === false) return;
       setDirection(newStep > currentStep ? 1 : -1);
       setCurrentStep(newStep);
       if (newStep <= totalSteps) onStepChange(newStep);
@@ -87,9 +82,7 @@ export default function Stepper({
                     }}
                   />
                 )}
-                {isNotLastStep && (
-                  <StepConnector isComplete={currentStep > stepNumber} />
-                )}
+                {isNotLastStep && <StepConnector isComplete={currentStep > stepNumber} />}
               </React.Fragment>
             );
           })}
@@ -106,9 +99,7 @@ export default function Stepper({
 
         {!isCompleted && (
           <div className={`footer-container ${footerClassName}`}>
-            <div
-              className={`footer-nav ${currentStep !== 1 ? "spread" : "end"}`}
-            >
+            <div className={`footer-nav ${currentStep !== 1 ? "spread" : "end"}`}>
               {currentStep !== 1 && (
                 <button
                   type="button"
@@ -138,13 +129,7 @@ export default function Stepper({
   );
 }
 
-function StepContentWrapper({
-  isCompleted,
-  currentStep,
-  direction,
-  children,
-  className,
-}) {
+function StepContentWrapper({ isCompleted, currentStep, direction, children, className }) {
   const [parentHeight, setParentHeight] = useState(0);
 
   return (
@@ -173,7 +158,13 @@ function SlideTransition({ children, direction, onHeightReady }) {
   const containerRef = useRef(null);
 
   useLayoutEffect(() => {
-    const element=containerRef.current;if(!element)return;const measure=()=>onHeightReady(element.offsetHeight);measure();const observer=new ResizeObserver(measure);observer.observe(element);return()=>observer.disconnect();
+    const element = containerRef.current;
+    if (!element) return;
+    const measure = () => onHeightReady(element.offsetHeight);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    return () => observer.disconnect();
   }, [children, onHeightReady]);
 
   return (
@@ -211,18 +202,8 @@ export function Step({ children }) {
   return <div className="step-default">{children}</div>;
 }
 
-function StepIndicator({
-  step,
-  currentStep,
-  onClickStep,
-  disableStepIndicators,
-}) {
-  const status =
-    currentStep === step
-      ? "active"
-      : currentStep < step
-        ? "inactive"
-        : "complete";
+function StepIndicator({ step, currentStep, onClickStep, disableStepIndicators }) {
+  const status = currentStep === step ? "active" : currentStep < step ? "inactive" : "complete";
 
   const handleClick = () => {
     if (step !== currentStep && !disableStepIndicators) onClickStep(step);
@@ -236,9 +217,7 @@ function StepIndicator({
       aria-label={String(step)}
       onClick={handleClick}
       className="step-indicator"
-      style={
-        disableStepIndicators ? { pointerEvents: "none", opacity: 0.5 } : {}
-      }
+      style={disableStepIndicators ? { pointerEvents: "none", opacity: 0.5 } : {}}
       animate={status}
       initial={false}
     >
@@ -284,13 +263,7 @@ function StepConnector({ isComplete }) {
 
 function CheckIcon(props) {
   return (
-    <svg
-      {...props}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      viewBox="0 0 24 24"
-    >
+    <svg {...props} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
       <motion.path
         initial={{ pathLength: 0 }}
         animate={{ pathLength: 1 }}

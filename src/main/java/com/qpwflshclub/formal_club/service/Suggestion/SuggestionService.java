@@ -4,14 +4,13 @@ import com.qpwflshclub.formal_club.pojo.Suggestion.Suggestion;
 import com.qpwflshclub.formal_club.pojo.dto.Suggestion.SuggestionDTO;
 import com.qpwflshclub.formal_club.repository.Suggestion.SuggestionRepository;
 import jakarta.transaction.Transactional;
+import java.util.List;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Service
-public class SuggestionService implements ISuggestionService{
+public class SuggestionService implements ISuggestionService {
 
     @Autowired
     private SuggestionRepository suggestionRepository;
@@ -56,22 +55,18 @@ public class SuggestionService implements ISuggestionService{
     @Override
     public List<Suggestion> onlyPass() {
         List<Suggestion> s = suggestionRepository.findAll();
-        List<Suggestion> sa = s.stream()
-                .filter(Suggestion::isPass)
-                .toList();
+        List<Suggestion> sa = s.stream().filter(Suggestion::isPass).toList();
 
         return sa;
     }
 
-
     @Override
     @Transactional
     public Suggestion passSuggestion(Long id) {
-        Suggestion suggestion = suggestionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("未找到该意见"));
+        Suggestion suggestion = suggestionRepository
+            .findById(id)
+            .orElseThrow(() -> new RuntimeException("未找到该意见"));
         suggestion.setPass(true);
         return suggestionRepository.save(suggestion);
     }
-
-
 }

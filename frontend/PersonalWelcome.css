@@ -1,0 +1,148 @@
+body dialog.personal-welcome {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: #110d16;
+  color: #fff;
+  overflow: auto;
+  outline: none;
+}
+body dialog.personal-welcome::backdrop {
+  background: #110d16;
+}
+.personal-welcome .personal-welcome-scene {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(260px, 0.8fr) minmax(0, 1.2fr);
+  align-items: center;
+  gap: clamp(24px, 5vw, 88px);
+  min-height: 100%;
+  box-sizing: border-box;
+  padding: clamp(60px, 8vh, 110px) clamp(24px, 6vw, 104px);
+  background:
+    radial-gradient(ellipse at 8% 20%, #5d20444a, transparent 55%),
+    radial-gradient(ellipse at 85% 85%, #44295544, transparent 50%);
+}
+.personal-welcome .personal-welcome-close {
+  position: absolute;
+  right: 24px;
+  top: 24px;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid #ffffff26;
+  border-radius: 50%;
+  background: #ffffff08;
+  color: #fff;
+  cursor: pointer;
+  z-index: 1;
+}
+.personal-welcome .personal-welcome-close:hover {
+  background: #ffffff16;
+}
+.personal-welcome .personal-welcome-eyebrow {
+  display: block;
+  color: #f0a6ce;
+  letter-spacing: 0.1em;
+  font-size: 13px;
+  margin-bottom: 24px;
+}
+.personal-welcome h1 {
+  font-size: clamp(38px, 4vw, 64px);
+  font-weight: 750;
+  line-height: 1.15;
+  letter-spacing: -0.045em;
+  margin: 0 0 24px;
+  overflow-wrap: anywhere;
+  color: #fff;
+  text-wrap: balance;
+}
+.personal-welcome #personal-welcome-message {
+  font-size: clamp(17px, 1.8vw, 24px);
+  color: #d3bccd;
+  line-height: 1.8;
+  margin: 0 0 36px;
+  text-wrap: balance;
+}
+.personal-welcome .personal-welcome-enter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  border: 0;
+  border-radius: 999px;
+  background: #f1b7d5;
+  color: #291521;
+  padding: 15px 25px;
+  min-height: 52px;
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.personal-welcome .personal-welcome-enter:hover {
+  background: #f8cfe5;
+}
+.personal-welcome button:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 5px;
+}
+.personal-welcome .personal-welcome-photo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  margin: 0;
+  padding: 10px;
+  border: 1px solid #ffffff24;
+  border-radius: 22px;
+  background: #ffffff09;
+  box-shadow: 0 28px 80px #0006;
+}
+.personal-welcome .personal-welcome-photo img {
+  display: block;
+  width: 100%;
+  max-height: 72dvh;
+  object-fit: contain;
+  border-radius: 13px;
+}
+@media (max-width: 760px) {
+  .personal-welcome .personal-welcome-scene {
+    grid-template-columns: minmax(0, 1fr);
+    align-content: center;
+    gap: 30px;
+    padding: 88px 22px 36px;
+  }
+  .personal-welcome .personal-welcome-close {
+    top: 18px;
+    right: 18px;
+  }
+  .personal-welcome .personal-welcome-eyebrow {
+    margin-bottom: 14px;
+  }
+  .personal-welcome h1 {
+    font-size: clamp(38px, 10vw, 58px);
+    margin-bottom: 16px;
+  }
+  .personal-welcome #personal-welcome-message {
+    font-size: 17px;
+    margin-bottom: 24px;
+  }
+  .personal-welcome .personal-welcome-photo img {
+    max-height: 48dvh;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .personal-welcome .personal-welcome-enter {
+    transition: none;
+  }
+}

@@ -1,38 +1,45 @@
-<!-- ui-module-preloads --><link rel="modulepreload" href="/javascript/ui/chunks/chunk-7UPQ4K5P.js"/><link rel="modulepreload" href="/javascript/ui/chunks/chunk-PE5IHXMR.js"/><link rel="modulepreload" href="/javascript/ui/chunks/chunk-S5J4HU5L.js"/><link rel="modulepreload" href="/javascript/ui/chunks/chunk-IAPHJUY3.js"/><link rel="modulepreload" href="/javascript/ui/chunks/chunk-2RUN43TJ.js"/><!-- /ui-module-preloads --><!doctype html>
+<!doctype html>
 <html xmlns:th="http://www.thymeleaf.org">
-<body>
-<div th:fragment="navbar">
-  <link rel="stylesheet" href="/javascript/ui/navigation.css?v=20260910-22" />
-  <script type="module" src="/javascript/ui/navigation.js?v=20260910-22"></script>
-  <header class="navbar" th:attr="data-language=${#locale.language}">
-    <!-- 左侧：学校名 -->
-    <div class="navbar-left">
-      <a class="navbar-brand" th:href="@{/}" th:aria-label="#{nav.home}">
-      <img
+  <body>
+    <div th:fragment="navbar">
+      <!-- ui-module-preloads -->
+      <link rel="modulepreload" href="/javascript/ui/chunks/chunk-YTMOKLUG.js" />
+      <link rel="modulepreload" href="/javascript/ui/chunks/chunk-OV5DKB2I.js" />
+      <link rel="modulepreload" href="/javascript/ui/chunks/chunk-XPM3KSV7.js" />
+      <link rel="modulepreload" href="/javascript/ui/chunks/chunk-6B6QSKQG.js" />
+      <link rel="modulepreload" href="/javascript/ui/chunks/chunk-ZPVJVPU6.js" />
+      <link rel="modulepreload" href="/javascript/ui/chunks/chunk-YMN3KVQI.js" />
+      <!-- /ui-module-preloads -->
+
+      <link rel="stylesheet" href="/javascript/ui/navigation.css?v=20260912-25" />
+      <script type="module" src="/javascript/ui/navigation.js?v=20260912-25"></script>
+      <header class="navbar" th:attr="data-language=${#locale.language}">
+        <!-- 左侧：学校名 -->
+        <div class="navbar-left">
+          <a class="navbar-brand" th:href="@{/}" th:aria-label="#{nav.home}">
+            <img
               src="/other%20photo/WFL-crest.svg"
               class="navbar-logo"
               id="navbar-logo-img"
               alt="logo"
-      />
+            />
 
-      <div class="school-name-block">
-        <div class="school-cn" th:text="#{school.cn}"></div>
-        <div class="school-en" th:text="#{school.en}"></div>
-      </div>
-      </a>
-
-      <th:block th:if="${#locale.language} == 'en'">
-        <div class="navbar-lang-login">
-          <!-- 语言切换 -->
-          <div class="dropdown">
-            <button type="button" class="dropbtn" aria-expanded="false">
-              🌐
-            </button>
-            <div class="dropdown-content">
-              <a href="?lang=zh" th:text="#{nav.lang.zh}"></a>
-              <a href="?lang=en" th:text="#{nav.lang.en}"></a>
+            <div class="school-name-block">
+              <div class="school-cn" th:text="#{school.cn}"></div>
+              <div class="school-en" th:text="#{school.en}"></div>
             </div>
-          </div>
+          </a>
+
+          <th:block th:if="${#locale.language} == 'en'">
+            <div class="navbar-lang-login">
+              <!-- 语言切换 -->
+              <div class="dropdown">
+                <button type="button" class="dropbtn" aria-expanded="false">🌐</button>
+                <div class="dropdown-content">
+                  <a href="?lang=zh" th:text="#{nav.lang.zh}"></a>
+                  <a href="?lang=en" th:text="#{nav.lang.en}"></a>
+                </div>
+              </div>
 
               <!-- 登录/注册按钮 -->
               <a
@@ -45,77 +52,103 @@
                 <button type="button" class="dropbtn" aria-expanded="false">My</button>
                 <div class="dropdown-content">
                   <a th:href="@{/page/user/profile}">Profile</a>
-                  <a th:if="${loginUser != null && loginUser.getUserRight() < 1}" th:href="@{/page/my-clubs}">My Clubs</a>
-                  <a th:if="${loginUser != null && (loginUser.getUserRight() == 1 || loginUser.getUserRight() == 2)}" th:href="@{/page/club/workspace}">Club Management</a>
-                  <a th:if="${loginUser != null && loginUser.getUserRight() >= 2}" th:href="@{/page/user-edit}">Account Management</a>
-                  <a href="#" onclick="event.preventDefault(); fetch('/api/user/logout').finally(() => window.location.href='/page/user/login');">Log out</a>
+                  <a
+                    th:if="${loginUser != null && loginUser.getUserRight() < 1}"
+                    th:href="@{/page/my-clubs}"
+                    >My Clubs</a
+                  >
+                  <a
+                    th:if="${loginUser != null && (loginUser.getUserRight() == 1 || loginUser.getUserRight() == 2)}"
+                    th:href="@{/page/club/workspace}"
+                    >Club Management</a
+                  >
+                  <a
+                    th:if="${loginUser != null && loginUser.getUserRight() >= 2}"
+                    th:href="@{/page/user-edit}"
+                    >Account Management</a
+                  >
+                  <a
+                    href="#"
+                    onclick="event.preventDefault(); fetch('/api/user/logout').finally(() => window.location.href='/page/user/login');"
+                    >Log out</a
+                  >
                 </div>
               </div>
             </div>
           </th:block>
         </div>
 
-    <!-- 中间：搜索框 -->
-    <div class="navbar-center">
-      <div class="search">
-        <input
-                class="search__input"
-                type="text"
-                id="search-input"
-                th:placeholder="#{nav.search.placeholder}"
-        />
-        <button class="search__button" id="search-button" type="button">
-          <svg class="search__icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M21 21L16.5 16.5M19 11C19 15.4183 15.4183 19 11 19C6.58172 19 3 15.4183 3 11C3 6.58172 6.58172 3 11 3C15.4183 3 19 6.58172 19 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </button>
-        <div class="search-dropdown" id="search-dropdown"></div>
-      </div>
-    </div>
-
-    <!-- 右侧：导航链接 -->
-    <nav class="navbar-links" th:classappend="${#locale.language} == 'en' ? 'navbar-english' : ''">
-      <a th:href="@{/page/index}">
-        <span th:text="#{nav.home}"></span>
-      </a>
-
-      <div class="dropdown">
-        <button
-                type="button"
-                class="dropbtn"
-                aria-expanded="false"
-                th:text="#{nav.allClubs}"
-        ></button>
-
-        <div class="dropdown-content">
-          <a th:href="@{/page/club-type/creativity}"
-          ><span th:text="#{nav.club.creativity}"></span
-          ></a>
-          <a th:href="@{/page/club-type/activity}"
-          ><span th:text="#{nav.club.activity}"></span
-          ></a>
-          <a th:href="@{/page/club-type/service}"
-          ><span th:text="#{nav.club.service}"></span
-          ></a>
-          <a th:href="@{/page/club-type/study}"
-          ><span th:text="#{nav.club.study}"></span
-          ></a>
-        </div>
-      </div>
-
-      <a th:href="@{/page/suggestion}" th:text="#{nav.suggestion}"></a>
-
-      <th:block th:if="${#locale.language} != 'en'">
-        <!-- 语言切换 -->
-        <div class="dropdown">
-          <button type="button" class="dropbtn" aria-expanded="false">
-            🌐
-          </button>
-          <div class="dropdown-content">
-            <a href="?lang=zh" th:text="#{nav.lang.zh}"></a>
-            <a href="?lang=en" th:text="#{nav.lang.en}"></a>
+        <!-- 中间：搜索框 -->
+        <div class="navbar-center">
+          <div class="search">
+            <input
+              class="search__input"
+              type="text"
+              id="search-input"
+              th:placeholder="#{nav.search.placeholder}"
+            />
+            <button class="search__button" id="search-button" type="button">
+              <svg
+                class="search__icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M21 21L16.5 16.5M19 11C19 15.4183 15.4183 19 11 19C6.58172 19 3 15.4183 3 11C3 6.58172 6.58172 3 11 3C15.4183 3 19 6.58172 19 11Z"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </button>
+            <div class="search-dropdown" id="search-dropdown"></div>
           </div>
         </div>
+
+        <!-- 右侧：导航链接 -->
+        <nav
+          class="navbar-links"
+          th:classappend="${#locale.language} == 'en' ? 'navbar-english' : ''"
+        >
+          <a th:href="@{/page/index}">
+            <span th:text="#{nav.home}"></span>
+          </a>
+
+          <div class="dropdown">
+            <button
+              type="button"
+              class="dropbtn"
+              aria-expanded="false"
+              th:text="#{nav.allClubs}"
+            ></button>
+
+            <div class="dropdown-content">
+              <a th:href="@{/page/club-type/creativity}"
+                ><span th:text="#{nav.club.creativity}"></span
+              ></a>
+              <a th:href="@{/page/club-type/activity}"
+                ><span th:text="#{nav.club.activity}"></span
+              ></a>
+              <a th:href="@{/page/club-type/service}"
+                ><span th:text="#{nav.club.service}"></span
+              ></a>
+              <a th:href="@{/page/club-type/study}"><span th:text="#{nav.club.study}"></span></a>
+            </div>
+          </div>
+
+          <a th:href="@{/page/suggestion}" th:text="#{nav.suggestion}"></a>
+
+          <th:block th:if="${#locale.language} != 'en'">
+            <!-- 语言切换 -->
+            <div class="dropdown">
+              <button type="button" class="dropbtn" aria-expanded="false">🌐</button>
+              <div class="dropdown-content">
+                <a href="?lang=zh" th:text="#{nav.lang.zh}"></a>
+                <a href="?lang=en" th:text="#{nav.lang.en}"></a>
+              </div>
+            </div>
 
             <!-- 登录/注册按钮 -->
             <a
@@ -128,139 +161,154 @@
               <button type="button" class="dropbtn" aria-expanded="false">我的</button>
               <div class="dropdown-content">
                 <a th:href="@{/page/user/profile}">个人资料</a>
-                <a th:if="${loginUser != null && loginUser.getUserRight() < 1}" th:href="@{/page/my-clubs}">我的社团</a>
-                <a th:if="${loginUser != null && (loginUser.getUserRight() == 1 || loginUser.getUserRight() == 2)}" th:href="@{/page/club/workspace}">社团管理</a>
-                <a th:if="${loginUser != null && loginUser.getUserRight() >= 2}" th:href="@{/page/user-edit}">账号管理</a>
-                <a href="#" onclick="event.preventDefault(); fetch('/api/user/logout').finally(() => window.location.href='/page/user/login');" th:text="${#locale.language == 'en' ? 'Sign out' : '退出登录'}">退出登录</a>
+                <a
+                  th:if="${loginUser != null && loginUser.getUserRight() < 1}"
+                  th:href="@{/page/my-clubs}"
+                  >我的社团</a
+                >
+                <a
+                  th:if="${loginUser != null && (loginUser.getUserRight() == 1 || loginUser.getUserRight() == 2)}"
+                  th:href="@{/page/club/workspace}"
+                  >社团管理</a
+                >
+                <a
+                  th:if="${loginUser != null && loginUser.getUserRight() >= 2}"
+                  th:href="@{/page/user-edit}"
+                  >账号管理</a
+                >
+                <a
+                  href="#"
+                  onclick="event.preventDefault(); fetch('/api/user/logout').finally(() => window.location.href='/page/user/login');"
+                  th:text="${#locale.language == 'en' ? 'Sign out' : '退出登录'}"
+                  >退出登录</a
+                >
               </div>
             </div>
           </th:block>
         </nav>
       </header>
 
-  <script>
-    (function () {
-      const dropdowns = Array.from(
-              document.querySelectorAll(".navbar .dropdown"),
-      );
+      <script>
+        (function () {
+          const dropdowns = Array.from(
+                  document.querySelectorAll(".navbar .dropdown"),
+          );
 
-      if (!dropdowns.length) return;
+          if (!dropdowns.length) return;
 
-      function closeAll(except) {
-        dropdowns.forEach((dropdown) => {
-          const button = dropdown.querySelector(".dropbtn");
-          if (dropdown !== except) {
-            dropdown.classList.remove("open");
-            if (button) {
-              button.setAttribute("aria-expanded", "false");
+          function closeAll(except) {
+            dropdowns.forEach((dropdown) => {
+              const button = dropdown.querySelector(".dropbtn");
+              if (dropdown !== except) {
+                dropdown.classList.remove("open");
+                if (button) {
+                  button.setAttribute("aria-expanded", "false");
+                }
+              }
+            });
+          }
+
+          function updateDropdownPlacement(dropdown) {
+            const button = dropdown.querySelector(".dropbtn");
+            const menu = dropdown.querySelector(".dropdown-content");
+            if (!button || !menu) return;
+
+            menu.classList.remove("shift-right", "shift-up");
+            menu.style.left = "";
+            menu.style.right = "";
+            menu.style.top = "";
+            menu.style.bottom = "";
+
+            const buttonRect = button.getBoundingClientRect();
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+            const safeMargin = 12;
+            const menuWidth = Math.min(menu.offsetWidth || 220, viewportWidth - safeMargin * 2);
+            const spaceRight = viewportWidth - buttonRect.right - safeMargin;
+            const spaceLeft = buttonRect.left - safeMargin;
+            const spaceBelow = viewportHeight - buttonRect.bottom - safeMargin;
+            const spaceAbove = buttonRect.top - safeMargin;
+
+            if (menuWidth > spaceRight && spaceLeft >= menuWidth) {
+              menu.classList.add("shift-right");
+            }
+
+            const menuHeight = menu.offsetHeight;
+            if (menuHeight > spaceBelow && spaceAbove > spaceBelow) {
+              menu.classList.add("shift-up");
             }
           }
-        });
-      }
 
-      function updateDropdownPlacement(dropdown) {
-        const button = dropdown.querySelector(".dropbtn");
-        const menu = dropdown.querySelector(".dropdown-content");
-        if (!button || !menu) return;
+          dropdowns.forEach((dropdown) => {
+            const button = dropdown.querySelector(".dropbtn");
+            const menu = dropdown.querySelector(".dropdown-content");
 
-        menu.classList.remove("shift-right", "shift-up");
-        menu.style.left = "";
-        menu.style.right = "";
-        menu.style.top = "";
-        menu.style.bottom = "";
+            if (!button || !menu) return;
 
-        const buttonRect = button.getBoundingClientRect();
-        const viewportWidth = window.innerWidth;
-        const viewportHeight = window.innerHeight;
-        const safeMargin = 12;
-        const menuWidth = Math.min(menu.offsetWidth || 220, viewportWidth - safeMargin * 2);
-        const spaceRight = viewportWidth - buttonRect.right - safeMargin;
-        const spaceLeft = buttonRect.left - safeMargin;
-        const spaceBelow = viewportHeight - buttonRect.bottom - safeMargin;
-        const spaceAbove = buttonRect.top - safeMargin;
+            button.addEventListener("click", function (event) {
+              event.preventDefault();
+              event.stopPropagation();
+              const isOpen = dropdown.classList.contains("open");
+              closeAll(dropdown);
+              dropdown.classList.toggle("open", !isOpen);
+              button.setAttribute("aria-expanded", String(!isOpen));
 
-        if (menuWidth > spaceRight && spaceLeft >= menuWidth) {
-          menu.classList.add("shift-right");
-        }
+              if (!isOpen) {
+                window.requestAnimationFrame(() => updateDropdownPlacement(dropdown));
+              }
+            });
 
-        const menuHeight = menu.offsetHeight;
-        if (menuHeight > spaceBelow && spaceAbove > spaceBelow) {
-          menu.classList.add("shift-up");
-        }
-      }
+            dropdown.addEventListener("mouseenter", function () {
+              if (dropdown.matches(":hover")) {
+                window.requestAnimationFrame(() => updateDropdownPlacement(dropdown));
+              }
+            });
 
-      dropdowns.forEach((dropdown) => {
-        const button = dropdown.querySelector(".dropbtn");
-        const menu = dropdown.querySelector(".dropdown-content");
-
-        if (!button || !menu) return;
-
-        button.addEventListener("click", function (event) {
-          event.preventDefault();
-          event.stopPropagation();
-          const isOpen = dropdown.classList.contains("open");
-          closeAll(dropdown);
-          dropdown.classList.toggle("open", !isOpen);
-          button.setAttribute("aria-expanded", String(!isOpen));
-
-          if (!isOpen) {
-            window.requestAnimationFrame(() => updateDropdownPlacement(dropdown));
-          }
-        });
-
-        dropdown.addEventListener("mouseenter", function () {
-          if (dropdown.matches(":hover")) {
-            window.requestAnimationFrame(() => updateDropdownPlacement(dropdown));
-          }
-        });
-
-        menu.querySelectorAll("a").forEach((link) => {
-          link.addEventListener("click", function () {
-            dropdown.classList.remove("open");
-            button.setAttribute("aria-expanded", "false");
+            menu.querySelectorAll("a").forEach((link) => {
+              link.addEventListener("click", function () {
+                dropdown.classList.remove("open");
+                button.setAttribute("aria-expanded", "false");
+              });
+            });
           });
-        });
-      });
 
-      window.addEventListener("resize", function () {
-        dropdowns.forEach((dropdown) => {
-          if (dropdown.classList.contains("open")) {
-            updateDropdownPlacement(dropdown);
-          }
-        });
-      });
+          window.addEventListener("resize", function () {
+            dropdowns.forEach((dropdown) => {
+              if (dropdown.classList.contains("open")) {
+                updateDropdownPlacement(dropdown);
+              }
+            });
+          });
 
-      window.addEventListener("scroll", function () {
-        dropdowns.forEach((dropdown) => {
-          if (dropdown.classList.contains("open")) {
-            updateDropdownPlacement(dropdown);
-          }
-        });
-      }, true);
+          window.addEventListener("scroll", function () {
+            dropdowns.forEach((dropdown) => {
+              if (dropdown.classList.contains("open")) {
+                updateDropdownPlacement(dropdown);
+              }
+            });
+          }, true);
 
-      document.addEventListener("click", function () {
-        closeAll();
-      });
+          document.addEventListener("click", function () {
+            closeAll();
+          });
 
-      document.addEventListener(
-              "touchstart",
-              function (event) {
-                if (!event.target.closest(".navbar .dropdown")) {
-                  closeAll();
-                }
-              },
-              { passive: true },
-      );
+          document.addEventListener(
+                  "touchstart",
+                  function (event) {
+                    if (!event.target.closest(".navbar .dropdown")) {
+                      closeAll();
+                    }
+                  },
+                  { passive: true },
+          );
 
-      document.addEventListener("keydown", function (event) {
-        if (event.key === "Escape") {
-          closeAll();
-        }
-      });
-    })();
-
-
-  </script>
-</div>
-</body>
+          document.addEventListener("keydown", function (event) {
+            if (event.key === "Escape") {
+              closeAll();
+            }
+          });
+        })();
+      </script>
+    </div>
+  </body>
 </html>

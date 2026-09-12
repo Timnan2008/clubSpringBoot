@@ -1,6 +1,7 @@
 package com.qpwflshclub.formal_club.pojo.Club;
 
 public class ClubInfoVO {
+
     private String clubName;
     private String clubItem;
     private String president;

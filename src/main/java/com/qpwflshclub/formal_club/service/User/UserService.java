@@ -9,10 +9,6 @@ import com.qpwflshclub.formal_club.repository.User.ClubPresidentRepository;
 import com.qpwflshclub.formal_club.repository.User.TeacherRepository;
 import com.qpwflshclub.formal_club.repository.User.UserRepository;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -22,9 +18,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 @Service
-public class UserService implements IUserService{
+public class UserService implements IUserService {
 
     @Autowired
     TeacherRepository teacherRepository;
@@ -50,7 +49,9 @@ public class UserService implements IUserService{
         Teacher teacher = new Teacher();
         BeanUtils.copyProperties(teacherDTO, teacher, "id", "clubs");
         teacher.setClubs(findClubsByIds(teacherDTO.getClubs()));
-        teacher.setPassword(com.qpwflshclub.formal_club.config.PasswordCodec.encode(teacher.getPassword()));
+        teacher.setPassword(
+            com.qpwflshclub.formal_club.config.PasswordCodec.encode(teacher.getPassword())
+        );
         return teacherRepository.save(teacher);
     }
 
@@ -64,7 +65,9 @@ public class UserService implements IUserService{
             user.setClubs(clubs);
         }
 
-        user.setPassword(com.qpwflshclub.formal_club.config.PasswordCodec.encode(user.getPassword()));
+        user.setPassword(
+            com.qpwflshclub.formal_club.config.PasswordCodec.encode(user.getPassword())
+        );
         return userRepository.save(user);
     }
 
@@ -84,35 +87,56 @@ public class UserService implements IUserService{
         Admin admin = new Admin();
         BeanUtils.copyProperties(adminDTO, admin, "id", "clubs");
         admin.setClubs(findClubsByIds(adminDTO.getClubs()));
-        admin.setPassword(com.qpwflshclub.formal_club.config.PasswordCodec.encode(admin.getPassword()));
+        admin.setPassword(
+            com.qpwflshclub.formal_club.config.PasswordCodec.encode(admin.getPassword())
+        );
         return adminRepository.save(admin);
     }
-
 
     //改
     @Override
     @Transactional
     public Teacher update(TeacherDTO teacherDTO) {
-        Teacher existingTeacher = teacherRepository.findById(teacherDTO.getId())
-                .orElseThrow(() -> new IllegalArgumentException("没有找到该教师"));
+        Teacher existingTeacher = teacherRepository
+            .findById(teacherDTO.getId())
+            .orElseThrow(() -> new IllegalArgumentException("没有找到该教师"));
 
-        var previous=new ArrayList<>(existingTeacher.getClubs()==null?List.<Club>of():existingTeacher.getClubs());
+        var previous = new ArrayList<>(
+            existingTeacher.getClubs() == null ? List.<Club>of() : existingTeacher.getClubs()
+        );
         BeanUtils.copyProperties(teacherDTO, existingTeacher, "id", "clubs");
         if (teacherDTO.getClubs() != null) {
             existingTeacher.setClubs(findClubsByIds(teacherDTO.getClubs()));
         }
 
-        Teacher saved=teacherRepository.save(existingTeacher);
-        previous.addAll(saved.getClubs()==null?List.of():saved.getClubs());
-        for(Club club:previous){java.util.StringJoiner zh=new java.util.StringJoiner("、"),en=new java.util.StringJoiner(", ");for(Teacher t:teacherRepository.findAll())if(t.getClubs()!=null&&t.getClubs().stream().anyMatch(c->Objects.equals(c.getId(),club.getId()))){zh.add(t.getUsername());en.add(t.getUsernameEn());}club.setTeacher(zh.toString());club.setTeacherEn(en.toString());clubRepository.save(club);}
+        Teacher saved = teacherRepository.save(existingTeacher);
+        previous.addAll(saved.getClubs() == null ? List.of() : saved.getClubs());
+        for (Club club : previous) {
+            java.util.StringJoiner zh = new java.util.StringJoiner("、"),
+                en = new java.util.StringJoiner(", ");
+            for (Teacher t : teacherRepository.findAll())
+                if (
+                    t.getClubs() != null &&
+                    t
+                        .getClubs()
+                        .stream()
+                        .anyMatch(c -> Objects.equals(c.getId(), club.getId()))
+                ) {
+                    zh.add(t.getUsername());
+                    en.add(t.getUsernameEn());
+                }
+            club.setTeacher(zh.toString());
+            club.setTeacherEn(en.toString());
+            clubRepository.save(club);
+        }
         return saved;
-
     }
 
     @Override
     public Admin update(AdminDTO adminDTO) {
-        Admin existingAdmin = adminRepository.findById(adminDTO.getId())
-                .orElseThrow(() -> new IllegalArgumentException("没有找到该管理员"));
+        Admin existingAdmin = adminRepository
+            .findById(adminDTO.getId())
+            .orElseThrow(() -> new IllegalArgumentException("没有找到该管理员"));
 
         BeanUtils.copyProperties(adminDTO, existingAdmin, "id", "clubs");
         if (adminDTO.getClubs() != null) {
@@ -124,10 +148,18 @@ public class UserService implements IUserService{
 
     @Override
     public ClubPresident update(ClubPresidentDTO clubPresidentDTO) {
-        ClubPresident existingClubPresident = clubPresidentRepository.findById(clubPresidentDTO.getId())
-                .orElseThrow(() -> new IllegalArgumentException("没有找到该社长"));
+        ClubPresident existingClubPresident = clubPresidentRepository
+            .findById(clubPresidentDTO.getId())
+            .orElseThrow(() -> new IllegalArgumentException("没有找到该社长"));
 
-        BeanUtils.copyProperties(clubPresidentDTO, existingClubPresident, "id", "clubs", "mainClub", "mainClubId");
+        BeanUtils.copyProperties(
+            clubPresidentDTO,
+            existingClubPresident,
+            "id",
+            "clubs",
+            "mainClub",
+            "mainClubId"
+        );
         if (clubPresidentDTO.getClubs() != null) {
             existingClubPresident.setClubs(findClubsByIds(clubPresidentDTO.getClubs()));
         }
@@ -140,8 +172,9 @@ public class UserService implements IUserService{
 
     @Override
     public User update(UserDTO userDTO) {
-        User existingUser = userRepository.findById(userDTO.getId())
-                .orElseThrow(() -> new IllegalArgumentException("没有找到该用户"));
+        User existingUser = userRepository
+            .findById(userDTO.getId())
+            .orElseThrow(() -> new IllegalArgumentException("没有找到该用户"));
 
         BeanUtils.copyProperties(userDTO, existingUser, "id", "clubs");
         if (userDTO.getClubs() != null) {
@@ -151,92 +184,94 @@ public class UserService implements IUserService{
         return userRepository.save(existingUser);
     }
 
-
-
-
     //删
     @Override
     public void delete(Long userId, int userRight) {
-        if(userRight == 0){
+        if (userRight == 0) {
             userRepository.deleteById(userId);
-        }else if(userRight == 1){
+        } else if (userRight == 1) {
             clubPresidentRepository.deleteById(userId);
-        }else if(userRight == 2){
+        } else if (userRight == 2) {
             teacherRepository.deleteById(userId);
-        }else{
+        } else {
             adminRepository.deleteById(userId);
         }
-
     }
 
     @Override
-    public void delete(String nameEn){
-        for(User user : userRepository.findAll()){
-            if(user.getUsernameEn().equals(nameEn)){
+    public void delete(String nameEn) {
+        for (User user : userRepository.findAll()) {
+            if (user.getUsernameEn().equals(nameEn)) {
                 userRepository.deleteById(user.getId());
             }
         }
-        for(Teacher teacher : teacherRepository.findAll()){
-            if(teacher.getUsernameEn().equals(nameEn)){
+        for (Teacher teacher : teacherRepository.findAll()) {
+            if (teacher.getUsernameEn().equals(nameEn)) {
                 teacherRepository.deleteById(teacher.getId());
             }
         }
-        for (ClubPresident cp : clubPresidentRepository.findAll()){
-            if(cp.getUsernameEn().equals(nameEn)){
+        for (ClubPresident cp : clubPresidentRepository.findAll()) {
+            if (cp.getUsernameEn().equals(nameEn)) {
                 clubPresidentRepository.deleteById(cp.getId());
             }
         }
-        for(Admin admin : adminRepository.findAll()){
-            if(admin.getUsernameEn().equals(nameEn)){
+        for (Admin admin : adminRepository.findAll()) {
+            if (admin.getUsernameEn().equals(nameEn)) {
                 adminRepository.deleteById(admin.getId());
             }
         }
     }
 
-
-
-
     //查
     @Override
     public Teacher findTeacherByID(Long id) {
-        return teacherRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("没有找到该教师"));
+        return teacherRepository
+            .findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("没有找到该教师"));
     }
 
     @Override
     public Admin findAdminByID(Long id) {
-        return adminRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("没有找到该管理员"));
+        return adminRepository
+            .findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("没有找到该管理员"));
     }
 
     @Override
     public ClubPresident findClubPresidentByID(Long id) {
-        return clubPresidentRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("没有找到该社长"));
+        return clubPresidentRepository
+            .findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("没有找到该社长"));
     }
 
     @Override
     public ClubPresident findClubPresidentByUsernameEn(String usernameEn) {
-        return clubPresidentRepository.findByUsernameEn(usernameEn)
-                .orElseThrow(() -> new IllegalArgumentException("没有找到该社长"));
+        return clubPresidentRepository
+            .findByUsernameEn(usernameEn)
+            .orElseThrow(() -> new IllegalArgumentException("没有找到该社长"));
     }
 
     @Override
     public User findUserById(Long id) {
-        return userRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("没有找到该用户"));
+        return userRepository
+            .findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("没有找到该用户"));
     }
 
     @Override
-    public boolean hasUser(String nameEn){
-        for(User user : userRepository.findAll()){
-            if(user.getUsernameEn().equals(nameEn)){
+    public boolean hasUser(String nameEn) {
+        for (User user : userRepository.findAll()) {
+            if (user.getUsernameEn().equals(nameEn)) {
                 return true;
             }
         }
-        for(Teacher teacher : teacherRepository.findAll()){
-            if(teacher.getUsernameEn().equals(nameEn)){
+        for (Teacher teacher : teacherRepository.findAll()) {
+            if (teacher.getUsernameEn().equals(nameEn)) {
                 return true;
             }
         }
-        for (ClubPresident cp : clubPresidentRepository.findAll()){
-            if(cp.getUsernameEn().equals(nameEn)){
+        for (ClubPresident cp : clubPresidentRepository.findAll()) {
+            if (cp.getUsernameEn().equals(nameEn)) {
                 return true;
             }
         }
@@ -246,23 +281,23 @@ public class UserService implements IUserService{
 
     @Override
     public <T extends UserBase> T findByNameEn(String nameEn) {
-        for(User user : userRepository.findAll()){
-            if(user.getUsernameEn().equals(nameEn)){
+        for (User user : userRepository.findAll()) {
+            if (user.getUsernameEn().equals(nameEn)) {
                 return (T) user;
             }
         }
-        for(Teacher teacher : teacherRepository.findAll()){
-            if(teacher.getUsernameEn().equals(nameEn)){
+        for (Teacher teacher : teacherRepository.findAll()) {
+            if (teacher.getUsernameEn().equals(nameEn)) {
                 return (T) teacher;
             }
         }
-        for (ClubPresident cp : clubPresidentRepository.findAll()){
-            if(cp.getUsernameEn().equals(nameEn)){
+        for (ClubPresident cp : clubPresidentRepository.findAll()) {
+            if (cp.getUsernameEn().equals(nameEn)) {
                 return (T) cp;
             }
         }
-        for (Admin admin : adminRepository.findAll()){
-            if(admin.getUsernameEn().equals(nameEn)){
+        for (Admin admin : adminRepository.findAll()) {
+            if (admin.getUsernameEn().equals(nameEn)) {
                 return (T) admin;
             }
         }
@@ -346,10 +381,11 @@ public class UserService implements IUserService{
             return clubs;
         }
 
-        List<Integer> ids = clubIds.stream()
-                .filter(Objects::nonNull)
-                .map(Long::intValue)
-                .collect(Collectors.toList());
+        List<Integer> ids = clubIds
+            .stream()
+            .filter(Objects::nonNull)
+            .map(Long::intValue)
+            .collect(Collectors.toList());
         clubRepository.findAllById(ids).forEach(clubs::add);
         return clubs;
     }
@@ -362,39 +398,57 @@ public class UserService implements IUserService{
     }
 
     private boolean hasClub(List<Club> clubs, Integer clubId) {
-        return clubs != null && clubs.stream().anyMatch(club -> Objects.equals(club.getId(), clubId));
+        return (
+            clubs != null && clubs.stream().anyMatch(club -> Objects.equals(club.getId(), clubId))
+        );
     }
 
     private List<Club> participantClubsExceptManagedClub(List<Club> clubs, Integer managedClubId) {
         if (clubs == null) {
             return new ArrayList<>();
         }
-        return clubs.stream()
-                .filter(club -> club != null && !Objects.equals(club.getId(), managedClubId))
-                .collect(Collectors.toCollection(ArrayList::new));
+        return clubs
+            .stream()
+            .filter(club -> club != null && !Objects.equals(club.getId(), managedClubId))
+            .collect(Collectors.toCollection(ArrayList::new));
     }
 
-    private void removeManagedClubFromParticipantClubs(ClubPresident president, Integer managedClubId) {
+    private void removeManagedClubFromParticipantClubs(
+        ClubPresident president,
+        Integer managedClubId
+    ) {
         if (president == null || president.getClubs() == null) {
             return;
         }
-        List<Club> participantClubs = president.getClubs().stream()
-                .filter(club -> club != null && !Objects.equals(club.getId(), managedClubId))
-                .collect(Collectors.toCollection(ArrayList::new));
+        List<Club> participantClubs = president
+            .getClubs()
+            .stream()
+            .filter(club -> club != null && !Objects.equals(club.getId(), managedClubId))
+            .collect(Collectors.toCollection(ArrayList::new));
         president.setClubs(participantClubs);
     }
 
-    private void addParticipantClubsExceptManagedClub(ClubPresident president, List<Club> clubs, Integer managedClubId) {
+    private void addParticipantClubsExceptManagedClub(
+        ClubPresident president,
+        List<Club> clubs,
+        Integer managedClubId
+    ) {
         if (president == null || clubs == null) {
             return;
         }
         president.setClubs(new ArrayList<>(president.getClubs()));
-        Set<Integer> existingClubIds = president.getClubs().stream()
-                .filter(Objects::nonNull)
-                .map(Club::getId)
-                .collect(Collectors.toSet());
+        Set<Integer> existingClubIds = president
+            .getClubs()
+            .stream()
+            .filter(Objects::nonNull)
+            .map(Club::getId)
+            .collect(Collectors.toSet());
         for (Club club : clubs) {
-            if (club == null || Objects.equals(club.getId(), managedClubId) || existingClubIds.contains(club.getId())) {
+            if (
+                club == null ||
+                Objects.equals(club.getId(), managedClubId) ||
+                existingClubIds.contains(club.getId())
+            ) {
                 continue;
             }
             president.getClubs().add(club);
@@ -407,9 +461,12 @@ public class UserService implements IUserService{
             return false;
         }
 
-        return containsIgnoreCase(user.getUsername(), keyword)
-                || containsIgnoreCase(user.getUsernameEn(), keyword)
-                || (accountProfiles != null && containsIgnoreCase(accountProfiles.get(user.getEmail()).nickname(), keyword));
+        return (
+            containsIgnoreCase(user.getUsername(), keyword) ||
+            containsIgnoreCase(user.getUsernameEn(), keyword) ||
+            (accountProfiles != null &&
+                containsIgnoreCase(accountProfiles.get(user.getEmail()).nickname(), keyword))
+        );
     }
 
     private boolean containsIgnoreCase(String value, String keyword) {
@@ -515,7 +572,10 @@ public class UserService implements IUserService{
             item.put("userId", student.getId());
             item.put("username", student.getUsername());
             item.put("usernameEn", student.getUsernameEn());
-            item.put("nickname", accountProfiles == null ? "" : accountProfiles.get(student.getEmail()).nickname());
+            item.put(
+                "nickname",
+                accountProfiles == null ? "" : accountProfiles.get(student.getEmail()).nickname()
+            );
             item.put("member", isMember);
             item.put("roleInClub", isMember ? "member" : "none");
             result.add(item);
@@ -526,7 +586,9 @@ public class UserService implements IUserService{
     @Override
     @org.springframework.transaction.annotation.Transactional
     public void updateClubStaffRole(Integer clubId, Long targetUserId, String newRole) {
-        Club club = clubRepository.findById(clubId).orElseThrow(() -> new RuntimeException("社团不存在"));
+        Club club = clubRepository
+            .findById(clubId)
+            .orElseThrow(() -> new RuntimeException("社团不存在"));
 
         // 逻辑：如果要把某个用户设为社长/副社长
         if ("president".equals(newRole) || "vice_president".equals(newRole)) {
@@ -534,7 +596,9 @@ public class UserService implements IUserService{
             ClubPresident cp = clubPresidentRepository.findById(targetUserId).orElse(null);
             if (cp == null) {
                 // 如果在社长表找不到，只新增社长身份记录，普通 user 表不变。
-                User user = userRepository.findById(targetUserId).orElseThrow(() -> new RuntimeException("未定位到学生数据"));
+                User user = userRepository
+                    .findById(targetUserId)
+                    .orElseThrow(() -> new RuntimeException("未定位到学生数据"));
                 cp = findExistingClubPresidentForIdentity(user);
                 if (cp == null) {
                     cp = new ClubPresident();
@@ -565,7 +629,9 @@ public class UserService implements IUserService{
     @Override
     @org.springframework.transaction.annotation.Transactional
     public void addStudentToClubRelationship(Long userId, Integer clubId) {
-        Club club = clubRepository.findById(clubId).orElseThrow(() -> new RuntimeException("社团不存在"));
+        Club club = clubRepository
+            .findById(clubId)
+            .orElseThrow(() -> new RuntimeException("社团不存在"));
 
         // 分别对不同的角色实体进行多对多集合压入
         User u = userRepository.findById(userId).orElse(null);
@@ -617,10 +683,8 @@ public class UserService implements IUserService{
         }
     }
 
-
     @Override
-    public Admin transferAdmin(User u){
-
+    public Admin transferAdmin(User u) {
         Admin admin = new Admin();
 
         admin.setUsername(u.getUsername());
@@ -636,8 +700,7 @@ public class UserService implements IUserService{
     }
 
     @Override
-    public Admin transferAdmin(Teacher u){
-
+    public Admin transferAdmin(Teacher u) {
         Admin admin = new Admin();
 
         admin.setUsername(u.getUsername());
@@ -653,8 +716,7 @@ public class UserService implements IUserService{
     }
 
     @Override
-    public Admin transferAdmin(ClubPresident u){
-
+    public Admin transferAdmin(ClubPresident u) {
         Admin admin = new Admin();
 
         admin.setUsername(u.getUsername());
@@ -694,11 +756,21 @@ public class UserService implements IUserService{
 
         // 转换为列表并排序
         List<UserBase> allUsers = new java.util.ArrayList<>(userMap.values());
-        
+
         // 按照数字-字母-汉字排序
         allUsers.sort((u1, u2) -> {
-            String name1 = u1.getUsername() != null ? u1.getUsername() : u1.getUsernameEn() != null ? u1.getUsernameEn() : "";
-            String name2 = u2.getUsername() != null ? u2.getUsername() : u2.getUsernameEn() != null ? u2.getUsernameEn() : "";
+            String name1 =
+                u1.getUsername() != null
+                    ? u1.getUsername()
+                    : u1.getUsernameEn() != null
+                      ? u1.getUsernameEn()
+                      : "";
+            String name2 =
+                u2.getUsername() != null
+                    ? u2.getUsername()
+                    : u2.getUsernameEn() != null
+                      ? u2.getUsernameEn()
+                      : "";
             return compareChineseStrings(name1, name2);
         });
 
@@ -748,10 +820,12 @@ public class UserService implements IUserService{
      */
     private boolean isChinese(char c) {
         Character.UnicodeBlock block = Character.UnicodeBlock.of(c);
-        return block == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS
-                || block == Character.UnicodeBlock.CJK_COMPATIBILITY_IDEOGRAPHS
-                || block == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS_EXTENSION_A
-                || block == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS_EXTENSION_B;
+        return (
+            block == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS ||
+            block == Character.UnicodeBlock.CJK_COMPATIBILITY_IDEOGRAPHS ||
+            block == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS_EXTENSION_A ||
+            block == Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS_EXTENSION_B
+        );
     }
 
     @Override
@@ -860,9 +934,14 @@ public class UserService implements IUserService{
 
     @Override
     @Transactional
-    public ClubPresident appointPresident(String targetUsernameEn, Integer clubId, boolean isVicePresident) {
-        Club club = clubRepository.findById(clubId)
-                .orElseThrow(() -> new IllegalArgumentException("社团不存在"));
+    public ClubPresident appointPresident(
+        String targetUsernameEn,
+        Integer clubId,
+        boolean isVicePresident
+    ) {
+        Club club = clubRepository
+            .findById(clubId)
+            .orElseThrow(() -> new IllegalArgumentException("社团不存在"));
 
         UserBase targetUser = findByNameEn(targetUsernameEn);
         if (targetUser == null) {
@@ -905,8 +984,9 @@ public class UserService implements IUserService{
             throw new IllegalArgumentException("社长ID不能为空");
         }
 
-        ClubPresident president = clubPresidentRepository.findById(presidentId)
-                .orElseThrow(() -> new IllegalArgumentException("该用户不是社长或副社长"));
+        ClubPresident president = clubPresidentRepository
+            .findById(presidentId)
+            .orElseThrow(() -> new IllegalArgumentException("该用户不是社长或副社长"));
 
         president.setClubs(new ArrayList<>());
         clubPresidentRepository.delete(president);
@@ -916,5 +996,4 @@ public class UserService implements IUserService{
     public List<Club> getAllClubs() {
         return clubRepository.findAll();
     }
-
 }
