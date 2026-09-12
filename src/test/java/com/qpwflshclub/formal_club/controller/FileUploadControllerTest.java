@@ -4,8 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 import com.qpwflshclub.formal_club.pojo.ResponseMessage;
-import com.qpwflshclub.formal_club.pojo.User.Admin;
-import com.qpwflshclub.formal_club.service.User.IUserService;
+import com.qpwflshclub.formal_club.User.pojo.Admin;
+import com.qpwflshclub.formal_club.User.service.IUserService;
 import java.nio.file.Path;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

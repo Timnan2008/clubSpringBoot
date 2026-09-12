@@ -1,6 +1,6 @@
 package com.qpwflshclub.formal_club.controller;
 
-import com.qpwflshclub.formal_club.service.User.IUserService;
+import com.qpwflshclub.formal_club.User.service.IUserService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ui.Model;

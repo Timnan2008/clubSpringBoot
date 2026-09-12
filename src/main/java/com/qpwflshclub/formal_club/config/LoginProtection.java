@@ -1,6 +1,6 @@
 package com.qpwflshclub.formal_club.config;
 
-import com.qpwflshclub.formal_club.social.SchoolAccounts;
+import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
 import java.time.Clock;
 import java.util.*;
 import org.springframework.stereotype.Service;

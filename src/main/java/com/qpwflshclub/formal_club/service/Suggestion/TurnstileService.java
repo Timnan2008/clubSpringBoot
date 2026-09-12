@@ -2,7 +2,7 @@ package com.qpwflshclub.formal_club.service.Suggestion;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.qpwflshclub.formal_club.social.SchoolAccounts;
+import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.*;

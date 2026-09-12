@@ -2,7 +2,7 @@ package com.qpwflshclub.formal_club.config;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.qpwflshclub.formal_club.service.User.IUserService;
+import com.qpwflshclub.formal_club.User.service.IUserService;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.*;

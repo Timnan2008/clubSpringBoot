@@ -1,12 +1,11 @@
 package com.qpwflshclub.formal_club.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
 
-import com.qpwflshclub.formal_club.pojo.Club.Club;
-import com.qpwflshclub.formal_club.pojo.User.Teacher;
-import com.qpwflshclub.formal_club.service.Club.IClubService;
-import com.qpwflshclub.formal_club.service.User.IUserService;
+import com.qpwflshclub.formal_club.Clubs.pojo.Club;
+import com.qpwflshclub.formal_club.User.pojo.Teacher;
+import com.qpwflshclub.formal_club.Clubs.service.IClubService;
+import com.qpwflshclub.formal_club.User.service.IUserService;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

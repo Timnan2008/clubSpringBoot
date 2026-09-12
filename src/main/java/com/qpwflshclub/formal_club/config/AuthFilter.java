@@ -2,14 +2,13 @@ package com.qpwflshclub.formal_club.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.qpwflshclub.formal_club.pojo.ResponseMessage;
-import com.qpwflshclub.formal_club.pojo.User.UserBase;
-import com.qpwflshclub.formal_club.service.User.IUserService;
+import com.qpwflshclub.formal_club.User.pojo.UserBase;
+import com.qpwflshclub.formal_club.User.service.IUserService;
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;

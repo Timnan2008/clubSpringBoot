@@ -1,7 +1,7 @@
 package com.qpwflshclub.formal_club.service.Suggestion;
 
 import com.qpwflshclub.formal_club.config.LoginEmails;
-import com.qpwflshclub.formal_club.social.SchoolAccounts;
+import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
 import java.security.SecureRandom;
 import java.util.*;
 import org.springframework.beans.factory.annotation.*;

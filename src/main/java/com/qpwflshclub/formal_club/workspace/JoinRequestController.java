@@ -1,10 +1,16 @@
 package com.qpwflshclub.formal_club.workspace;
 
-import com.qpwflshclub.formal_club.pojo.Club.Club;
-import com.qpwflshclub.formal_club.pojo.User.*;
-import com.qpwflshclub.formal_club.repository.Club.ClubRepository;
-import com.qpwflshclub.formal_club.repository.User.*;
-import com.qpwflshclub.formal_club.social.SchoolAccounts;
+import com.qpwflshclub.formal_club.Clubs.pojo.Club;
+import com.qpwflshclub.formal_club.Clubs.repository.ClubRepository;
+import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
+import com.qpwflshclub.formal_club.User.pojo.Admin;
+import com.qpwflshclub.formal_club.User.pojo.ClubPresident;
+import com.qpwflshclub.formal_club.User.pojo.User;
+import com.qpwflshclub.formal_club.User.pojo.UserBase;
+import com.qpwflshclub.formal_club.User.repository.AdminRepository;
+import com.qpwflshclub.formal_club.User.repository.ClubPresidentRepository;
+import com.qpwflshclub.formal_club.User.repository.UserRepository;
+import com.qpwflshclub.formal_club.social.service.OfficerAssignments;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.*;
@@ -41,7 +47,7 @@ public class JoinRequestController {
     }
 
     @org.springframework.beans.factory.annotation.Autowired
-    private com.qpwflshclub.formal_club.social.OfficerAssignments officers;
+    private OfficerAssignments officers;
 
     @org.springframework.beans.factory.annotation.Autowired
     private AdminRepository admins;

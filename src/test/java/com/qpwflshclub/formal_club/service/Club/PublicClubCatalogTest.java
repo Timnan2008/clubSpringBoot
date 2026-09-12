@@ -3,7 +3,9 @@ package com.qpwflshclub.formal_club.service.Club;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.qpwflshclub.formal_club.pojo.Club.Club;
+import com.qpwflshclub.formal_club.Clubs.service.IClubService;
+import com.qpwflshclub.formal_club.Clubs.service.PublicClubCatalog;
+import com.qpwflshclub.formal_club.Clubs.pojo.Club;
 import java.time.*;
 import java.util.*;
 import java.util.concurrent.*;

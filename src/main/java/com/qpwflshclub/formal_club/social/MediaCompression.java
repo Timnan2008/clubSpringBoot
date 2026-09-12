@@ -1,13 +1,13 @@
 package com.qpwflshclub.formal_club.social;
 
+import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
+
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.file.*;
-import java.util.*;
 import java.util.concurrent.*;
 import javax.imageio.*;
-import javax.imageio.stream.*;
 
 public final class MediaCompression {
 

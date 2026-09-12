@@ -5,13 +5,20 @@ import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.qpwflshclub.formal_club.config.*;
-import com.qpwflshclub.formal_club.pojo.User.*;
-import com.qpwflshclub.formal_club.repository.User.*;
 import com.qpwflshclub.formal_club.service.Suggestion.MailService;
-import com.qpwflshclub.formal_club.service.User.IUserService;
+import com.qpwflshclub.formal_club.User.service.IUserService;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.*;
+
+import com.qpwflshclub.formal_club.User.pojo.Admin;
+import com.qpwflshclub.formal_club.User.pojo.User;
+import com.qpwflshclub.formal_club.User.repository.AdminRepository;
+import com.qpwflshclub.formal_club.User.repository.ClubPresidentRepository;
+import com.qpwflshclub.formal_club.User.repository.TeacherRepository;
+import com.qpwflshclub.formal_club.User.repository.UserRepository;
+import com.qpwflshclub.formal_club.social.controller.PasswordRecoveryController;
+import com.qpwflshclub.formal_club.social.service.MessageKeyVault;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.mock.web.*;

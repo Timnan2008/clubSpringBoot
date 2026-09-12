@@ -4,10 +4,12 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.qpwflshclub.formal_club.pojo.Club.Club;
-import com.qpwflshclub.formal_club.pojo.User.*;
-import com.qpwflshclub.formal_club.repository.Club.ClubRepository;
-import com.qpwflshclub.formal_club.service.User.IUserService;
+import com.qpwflshclub.formal_club.Clubs.pojo.Club;
+import com.qpwflshclub.formal_club.Clubs.repository.ClubRepository;
+import com.qpwflshclub.formal_club.User.service.IUserService;
+import com.qpwflshclub.formal_club.User.pojo.ClubPresident;
+import com.qpwflshclub.formal_club.social.service.OfficerAssignments;
+import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
 import com.qpwflshclub.formal_club.workspace.WorkspaceAccess;
 import java.nio.file.Path;
 import java.util.*;

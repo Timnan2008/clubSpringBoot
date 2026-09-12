@@ -3,9 +3,11 @@ package com.qpwflshclub.formal_club.controller;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
-import com.qpwflshclub.formal_club.pojo.User.User;
-import com.qpwflshclub.formal_club.pojo.dto.User.LoginDTO;
-import com.qpwflshclub.formal_club.service.User.IUserService;
+import com.qpwflshclub.formal_club.Booking.controller.BookingController;
+import com.qpwflshclub.formal_club.User.controller.UserController;
+import com.qpwflshclub.formal_club.User.pojo.User;
+import com.qpwflshclub.formal_club.User.pojo.dto.LoginDTO;
+import com.qpwflshclub.formal_club.User.service.IUserService;
 import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;

@@ -1,0 +1,28 @@
+package com.qpwflshclub.formal_club.User.pojo;
+
+import com.qpwflshclub.formal_club.Clubs.pojo.Club;
+import jakarta.persistence.*;
+import java.util.List;
+
+@Inheritance(strategy = InheritanceType.JOINED)
+public interface UserBase {
+    void setId(Long id);
+
+    long getId();
+    void setId(long id);
+    String getUsername();
+    void setUsername(String username);
+    String getUsernameEn();
+    void setUsernameEn(String usernameEn);
+
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    String getPassword();
+
+    void setPassword(String password);
+    String getEmail();
+    void setEmail(String email);
+    List<Club> getClubs();
+    void setClubs(List<Club> clubs);
+    // 在 UserBase 接口内添加
+    int getUserRight();
+}

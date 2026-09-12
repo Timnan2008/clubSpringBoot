@@ -5,11 +5,16 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.qpwflshclub.formal_club.Suggestion.controller.SuggestionController;
+import com.qpwflshclub.formal_club.Suggestion.pojo.dto.SuggestionDTO;
 import com.qpwflshclub.formal_club.pojo.ResponseMessage;
-import com.qpwflshclub.formal_club.pojo.Suggestion.Suggestion;
-import com.qpwflshclub.formal_club.pojo.User.Admin;
-import com.qpwflshclub.formal_club.pojo.User.Teacher;
-import com.qpwflshclub.formal_club.service.Suggestion.ISuggestionService;
+import com.qpwflshclub.formal_club.Suggestion.pojo.Suggestion;
+import com.qpwflshclub.formal_club.User.pojo.Admin;
+import com.qpwflshclub.formal_club.User.pojo.Teacher;
+import com.qpwflshclub.formal_club.Suggestion.service.ISuggestionService;
+import com.qpwflshclub.formal_club.User.pojo.User;
+import com.qpwflshclub.formal_club.social.service.ContentAudit;
+import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,15 +38,15 @@ class SuggestionControllerTest {
         controller = new SuggestionController();
         controller.suggestionService = suggestionService;
         controller.accounts = org.mockito.Mockito.mock(
-            com.qpwflshclub.formal_club.social.SchoolAccounts.class
+            SchoolAccounts.class
         );
         controller.access = org.mockito.Mockito.mock(
             com.qpwflshclub.formal_club.workspace.WorkspaceAccess.class
         );
         controller.audit = org.mockito.Mockito.mock(
-            com.qpwflshclub.formal_club.social.ContentAudit.class
+            ContentAudit.class
         );
-        var actor = new com.qpwflshclub.formal_club.pojo.User.User();
+        var actor = new User();
         actor.setEmail("fixture@example.com");
         actor.setUsername("测试同学");
         org.mockito.Mockito.lenient().when(controller.accounts.current(request)).thenReturn(actor);
@@ -50,7 +55,7 @@ class SuggestionControllerTest {
     @Test
     void passSuggestionRejectsStudent() {
         when(request.getAttribute("currentUser")).thenReturn(
-            new com.qpwflshclub.formal_club.pojo.User.User()
+            new User()
         );
 
         ResponseMessage<Suggestion> response = controller.passSuggestion(1L, request);
@@ -83,7 +88,7 @@ class SuggestionControllerTest {
     @Test
     void deleteSuggestionRejectsStudent() {
         when(request.getAttribute("currentUser")).thenReturn(
-            new com.qpwflshclub.formal_club.pojo.User.User()
+            new User()
         );
 
         ResponseMessage<Suggestion> response = controller.deleteSuggestion(1L, request);
@@ -98,7 +103,7 @@ class SuggestionControllerTest {
         controller.turnstile = org.mockito.Mockito.mock(
             com.qpwflshclub.formal_club.service.Suggestion.TurnstileService.class
         );
-        var dto = new com.qpwflshclub.formal_club.pojo.dto.Suggestion.SuggestionDTO();
+        var dto = new SuggestionDTO();
         dto.setTurnstileToken("expired");
         org.mockito.Mockito.doThrow(
             new org.springframework.web.server.ResponseStatusException(
@@ -118,7 +123,7 @@ class SuggestionControllerTest {
         controller.turnstile = org.mockito.Mockito.mock(
             com.qpwflshclub.formal_club.service.Suggestion.TurnstileService.class
         );
-        var dto = new com.qpwflshclub.formal_club.pojo.dto.Suggestion.SuggestionDTO();
+        var dto = new SuggestionDTO();
         dto.setTurnstileToken("valid");
         dto.setPass(true);
         dto.setId(8L);
@@ -133,11 +138,11 @@ class SuggestionControllerTest {
     @org.junit.jupiter.api.Test
     void publicTitleCannotExposePendingOrAnonymousIdentity() {
         var service = org.mockito.Mockito.mock(
-            com.qpwflshclub.formal_club.service.Suggestion.ISuggestionService.class
+            ISuggestionService.class
         );
         var c = new SuggestionController();
         c.suggestionService = service;
-        var suggestion = new com.qpwflshclub.formal_club.pojo.Suggestion.Suggestion();
+        var suggestion = new Suggestion();
         suggestion.setName("Private name");
         suggestion.setAnonymous(true);
         org.mockito.Mockito.when(service.findByTitle("other")).thenReturn(suggestion);

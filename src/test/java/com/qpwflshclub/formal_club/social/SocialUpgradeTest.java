@@ -8,6 +8,9 @@ import java.io.ByteArrayOutputStream;
 import java.nio.file.*;
 import java.util.*;
 import javax.imageio.ImageIO;
+
+import com.qpwflshclub.formal_club.social.service.ChatPreferences;
+import com.qpwflshclub.formal_club.social.service.ProfileAppearance;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.mock.web.MockMultipartFile;

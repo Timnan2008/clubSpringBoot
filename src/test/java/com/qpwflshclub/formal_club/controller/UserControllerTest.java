@@ -6,12 +6,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.qpwflshclub.formal_club.pojo.ResponseMessage;
-import com.qpwflshclub.formal_club.pojo.User.Admin;
-import com.qpwflshclub.formal_club.pojo.User.User;
-import com.qpwflshclub.formal_club.pojo.User.UserBase;
-import com.qpwflshclub.formal_club.pojo.dto.User.AdminDTO;
-import com.qpwflshclub.formal_club.pojo.dto.User.UserDTO;
-import com.qpwflshclub.formal_club.service.User.IUserService;
+import com.qpwflshclub.formal_club.User.controller.UserController;
+import com.qpwflshclub.formal_club.User.pojo.Admin;
+import com.qpwflshclub.formal_club.User.pojo.User;
+import com.qpwflshclub.formal_club.User.pojo.dto.AdminDTO;
+import com.qpwflshclub.formal_club.User.pojo.dto.UserDTO;
+import com.qpwflshclub.formal_club.User.service.IUserService;
+import com.qpwflshclub.formal_club.social.service.AccountProfiles;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -187,7 +188,7 @@ class UserControllerTest {
         var verified = new org.springframework.mock.web.MockHttpServletRequest();
         com.qpwflshclub.formal_club.config.RegistrationProof.verified(verified, dto.getEmail());
         controller.profiles = org.mockito.Mockito.mock(
-            com.qpwflshclub.formal_club.social.AccountProfiles.class
+            AccountProfiles.class
         );
         controller.add(dto, verified);
         assertThat(dto.getClubs()).isEmpty();
@@ -220,7 +221,7 @@ class UserControllerTest {
             com.qpwflshclub.formal_club.service.Suggestion.EmailCodeService.class
         );
         controller.profiles = org.mockito.Mockito.mock(
-            com.qpwflshclub.formal_club.social.AccountProfiles.class
+            AccountProfiles.class
         );
         when(controller.registrationCodes.verifyCode(dto.getEmail(), "123456")).thenReturn(true);
         when(

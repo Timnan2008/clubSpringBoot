@@ -2,12 +2,15 @@ package com.qpwflshclub.formal_club.social;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.qpwflshclub.formal_club.pojo.User.*;
-import com.qpwflshclub.formal_club.repository.User.TeacherRepository;
+import com.qpwflshclub.formal_club.User.pojo.Teacher;
+import com.qpwflshclub.formal_club.User.pojo.UserBase;
+import com.qpwflshclub.formal_club.User.repository.TeacherRepository;
 import java.io.IOException;
 import java.nio.file.*;
 import java.time.*;
 import java.util.*;
+
+import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;

@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.lang.reflect.Field;
 import java.util.Set;
+
+import com.qpwflshclub.formal_club.User.service.IUserService;
 import org.junit.jupiter.api.Test;
 
 class AuthFilterTest {
@@ -48,7 +50,7 @@ class AuthFilterTest {
     void emailCookieCannotImpersonateClubManager() throws Exception {
         var filter = new AuthFilter();
         var users = org.mockito.Mockito.mock(
-            com.qpwflshclub.formal_club.service.User.IUserService.class
+            IUserService.class
         );
         org.springframework.test.util.ReflectionTestUtils.setField(filter, "userService", users);
         var request = new org.springframework.mock.web.MockHttpServletRequest(

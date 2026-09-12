@@ -1,7 +1,7 @@
 package com.qpwflshclub.formal_club.workspace;
 
-import com.qpwflshclub.formal_club.pojo.User.*;
-import com.qpwflshclub.formal_club.repository.User.UserRepository;
+import com.qpwflshclub.formal_club.User.pojo.UserBase;
+import com.qpwflshclub.formal_club.User.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.time.*;

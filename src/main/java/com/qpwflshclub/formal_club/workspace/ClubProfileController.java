@@ -1,7 +1,8 @@
 package com.qpwflshclub.formal_club.workspace;
 
-import com.qpwflshclub.formal_club.pojo.Club.Club;
-import com.qpwflshclub.formal_club.repository.Club.ClubRepository;
+import com.qpwflshclub.formal_club.Clubs.pojo.Club;
+import com.qpwflshclub.formal_club.Clubs.repository.ClubLikeDeviceRepository;
+import com.qpwflshclub.formal_club.Clubs.repository.ClubRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.*;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +24,7 @@ public class ClubProfileController {
     }
 
     @org.springframework.beans.factory.annotation.Autowired
-    private com.qpwflshclub.formal_club.repository.Club.ClubLikeDeviceRepository likes;
+    private ClubLikeDeviceRepository likes;
 
     public record Profile(
         String name,
