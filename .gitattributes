@@ -1,6 +1,6 @@
 # Keep GitHub reviews focused on source; generated files remain available for deployment.
-src/main/resources/static/javascript/ui/** linguist-generated=true
-src/main/resources/static/javascript/darkveil/** linguist-generated=true
-booking/school/*.bundle.* linguist-generated=true
+src/main/resources/static/javascript/ui/** linguist-generated=true -whitespace
+src/main/resources/static/javascript/darkveil/** linguist-generated=true -whitespace
+booking/school/*.bundle.* linguist-generated=true -whitespace
 booking/web/** linguist-vendored=true
 booking/test/** linguist-vendored=true
