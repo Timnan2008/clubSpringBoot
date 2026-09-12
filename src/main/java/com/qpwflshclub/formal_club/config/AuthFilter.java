@@ -43,6 +43,7 @@ public class AuthFilter implements Filter {
         "/api/user/password-reset/verify",
         "/api/user/password-reset/complete",
 
+        "/api/user/registration-verification",
         "/api/user/add/user",
         "/api/user/add/teacher",
 

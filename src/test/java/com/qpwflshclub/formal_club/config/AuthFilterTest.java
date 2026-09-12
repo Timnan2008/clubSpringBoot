@@ -22,6 +22,29 @@ class AuthFilterTest {
     }
 
     @Test
+    void anonymousSignupVerificationReachesHandlerButDoesNotOpenOtherAccountEndpoints()
+        throws Exception {
+        var filter = new AuthFilter();
+        var request = new org.springframework.mock.web.MockHttpServletRequest(
+            "POST",
+            "/api/user/registration-verification"
+        );
+        var response = new org.springframework.mock.web.MockHttpServletResponse();
+        var chain = new org.springframework.mock.web.MockFilterChain();
+        filter.doFilter(request, response, chain);
+        assertThat(chain.getRequest()).isSameAs(request);
+        var protectedRequest = new org.springframework.mock.web.MockHttpServletRequest(
+            "POST",
+            "/api/user/add/admin"
+        );
+        var protectedResponse = new org.springframework.mock.web.MockHttpServletResponse();
+        var protectedChain = new org.springframework.mock.web.MockFilterChain();
+        filter.doFilter(protectedRequest, protectedResponse, protectedChain);
+        assertThat(protectedResponse.getStatus()).isEqualTo(401);
+        assertThat(protectedChain.getRequest()).isNull();
+    }
+
+    @Test
     void emailCookieCannotImpersonateClubManager() throws Exception {
         var filter = new AuthFilter();
         var users = org.mockito.Mockito.mock(
