@@ -37,6 +37,10 @@ public class SocialController {
     @org.springframework.beans.factory.annotation.Autowired
     private com.qpwflshclub.formal_club.social.service.ModerationGate moderation;
 
+    /** 私信解密器：只送了密文时，服务器自己解出明文来查违禁词（不落盘）。 */
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.qpwflshclub.formal_club.social.service.ChatPlaintext chatPlaintext;
+
     private final SchoolAccounts accounts;
     private final WorkspaceAccess access;
     private final SocialStore store;
@@ -840,9 +844,12 @@ public class SocialController {
         UserBase me = current(request, true);
         accounts.find(peer);
         if (preferences != null) preferences.requireAllowed(key(me), peer);
-        // 私信是端到端加密的，服务器只拿得到密文；所以前端会把明文一并送来，仅用于违禁词检查
-        moderation.inspect(key(me), com.qpwflshclub.formal_club.social.service.ModerationGate.CHAT,
-            plain(body.text(), body.plainText()));
+        // 私信是端到端加密的：前端送了明文就用明文，只送密文就由服务器自己解（不落盘）
+        moderation.inspect(
+            key(me),
+            com.qpwflshclub.formal_club.social.service.ModerationGate.CHAT,
+            chatPlain(key(me), peer, body.text(), body.plainText())
+        );
         messageKeys.validateMessage(key(me), peer, body.text());
         return store.message(key(me), peer, body.text());
     }
@@ -850,6 +857,20 @@ public class SocialController {
     /** 取明文做检查：优先用前端送来的明文，没有就退回 raw（未加密的消息）。 */
     private static String plain(String text, String plainText) {
         return plainText == null || plainText.isBlank() ? text : plainText;
+    }
+
+    /**
+     * 取「这条私信里可检查的文字」：
+     * 前端送来明文就直接用；只送密文（旧前端、第三方客户端）时，用服务器托管的私钥自己解出来。
+     * 这样私信违禁词屏蔽不再依赖前端是否更新，解不开就返回原样（不影响发送）。
+     */
+    private String chatPlain(String sender, String recipient, String text, String plainText) {
+        String supplied = plain(text, plainText);
+        if (chatPlaintext == null || !com.qpwflshclub.formal_club.social.service.ChatPlaintext.isEncrypted(supplied)) {
+            return supplied;
+        }
+        String decrypted = chatPlaintext.decrypt(sender, recipient, supplied);
+        return decrypted == null ? supplied : decrypted;
     }
 
     @PostMapping(value = "/conversations/{peer}/attachments", consumes = "multipart/form-data")
@@ -863,8 +884,11 @@ public class SocialController {
         String me = key(current(request, true));
         accounts.find(peer);
         if (preferences != null) preferences.requireAllowed(me, peer);
-        moderation.inspect(me, com.qpwflshclub.formal_club.social.service.ModerationGate.CHAT,
-            plain(text, plainText));
+        moderation.inspect(
+            me,
+            com.qpwflshclub.formal_club.social.service.ModerationGate.CHAT,
+            chatPlain(me, peer, text, plainText)
+        );
         messageKeys.validateMessage(me, peer, text);
         if (
             uploads.isEmpty() ||
