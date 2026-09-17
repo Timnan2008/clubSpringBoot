@@ -19,6 +19,10 @@ public class BookingApiController {
     private final WorkspaceAccess access;
     private final BookingService bookings;
 
+    /** 违禁词闸门：预约备注（note）也要过一遍检查。 */
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.qpwflshclub.formal_club.social.service.ModerationGate moderation;
+
     public BookingApiController(
         SchoolAccounts accounts,
         WorkspaceAccess access,
@@ -67,6 +71,12 @@ public class BookingApiController {
         response.setHeader("Cache-Control", "no-store, private");
         var actor = actor(request);
         access.mutation(request);
+        // 备注是学生自己打的字，命中违禁词会被拦截并记一次过
+        if (moderation != null) moderation.inspect(
+            actor.key(),
+            com.qpwflshclub.formal_club.social.service.ModerationGate.BOOKING,
+            input.note()
+        );
         return bookings.submit(actor, input);
     }
 

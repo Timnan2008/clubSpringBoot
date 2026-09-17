@@ -6,6 +6,7 @@ import java.nio.file.*;
 import java.time.*;
 import java.util.*;
 
+import com.qpwflshclub.formal_club.social.service.ModerationGate;
 import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -145,13 +146,31 @@ public class SocialStore {
 
     private final ObjectMapper mapper;
     private final Path root;
+    /** 违禁词闸门：所有能打字的入口都从这里过一遍（见 ModerationGate）。 */
+    private final com.qpwflshclub.formal_club.social.service.ModerationGate moderation;
 
     public SocialStore(
         ObjectMapper mapper,
         @Value("${club.social-dir:./data/campus-social}") String path
     ) {
+        this(mapper, path, null);
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public SocialStore(
+        ObjectMapper mapper,
+        @Value("${club.social-dir:./data/campus-social}") String path,
+        com.qpwflshclub.formal_club.social.service.ModerationGate moderation
+    ) {
         this.mapper = mapper;
+        this.moderation = moderation;
         root = Path.of(path).toAbsolutePath().normalize();
+    }
+
+    /** 违禁词检查入口（单元测试里可能为 null）。 */
+    private void guard(String account, String where, String text) {
+        if (moderation != null) moderation.inspect(account, where, text);
+        else ContentModeration.check(text);
     }
 
     public static String now() {
@@ -285,7 +304,7 @@ public class SocialStore {
         String clubName,
         List<Attachment> attachments
     ) throws IOException {
-        ContentModeration.check(text);
+        guard(author, ModerationGate.POST, text);
         if (
             !Set.of("recruit", "help", "team", "general", "other").contains(category)
         ) throw SchoolAccounts.error(400, "请选择有效的发布类型");
@@ -389,7 +408,7 @@ public class SocialStore {
 
     public synchronized Reply reply(String id, String actor, String text, String parentReply)
         throws IOException {
-        ContentModeration.check(text);
+        guard(actor, ModerationGate.REPLY, text);
         Data d = read();
         post(d, id);
         String target = Objects.toString(parentReply, "");

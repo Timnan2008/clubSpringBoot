@@ -98,4 +98,38 @@ class AccountProfilesTest {
         assertThat(p.grade()).isEmpty();
         assertThat(p.tags()).containsExactly("Robotics");
     }
+
+    @Test
+    void ghostRegistrationsFromDeletedAccountsArePrunedSoSignupWorksAgain() throws Exception {
+        var path = root.resolve("profiles.json");
+        var store = new AccountProfiles(path.toString());
+        store.register("gone@example.com", "20260314", "常云峰", true, () -> true);
+        store.register("alive@example.com", "00123", "Existing", true, () -> true);
+
+        // 模拟「只删了数据库那一行」：还有账号活着的只剩 alive@example.com
+        var live = new HashSet<String>();
+        live.add(
+            com.qpwflshclub.formal_club.social.service.SchoolAccounts.key("alive@example.com")
+        );
+        assertThat(store.pruneStale(live)).isEqualTo(1);
+
+        // 幽灵登记（邮箱 + 学生号）已清掉 → 同一个邮箱、同一个学生号又能注册
+        assertThat(store.register("gone@example.com", "20260314", "常云峰", true, () -> true))
+            .isEqualTo(true);
+        // 还活着的账号不受影响
+        assertThat(store.get("alive@example.com").studentNumber()).isEqualTo("00123");
+        assertThat(new AccountProfiles(path.toString()).get("alive@example.com").nickname())
+            .isEqualTo("Existing");
+    }
+
+    @Test
+    void forgetRemovesSingleRegistrationByEmail() throws Exception {
+        var store = new AccountProfiles(root.resolve("profiles.json").toString());
+        store.register("gone@example.com", "20260314", "", true, () -> true);
+        assertThat(store.forget("gone@example.com")).isTrue();
+        assertThat(store.get("gone@example.com").studentNumber()).isEmpty();
+        assertThat(store.register("gone@example.com", "20260314", "", true, () -> true))
+            .isEqualTo(true);
+        assertThat(store.forget("nobody@example.com")).isFalse();
+    }
 }
