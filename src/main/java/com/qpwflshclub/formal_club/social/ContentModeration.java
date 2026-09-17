@@ -35,7 +35,14 @@ public final class ContentModeration {
     /** 词库缓存：5 秒内不重复读盘，够快也不影响热更新。 */
     private static final long CACHE_MILLIS = 5_000;
 
-    private static volatile List<String> words = List.of();
+    /**
+     * 一条「编译好的」规则：
+     * 英文词用整词正则（避免 school 命中 fool 里的字母组合），中文词用「去掉空格标点后包含」。
+     * 编译只在词库变化时做一次，检查时不再重复编译正则 / 重复去标点。
+     */
+    private record Rule(String word, Pattern latinPattern, String compact) {}
+
+    private static volatile List<Rule> rules = List.of();
     private static volatile long loadedAt = 0;
     private static volatile long extraStamp = -1;
 
@@ -50,8 +57,9 @@ public final class ContentModeration {
 
     /** 当前生效的词库（只读快照）。 */
     public static List<String> words() {
-        refresh(false);
-        return words;
+        List<String> list = new ArrayList<>();
+        for (Rule rule : load()) list.add(rule.word());
+        return list;
     }
 
     /** 强制立刻重新读盘（比如管理员改完词库想马上生效）。 */
@@ -59,10 +67,24 @@ public final class ContentModeration {
         refresh(true);
     }
 
+    /**
+     * 取当前规则表。
+     * 关键优化：5 秒窗口内直接返回，连文件系统都不碰（原来每次检查都要 stat 一两次文件）；
+     * 窗口过期后才看一眼文件修改时间，没改就只续期，改了才重新读盘并编译。
+     */
+    private static List<Rule> load() {
+        refresh(false);
+        return rules;
+    }
+
     private static synchronized void refresh(boolean force) {
         long now = System.currentTimeMillis();
+        if (!force && loadedAt != 0 && now - loadedAt < CACHE_MILLIS) return;
         long stamp = extraFileStamp();
-        if (!force && now - loadedAt < CACHE_MILLIS && stamp == extraStamp) return;
+        if (!force && loadedAt != 0 && stamp == extraStamp) {
+            loadedAt = now; // 词库文件没动过：只把缓存续期
+            return;
+        }
         LinkedHashSet<String> all = new LinkedHashSet<>();
         all.addAll(readClasspathWords());
         all.addAll(readExtraFileWords());
@@ -70,7 +92,19 @@ public final class ContentModeration {
             String word = normalize(extra.trim());
             if (!word.isBlank()) all.add(word);
         }
-        words = List.copyOf(all);
+        List<Rule> compiled = new ArrayList<>(all.size());
+        for (String word : all) {
+            if (word.isBlank()) continue;
+            if (word.matches("[a-z]+")) compiled.add(
+                new Rule(
+                    word,
+                    Pattern.compile("(?<![a-z])" + Pattern.quote(word) + "(?![a-z])"),
+                    null
+                )
+            );
+            else compiled.add(new Rule(word, null, word.replaceAll("[\\s\\p{P}]+", "")));
+        }
+        rules = List.copyOf(compiled);
         loadedAt = now;
         extraStamp = stamp;
     }
@@ -126,15 +160,15 @@ public final class ContentModeration {
         String raw = Objects.toString(text, "");
         if (raw.isBlank()) return null;
         String normalized = normalize(raw);
-        String compact = normalized.replaceAll("[\\s\\p{P}]+", "");
-        for (String word : words()) {
-            if (word.isBlank()) continue;
-            boolean matched = word.matches("[a-z]+")
-                ? Pattern.compile("(?<![a-z])" + Pattern.quote(word) + "(?![a-z])")
-                      .matcher(normalized)
-                      .find()
-                : compact.contains(word.replaceAll("[\\s\\p{P}]+", ""));
-            if (matched) return word;
+        // 只有在真的检查到中文词时才做「去空格标点」这一步，避免无谓的字符串生成
+        String compact = null;
+        for (Rule rule : load()) {
+            if (rule.latinPattern() != null) {
+                if (rule.latinPattern().matcher(normalized).find()) return rule.word();
+            } else {
+                if (compact == null) compact = normalized.replaceAll("[\\s\\p{P}]+", "");
+                if (!rule.compact().isEmpty() && compact.contains(rule.compact())) return rule.word();
+            }
         }
         return null;
     }

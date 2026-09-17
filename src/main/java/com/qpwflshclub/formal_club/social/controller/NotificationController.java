@@ -96,32 +96,27 @@ public class NotificationController {
             }
         var posts = new HashMap<String, SocialStore.Post>();
         for (var p : d.posts()) posts.put(p.id(), p);
+        // 先把回复按 id 建索引：原来在循环里又一次扫全部回复找父回复，回复一多就是 O(n²)，
+        // 现在查父回复是 O(1)，整体回到 O(n)。判断顺序与结果保持不变。
+        var repliesById = new HashMap<String, SocialStore.Reply>();
+        for (var r : d.replies()) repliesById.put(r.id(), r);
         for (var r : d.replies()) {
+            if (r.author().equals(me)) continue;
             var p = posts.get(r.post());
-            if (
-                p != null &&
-                (p.author().equals(me) ||
-                    d
-                        .replies()
-                        .stream()
-                        .anyMatch(
-                            parent ->
-                                parent.id().equals(r.parentReply()) && parent.author().equals(me)
-                        )) &&
-                !r.author().equals(me)
-            ) {
-                String id = "reply:" + r.id();
-                list.add(
-                    new Item(
-                        id,
-                        "reply",
-                        p.anonymous() && p.author().equals(r.author()) ? "" : r.author(),
-                        "/page/wall?post=" + r.post(),
-                        r.createdAt(),
-                        !notifications.read(me, id)
-                    )
-                );
-            }
+            if (p == null) continue;
+            var parent = repliesById.get(r.parentReply());
+            if (!p.author().equals(me) && (parent == null || !parent.author().equals(me))) continue;
+            String id = "reply:" + r.id();
+            list.add(
+                new Item(
+                    id,
+                    "reply",
+                    p.anonymous() && p.author().equals(r.author()) ? "" : r.author(),
+                    "/page/wall?post=" + r.post(),
+                    r.createdAt(),
+                    !notifications.read(me, id)
+                )
+            );
         }
         for (var m : d.messages())
             if (m.recipient().equals(me) && !m.recalled()) list.add(

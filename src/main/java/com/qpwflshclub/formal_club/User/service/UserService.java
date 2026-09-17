@@ -261,49 +261,33 @@ public class UserService implements IUserService {
             .orElseThrow(() -> new IllegalArgumentException("没有找到该用户"));
     }
 
+    /** 是否已存在这个英文名（复用各表已有索引查询，不再整表读出来逐个比对）。 */
     @Override
     public boolean hasUser(String nameEn) {
-        for (User user : userRepository.findAll()) {
-            if (user.getUsernameEn().equals(nameEn)) {
-                return true;
-            }
-        }
-        for (Teacher teacher : teacherRepository.findAll()) {
-            if (teacher.getUsernameEn().equals(nameEn)) {
-                return true;
-            }
-        }
-        for (ClubPresident cp : clubPresidentRepository.findAll()) {
-            if (cp.getUsernameEn().equals(nameEn)) {
-                return true;
-            }
-        }
-
-        return false;
+        if (nameEn == null || nameEn.isBlank()) return false;
+        return (
+            userRepository.findByUsernameEn(nameEn).isPresent() ||
+            teacherRepository.findByTeacherNameEn(nameEn).isPresent() ||
+            clubPresidentRepository.findByUsernameEn(nameEn).isPresent()
+        );
     }
 
+    /**
+     * 按英文名找人：顺序与原来完全一致（学生 → 老师 → 社长 → 管理员），
+     * 但每次只查一行（走各表的英文名索引），不再 4 次全表扫描 + 逐行比较。
+     */
     @Override
+    @SuppressWarnings("unchecked")
     public <T extends UserBase> T findByNameEn(String nameEn) {
-        for (User user : userRepository.findAll()) {
-            if (user.getUsernameEn().equals(nameEn)) {
-                return (T) user;
-            }
-        }
-        for (Teacher teacher : teacherRepository.findAll()) {
-            if (teacher.getUsernameEn().equals(nameEn)) {
-                return (T) teacher;
-            }
-        }
-        for (ClubPresident cp : clubPresidentRepository.findAll()) {
-            if (cp.getUsernameEn().equals(nameEn)) {
-                return (T) cp;
-            }
-        }
-        for (Admin admin : adminRepository.findAll()) {
-            if (admin.getUsernameEn().equals(nameEn)) {
-                return (T) admin;
-            }
-        }
+        if (nameEn == null || nameEn.isBlank()) return null;
+        var student = userRepository.findByUsernameEn(nameEn);
+        if (student.isPresent()) return (T) student.get();
+        var teacher = teacherRepository.findByTeacherNameEn(nameEn);
+        if (teacher.isPresent()) return (T) teacher.get();
+        var president = clubPresidentRepository.findByUsernameEn(nameEn);
+        if (president.isPresent()) return (T) president.get();
+        var admin = adminRepository.findByAdminNameEn(nameEn);
+        if (admin.isPresent()) return (T) admin.get();
         return null;
     }
 

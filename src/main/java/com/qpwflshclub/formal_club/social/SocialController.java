@@ -250,29 +250,41 @@ public class SocialController {
         row.put("parentReply", r.parentReply());
         try {
             var replies = store.snapshot().replies();
-            row.put(
-                "replyCount",
-                replies
-                    .stream()
-                    .filter(v -> v.parentReply().equals(r.id()))
-                    .count()
-            );
-            replies
-                .stream()
-                .filter(v -> v.id().equals(r.parentReply()) && v.post().equals(r.post()))
-                .findFirst()
-                .ifPresent(v ->
-                    row.put(
-                        "replyingTo",
-                        parent.anonymous() && parent.author().equals(v.author())
-                            ? new SchoolAccounts.Account("", "匿名楼主", "", "anonymous")
-                            : author(people, v.author())
-                    )
+            ensureReplyIndex(replies);
+            // 原来这两步各要扫一遍全部回复（每条回复都扫一次 → O(n²)），现在都是 O(1)
+            row.put("replyCount", childrenOf.getOrDefault(r.id(), 0L));
+            var parentReply = replyById.get(r.parentReply());
+            if (parentReply != null && parentReply.post().equals(r.post())) {
+                row.put(
+                    "replyingTo",
+                    parent.anonymous() && parent.author().equals(parentReply.author())
+                        ? new SchoolAccounts.Account("", "匿名楼主", "", "anonymous")
+                        : author(people, parentReply.author())
                 );
+            }
         } catch (IOException e) {
             throw new java.io.UncheckedIOException(e);
         }
         return row;
+    }
+
+    /** 回复索引的源快照；同一个快照对象只建一次索引（SocialStore.snapshot() 返回缓存实例）。 */
+    private List<SocialStore.Reply> replyIndexSource;
+    private Map<String, SocialStore.Reply> replyById = Map.of();
+    private Map<String, Long> childrenOf = Map.of();
+
+    /** 建立「回复 id → 回复」和「父回复 id → 子回复条数」两张索引，供给上面两个 O(1) 查询。 */
+    private synchronized void ensureReplyIndex(List<SocialStore.Reply> replies) {
+        if (replies == replyIndexSource) return;
+        Map<String, SocialStore.Reply> byId = new HashMap<>(Math.max(16, replies.size() * 2));
+        Map<String, Long> children = new HashMap<>();
+        for (var reply : replies) {
+            byId.put(reply.id(), reply);
+            children.merge(Objects.toString(reply.parentReply(), ""), 1L, Long::sum);
+        }
+        replyById = byId;
+        childrenOf = children;
+        replyIndexSource = replies;
     }
 
     private Map<String, Object> postView(
