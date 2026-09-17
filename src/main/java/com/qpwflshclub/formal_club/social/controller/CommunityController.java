@@ -35,6 +35,10 @@ public class CommunityController {
     private final ClubPresidentRepository presidents;
     private final AdminRepository admins;
 
+    /** 违禁词闸门：个人资料里的可输入字段都要过一遍。 */
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.qpwflshclub.formal_club.social.service.ModerationGate moderation;
+
     public CommunityController(
         SchoolAccounts accounts,
         WorkspaceAccess access,
@@ -475,6 +479,16 @@ public class CommunityController {
     @PutMapping("/me/details")
     public Object details(@RequestBody AccountProfiles.Profile input, HttpServletRequest request) {
         var user = current(request, true);
+        // 昵称、简介、年级、班级、标签都可能被同学看到 → 先过违禁词
+        if (moderation != null) moderation.inspect(
+            SchoolAccounts.key(user.getEmail()),
+            com.qpwflshclub.formal_club.social.service.ModerationGate.PROFILE,
+            input.nickname(),
+            input.bio(),
+            input.grade(),
+            input.classroom(),
+            input.tags() == null ? "" : String.join(" ", input.tags())
+        );
         var updated = profiles.update(
             user.getEmail(),
             input,

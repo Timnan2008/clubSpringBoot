@@ -18,6 +18,38 @@ public class NotificationController {
     private final SocialStore social;
     private final SocialNotifications notifications;
 
+    /** 违禁词处罚台账：把「网管」的提醒/封禁通知一起送进通知中心。 */
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.qpwflshclub.formal_club.social.service.ModerationPenalty penalties;
+
+    /**
+     * 「网管」的提醒记录：每次命中违禁词都会留一条，学生在这里能看到自己被提醒/被封到什么时间。
+     * 独立的 notices 列表，不改动原有 items 的结构（前端单独渲染一块）。
+     */
+    private List<Map<String, Object>> wardenNotices(String me) throws IOException {
+        if (penalties == null) return List.of();
+        var history = penalties.state(me).history();
+        List<Map<String, Object>> notices = new ArrayList<>();
+        for (int i = history.size() - 1; i >= 0; i--) {
+            var strike = history.get(i);
+            String id = "warden:" + strike.at() + ":" + i;
+            Map<String, Object> row = new LinkedHashMap<>();
+            row.put("id", id);
+            row.put("at", strike.at());
+            row.put("where", strike.where());
+            row.put("word", strike.word());
+            row.put("text", String.format(
+                "【网管】在第 %d 次违规里拦截了违禁词「%s」（位置：%s），请不要再发类似内容。",
+                history.size() - i,
+                strike.word(),
+                strike.where()
+            ));
+            row.put("unread", !notifications.read(me, id));
+            notices.add(row);
+        }
+        return notices;
+    }
+
     public NotificationController(
         SchoolAccounts a,
         WorkspaceAccess w,
@@ -131,6 +163,8 @@ public class NotificationController {
             items,
             "unread",
             all.stream().filter(Item::unread).count(),
+            "notices",
+            wardenNotices(me),
             "token",
             access.token(r)
         );
@@ -146,7 +180,13 @@ public class NotificationController {
             .stream()
             .filter(i -> body.all() || i.id().equals(body.id()))
             .toList();
-        if (!body.all() && selected.isEmpty()) throw SchoolAccounts.error(
+        // 「网管」提醒也支持已读
+        var noticeSelected = wardenNotices(me)
+            .stream()
+            .filter(n -> body.all() || String.valueOf(n.get("id")).equals(body.id()))
+            .map(n -> String.valueOf(n.get("id")))
+            .toList();
+        if (!body.all() && selected.isEmpty() && noticeSelected.isEmpty()) throw SchoolAccounts.error(
             404,
             "通知不存在 / Notification not found"
         );
@@ -166,6 +206,7 @@ public class NotificationController {
                 .map(Item::id)
                 .toList()
         );
+        notifications.mark(me, noticeSelected);
         return Map.of("ok", true);
     }
 }

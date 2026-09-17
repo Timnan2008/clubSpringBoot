@@ -33,6 +33,10 @@ public class SuggestionController {
     @Autowired
     com.qpwflshclub.formal_club.workspace.WorkspaceAccess access;
 
+    /** 违禁词闸门：建议正文也要过检查，命中会记一次过。 */
+    @Autowired
+    com.qpwflshclub.formal_club.social.service.ModerationGate moderation;
+
     @GetMapping("/verification")
     public Object verification() {
         return turnstile.configuration();
@@ -46,7 +50,11 @@ public class SuggestionController {
     ) {
         var actor = accounts.current(request);
         access.mutation(request);
-        com.qpwflshclub.formal_club.social.ContentModeration.check(suggestionDTO.getContext());
+        moderation.inspect(
+            SchoolAccounts.key(actor.getEmail()),
+            com.qpwflshclub.formal_club.social.service.ModerationGate.SUGGESTION,
+            suggestionDTO.getContext()
+        );
         suggestionDTO.setName(suggestionDTO.isAnonymous() ? "" : actor.getUsername());
         turnstile.verify(suggestionDTO.getTurnstileToken());
         suggestionDTO.setPass(false);

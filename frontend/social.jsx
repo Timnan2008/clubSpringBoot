@@ -883,6 +883,8 @@ function Conversation({ peer, profile, write, onBack, onChange }) {
           ),
           body = new FormData();
         body.append("text", prepared.text);
+        // 服务器只能看到密文，额外把明文发过去用于违禁词检查（不会保存）
+        body.append("plainText", draft);
         for (const file of prepared.files) body.append("files", file.blob, file.metadata.id);
         await api("/conversations/" + peer.id + "/attachments", {
           method: "POST",
@@ -898,7 +900,11 @@ function Conversation({ peer, profile, write, onBack, onChange }) {
           peer.id,
           draft,
         );
-        await write("/conversations/" + peer.id, "POST", { text: encrypted });
+        await write("/conversations/" + peer.id, "POST", {
+          text: encrypted,
+          // 明文只用于服务器查违禁词，不会被保存（私信本身仍是端到端加密）
+          plainText: draft,
+        });
       }
       setText((current) => (current === draft ? "" : current));
       composerInput.current?.focus();

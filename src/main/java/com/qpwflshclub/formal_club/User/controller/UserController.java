@@ -44,6 +44,13 @@ public class UserController {
     AccountProfiles profiles;
 
     @Autowired
+    com.qpwflshclub.formal_club.social.service.SchoolAccounts schoolAccounts;
+
+    /** 违规封禁台账：登录时检查是否还在封禁期。 */
+    @Autowired
+    com.qpwflshclub.formal_club.social.service.ModerationPenalty moderationPenalties;
+
+    @Autowired
     MessageKeyVault keyVault;
 
     @Autowired
@@ -136,6 +143,7 @@ public class UserController {
         verifyRegistrationEmail(request, teacherDTO.getEmail(), teacherDTO.getEmailCode());
         teacherDTO.setClubs(List.of());
         if (loginEmails != null) loginEmails.requireAvailable(teacherDTO.getEmail());
+        clearGhostRegistrations();
         Teacher teacher = profiles.register(
             teacherDTO.getEmail(),
             "",
@@ -185,6 +193,7 @@ public class UserController {
         verifyRegistrationEmail(request, userDTO.getEmail(), userDTO.getEmailCode());
         userDTO.setClubs(List.of());
         if (loginEmails != null) loginEmails.requireAvailable(userDTO.getEmail());
+        clearGhostRegistrations();
         User user = profiles.register(
             userDTO.getEmail(),
             userDTO.getStudentNumber(),
@@ -329,9 +338,48 @@ public class UserController {
             case "admin" -> 3;
             default -> 0;
         };
+        // 先记下登录邮箱：数据库这一行删掉之后，私有登记表还要按邮箱清理
+        String targetEmail = emailOfAccount(userDTO.getId(), role);
         // Names are not unique identifiers. Delete only the selected typed account.
         userService.delete(userDTO.getId(), role);
+        forgetRegistration(targetEmail);
         return new ResponseMessage<>(200, "删除成功", Long.toString(userDTO.getId()));
+    }
+
+    /** 找到要删除账号的登录邮箱；查不到就返回 null（不影响删除本身）。 */
+    private String emailOfAccount(Long id, int role) {
+        try {
+            UserBase target = switch (role) {
+                case 2 -> userService.findTeacherByID(id);
+                case 1 -> userService.findClubPresidentByID(id);
+                case 3 -> userService.findAdminByID(id);
+                default -> userService.findUserById(id);
+            };
+            return target == null ? null : target.getEmail();
+        } catch (RuntimeException notFound) {
+            return null;
+        }
+    }
+
+    /**
+     * 清掉「幽灵登记」：删号时如果只删了数据库那一行，私有登记表（邮箱 / 学生号）会留着重名记录，
+     * 导致这个人再也注册不回来（提示「此邮箱已注册」或「这个学生号已绑定账户」）。
+     * 注册前对照数据库里真实存在的账号，把这些对不上的登记清掉。
+     */
+    private void clearGhostRegistrations() {
+        if (profiles == null || schoolAccounts == null) return;
+        try {
+            profiles.pruneStale(schoolAccounts.liveAccountKeys());
+        } catch (RuntimeException ignored) {
+            // 清理失败不影响注册主流程：正常的重名检查仍然会生效
+        }
+    }
+
+    /** 删号后清掉这个邮箱在私有登记表里的记录。 */
+    private void forgetRegistration(String email) {
+        if (email == null || email.isBlank()) return;
+        if (profiles != null) profiles.forget(email);
+        if (loginEmails != null) loginEmails.forget(email);
     }
 
     private UserBase currentUserFromRequest(HttpServletRequest request) {
@@ -499,6 +547,19 @@ public class UserController {
                 request.getRemoteAddr()
             );
             return ResponseMessage.error("用户名或密码错误 / Incorrect email or password");
+        }
+
+        // 被封禁的账号（违禁词处罚）在解封前不能登录
+        if (moderationPenalties != null) {
+            long until = moderationPenalties
+                .state(com.qpwflshclub.formal_club.social.service.SchoolAccounts.key(user.getEmail()))
+                .banUntil();
+            if (until > System.currentTimeMillis()) return ResponseMessage.error(
+                "账号已被「网管」封禁，解封时间："
+                    + com.qpwflshclub.formal_club.social.service.ModerationPenalty.untilText(until)
+                    + " / Account suspended until "
+                    + com.qpwflshclub.formal_club.social.service.ModerationPenalty.untilText(until)
+            );
         }
 
         /*

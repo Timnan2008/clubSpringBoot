@@ -33,6 +33,10 @@ public class SocialController {
     @org.springframework.beans.factory.annotation.Autowired
     private SocialNotifications notifications;
 
+    /** 违禁词闸门：私信/聊天等入口都要过一遍。 */
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.qpwflshclub.formal_club.social.service.ModerationGate moderation;
+
     private final SchoolAccounts accounts;
     private final WorkspaceAccess access;
     private final SocialStore store;
@@ -439,7 +443,15 @@ public class SocialController {
         }
     }
 
-    public record TextInput(String text) {}
+    /**
+     * 私信内容：{@code text} 是发给对方看的密文（端到端加密）；
+     * {@code plainText} 是同一句话的明文，只用来在服务器上查违禁词，不会被保存。
+     */
+    public record TextInput(String text, String plainText) {
+        public TextInput(String text) {
+            this(text, null);
+        }
+    }
 
     public record LikeInput(boolean liked) {}
 
@@ -495,8 +507,14 @@ public class SocialController {
     ) throws IOException {
         var u = current(request, true);
         canPost(u);
-        ContentModeration.check(text);
+        // 违禁词检查统一由 SocialStore.post 里的闸门完成，这里不再重复检查（避免重复记过）
         SocialStore.text(text, 1000);
+        // 附件文件名也检查一遍（文件名同样会显示给别的同学看）
+        for (var upload : uploads) moderation.inspect(
+            SchoolAccounts.key(u.getEmail()),
+            com.qpwflshclub.formal_club.social.service.ModerationGate.FILES,
+            upload.getOriginalFilename()
+        );
         String name = "";
         if (club != 0) {
             name = access.require(u, club).getClubName();
@@ -810,20 +828,31 @@ public class SocialController {
         UserBase me = current(request, true);
         accounts.find(peer);
         if (preferences != null) preferences.requireAllowed(key(me), peer);
+        // 私信是端到端加密的，服务器只拿得到密文；所以前端会把明文一并送来，仅用于违禁词检查
+        moderation.inspect(key(me), com.qpwflshclub.formal_club.social.service.ModerationGate.CHAT,
+            plain(body.text(), body.plainText()));
         messageKeys.validateMessage(key(me), peer, body.text());
         return store.message(key(me), peer, body.text());
+    }
+
+    /** 取明文做检查：优先用前端送来的明文，没有就退回 raw（未加密的消息）。 */
+    private static String plain(String text, String plainText) {
+        return plainText == null || plainText.isBlank() ? text : plainText;
     }
 
     @PostMapping(value = "/conversations/{peer}/attachments", consumes = "multipart/form-data")
     public Object messageFiles(
         @PathVariable String peer,
         @RequestParam String text,
+        @RequestParam(required = false) String plainText,
         @RequestParam("files") List<org.springframework.web.multipart.MultipartFile> uploads,
         HttpServletRequest request
     ) throws IOException {
         String me = key(current(request, true));
         accounts.find(peer);
         if (preferences != null) preferences.requireAllowed(me, peer);
+        moderation.inspect(me, com.qpwflshclub.formal_club.social.service.ModerationGate.CHAT,
+            plain(text, plainText));
         messageKeys.validateMessage(me, peer, text);
         if (
             uploads.isEmpty() ||

@@ -179,4 +179,29 @@ public class AccountProfiles {
         profiles.remove(id);
         persist();
     }
+
+    /**
+     * 清掉「幽灵登记」：删号时如果只删了数据库那一行，这里还留着邮箱和学生号，
+     * 于是重新注册会被「此邮箱已注册 / 这个学生号已绑定账户」挡住。
+     * 传入服务器上真实存在的账号 key（SHA-256(邮箱)），把对不上的登记删掉。
+     *
+     * @return 清掉的条数
+     */
+    public synchronized int pruneStale(Set<String> liveAccountKeys) {
+        List<String> ghosts = new ArrayList<>();
+        for (String key : profiles.keySet()) {
+            if (!liveAccountKeys.contains(key)) ghosts.add(key);
+        }
+        if (ghosts.isEmpty()) return 0;
+        for (String key : ghosts) profiles.remove(key);
+        persist();
+        return ghosts.size();
+    }
+
+    /** 按邮箱清掉一条登记（旧版删除接口删号后调用）。 */
+    public synchronized boolean forget(String email) {
+        boolean removed = profiles.remove(SchoolAccounts.key(email)) != null;
+        if (removed) persist();
+        return removed;
+    }
 }

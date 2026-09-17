@@ -158,6 +158,10 @@ public class SchoolAccounts {
     private final TeacherRepository teachers;
     private final AdminRepository admins;
 
+    /** 违规封禁台账（见 ModerationPenalty）；用字段注入，保持测试里的构造方式不变。 */
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.qpwflshclub.formal_club.social.service.ModerationPenalty moderationPenalties;
+
     public SchoolAccounts(
         IUserService users,
         UserRepository students,
@@ -179,7 +183,29 @@ public class SchoolAccounts {
         ) throw error(401, "请先登录校园账号");
         UserBase user = users.findByEmail(email);
         if (user == null) throw error(401, "账号不存在或会话已失效");
+        requireNotBanned(key(user.getEmail()), request);
         return user;
+    }
+
+    /**
+     * 被封禁的账号一律拒绝（未到期自动失效）。
+     * 例外：允许 GET 读取「网管通知」，否则学生连自己被罚了什么都不知道。
+     */
+    private void requireNotBanned(String account, HttpServletRequest request) {
+        if (moderationPenalties == null) return;
+        long until = moderationPenalties.state(account).banUntil();
+        if (until <= System.currentTimeMillis()) return;
+        String path = request.getRequestURI();
+        if ("GET".equalsIgnoreCase(request.getMethod()) && path.endsWith("/notifications")) return;
+        throw error(
+            403,
+            "账号已被「"
+                + com.qpwflshclub.formal_club.social.service.ModerationPenalty.WARDEN_NAME
+                + "」封禁，解封时间："
+                + com.qpwflshclub.formal_club.social.service.ModerationPenalty.untilText(until)
+                + " / Account suspended until "
+                + com.qpwflshclub.formal_club.social.service.ModerationPenalty.untilText(until)
+        );
     }
 
     public static String key(String email) {
@@ -279,6 +305,15 @@ public class SchoolAccounts {
         admins.findAll().forEach(u -> people.put(key(u.getEmail()), u));
         presidents.findAll().forEach(u -> people.put(key(u.getEmail()), u));
         return new ArrayList<>(people.values());
+    }
+
+    /** 服务器上真实存在的账号 key 集合（= SHA-256(邮箱)，用来清理删号留下的幽灵登记）。 */
+    public Set<String> liveAccountKeys() {
+        Set<String> keys = new HashSet<>();
+        for (UserBase u : all()) {
+            if (u.getEmail() != null && !u.getEmail().isBlank()) keys.add(key(u.getEmail()));
+        }
+        return keys;
     }
 
     public UserBase find(String id) {
