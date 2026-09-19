@@ -22,16 +22,16 @@ public class SuggestionController {
     public ISuggestionService suggestionService;
 
     @Autowired
-    com.qpwflshclub.formal_club.service.Suggestion.TurnstileService turnstile;
+    public com.qpwflshclub.formal_club.service.Suggestion.TurnstileService turnstile;
 
     @Autowired
-    ContentAudit audit;
+    public ContentAudit audit;
 
     @Autowired
-    SchoolAccounts accounts;
+    public SchoolAccounts accounts;
 
     @Autowired
-    com.qpwflshclub.formal_club.workspace.WorkspaceAccess access;
+    public com.qpwflshclub.formal_club.workspace.WorkspaceAccess access;
 
     /** 违禁词闸门：建议正文也要过检查，命中会记一次过。 */
     @Autowired

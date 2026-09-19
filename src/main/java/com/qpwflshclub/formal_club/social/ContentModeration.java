@@ -26,7 +26,7 @@ import java.util.regex.Pattern;
 public final class ContentModeration {
 
     /** 额外词库路径，可用系统属性/环境变量覆盖。 */
-    private static final String EXTRA_FILE = Objects.toString(
+    private static volatile String extraFile = Objects.toString(
         System.getProperty("club.moderation.words-file",
             System.getenv().getOrDefault("CLUB_MODERATION_WORDS_FILE", "data/moderation/banned-words.txt")),
         "data/moderation/banned-words.txt"
@@ -111,7 +111,7 @@ public final class ContentModeration {
 
     private static long extraFileStamp() {
         try {
-            Path path = Path.of(EXTRA_FILE);
+            Path path = Path.of(extraFile);
             return Files.exists(path) ? Files.getLastModifiedTime(path).toMillis() : -1;
         } catch (RuntimeException | IOException e) {
             return -1;
@@ -133,7 +133,7 @@ public final class ContentModeration {
     /** 额外词库：服务器上那份（改完 5 秒内自动生效）。 */
     private static List<String> readExtraFileWords() {
         try {
-            Path path = Path.of(EXTRA_FILE);
+            Path path = Path.of(extraFile);
             if (!Files.exists(path)) return List.of();
             return parse(Files.readString(path, StandardCharsets.UTF_8).split("\n"));
         } catch (RuntimeException | IOException e) {
@@ -189,5 +189,116 @@ public final class ContentModeration {
             400,
             "内容包含不适当用语，请修改后提交。 / Please remove inappropriate language."
         );
+    }
+
+    // ---------------------------------------------------------------- 管理员后台（第三十四轮）
+
+    /** 一条词条以及它来自哪份词库（后台列表用）/ one word plus where it comes from */
+    public record WordInfo(String word, String source) {}
+
+    /** 三份词库合并后的明细：打包 / 本机 / 环境变量。 */
+    public static List<WordInfo> wordInfo() {
+        List<WordInfo> out = new ArrayList<>();
+        for (String word : readClasspathWords()) {
+            out.add(new WordInfo(word, "打包"));
+        }
+        for (String word : extraWords()) {
+            out.add(new WordInfo(word, "本机"));
+        }
+        for (String part : Objects.toString(System.getenv("CLUB_BLOCKED_WORDS"), "").split(",")) {
+            String word = normalize(part.trim());
+            if (!word.isBlank()) {
+                out.add(new WordInfo(word, "环境变量"));
+            }
+        }
+        return out;
+    }
+
+    /**
+     * 后台加词：写进**本机额外词库**（打包词库保持只读），写完立刻生效。
+     * 非法词条（空、带换行）直接拒绝，避免把词库文件写坏。
+     */
+    public static String addWord(String word) {
+        String normalized = normalize(Objects.toString(word, "").trim());
+        if (normalized.isBlank() || normalized.contains("\n") || normalized.contains(" ")) {
+            throw SchoolAccounts.error(400, "词条无效：不能为空，也不能带空格或换行");
+        }
+        List<String> words = extraWords();
+        if (words.contains(normalized)) {
+            throw SchoolAccounts.error(400, "这个词已经在本机词库里了");
+        }
+        if (readClasspathWords().contains(normalized)) {
+            throw SchoolAccounts.error(400, "这个词已经在打包词库里了（打包词库只读）");
+        }
+        words.add(normalized);
+        writeExtra(words);
+        refresh(true);
+        return normalized;
+    }
+
+    /**
+     * 后台删词：只能删本机词库里的词（打包词库不动）。
+     *
+     * @return 删掉了返回 true；打包词库里的词返回 false（调用方据此提示）
+     */
+    public static boolean removeWord(String word) {
+        String normalized = normalize(Objects.toString(word, "").trim());
+        List<String> words = extraWords();
+        if (!words.remove(normalized)) {
+            return false;
+        }
+        writeExtra(words);
+        refresh(true);
+        return true;
+    }
+
+    /** 本机额外词库里现有的词（已归一化）。 */
+    private static List<String> extraWords() {
+        List<String> out = new ArrayList<>();
+        try {
+            Path path = Path.of(extraFile);
+            if (!Files.exists(path)) {
+                return out;
+            }
+            for (String line : Files.readString(path, StandardCharsets.UTF_8).split("\n")) {
+                String trimmed = line.trim();
+                if (!trimmed.isEmpty() && !trimmed.startsWith("#")) {
+                    out.add(normalize(trimmed));
+                }
+            }
+        } catch (RuntimeException | IOException e) {
+            // 读不到就当空的
+        }
+        return out;
+    }
+
+    private static void writeExtra(List<String> words) {
+        try {
+            Path path = Path.of(extraFile);
+            if (path.getParent() != null) {
+                Files.createDirectories(path.getParent());
+            }
+            StringBuilder text = new StringBuilder(
+                    "# 本机补充词库（管理员后台维护；一行一个词；保存后最多 5 秒生效）\n");
+            for (String word : words) {
+                text.append(word).append('\n');
+            }
+            Files.writeString(path, text.toString(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw SchoolAccounts.error(500, "写入词库失败：" + e.getMessage());
+        }
+    }
+
+    /** 本机词库文件路径（后台展示用）。 */
+    public static String extraFile() {
+        return extraFile;
+    }
+
+    /**
+     * 测试钩子：把「本机词库」指到临时文件，测完记得调回来。
+     * 让单元测试能真实验证「后台加词 / 删词」这条写盘路径，而不会污染仓库里的词库。
+     */
+    static void overrideExtraFile(String path) {
+        extraFile = path;
     }
 }

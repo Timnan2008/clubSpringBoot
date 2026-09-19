@@ -26,6 +26,8 @@ public class ModerationGate {
     public static final String SUGGESTION = "清源建议";
     public static final String CALENDAR = "个人日历";
     public static final String WORKSPACE = "社团工作台";
+    public static final String CLUB = "社团资料（名称/简介）";
+    public static final String CLUB_OPS = "社团工作台内容（学期/报告/推荐）";
     public static final String REGISTER = "注册资料";
     public static final String FILES = "附件文件名";
 

@@ -41,7 +41,7 @@ public class UserController {
     public IUserService userService;
 
     @Autowired
-    AccountProfiles profiles;
+    public AccountProfiles profiles;
 
     @Autowired
     com.qpwflshclub.formal_club.social.service.SchoolAccounts schoolAccounts;
@@ -54,10 +54,10 @@ public class UserController {
     MessageKeyVault keyVault;
 
     @Autowired
-    com.qpwflshclub.formal_club.service.Suggestion.TurnstileService turnstile;
+    public com.qpwflshclub.formal_club.service.Suggestion.TurnstileService turnstile;
 
     @Autowired
-    com.qpwflshclub.formal_club.service.Suggestion.EmailCodeService registrationCodes;
+    public com.qpwflshclub.formal_club.service.Suggestion.EmailCodeService registrationCodes;
 
     public record SignupVerification(String email, String role, String turnstileToken) {}
 

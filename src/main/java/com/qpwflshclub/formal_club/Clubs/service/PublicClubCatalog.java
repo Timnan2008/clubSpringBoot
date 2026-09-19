@@ -23,7 +23,8 @@ public class PublicClubCatalog {
         this(source, Clock.systemUTC());
     }
 
-    PublicClubCatalog(IClubService source, Clock clock) {
+    /** 带注入时钟的构造器：测试（在别的包）要能拿来验证快照会过期，所以是 public。 */
+    public PublicClubCatalog(IClubService source, Clock clock) {
         this.source = source;
         this.clock = clock;
     }

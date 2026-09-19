@@ -19,19 +19,41 @@ public class ClubOperationsController {
     private final ClubOperationsStore store;
     private final WorkspaceController members;
     private final UserRepository students;
+    /** 工作台里能打字的地方（学期名、报告正文、推荐备注）同样要过违禁词。 */
+    private final com.qpwflshclub.formal_club.social.service.ModerationGate moderation;
 
     public ClubOperationsController(
         WorkspaceAccess a,
         WorkspaceStore w,
         ClubOperationsStore s,
         WorkspaceController m,
-        UserRepository u
+        UserRepository u,
+        com.qpwflshclub.formal_club.social.service.ModerationGate moderation
     ) {
         access = a;
         workspace = w;
         store = s;
         members = m;
         students = u;
+        this.moderation = moderation;
+    }
+
+    /**
+     * 工作台文字过闸门：命中就抛 400，并与其他入口一样记一次过（前 2 次提醒，第 3 次起阶梯封禁）。
+     * 这里以前完全没有过审 —— 学期名、报告正文、推荐备注都能写进违禁词。
+     */
+    private void guard(UserBase actor, String... texts) {
+        if (moderation == null) {
+            return;
+        }
+        String email = actor == null ? null : actor.getEmail();
+        moderation.inspect(
+            email == null || email.isBlank()
+                ? null
+                : com.qpwflshclub.formal_club.social.service.SchoolAccounts.key(email),
+            com.qpwflshclub.formal_club.social.service.ModerationGate.CLUB_OPS,
+            texts
+        );
     }
 
     private UserBase require(int club, HttpServletRequest r, boolean write) {
@@ -52,7 +74,8 @@ public class ClubOperationsController {
     @PostMapping("/terms")
     public Object term(@PathVariable int club, @RequestBody TermInput input, HttpServletRequest r)
         throws IOException {
-        require(club, r, true);
+        var actor = require(club, r, true);
+        guard(actor, input.name());
         return store.term(club, input.name(), input.start(), input.end());
     }
 
@@ -89,6 +112,7 @@ public class ClubOperationsController {
         HttpServletRequest r
     ) throws IOException {
         var actor = require(club, r, true);
+        guard(actor, input.title(), input.content(), input.feedback(), input.improvements());
         var term = store.term(store.read(club), input.term());
         if (
             !Set.of("proposal", "review", "feedback").contains(
@@ -208,7 +232,8 @@ public class ClubOperationsController {
         @RequestBody CandidateInput input,
         HttpServletRequest r
     ) throws IOException {
-        require(club, r, true);
+        var actor = require(club, r, true);
+        guard(actor, input.note());
         var student = students
             .findById(input.student())
             .orElseThrow(() -> WorkspaceStore.bad("学生账号不存在"));

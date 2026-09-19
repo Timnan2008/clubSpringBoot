@@ -17,6 +17,19 @@ class MediaCompressionTest {
     @TempDir
     Path dir;
 
+    /** 本机有没有可用的 ffmpeg（视频压缩测试依赖它）。 */
+    private static boolean ffmpegAvailable() {
+        try {
+            var process = new ProcessBuilder("ffmpeg", "-version")
+                .redirectError(ProcessBuilder.Redirect.DISCARD)
+                .redirectOutput(ProcessBuilder.Redirect.DISCARD)
+                .start();
+            return process.waitFor() == 0;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     @Test
     void largePhotosAndLegacyAvatarsBecomeSmallerAndAnonymousFilesStayGeneric() throws Exception {
         var image = new BufferedImage(2400, 1600, BufferedImage.TYPE_INT_RGB);
@@ -53,6 +66,12 @@ class MediaCompressionTest {
 
     @Test
     void videoIsEncodedAsPlayableFastStartMp4AndBadInputIsRejected() throws Exception {
+        // 视频压缩要靠本机的 ffmpeg：没装就跳过，而不是把整个测试套件弄红
+        //（这个测试以前就是因为「本机没 ffmpeg」直接报 IOException）
+        Assumptions.assumeTrue(
+            ffmpegAvailable(),
+            "本机没有 ffmpeg，跳过视频压缩测试（装上 ffmpeg 后会自动跑）"
+        );
         Path input = dir.resolve("input.mp4"),
             output = dir.resolve("output.mp4");
         var proc = new ProcessBuilder(

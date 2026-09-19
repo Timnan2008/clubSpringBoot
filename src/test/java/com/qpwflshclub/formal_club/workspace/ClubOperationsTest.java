@@ -67,7 +67,8 @@ class ClubOperationsTest {
         store = new ClubOperationsStore(new ObjectMapper(), dir.toString());
         members = new WorkspaceController(access, workspace, students, presidents);
         org.springframework.test.util.ReflectionTestUtils.setField(members, "operations", store);
-        controller = new ClubOperationsController(access, workspace, store, members, students);
+        // 第六个参数是违禁词闸门：该测试只跑工作台逻辑，传 null（控制器里对 null 有保护）
+        controller = new ClubOperationsController(access, workspace, store, members, students, null);
         request = new MockHttpServletRequest();
         request.getSession().setAttribute("authenticatedEmail", leader.getEmail());
         request.addHeader("X-Workspace-Token", access.token(request));

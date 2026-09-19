@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>内容审核后台 · 违禁词</title>
+  <style>
+    :root { color-scheme: light dark; }
+    body { margin: 0; font: 15px/1.6 system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; }
+    header { padding: 18px 24px; border-bottom: 1px solid #8883; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+    h1 { margin: 0; font-size: 20px; }
+    .muted { opacity: .7; font-size: 13px; }
+    main { padding: 20px 24px 48px; display: grid; gap: 28px; max-width: 1100px; }
+    section { border: 1px solid #8883; border-radius: 12px; padding: 16px 18px; }
+    h2 { margin: 0 0 12px; font-size: 16px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid #8882; vertical-align: top; }
+    input[type=text] { padding: 7px 10px; border: 1px solid #8885; border-radius: 8px; min-width: 220px; }
+    button { padding: 6px 12px; border: 1px solid #8885; border-radius: 8px; background: #8881; cursor: pointer; }
+    button:hover { background: #8882; }
+    .tag { display: inline-block; padding: 1px 8px; border-radius: 999px; background: #8882; font-size: 12px; }
+    .bad { color: #c62828; }
+    .ok { color: #2e7d32; }
+    .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+    #toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); padding: 10px 16px;
+             border-radius: 10px; background: #222d; color: #fff; opacity: 0; transition: opacity .2s; pointer-events: none; }
+    #toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+<header>
+  <h1>内容审核后台</h1>
+  <span class="muted">违禁词库 · 违规记录 · 手动解封（仅管理员可见）</span>
+</header>
+
+<main>
+  <section>
+    <h2>违禁词库</h2>
+    <p class="muted">本机词库文件：<code id="word-file">…</code>；打包词库是只读的，后台只能增删「本机」词条。改完最多 5 秒自动生效。</p>
+    <div class="row">
+      <input id="word-input" type="text" placeholder="输入要新增的词条（不含空格）" maxlength="64">
+      <button id="word-add">新增词条</button>
+      <span class="muted" id="word-count"></span>
+    </div>
+    <table>
+      <thead><tr><th style="width:220px">词条</th><th style="width:120px">来源</th><th>操作</th></tr></thead>
+      <tbody id="word-rows"></tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>违规记录</h2>
+    <p class="muted">前 2 次只提醒，第 3 次起 1 / 2 / 4 / 8 天阶梯封禁。误封可以在这里解除。</p>
+    <table>
+      <thead><tr><th>账号</th><th style="width:90px">次数</th><th style="width:110px">状态</th><th style="width:180px">解封时间</th><th>最近记录</th><th style="width:110px">操作</th></tr></thead>
+      <tbody id="strike-rows"></tbody>
+    </table>
+  </section>
+</main>
+
+<div id="toast"></div>
+
+<script>
+  const api = '/api/campus-social/moderation';
+  const toast = (text, bad = false) => {
+    const el = document.getElementById('toast');
+    el.textContent = text;
+    el.style.background = bad ? '#b3261eE6' : '#222d';
+    el.classList.add('show');
+    clearTimeout(el._t);
+    el._t = setTimeout(() => el.classList.remove('show'), 2600);
+  };
+  const call = async (url, options = {}) => {
+    const response = await fetch(url, { credentials: 'same-origin', ...options });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(body.message || ('请求失败：HTTP ' + response.status));
+    return body;
+  };
+  const escapeHtml = text => String(text).replace(/[&<>"']/g,
+    c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  async function loadWords() {
+    const data = await call(api + '/words');
+    document.getElementById('word-file').textContent = data.file;
+    document.getElementById('word-count').textContent = '共 ' + data.count + ' 条（含打包词库）';
+    document.getElementById('word-rows').innerHTML = data.words.map(w =>
+      '<tr><td>' + escapeHtml(w.word) + '</td>' +
+      '<td><span class="tag">' + escapeHtml(w.source) + '</span></td>' +
+      '<td>' + (w.source === '本机'
+        ? '<button data-remove="' + encodeURIComponent(w.word) + '">删除</button>'
+        : '<span class="muted">只读</span>') + '</td></tr>').join('')
+      || '<tr><td colspan="3" class="muted">词库是空的</td></tr>';
+    document.querySelectorAll('[data-remove]').forEach(btn => btn.addEventListener('click', async () => {
+      try {
+        await call(api + '/words/' + btn.getAttribute('data-remove'), { method: 'DELETE' });
+        toast('已删除，5 秒内生效');
+        await loadWords();
+      } catch (e) { toast(e.message, true); }
+    }));
+  }
+
+  async function loadStrikes() {
+    const data = await call(api + '/strikes');
+    document.getElementById('strike-rows').innerHTML = data.accounts.map(a => {
+      const history = (a.history || []).slice(-3).reverse()
+        .map(h => '· ' + escapeHtml(String(h.where || '')) + '：' + escapeHtml(String(h.word || '')))
+        .join('<br>');
+      return '<tr><td><code>' + escapeHtml(a.account.slice(0, 12)) + '…</code></td>' +
+        '<td>' + a.strikes + '</td>' +
+        '<td>' + (a.banned ? '<span class="bad">封禁中</span>' : '<span class="ok">正常</span>') + '</td>' +
+        '<td>' + escapeHtml(a.until || '—') + (a.banned ? '（剩 ' + a.remainingMinutes + ' 分钟）' : '') + '</td>' +
+        '<td>' + (history || '<span class="muted">—</span>') + '</td>' +
+        '<td><button data-forgive="' + escapeHtml(a.account) + '">解除</button></td></tr>';
+    }).join('') || '<tr><td colspan="6" class="muted">还没有违规记录</td></tr>';
+    document.querySelectorAll('[data-forgive]').forEach(btn => btn.addEventListener('click', async () => {
+      try {
+        await call(api + '/forgive', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ account: btn.getAttribute('data-forgive') })
+        });
+        toast('已解除该账号的封禁与记录');
+        await loadStrikes();
+      } catch (e) { toast(e.message, true); }
+    }));
+  }
+
+  document.getElementById('word-add').addEventListener('click', async () => {
+    const input = document.getElementById('word-input');
+    const word = input.value.trim();
+    if (!word) { toast('先输入词条', true); return; }
+    try {
+      await call(api + '/words', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ word })
+      });
+      input.value = '';
+      toast('已新增，5 秒内生效');
+      await loadWords();
+    } catch (e) { toast(e.message, true); }
+  });
+  document.getElementById('word-input').addEventListener('keydown', event => {
+    if (event.key === 'Enter') document.getElementById('word-add').click();
+  });
+
+  (async () => {
+    try {
+      await loadWords();
+      await loadStrikes();
+    } catch (e) {
+      toast(e.message + '（这个页面只有管理员能看）', true);
+    }
+  })();
+</script>
+</body>
+</html>

@@ -38,6 +38,35 @@ public class ClubController {
     @Autowired
     public IClubService clubService;
 
+    @Autowired
+    private com.qpwflshclub.formal_club.social.service.ModerationGate moderation;
+
+    /**
+     * 社团名称 / 简介 / 指导老师这些「全校都能看到」的字，同样要过违禁词闸门。
+     *
+     * 之前只有帖子、评论、私信、个人资料过了闸门，社团这边是空白 —— 新建或改名都能写进违禁词，
+     * 而且不会记过。这里补上，走与其他入口相同的「前 2 次提醒、第 3 次起阶梯封禁」。
+     *
+     * Club names / intros were never moderated before; they now go through the same gate as
+     * posts and profile text, so strikes and bans are recorded consistently.
+     */
+    private void guardClubText(UserBase user, ClubDTO dto) {
+        if (moderation == null || dto == null) {
+            return;
+        }
+        String email = user == null ? null : user.getEmail();
+        moderation.inspect(
+            email == null || email.isBlank() ? null : SchoolAccounts.key(email),
+            com.qpwflshclub.formal_club.social.service.ModerationGate.CLUB,
+            dto.getClubName(), dto.getClubNameEn(),
+            dto.getClubDescription(), dto.getClubDescriptionEn(),
+            dto.getSortDescription(), dto.getSortDescriptionEn(),
+            dto.getPresident(), dto.getPresidentEn(),
+            dto.getVicePresident(), dto.getVicePresidentEn(),
+            dto.getTeacher(), dto.getTeacherEn()
+        );
+    }
+
     private UserBase getCurrentUser(HttpServletRequest request) {
         return (UserBase) request.getAttribute("currentUser");
     }
@@ -80,6 +109,7 @@ public class ClubController {
         if (!isAdmin(user)) {
             return ResponseMessage.error("无权限：只有管理员可以创建社团");
         }
+        guardClubText(user, clubDTO);
         Club club = clubService.add(clubDTO);
         return ResponseMessage.success(club);
     }
@@ -96,6 +126,7 @@ public class ClubController {
             return ResponseMessage.error("无权限：您无权修改该社团");
         }
         clubDTO.setClubId(clubId);
+        guardClubText(user, clubDTO);
         Club updated = clubService.update(clubDTO);
         return ResponseMessage.success(updated);
     }
@@ -132,6 +163,7 @@ public class ClubController {
         // 4. 鉴权通过，执行修改逻辑
         // (注意：你原有的业务代码里把 findByName 赋给了 clubDTONameEn 但没使用，请确保使用 clubService.update 更新正确的对象)
         clubDTO.setClubId(currentClub.getId()); // 确保 ID 对应
+        guardClubText(loginUser, clubDTO);
         Club updatedClub = clubService.update(clubDTO);
         return ResponseMessage.success(updatedClub);
     }

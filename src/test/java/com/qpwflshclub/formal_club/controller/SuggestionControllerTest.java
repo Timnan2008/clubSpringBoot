@@ -34,7 +34,7 @@ class SuggestionControllerTest {
     SuggestionController controller;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         controller = new SuggestionController();
         controller.suggestionService = suggestionService;
         controller.accounts = org.mockito.Mockito.mock(
@@ -45,6 +45,20 @@ class SuggestionControllerTest {
         );
         controller.audit = org.mockito.Mockito.mock(
             ContentAudit.class
+        );
+        // 违禁词闸门也是字段注入：塞一个真实实例（违禁词库走打包的那份），
+        // 否则 addSuggestion 里 moderation.inspect 会 NPE
+        org.springframework.test.util.ReflectionTestUtils.setField(
+            controller,
+            "moderation",
+            new com.qpwflshclub.formal_club.social.service.ModerationGate(
+                new com.qpwflshclub.formal_club.social.service.ModerationPenalty(
+                    java.nio.file.Path.of(
+                        System.getProperty("java.io.tmpdir"),
+                        "club-suggestion-penalties.json"
+                    ).toString()
+                )
+            )
         );
         var actor = new User();
         actor.setEmail("fixture@example.com");

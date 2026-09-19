@@ -29,19 +29,19 @@ import org.springframework.stereotype.Service;
 public class UserService implements IUserService {
 
     @Autowired
-    TeacherRepository teacherRepository;
+    public TeacherRepository teacherRepository;
 
     @Autowired
-    AdminRepository adminRepository;
+    public AdminRepository adminRepository;
 
     @Autowired
-    ClubPresidentRepository clubPresidentRepository;
+    public ClubPresidentRepository clubPresidentRepository;
 
     @Autowired
-    UserRepository userRepository;
+    public UserRepository userRepository;
 
     @Autowired
-    ClubRepository clubRepository;
+    public ClubRepository clubRepository;
 
     @Autowired
     private AccountProfiles accountProfiles;

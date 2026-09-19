@@ -135,6 +135,11 @@ public class ModerationPenalty {
         return states.getOrDefault(account, State.empty());
     }
 
+    /** 全部有记录的账号（后台列表用；返回副本，外面改不动）。 */
+    public synchronized Map<String, State> all() {
+        return new LinkedHashMap<>(states);
+    }
+
     /** 当前是否处于封禁中。 */
     public synchronized boolean banned(String account) {
         return account != null && state(account).banUntil() > System.currentTimeMillis();
