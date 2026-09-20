@@ -185,6 +185,28 @@ try {
   await page.locator(".ascii-cursor-canvas").waitFor();
   assert.equal(await page.locator(".opensteam-logo").count(), 0);
   assert.equal(await page.locator(".club-logo-card").count(), 1);
+  assert.equal(await page.locator(".pixel-snow-container").count(), 0);
+  assert.equal(
+    await page.evaluate(() => getComputedStyle(document.body).backgroundColor),
+    "rgb(246, 245, 243)",
+  );
+  await page.mouse.move(100, 200);
+  await page.mouse.move(240, 300, { steps: 8 });
+  await page.waitForTimeout(80);
+  assert(
+    await page.locator(".ascii-cursor-canvas").evaluate((canvas) => {
+      const pixels = canvas.getContext("2d").getImageData(0, 0, canvas.width, canvas.height).data;
+      return pixels.some((value, index) => index % 4 === 3 && value > 0);
+    }),
+    "Programming club's original pointer trail must draw",
+  );
+  await page.goto(base + "/?id=2");
+  await page.locator(".club-hero").waitFor();
+  assert.equal(await page.locator(".pixel-snow-container, .ascii-cursor-canvas").count(), 0);
+  assert.equal(
+    await page.evaluate(() => getComputedStyle(document.body).backgroundColor),
+    "rgb(246, 245, 243)",
+  );
   await page.goto(base + "/list");
   await page.locator(".catalog-heading").waitFor();
   assert.equal(

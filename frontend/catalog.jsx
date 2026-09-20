@@ -182,7 +182,7 @@ function Catalog() {
   const name = club && localized(club.clubName, club.clubNameEn);
   return (
     <main className="catalog-shell">
-      {detail && club && (
+      {detail && club && Number(club.id) === 28 && (
         <div className="club-detail-background" aria-hidden="true">
           <Suspense fallback={null}>
             <PixelSnow

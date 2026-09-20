@@ -33,7 +33,7 @@
 - 点赞使用受控的 `liked/count`，服务器成功后更新；上传拿不到真实进度时使用 `StatusMark status="running"`，不传虚构百分比。
 - `ControlRefinements.css` 处理这组控件与旧页面样式的兼容，以及学期材料布局。不要改动编程社背景鼠标效果。
 - `PixelCard.jsx` 用于 OpenSTEAM（28 号社团）的独立 Logo 展示；进入、悬停和键盘聚焦触发像素效果，其他社团仍用原来的 `PixelTransition`。
-- `PixelSnow.jsx` 只在详情页按需加载，shader 放在 `pixel-snow-shader.js`。背景位于内容下层，不接收点击；低分辨率画布限制渲染开销，隐藏或移出视口暂停，减少动态效果时静止显示，不支持 WebGL 时保留正常页面。退出页面会销毁 WebGL 资源。
+- `PixelSnow.jsx` 只在 OpenSTEAM（28 号社团）详情页按需加载，深色背景也仅限该社团；其他社团保留默认浅色背景，编程社（1 号）保留原来的 ASCII 鼠标拖尾。shader 放在 `pixel-snow-shader.js`。背景位于内容下层，不接收点击；低分辨率画布限制渲染开销，隐藏或移出视口暂停，减少动态效果时静止显示，不支持 WebGL 时保留正常页面。退出页面会销毁 WebGL 资源。
 - `AdminBadge.jsx` 根据服务器提供的 `role === "admin"` 显示金色流光标签；匿名帖子不展示该标签。标签仅用于身份展示，不参与权限判定。
 
 ## 样式怎么找

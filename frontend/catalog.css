@@ -734,13 +734,13 @@ body.catalog-page #club-catalog {
   }
 }
 
-/* Detail-only night palette: the reference snow needs a dark, quiet backdrop. */
-body.catalog-page:has(#club-catalog[data-mode="detail"]) {
+/* OpenSTEAM-only night palette: the reference snow needs a dark, quiet backdrop. */
+body.catalog-page:has(#club-catalog[data-mode="detail"][data-id="28"]) {
   background: #100e16;
   color: #f7f6fa;
   color-scheme: dark;
 }
-body.catalog-page:has(#club-catalog[data-mode="detail"]) .campus-top {
+body.catalog-page:has(#club-catalog[data-mode="detail"][data-id="28"]) .campus-top {
   --campus-bg: #100e16;
   --campus-panel: #191720;
   --campus-line: #2d2935;
@@ -750,77 +750,79 @@ body.catalog-page:has(#club-catalog[data-mode="detail"]) .campus-top {
   background: transparent;
   color-scheme: dark;
 }
-body.catalog-page:has(#club-catalog[data-mode="detail"]) .card-nav {
+body.catalog-page:has(#club-catalog[data-mode="detail"][data-id="28"]) .card-nav {
   background: #191720;
   border-color: #2d2935;
 }
-body.catalog-page:has(#club-catalog[data-mode="detail"]) .card-nav-search {
+body.catalog-page:has(#club-catalog[data-mode="detail"][data-id="28"]) .card-nav-search {
   background: #100e16;
   color: #aaa5b2;
   border-color: #35303e;
 }
-body.catalog-page:has(#club-catalog[data-mode="detail"]) .card-nav-account,
-body.catalog-page:has(#club-catalog[data-mode="detail"]) .club-button {
+body.catalog-page:has(#club-catalog[data-mode="detail"][data-id="28"]) .card-nav-account,
+body.catalog-page:has(#club-catalog[data-mode="detail"][data-id="28"]) .club-button {
   background: #faf9fc;
   color: #15121b !important;
 }
-body.catalog-page:has(#club-catalog[data-mode="detail"]) .card-nav-account:hover,
-body.catalog-page:has(#club-catalog[data-mode="detail"]) .club-button:hover {
+body.catalog-page:has(#club-catalog[data-mode="detail"][data-id="28"]) .card-nav-account:hover,
+body.catalog-page:has(#club-catalog[data-mode="detail"][data-id="28"]) .club-button:hover {
   background: #e6dfef;
 }
-body.catalog-page:has(#club-catalog[data-mode="detail"]) .campus-subnav {
+body.catalog-page:has(#club-catalog[data-mode="detail"][data-id="28"]) .campus-subnav {
   background: #100e16eb;
   border-color: #2d2935;
 }
-body.catalog-page:has(#club-catalog[data-mode="detail"]) .campus-subnav a {
+body.catalog-page:has(#club-catalog[data-mode="detail"][data-id="28"]) .campus-subnav a {
   color: #bbb5c6;
 }
-body.catalog-page:has(#club-catalog[data-mode="detail"]) .campus-subnav a:hover {
+body.catalog-page:has(#club-catalog[data-mode="detail"][data-id="28"]) .campus-subnav a:hover {
   color: #fff;
 }
-body.catalog-page:has(#club-catalog[data-mode="detail"]) .campus-language {
+body.catalog-page:has(#club-catalog[data-mode="detail"][data-id="28"]) .campus-language {
   background: #272132;
   color: #e4d8f3;
 }
-body.catalog-page:has(#club-catalog[data-mode="detail"])
+body.catalog-page:has(#club-catalog[data-mode="detail"][data-id="28"])
   :is(.club-hero, .club-people, .club-people dl > div, .catalog-footer) {
   border-color: #332e3c;
 }
-body.catalog-page:has(#club-catalog[data-mode="detail"])
+body.catalog-page:has(#club-catalog[data-mode="detail"][data-id="28"])
   :is(.club-description, .club-membership-note p) {
   color: #c1bacb;
 }
-body.catalog-page:has(#club-catalog[data-mode="detail"])
+body.catalog-page:has(#club-catalog[data-mode="detail"][data-id="28"])
   :is(.club-eyebrow, .club-english-name, .club-people dt, .catalog-footer) {
   color: #aaa3b6;
 }
-body.catalog-page:has(#club-catalog[data-mode="detail"])
+body.catalog-page:has(#club-catalog[data-mode="detail"][data-id="28"])
   :is(.club-slogan, .club-membership-note a, .robot-motto, .club-person-link:hover) {
   color: #ded4eb;
 }
-body.catalog-page:has(#club-catalog[data-mode="detail"]) .text-rotate {
+body.catalog-page:has(#club-catalog[data-mode="detail"][data-id="28"]) .text-rotate {
   background: #2b2239;
   color: #f0e5ff;
 }
-body.catalog-page:has(#club-catalog[data-mode="detail"]) .club-people {
+body.catalog-page:has(#club-catalog[data-mode="detail"][data-id="28"]) .club-people {
   background: #191720e8;
 }
-body.catalog-page:has(#club-catalog[data-mode="detail"]) .club-join-dialog {
+body.catalog-page:has(#club-catalog[data-mode="detail"][data-id="28"]) .club-join-dialog {
   background: #191720;
   color: #f7f6fa;
   border-color: #494052;
 }
-body.catalog-page:has(#club-catalog[data-mode="detail"]) .club-join-dialog :is(p, textarea) {
+body.catalog-page:has(#club-catalog[data-mode="detail"][data-id="28"])
+  .club-join-dialog
+  :is(p, textarea) {
   color: #c1bacb;
 }
-body.catalog-page:has(#club-catalog[data-mode="detail"]) .club-join-dialog textarea {
+body.catalog-page:has(#club-catalog[data-mode="detail"][data-id="28"]) .club-join-dialog textarea {
   background: #100e16;
   border-color: #494052;
 }
-body.catalog-page:has(#club-catalog[data-mode="detail"])
+body.catalog-page:has(#club-catalog[data-mode="detail"][data-id="28"])
   :is(.opensteam-logo, .opensteam-logo .club-art, .opensteam-logo .club-art img) {
   mix-blend-mode: normal;
 }
-body.catalog-page:has(#club-catalog[data-mode="detail"]) .opensteam-logo .club-art {
+body.catalog-page:has(#club-catalog[data-mode="detail"][data-id="28"]) .opensteam-logo .club-art {
   background: transparent;
 }
