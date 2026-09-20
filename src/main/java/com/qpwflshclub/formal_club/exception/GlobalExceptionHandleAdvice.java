@@ -44,6 +44,10 @@ public class GlobalExceptionHandleAdvice {
         log.error("请求地址：{}，异常信息：{}", request.getRequestURI(), e.getMessage());
 
         response.setStatus(500);
-        return new ResponseMessage(500, "error", null);
+        return new ResponseMessage(
+            500,
+            "操作失败，请稍后重试。 / Something went wrong. Please try again.",
+            null
+        );
     }
 }

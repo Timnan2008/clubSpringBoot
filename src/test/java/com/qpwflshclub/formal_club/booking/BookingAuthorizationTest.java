@@ -26,7 +26,12 @@ class BookingAuthorizationTest {
         );
         var access = new WorkspaceAccess(users, mock(ClubRepository.class));
         var service = mock(BookingService.class);
-        var controller = new BookingApiController(accounts, access, service);
+        var controller = new BookingApiController(
+            accounts,
+            access,
+            service,
+            new BookingOverseers("")
+        );
         var request = new MockHttpServletRequest();
         request.setCookies(
             new jakarta.servlet.http.Cookie("user_session", "forged@example.invalid")
@@ -43,9 +48,14 @@ class BookingAuthorizationTest {
         assertThatThrownBy(() ->
             controller.submit(input, request, new MockHttpServletResponse())
         ).hasMessageContaining("403");
+        assertThatThrownBy(() ->
+            controller.cancel(1L, request, new MockHttpServletResponse())
+        ).hasMessageContaining("403");
         verifyNoInteractions(service);
         request.addHeader("X-Workspace-Token", access.token(request));
         controller.submit(input, request, new MockHttpServletResponse());
         verify(service).submit(new BookingService.Actor(user.getEmail(), "Owner", false), input);
+        controller.cancel(1L, request, new MockHttpServletResponse());
+        verify(service).cancel(new BookingService.Actor(user.getEmail(), "Owner", false), 1L);
     }
 }

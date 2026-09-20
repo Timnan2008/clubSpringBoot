@@ -3,17 +3,19 @@ package com.qpwflshclub.formal_club.config;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.qpwflshclub.formal_club.service.User.IUserService;
+import com.qpwflshclub.formal_club.social.SchoolAccounts;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.*;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 /** Login addresses may change; the original database identity stays stable for encrypted messages. */
 @Service
 public class LoginEmails {
+
+    public static final String EMAIL_REGISTERED =
+        "此邮箱已注册，请直接登录 / This email is already registered. Please sign in.";
 
     private final Path file;
     private final IUserService users;
@@ -49,7 +51,7 @@ public class LoginEmails {
         String value = normalize(email);
         if (
             addresses.containsValue(value) || users.findByEmail(value) != null
-        ) throw new ResponseStatusException(HttpStatus.CONFLICT, "该邮箱已被使用");
+        ) throw SchoolAccounts.error(409, EMAIL_REGISTERED);
     }
 
     public synchronized void change(String canonical, String email) throws IOException {

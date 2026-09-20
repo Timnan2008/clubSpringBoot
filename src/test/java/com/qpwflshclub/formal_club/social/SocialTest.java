@@ -355,6 +355,14 @@ class SocialTest {
     }
 
     @Test
+    void wallRejectsBlockedLanguage() {
+        actor(alice);
+        assertThatThrownBy(() ->
+            social.post(new SocialController.PostInput("这人真傻逼", "general", false), request)
+        ).hasMessageContaining("不适当");
+    }
+
+    @Test
     void deletingCommentsChecksOwnerAdministratorCsrfAndParentPost() throws Exception {
         var post = store.post(SchoolAccounts.key(alice.getEmail()), "Discussion");
         var other = store.post(SchoolAccounts.key(bob.getEmail()), "Another discussion");
@@ -412,6 +420,55 @@ class SocialTest {
         assertThatThrownBy(() ->
             social.post(new SocialController.PostInput("Hello", "general", false), request)
         ).hasMessageContaining("403");
+    }
+
+    @Test
+    void replyMentionsAreValidatedStoredAndReturned() throws Exception {
+        var notifications = new SocialNotifications(new ObjectMapper(), dir.toString());
+        org.springframework.test.util.ReflectionTestUtils.setField(
+            social,
+            "notifications",
+            notifications
+        );
+        social.post(new SocialController.PostInput("Campus news", "general", false), request);
+        var p = store.snapshot().posts().getFirst();
+        String bobKey = SchoolAccounts.key(bob.getEmail());
+        actor(alice);
+        assertThatThrownBy(() ->
+            social.reply(
+                p.id(),
+                new SocialController.ReplyInput(
+                    "Hi",
+                    "",
+                    List.of(new SocialNotifications.Mention(0, 3, bobKey))
+                ),
+                request
+            )
+        ).hasMessageContaining("400");
+        social.reply(
+            p.id(),
+            new SocialController.ReplyInput(
+                "@Bob hello",
+                "",
+                List.of(new SocialNotifications.Mention(0, 4, bobKey))
+            ),
+            request
+        );
+        var replies = social.replies(p.id(), request);
+        assertThat(replies).hasSize(1);
+        assertThat(replies.getFirst().get("text")).isEqualTo("@Bob hello");
+        @SuppressWarnings("unchecked")
+        var mentions = (List<SocialNotifications.Mention>) replies.getFirst().get("mentions");
+        assertThat(mentions).containsExactly(new SocialNotifications.Mention(0, 4, bobKey));
+        actor(bob);
+        var inbox = new NotificationController(accounts, access, store, notifications, null, null);
+        var listed = new ObjectMapper().valueToTree(inbox.get(request));
+        String replyId = store.snapshot().replies().getFirst().id();
+        assertThat(listed.get("unread").asInt()).isEqualTo(1);
+        assertThat(listed.get("items").findValuesAsText("id")).contains("mention:" + replyId);
+        assertThat(listed.get("items").findValuesAsText("url")).contains(
+            "/page/wall?post=" + p.id()
+        );
     }
 
     @Test
@@ -675,18 +732,24 @@ class SocialTest {
 
     @Test
     void anonymousPostsAndAuthorRepliesNeverExposeAccountToOthers() throws Exception {
-        var result = social.post(
-            new SocialController.PostInput("Looking for teammates", "team", true),
-            request
+        assertThatThrownBy(() ->
+            social.post(
+                new SocialController.PostInput("Looking for teammates", "team", true),
+                request
+            )
+        ).hasMessageContaining("400");
+        var stored = store.post(
+            SchoolAccounts.key(alice.getEmail()),
+            "Looking for teammates",
+            "team",
+            true
         );
-        String id = store.snapshot().posts().getFirst().id();
-        social.reply(id, new SocialController.TextInput("More details"), request);
-        assertThat(result.toString()).doesNotContain("Alice", SchoolAccounts.key(alice.getEmail()));
+        social.reply(stored.id(), new SocialController.TextInput("More details"), request);
         actor(bob);
         assertThat(social.posts("", "team", request).toString())
             .contains("匿名同学")
             .doesNotContain("Alice", SchoolAccounts.key(alice.getEmail()));
-        assertThat(social.replies(id, request).toString())
+        assertThat(social.replies(stored.id(), request).toString())
             .contains("匿名楼主")
             .doesNotContain("Alice", SchoolAccounts.key(alice.getEmail()));
         assertThat((List<?>) social.posts("", "help", request).get("items")).isEmpty();
@@ -814,7 +877,7 @@ class SocialTest {
     void otherCategoryPersistsAndFiltersWithoutAllowingForgedActivityAnnouncements()
         throws Exception {
         social.post(
-            new SocialController.PostInput("Other campus question", "other", true),
+            new SocialController.PostInput("Other campus question", "other", false),
             request
         );
         social.post(new SocialController.PostInput("Team only", "team", false), request);
@@ -822,9 +885,7 @@ class SocialTest {
         assertThat(reopened.snapshot().posts()).anyMatch(p -> p.category().equals("other"));
         actor(bob);
         String filtered = social.posts("", "other", request).toString();
-        assertThat(filtered)
-            .contains("Other campus question", "匿名同学")
-            .doesNotContain("Team only", "Alice", SchoolAccounts.key(alice.getEmail()));
+        assertThat(filtered).contains("Other campus question").doesNotContain("Team only");
         assertThatThrownBy(() ->
             social.post(
                 new SocialController.PostInput("Fake approved event", "events", false),
@@ -840,7 +901,13 @@ class SocialTest {
             new SocialController.PostInput("Club recruitment", "recruit", false, 1),
             request
         );
-        social.post(new SocialController.PostInput("Personal anonymous", "other", true), request);
+        assertThatThrownBy(() ->
+            social.post(
+                new SocialController.PostInput("Personal anonymous", "other", true),
+                request
+            )
+        ).hasMessageContaining("400");
+        store.post(SchoolAccounts.key(leader.getEmail()), "Personal anonymous", "other", true);
         assertThatThrownBy(() ->
             social.post(new SocialController.PostInput("Forged", "recruit", false, 2), request)
         ).hasMessageContaining("403");
@@ -957,7 +1024,7 @@ class SocialTest {
 
     @Test
     void keywordSearchDoesNotRevealAnonymousIdentity() throws Exception {
-        social.post(new SocialController.PostInput("Need ROBOT teammates", "team", true), request);
+        store.post(SchoolAccounts.key(alice.getEmail()), "Need ROBOT teammates", "team", true);
         social.post(new SocialController.PostInput("Dance practice", "general", false), request);
         actor(bob);
         var result = social.posts("", "", 0, "robot", request);
@@ -972,7 +1039,7 @@ class SocialTest {
     @Test
     void filteredWordsCannotBypassApiOrReply() throws Exception {
         assertThatThrownBy(() ->
-            social.post(new SocialController.PostInput("傻\u200b逼", "other", true), request)
+            social.post(new SocialController.PostInput("傻\u200b逼", "other", false), request)
         ).hasMessageContaining("400");
         var p = store.post(SchoolAccounts.key(alice.getEmail()), "Normal message");
         assertThatThrownBy(() ->
@@ -991,10 +1058,10 @@ class SocialTest {
             "text/plain",
             "Project notes".getBytes()
         );
-        social.uploadPost("Project team", "team", true, 0, List.of(file), request);
+        social.uploadPost("Project team", "team", false, 0, List.of(file), request);
         var p = store.snapshot().posts().getFirst();
         var a = p.attachments().getFirst();
-        assertThat(a.name()).isEqualTo("attachment.txt");
+        assertThat(a.name()).isEqualTo("notes.txt");
         assertThat(
             social.download(p.id(), a.id(), request).getHeaders().getFirst("Content-Disposition")
         ).contains("attachment");
@@ -1008,6 +1075,28 @@ class SocialTest {
         assertThatThrownBy(() -> social.download(p.id(), a.id(), request)).hasMessageContaining(
             "404"
         );
+    }
+
+    @Test
+    void attachmentOnlyWallPostsAreAllowed() throws Exception {
+        var files = new WallFiles(dir.toString());
+        org.springframework.test.util.ReflectionTestUtils.setField(social, "files", files);
+        var file = new org.springframework.mock.web.MockMultipartFile(
+            "files",
+            "notes.txt",
+            "text/plain",
+            "just a file".getBytes()
+        );
+        social.uploadPost("  ", "general", false, 0, List.of(file), request);
+        var posted = store.snapshot().posts().getFirst();
+        assertThat(posted.text()).isEmpty();
+        assertThat(posted.attachments()).hasSize(1);
+        assertThatThrownBy(() ->
+            social.uploadPost("  ", "general", false, 0, List.of(), request)
+        ).hasMessageContaining("400");
+        assertThatThrownBy(() ->
+            social.post(new SocialController.PostInput("", "general", false), request)
+        ).hasMessageContaining("400");
     }
 
     @Test
@@ -1134,7 +1223,7 @@ class SocialTest {
     @Test
     void publicHomepageNeverRevealsAnonymousPosts() throws Exception {
         social.post(new SocialController.PostInput("Public", "general", false), request);
-        social.post(new SocialController.PostInput("Anonymous", "general", true), request);
+        store.post(SchoolAccounts.key(alice.getEmail()), "Anonymous", "general", true);
         actor(bob);
         social.post(new SocialController.PostInput("Other", "general", false), request);
         var result = social

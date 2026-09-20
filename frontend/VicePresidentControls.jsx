@@ -1,3 +1,4 @@
+import HoldButton from "./HoldButton";
 import React, { useEffect, useState } from "react";
 import PersonIdentity from "./PersonIdentity";
 import Avatar from "./Avatar";
@@ -48,9 +49,10 @@ export default function VicePresidentControls({ club, token, onChanged }) {
             {tx("确认移除副社长：", "Remove vice president: ")}
             {selected.name}？
           </p>
-          <button
+          <HoldButton
+            doneLabel={tx("已移除", "Removed")}
             disabled={busy}
-            onClick={async () => {
+            onHold={async () => {
               setBusy(true);
               setError("");
               try {
@@ -65,13 +67,14 @@ export default function VicePresidentControls({ club, token, onChanged }) {
                 await onChanged?.();
               } catch (e) {
                 setError(e.message);
+                return false;
               } finally {
                 setBusy(false);
               }
             }}
           >
-            {tx("确认移除", "Confirm removal")}
-          </button>
+            {tx("长按移除", "Hold to remove")}
+          </HoldButton>
           <button disabled={busy} onClick={() => setSelected(null)}>
             {tx("取消", "Cancel")}
           </button>

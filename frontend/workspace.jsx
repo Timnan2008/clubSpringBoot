@@ -1,3 +1,8 @@
+import HoldButton from "./HoldButton";
+import BranchedMenu from "./BranchedMenu";
+import LineSidebar from "./LineSidebar";
+import CallChip from "./CallChip";
+import StatusMark from "./StatusMark";
 import VicePresidentControls from "./VicePresidentControls";
 import { localizeActivity } from "./activity-language.mjs";
 import { tr, en, tx } from "./language";
@@ -28,6 +33,17 @@ const tomorrow = () => {
   d.setDate(d.getDate() + 1);
   return iso(d);
 };
+const tabKeys = [
+  "term",
+  "sessions",
+  "recruitment",
+  "members",
+  "calendar",
+  "profile",
+  "files",
+  "applications",
+];
+const pageQuery = () => new URLSearchParams(location.search);
 const roleNames = {
   member: tr("社员"),
   president: tr("社长"),
@@ -195,10 +211,14 @@ function ActivityForm({ application, date, busy, onSave }) {
 }
 function Workspace() {
   const [profile, setProfile] = useState(null),
-    [club, setClub] = useState(""),
+    [club, setClub] = useState(pageQuery().get("club") || ""),
     [data, setData] = useState(null),
     [members, setMembers] = useState([]),
-    [tab, setTab] = useState("term"),
+    [memberGroup, setMemberGroup] = useState("all"),
+    [joinPending, setJoinPending] = useState(0),
+    [tab, setTab] = useState(
+      tabKeys.includes(pageQuery().get("tab")) ? pageQuery().get("tab") : "term",
+    ),
     [error, setError] = useState(""),
     [notice, setNotice] = useState(""),
     [busy, setBusy] = useState(false),
@@ -206,7 +226,8 @@ function Workspace() {
     [modal, setModal] = useState(null),
     [modalError, setModalError] = useState(""),
     [retry, setRetry] = useState(0),
-    [uploadName, setUploadName] = useState("");
+    [uploadName, setUploadName] = useState(""),
+    [uploadState, setUploadState] = useState(null);
   const [month, setMonth] = useState(
       new Date(beijingNow().getFullYear(), beijingNow().getMonth(), 1),
     ),
@@ -225,7 +246,11 @@ function Workspace() {
     })
       .then((p) => {
         setProfile(p);
-        setClub(String(p.clubs[0]?.id || ""));
+        setClub((current) =>
+          current && p.clubs.some((c) => String(c.id) === current)
+            ? current
+            : String(p.clubs[0]?.id || ""),
+        );
       })
       .catch((e) => {
         if (e.name !== "AbortError") setError(tr(e.message));
@@ -233,17 +258,23 @@ function Workspace() {
     return () => c.abort();
   }, [retry]);
   const reload = async (id, signal) => {
-    const [d, m] = await Promise.all([
+    const [d, m, joins] = await Promise.all([
       api("/" + id, {
         signal,
       }),
       api("/" + id + "/members", {
         signal,
       }),
+      api("/" + id + "/join-requests", {
+        signal,
+      }).catch(() => []),
     ]);
     if (String(id) === currentClub.current) {
       setData(d);
       setMembers(m);
+      setJoinPending(
+        Array.isArray(joins) ? joins.filter((item) => item.status === "pending").length : 0,
+      );
     }
   };
   useEffect(() => {
@@ -274,6 +305,7 @@ function Workspace() {
     if (lock.current) return;
     lock.current = true;
     setBusy(true);
+    if (isFile) setUploadState({ name: uploadName, status: "running" });
     setError("");
     setModalError("");
     setNotice("");
@@ -290,13 +322,16 @@ function Workspace() {
         },
         body: body == null ? undefined : isFile ? body : JSON.stringify(body),
       });
+      if (isFile) setUploadState({ name: uploadName, status: "done" });
       setModal(null);
       setResults(null);
       await reload(club);
       setNotice(tr("已保存"));
     } catch (e) {
+      if (isFile) setUploadState({ name: uploadName, status: "error" });
       if (modal) setModalError(e.message);
       else setError(tr(e.message));
+      return false;
     } finally {
       lock.current = false;
       setBusy(false);
@@ -393,20 +428,26 @@ function Workspace() {
               </select>
             </label>
           )}
-          <nav aria-label={tr("社团工作台")}>
-            {tabs.map(([key, name, num]) => (
-              <button
-                key={key}
-                className={tab === key ? "active" : ""}
-                aria-current={tab === key ? "page" : undefined}
-                onClick={() => setTab(key)}
-              >
-                <span>{num}</span>
-                {name}
-                <b>↗</b>
-              </button>
-            ))}
-          </nav>
+          <LineSidebar
+            items={tabs.map(([key, name]) =>
+              key === "recruitment" && joinPending > 0 ? `${name} · ${joinPending}` : name,
+            )}
+            active={tabs.findIndex(([key]) => key === tab)}
+            onItemClick={(index) => setTab(tabs[index][0])}
+            ariaLabel={tr("社团工作台")}
+            accentColor="var(--ws-accent, #8855c9)"
+            textColor="var(--ws-text, #625c70)"
+            markerColor="#aaa3b5"
+            markerLength={24}
+            markerGap={8}
+            maxShift={6}
+            proximityRadius={36}
+            smoothing={24}
+            falloff="sharp"
+            scaleTick={false}
+            itemGap={8}
+            fontSize={0.9}
+          />
           <div className="ws-sidebar-foot">
             <Avatar
               person={
@@ -435,6 +476,17 @@ function Workspace() {
             </div>
             <span className="ws-date">{today().replaceAll("-", " / ")}</span>
           </header>
+          {uploadState && modal?.kind !== "file" && (
+            <CallChip
+              icon="file"
+              name={tx("上传文件", "File upload")}
+              argument={uploadState.name}
+              status={uploadState.status}
+              surfaceColor="#efebf4"
+              color="#514663"
+              progressColor="#875bbd"
+            />
+          )}
           {error && (
             <div role="alert" className="ws-error">
               {error}{" "}
@@ -721,82 +773,124 @@ function Workspace() {
                     </div>
                   )}
                   {tab === "members" && (
-                    <VicePresidentControls
-                      club={club}
-                      token={profile.token}
-                      onChanged={() => reload(club)}
-                    />
-                  )}
-                  {tab === "members" && (
-                    <section className="ws-panel">
-                      <div className="ws-section-head">
-                        <div>
-                          <h3>{tr("社团成员")}</h3>
-                          <p>{tr("新增成员请在招新确认中查找学生并确认录取。")}</p>
-                        </div>
-                        <button className="ws-primary" onClick={() => setTab("recruitment")}>
-                          {tr("进入招新确认 ↗")}
-                        </button>
+                    <div className="ws-member-layout">
+                      <BranchedMenu
+                        ariaLabel={tx("成员架构", "Member structure")}
+                        value={memberGroup}
+                        onSelect={setMemberGroup}
+                        defaultOpen={[1, 2]}
+                        color="#4c4459"
+                        accentColor="#8053b8"
+                        lineColor="#d9d1e2"
+                        width={210}
+                        items={[
+                          {
+                            value: "all",
+                            label: tx("全部成员", "All members") + ` · ${members.length}`,
+                          },
+                          {
+                            label: tx("负责人", "Leadership"),
+                            children: [
+                              { value: "president", label: tx("社长", "Presidents") },
+                              { value: "vice_president", label: tx("副社长", "Vice presidents") },
+                            ],
+                          },
+                          {
+                            label: tx("社员", "Membership"),
+                            children: [{ value: "member", label: tx("社团成员", "Club members") }],
+                          },
+                        ]}
+                      />
+                      <div className="ws-member-content">
+                        {(memberGroup === "all" || memberGroup === "vice_president") && (
+                          <VicePresidentControls
+                            club={club}
+                            token={profile.token}
+                            onChanged={() => reload(club)}
+                          />
+                        )}
+
+                        <section className="ws-panel">
+                          <div className="ws-section-head">
+                            <div>
+                              <h3>{tr("社团成员")}</h3>
+                              <p>{tr("新增成员请在招新确认中查找学生并确认录取。")}</p>
+                            </div>
+                            <button className="ws-primary" onClick={() => setTab("recruitment")}>
+                              {tr("进入招新确认 ↗")}
+                            </button>
+                          </div>
+                          <div className="ws-table-scroll">
+                            <table>
+                              <thead>
+                                <tr>
+                                  <th>{tr("姓名")}</th>
+                                  <th>{tr("英文名")}</th>
+                                  <th>{tr("身份")}</th>
+                                  <th>{tr("操作")}</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {members
+                                  .filter((m) => memberGroup === "all" || m.role === memberGroup)
+                                  .map((m) => (
+                                    <tr key={m.type + m.id}>
+                                      <td>
+                                        <Avatar
+                                          person={{
+                                            name: m.name,
+                                            avatarUrl: m.avatarUrl,
+                                          }}
+                                          className="ws-member-avatar"
+                                        />
+                                        {m.name}
+                                      </td>
+                                      <td>{m.nameEn || "—"}</td>
+                                      <td>
+                                        <span className="ws-badge">
+                                          {m.type === "admin"
+                                            ? tx(
+                                                "管理员 · 学生 · 社员",
+                                                "Administrator · Student · Member",
+                                              )
+                                            : roleNames[m.role] || tr("社员")}
+                                        </span>
+                                      </td>
+                                      <td>
+                                        {m.role === "member" ? (
+                                          <button
+                                            className="ws-danger-text"
+                                            disabled={busy}
+                                            onClick={() =>
+                                              open({
+                                                kind: "removeMember",
+                                                member: m,
+                                              })
+                                            }
+                                          >
+                                            {tr("移出社团")}
+                                          </button>
+                                        ) : (
+                                          <span className="ws-muted">{tr("管理员任免")}</span>
+                                        )}
+                                      </td>
+                                    </tr>
+                                  ))}
+                              </tbody>
+                            </table>
+                          </div>
+                          {!members.some(
+                            (m) => memberGroup === "all" || m.role === memberGroup,
+                          ) && (
+                            <Empty>
+                              {memberGroup === "all"
+                                ? tr("暂时没有社员，请在招新确认中添加。")
+                                : tx("当前分组暂无成员", "No members in this group")}
+                            </Empty>
+                          )}
+                        </section>
                       </div>
-                      <div className="ws-table-scroll">
-                        <table>
-                          <thead>
-                            <tr>
-                              <th>{tr("姓名")}</th>
-                              <th>{tr("英文名")}</th>
-                              <th>{tr("身份")}</th>
-                              <th>{tr("操作")}</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {members.map((m) => (
-                              <tr key={m.type + m.id}>
-                                <td>
-                                  <Avatar
-                                    person={{
-                                      name: m.name,
-                                      avatarUrl: m.avatarUrl,
-                                    }}
-                                    className="ws-member-avatar"
-                                  />
-                                  {m.name}
-                                </td>
-                                <td>{m.nameEn || "—"}</td>
-                                <td>
-                                  <span className="ws-badge">
-                                    {m.type === "admin"
-                                      ? tx(
-                                          "管理员 · 学生 · 社员",
-                                          "Administrator · Student · Member",
-                                        )
-                                      : roleNames[m.role] || tr("社员")}
-                                  </span>
-                                </td>
-                                <td>
-                                  {m.role === "member" ? (
-                                    <button
-                                      className="ws-danger-text"
-                                      disabled={busy}
-                                      onClick={() =>
-                                        open({
-                                          kind: "removeMember",
-                                          member: m,
-                                        })
-                                      }
-                                    >
-                                      {tr("移出社团")}
-                                    </button>
-                                  ) : (
-                                    <span className="ws-muted">{tr("管理员任免")}</span>
-                                  )}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                      {!members.length && <Empty>{tr("暂时没有社员，请在招新确认中添加。")}</Empty>}
-                    </section>
+                    </div>
                   )}
                   {tab === "files" && (
                     <section className="ws-panel">
@@ -838,9 +932,23 @@ function Workspace() {
                                   {d.submittedBy}
                                 </small>
                               </div>
-                              <a href={`${base}/${club}/documents/${d.id}`} download>
-                                {tr("下载 ↓")}
-                              </a>
+                              <div className="ws-file-actions">
+                                <a href={`${base}/${club}/documents/${d.id}`} download>
+                                  {tr("下载 ↓")}
+                                </a>
+                                <button
+                                  type="button"
+                                  disabled={busy}
+                                  onClick={() =>
+                                    open({
+                                      kind: "deleteFile",
+                                      document: d,
+                                    })
+                                  }
+                                >
+                                  {tr("删除附件")}
+                                </button>
+                              </div>
                             </article>
                           ))}
                         </div>
@@ -932,6 +1040,7 @@ function Workspace() {
                 file: tr("提交文件"),
                 removeMember: tr("移出社员"),
                 deleteEvent: tr("删除活动"),
+                deleteFile: tr("删除附件"),
                 review: tr("审核校园活动"),
               }[modal.kind]
             }
@@ -985,8 +1094,18 @@ function Workspace() {
                     placeholder={tr("这份文件用于什么活动或事项？")}
                   />
                 </label>
+                {uploadState && (
+                  <CallChip
+                    icon="file"
+                    name={tx("上传文件", "File upload")}
+                    argument={uploadState.name}
+                    status={uploadState.status}
+                    surfaceColor="#efebf4"
+                    color="#514663"
+                  />
+                )}
                 <button className="ws-primary" disabled={busy}>
-                  {busy ? tr("提交中…") : tr("提交文件 →")}
+                  {busy ? <StatusMark status="running" label={tr("提交中…")} /> : tr("提交文件 →")}
                 </button>
               </form>
             )}
@@ -1001,15 +1120,15 @@ function Workspace() {
                   <button disabled={busy} onClick={() => setModal(null)}>
                     {tr("取消")}
                   </button>
-                  <button
-                    className="ws-primary"
+                  <HoldButton
+                    doneLabel={tx("已移出", "Removed")}
                     disabled={busy}
-                    onClick={() =>
+                    onHold={() =>
                       perform(`/members/${modal.member.type}/${modal.member.id}`, "DELETE")
                     }
                   >
-                    {tr("确认移出")}
-                  </button>
+                    {tx("长按移出", "Hold to remove")}
+                  </HoldButton>
                 </div>
               </>
             )}
@@ -1023,13 +1142,34 @@ function Workspace() {
                   <button disabled={busy} onClick={() => setModal(null)}>
                     {tr("取消")}
                   </button>
-                  <button
-                    className="ws-primary"
+                  <HoldButton
                     disabled={busy}
-                    onClick={() => perform("/events/" + modal.event.id, "DELETE")}
+                    onHold={() => perform("/events/" + modal.event.id, "DELETE")}
                   >
-                    {tr("确认删除")}
+                    {tx("长按删除活动", "Hold to delete activity")}
+                  </HoldButton>
+                </div>
+              </>
+            )}
+            {modal.kind === "deleteFile" && (
+              <>
+                <p>
+                  {tr("确认删除附件「")}
+                  {modal.document.name}」？
+                </p>
+                <p className="ws-help">
+                  {tr("确认删除该附件？删除后无法恢复，相关活动记录会去掉这份附件。")}
+                </p>
+                <div className="ws-modal-actions">
+                  <button disabled={busy} onClick={() => setModal(null)}>
+                    {tr("取消")}
                   </button>
+                  <HoldButton
+                    disabled={busy}
+                    onHold={() => perform("/documents/" + modal.document.id, "DELETE")}
+                  >
+                    {tx("长按删除附件", "Hold to delete file")}
+                  </HoldButton>
                 </div>
               </>
             )}
@@ -1075,3 +1215,4 @@ function Workspace() {
 createRoot(document.getElementById("club-workspace")).render(<Workspace />);
 
 import "./CampusMotion.css";
+import "./ControlRefinements.css";

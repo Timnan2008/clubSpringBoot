@@ -45,9 +45,14 @@ body .inline-reply .inline-reply-field {
   border: 1px solid #34383c;
   border-radius: 25px;
   background: #16181c;
+  overflow: visible;
   transition:
     border-color 0.16s,
     box-shadow 0.16s;
+}
+body .inline-reply .inline-reply-field .mention-composer {
+  flex: 1;
+  min-width: 0;
 }
 body .inline-reply .inline-reply-field:focus-within {
   border-color: #1d9bf0;
@@ -228,6 +233,7 @@ body .reply-composer-transition {
   width: 100%;
   min-width: 0;
   display: flow-root;
+  overflow: visible;
 }
 body .reply-composer-transition[inert] {
   pointer-events: none;

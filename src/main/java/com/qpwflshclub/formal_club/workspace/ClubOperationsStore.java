@@ -1,5 +1,7 @@
 package com.qpwflshclub.formal_club.workspace;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.nio.file.*;
@@ -14,6 +16,7 @@ public class ClubOperationsStore {
 
     public record Term(String id, String name, String start, String end) {}
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public record Report(
         String id,
         String term,
@@ -23,12 +26,25 @@ public class ClubOperationsStore {
         String content,
         String feedback,
         String improvements,
+        String recruitment,
+        String project,
+        String outcomes,
+        String resources,
+        String weeklyPlan,
         String document,
         String status,
         String updatedAt,
         String submittedAt,
         String author
-    ) {}
+    ) {
+        public Report {
+            recruitment = Objects.toString(recruitment, "");
+            project = Objects.toString(project, "");
+            outcomes = Objects.toString(outcomes, "");
+            resources = Objects.toString(resources, "");
+            weeklyPlan = Objects.toString(weeklyPlan, "");
+        }
+    }
 
     public record Mark(String member, String name, String nameEn, String status) {}
 
@@ -144,7 +160,7 @@ public class ClubOperationsStore {
             .findFirst()
             .orElse(null);
         if (
-            old != null && old.status().equals("submitted") && input.status().equals("draft")
+            old != null && complete(old.status()) && input.status().equals("draft")
         ) throw WorkspaceStore.bad("已提交的记录请修改后重新提交");
         Report r = new Report(
             old == null ? UUID.randomUUID().toString() : old.id(),
@@ -155,10 +171,15 @@ public class ClubOperationsStore {
             input.content(),
             input.feedback(),
             input.improvements(),
+            input.recruitment(),
+            input.project(),
+            input.outcomes(),
+            input.resources(),
+            input.weeklyPlan(),
             input.document(),
             input.status(),
             now(),
-            input.status().equals("submitted") ? now() : "",
+            complete(input.status()) ? now() : "",
             input.author()
         );
         if (old != null) d.reports().remove(old);
@@ -246,12 +267,90 @@ public class ClubOperationsStore {
         return next;
     }
 
+    public synchronized void unlinkDocument(int club, String id) throws IOException {
+        Data d = read(club);
+        boolean changed = false;
+        for (int i = 0; i < d.reports().size(); i++) {
+            Report r = d.reports().get(i);
+            if (!id.equals(r.document())) continue;
+            d.reports().set(
+                i,
+                new Report(
+                    r.id(),
+                    r.term(),
+                    r.kind(),
+                    r.activity(),
+                    r.title(),
+                    r.content(),
+                    r.feedback(),
+                    r.improvements(),
+                    r.recruitment(),
+                    r.project(),
+                    r.outcomes(),
+                    r.resources(),
+                    r.weeklyPlan(),
+                    "",
+                    r.status(),
+                    r.updatedAt(),
+                    r.submittedAt(),
+                    r.author()
+                )
+            );
+            changed = true;
+        }
+        if (changed) write(club, d);
+    }
+
+    public static boolean complete(String status) {
+        return "submitted".equals(status) || "not_held".equals(status);
+    }
+
     public static String text(String s, int max, boolean required) {
         s = Objects.toString(s, "").trim();
         if (s.length() > max || (required && s.isBlank())) throw WorkspaceStore.bad(
             "请完整填写内容，单项最多 " + max + " 字"
         );
+        com.qpwflshclub.formal_club.social.ContentModeration.check(s);
         return s;
+    }
+
+    public static String weeks(String raw, boolean required) {
+        String value = Objects.toString(raw, "").trim();
+        if (value.isBlank()) {
+            if (required) throw WorkspaceStore.bad("请填写每周活动计划");
+            return "";
+        }
+        ObjectMapper json = new ObjectMapper();
+        JsonNode node;
+        try {
+            node = json.readTree(value);
+        } catch (Exception e) {
+            throw WorkspaceStore.bad("每周活动计划格式无效");
+        }
+        if (node == null || !node.isArray() || node.size() > 24) throw WorkspaceStore.bad(
+            "每周活动计划格式无效"
+        );
+        List<Map<String, String>> clean = new ArrayList<>();
+        boolean any = false;
+        for (JsonNode row : node) {
+            if (row == null || !row.isObject()) continue;
+            String week = text(row.path("week").asText(""), 80, false);
+            String plan = text(row.path("plan").asText(""), 2000, false);
+            if (week.isBlank() && plan.isBlank()) continue;
+            if (week.isBlank()) throw WorkspaceStore.bad("请填写周次");
+            if (!plan.isBlank()) any = true;
+            Map<String, String> item = new LinkedHashMap<>();
+            item.put("week", week);
+            item.put("plan", plan);
+            clean.add(item);
+        }
+        if (required && (clean.isEmpty() || !any)) throw WorkspaceStore.bad("请填写每周活动计划");
+        if (clean.isEmpty()) return "";
+        try {
+            return json.writeValueAsString(clean);
+        } catch (Exception e) {
+            throw WorkspaceStore.bad("每周活动计划格式无效");
+        }
     }
 
     public synchronized void removeAccount(

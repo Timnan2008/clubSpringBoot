@@ -1,3 +1,4 @@
+import CodeSlots from "./CodeSlots";
 import React, { useState, useEffect, useRef } from "react";
 import Stepper, { Step } from "./Stepper";
 import PasswordStrength, { passwordChecks } from "./PasswordStrength";
@@ -17,6 +18,7 @@ async function request(path, body) {
 export default function ForgotPassword({ initialEmail = "", onBack }) {
   const [email, setEmail] = useState(initialEmail),
     [code, setCode] = useState(""),
+    [codeStatus, setCodeStatus] = useState("idle"),
     [password, setPassword] = useState(""),
     [confirm, setConfirm] = useState(""),
     [account, setAccount] = useState(""),
@@ -45,6 +47,7 @@ export default function ForgotPassword({ initialEmail = "", onBack }) {
       await request("code", { email });
       setCooldown(60);
       setCode("");
+      setCodeStatus("idle");
       setNotice(
         tx(
           "如果该邮箱已绑定账号，验证码将发送到邮箱，5 分钟内有效。",
@@ -59,10 +62,14 @@ export default function ForgotPassword({ initialEmail = "", onBack }) {
     }
   }
   async function advance(current) {
+    if (lock.current) return false;
+    lock.current = true;
+    setSending(true);
     setError("");
     try {
       if (current === 1) {
         const d = await request("verify", { email, code });
+        setCodeStatus("success");
         setAccount(d.account);
         setNotice("");
         return true;
@@ -89,8 +96,12 @@ export default function ForgotPassword({ initialEmail = "", onBack }) {
       }
       return true;
     } catch (e) {
+      if (current === 1) setCodeStatus("error");
       setError(e.message);
       return false;
+    } finally {
+      lock.current = false;
+      setSending(false);
     }
   }
   return (
@@ -111,7 +122,10 @@ export default function ForgotPassword({ initialEmail = "", onBack }) {
       <Stepper
         disableStepIndicators
         beforeStepChange={advance}
-        onStepChange={setStep}
+        onStepChange={(next) => {
+          setStep(next);
+          if (next === 1) setCodeStatus("idle");
+        }}
         onFinalStepCompleted={onBack}
         backButtonText={tx("上一步", "Back")}
         nextButtonText={
@@ -129,14 +143,15 @@ export default function ForgotPassword({ initialEmail = "", onBack }) {
           <label className="auth-field">
             <span>{tx("账号绑定邮箱", "Account email")}</span>
             <input
+              disabled={sending}
               type="email"
               autoComplete="email"
               maxLength={254}
               value={email}
-              disabled={sending}
               onChange={(e) => {
                 setEmail(e.target.value);
                 setCode("");
+                setCodeStatus("idle");
               }}
             />
           </label>
@@ -154,12 +169,17 @@ export default function ForgotPassword({ initialEmail = "", onBack }) {
           </button>
           <label className="auth-field">
             <span>{tx("6 位验证码", "6-digit verification code")}</span>
-            <input
-              inputMode="numeric"
-              autoComplete="one-time-code"
-              maxLength={6}
+            <CodeSlots
               value={code}
-              onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+              status={codeStatus}
+              disabled={sending}
+              slotSize={34}
+              gap={6}
+              onChange={(code) => {
+                setCode(code);
+                setCodeStatus("idle");
+              }}
+              ariaLabel={tx("6 位验证码", "6-digit verification code")}
             />
           </label>
         </Step>
@@ -168,6 +188,7 @@ export default function ForgotPassword({ initialEmail = "", onBack }) {
           <label className="auth-field">
             <span>{tx("新密码", "New password")}</span>
             <input
+              disabled={sending}
               type="password"
               autoComplete="new-password"
               maxLength={128}
@@ -179,6 +200,7 @@ export default function ForgotPassword({ initialEmail = "", onBack }) {
           <label className="auth-field">
             <span>{tx("再次输入新密码", "Confirm new password")}</span>
             <input
+              disabled={sending}
               type="password"
               autoComplete="new-password"
               maxLength={128}

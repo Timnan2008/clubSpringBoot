@@ -86,6 +86,7 @@ export default function MentionComposer({
   onChange,
   mentions = [],
   onMentionsChange,
+  inputRef,
   ...props
 }) {
   const listId = useId(),
@@ -204,7 +205,11 @@ export default function MentionComposer({
     <div className="mention-composer" ref={root}>
       <textarea
         {...props}
-        ref={input}
+        ref={(node) => {
+          input.current = node;
+          if (typeof inputRef === "function") inputRef(node);
+          else if (inputRef) inputRef.current = node;
+        }}
         value={value}
         onChange={change}
         onClick={(e) => inspect(value, e.target.selectionStart)}

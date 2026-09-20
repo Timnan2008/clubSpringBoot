@@ -1,5 +1,9 @@
 package com.qpwflshclub.formal_club.social;
 
+import com.qpwflshclub.formal_club.pojo.Club.Club;
+import com.qpwflshclub.formal_club.pojo.User.UserBase;
+import com.qpwflshclub.formal_club.repository.Club.ClubRepository;
+import com.qpwflshclub.formal_club.workspace.JoinRequests;
 import com.qpwflshclub.formal_club.workspace.WorkspaceAccess;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
@@ -14,17 +18,23 @@ public class NotificationController {
     private final WorkspaceAccess access;
     private final SocialStore social;
     private final SocialNotifications notifications;
+    private final JoinRequests joins;
+    private final ClubRepository clubs;
 
     public NotificationController(
         SchoolAccounts a,
         WorkspaceAccess w,
         SocialStore s,
-        SocialNotifications n
+        SocialNotifications n,
+        JoinRequests j,
+        ClubRepository c
     ) {
         accounts = a;
         access = w;
         social = s;
         notifications = n;
+        joins = j;
+        clubs = c;
     }
 
     public record Item(
@@ -33,10 +43,23 @@ public class NotificationController {
         String actor,
         String url,
         String createdAt,
-        boolean unread
-    ) {}
+        boolean unread,
+        String clubName
+    ) {
+        public Item(
+            String id,
+            String type,
+            String actor,
+            String url,
+            String createdAt,
+            boolean unread
+        ) {
+            this(id, type, actor, url, createdAt, unread, "");
+        }
+    }
 
-    private List<Item> list(String me) throws IOException {
+    private List<Item> list(UserBase user) throws IOException {
+        String me = SchoolAccounts.key(user.getEmail());
         var d = social.snapshot();
         var list = new ArrayList<Item>();
         for (var p : d.posts())
@@ -61,6 +84,28 @@ public class NotificationController {
             }
         var posts = new HashMap<String, SocialStore.Post>();
         for (var p : d.posts()) posts.put(p.id(), p);
+        for (var r : d.replies()) {
+            var parent = posts.get(r.post());
+            if (parent == null || r.author().equals(me)) continue;
+            if (
+                notifications
+                    .mentions(r.id())
+                    .stream()
+                    .anyMatch(m -> m.account().equals(me))
+            ) {
+                String id = "mention:" + r.id();
+                list.add(
+                    new Item(
+                        id,
+                        "mention",
+                        parent.anonymous() && parent.author().equals(r.author()) ? "" : r.author(),
+                        "/page/wall?post=" + r.post(),
+                        r.createdAt(),
+                        !notifications.read(me, id)
+                    )
+                );
+            }
+        }
         for (var r : d.replies()) {
             var p = posts.get(r.post());
             if (
@@ -99,14 +144,62 @@ public class NotificationController {
                     !m.read()
                 )
             );
+        addJoinItems(user, me, list);
         list.sort(Comparator.comparing(Item::createdAt).reversed());
         return list;
     }
 
+    private void addJoinItems(UserBase user, String me, List<Item> list) throws IOException {
+        if (joins == null) return;
+        Map<Integer, Club> managed = new LinkedHashMap<>();
+        List<Club> managedClubs = access.clubs(user);
+        if (managedClubs != null) for (Club club : managedClubs) managed.put(club.getId(), club);
+        for (var entry : joins.all().entrySet()) {
+            Club club = managed.get(entry.getKey());
+            if (club == null && clubs != null) club = clubs.findById(entry.getKey()).orElse(null);
+            String clubName = club == null ? "" : Objects.toString(club.getClubName(), "");
+            for (var request : entry.getValue()) {
+                if (managed.containsKey(entry.getKey()) && request.status().equals("pending")) {
+                    if (request.account().equals(me)) continue;
+                    String id = "join-request:" + request.id();
+                    list.add(
+                        new Item(
+                            id,
+                            "join_request",
+                            request.account(),
+                            "/page/club/workspace?tab=recruitment&club=" + entry.getKey(),
+                            request.createdAt(),
+                            !notifications.read(me, id),
+                            clubName
+                        )
+                    );
+                }
+                if (
+                    request.account().equals(me) &&
+                    (request.status().equals("approved") || request.status().equals("declined"))
+                ) {
+                    String id = "join-decision:" + request.id();
+                    list.add(
+                        new Item(
+                            id,
+                            request.status().equals("approved") ? "join_approved" : "join_declined",
+                            request.reviewedBy(),
+                            "/page/clubs/" + entry.getKey(),
+                            request.createdAt(),
+                            !notifications.read(me, id),
+                            clubName
+                        )
+                    );
+                }
+            }
+        }
+    }
+
     @GetMapping
     public Object get(HttpServletRequest r) throws IOException {
-        String me = SchoolAccounts.key(accounts.current(r).getEmail());
-        var all = list(me);
+        var user = accounts.current(r);
+        String me = SchoolAccounts.key(user.getEmail());
+        var all = list(user);
         var people = accounts.directory();
         var items = all
             .stream()
@@ -120,6 +213,7 @@ public class NotificationController {
                 row.put("createdAt", i.createdAt());
                 row.put("unread", i.unread());
                 row.put("actor", people.get(i.actor()));
+                if (i.clubName() != null && !i.clubName().isBlank()) row.put("clubName", i.clubName());
                 return row;
             })
             .toList();
@@ -137,9 +231,10 @@ public class NotificationController {
 
     @PostMapping("/read")
     public Object read(@RequestBody ReadInput body, HttpServletRequest r) throws IOException {
-        String me = SchoolAccounts.key(accounts.current(r).getEmail());
+        var user = accounts.current(r);
+        String me = SchoolAccounts.key(user.getEmail());
         access.mutation(r);
-        var selected = list(me)
+        var selected = list(user)
             .stream()
             .filter(i -> body.all() || i.id().equals(body.id()))
             .toList();

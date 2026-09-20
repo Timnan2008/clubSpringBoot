@@ -342,9 +342,11 @@
   letter-spacing: 1px;
 }
 .club-hero,
-.catalog-heading,
-.club-detail-grid {
+.catalog-heading {
   animation: club-reveal 0.35s ease-out both;
+}
+.club-detail-grid {
+  animation: club-fade 0.35s ease-out both;
 }
 @keyframes club-reveal {
   from {
@@ -353,7 +355,15 @@
   }
   to {
     opacity: 1;
-    transform: none;
+    transform: translateY(0);
+  }
+}
+@keyframes club-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
 @media (max-width: 800px) {
@@ -666,4 +676,151 @@ body.catalog-page {
 body.catalog-page #club-catalog {
   position: relative;
   z-index: 1;
+}
+
+/* Decoration never participates in hit testing or sits above readable content. */
+.club-detail-background {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 1;
+}
+.club-hero > .opensteam-logo {
+  justify-self: center;
+  width: min(100%, 400px);
+  height: auto;
+  aspect-ratio: 1;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  mix-blend-mode: multiply;
+}
+.opensteam-logo .club-art {
+  position: absolute;
+  inset: 12%;
+  z-index: 1;
+  width: auto;
+  height: auto;
+  aspect-ratio: auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: #f6f5f3;
+  box-shadow: none;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  transition: transform 500ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+.opensteam-logo .club-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 0;
+}
+.opensteam-logo[data-active="true"] .club-art {
+  transform: translateY(-3px) scale(1.025);
+}
+@media (max-width: 700px) {
+  .club-hero > .opensteam-logo {
+    width: min(100%, 300px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .opensteam-logo .club-art {
+    transition: none;
+    transform: none !important;
+  }
+}
+
+/* Detail-only night palette: the reference snow needs a dark, quiet backdrop. */
+body.catalog-page:has(#club-catalog[data-mode="detail"]) {
+  background: #100e16;
+  color: #f7f6fa;
+  color-scheme: dark;
+}
+body.catalog-page:has(#club-catalog[data-mode="detail"]) .campus-top {
+  --campus-bg: #100e16;
+  --campus-panel: #191720;
+  --campus-line: #2d2935;
+  --campus-text: #f7f6fa;
+  --campus-muted: #aaa5b2;
+  --campus-accent: #d4c5eb;
+  background: transparent;
+  color-scheme: dark;
+}
+body.catalog-page:has(#club-catalog[data-mode="detail"]) .card-nav {
+  background: #191720;
+  border-color: #2d2935;
+}
+body.catalog-page:has(#club-catalog[data-mode="detail"]) .card-nav-search {
+  background: #100e16;
+  color: #aaa5b2;
+  border-color: #35303e;
+}
+body.catalog-page:has(#club-catalog[data-mode="detail"]) .card-nav-account,
+body.catalog-page:has(#club-catalog[data-mode="detail"]) .club-button {
+  background: #faf9fc;
+  color: #15121b !important;
+}
+body.catalog-page:has(#club-catalog[data-mode="detail"]) .card-nav-account:hover,
+body.catalog-page:has(#club-catalog[data-mode="detail"]) .club-button:hover {
+  background: #e6dfef;
+}
+body.catalog-page:has(#club-catalog[data-mode="detail"]) .campus-subnav {
+  background: #100e16eb;
+  border-color: #2d2935;
+}
+body.catalog-page:has(#club-catalog[data-mode="detail"]) .campus-subnav a {
+  color: #bbb5c6;
+}
+body.catalog-page:has(#club-catalog[data-mode="detail"]) .campus-subnav a:hover {
+  color: #fff;
+}
+body.catalog-page:has(#club-catalog[data-mode="detail"]) .campus-language {
+  background: #272132;
+  color: #e4d8f3;
+}
+body.catalog-page:has(#club-catalog[data-mode="detail"])
+  :is(.club-hero, .club-people, .club-people dl > div, .catalog-footer) {
+  border-color: #332e3c;
+}
+body.catalog-page:has(#club-catalog[data-mode="detail"])
+  :is(.club-description, .club-membership-note p) {
+  color: #c1bacb;
+}
+body.catalog-page:has(#club-catalog[data-mode="detail"])
+  :is(.club-eyebrow, .club-english-name, .club-people dt, .catalog-footer) {
+  color: #aaa3b6;
+}
+body.catalog-page:has(#club-catalog[data-mode="detail"])
+  :is(.club-slogan, .club-membership-note a, .robot-motto, .club-person-link:hover) {
+  color: #ded4eb;
+}
+body.catalog-page:has(#club-catalog[data-mode="detail"]) .text-rotate {
+  background: #2b2239;
+  color: #f0e5ff;
+}
+body.catalog-page:has(#club-catalog[data-mode="detail"]) .club-people {
+  background: #191720e8;
+}
+body.catalog-page:has(#club-catalog[data-mode="detail"]) .club-join-dialog {
+  background: #191720;
+  color: #f7f6fa;
+  border-color: #494052;
+}
+body.catalog-page:has(#club-catalog[data-mode="detail"]) .club-join-dialog :is(p, textarea) {
+  color: #c1bacb;
+}
+body.catalog-page:has(#club-catalog[data-mode="detail"]) .club-join-dialog textarea {
+  background: #100e16;
+  border-color: #494052;
+}
+body.catalog-page:has(#club-catalog[data-mode="detail"])
+  :is(.opensteam-logo, .opensteam-logo .club-art, .opensteam-logo .club-art img) {
+  mix-blend-mode: normal;
+}
+body.catalog-page:has(#club-catalog[data-mode="detail"]) .opensteam-logo .club-art {
+  background: transparent;
 }

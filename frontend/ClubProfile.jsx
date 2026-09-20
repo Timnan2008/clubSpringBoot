@@ -1,18 +1,69 @@
+import CallChip from "./CallChip";
 import PersonIdentity, { realNames, postName } from "./PersonIdentity";
 import { compressImage } from "./compress-image";
 import { AnimatedNumber } from "./MotionPrimitives";
 import { tr, tx, en } from "./language";
 import React, { useEffect, useState, useRef } from "react";
+const logoLimit = 10 * 1024 * 1024,
+  videoLimit = 200 * 1024 * 1024;
+function parseUpload(body) {
+  try {
+    return JSON.parse(body || "{}");
+  } catch {
+    return {};
+  }
+}
+function sendMedia(url, token, file, onProgress) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest(),
+      body = new FormData();
+    body.append("file", file);
+    xhr.open("POST", url);
+    xhr.setRequestHeader("X-Workspace-Token", token);
+    xhr.timeout = 360000;
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) onProgress(e.loaded, e.total);
+    };
+    xhr.onload = () => {
+      const data = parseUpload(xhr.responseText);
+      if (xhr.status === 413)
+        reject(
+          Error(
+            tx(
+              "文件太大，请先压到 200 MB 以内。",
+              "This file is too large. Please stay under 200 MB.",
+            ),
+          ),
+        );
+      else if (xhr.status < 200 || xhr.status >= 300)
+        reject(Error(data.message || tx("上传失败", "Upload failed")));
+      else resolve(data);
+    };
+    xhr.onerror = () =>
+      reject(Error(tx("网络中断，请重试。", "The upload was interrupted. Please try again.")));
+    xhr.ontimeout = () =>
+      reject(
+        Error(
+          tx("上传超时，请用更短的视频或检查网络。", "The upload timed out. Try a shorter video."),
+        ),
+      );
+    xhr.send(body);
+  });
+}
 export default function ClubProfile({ club, token, onSaved }) {
   const [form, setForm] = useState(null),
     [error, setError] = useState(""),
     [notice, setNotice] = useState(""),
+    [saveNotice, setSaveNotice] = useState(""),
     [busy, setBusy] = useState(false),
     [query, setQuery] = useState(""),
     [results, setResults] = useState([]),
     [target, setTarget] = useState(null),
-    [role, setRole] = useState("vice_president");
+    [role, setRole] = useState("vice_president"),
+    [upload, setUpload] = useState(null);
   const lock = useRef(false);
+  const formRef = useRef(null);
+  formRef.current = form;
   async function call(url, options = {}) {
     const r = await fetch(url, {
       ...options,
@@ -33,6 +84,7 @@ export default function ClubProfile({ club, token, onSaved }) {
     setTarget(null);
     setError("");
     setNotice("");
+    setSaveNotice("");
     call(`/api/club-workspace/${club}/profile`, {
       signal: c.signal,
     })
@@ -51,22 +103,28 @@ export default function ClubProfile({ club, token, onSaved }) {
     try {
       await action();
     } catch (e) {
+      setUpload((u) => (u?.status === "running" ? { ...u, status: "error" } : u));
       setError(tr(e.message));
     } finally {
       lock.current = false;
       setBusy(false);
     }
   }
+  async function persistProfile(next) {
+    setSaveNotice("");
+    const data = await call(`/api/club-workspace/${club}/profile`, {
+      method: "PUT",
+      body: JSON.stringify(next),
+    });
+    setForm(data);
+    onSaved(data);
+    setSaveNotice(tr("社团资料已保存，官网展示已更新。"));
+    return data;
+  }
   const save = (e) => {
     e.preventDefault();
     run(async () => {
-      const data = await call(`/api/club-workspace/${club}/profile`, {
-        method: "PUT",
-        body: JSON.stringify(form),
-      });
-      setForm(data);
-      onSaved(data);
-      setNotice(tr("社团资料已保存，官网展示已更新。"));
+      await persistProfile(form);
     });
   };
   const search = (e) => {
@@ -178,11 +236,16 @@ export default function ClubProfile({ club, token, onSaved }) {
               <button className="ws-primary" disabled={busy}>
                 {tr("保存社团资料 →")}
               </button>
+              {saveNotice && (
+                <p className="ws-notice ws-save-notice" role="status">
+                  {saveNotice}
+                </p>
+              )}
             </form>
             <div className="ws-media-grid">
               {[
                 ["logo", "社团 Logo", "Club logo", "image/jpeg,image/png"],
-                ["video", "社团视频", "Club video", "video/mp4"],
+                ["video", "社团视频", "Club video", "video/mp4,video/quicktime,.mp4,.mov"],
               ].map(([kind, zh, english, accept]) => (
                 <section key={kind}>
                   <h4>{tx(zh, english)}</h4>
@@ -202,23 +265,75 @@ export default function ClubProfile({ club, token, onSaved }) {
                         const file = e.target.files[0];
                         if (!file) return;
                         run(async () => {
-                          const body = new FormData();
-                          body.append("file", await compressImage(file));
-                          const response = await fetch(
+                          const limit = kind === "logo" ? logoLimit : videoLimit;
+                          if (file.size > limit)
+                            throw Error(
+                              kind === "logo"
+                                ? tx(
+                                    "Logo 请控制在 10 MB 以内。",
+                                    "Please keep the logo under 10 MB.",
+                                  )
+                                : tx(
+                                    "视频请控制在 200 MB 以内，可先在系统里压缩。",
+                                    "Please keep the video under 200 MB.",
+                                  ),
+                            );
+                          setUpload({
+                            kind,
+                            name: file.name,
+                            status: "running",
+                            pct: 0,
+                            compressing: false,
+                          });
+                          const payload = kind === "logo" ? await compressImage(file) : file;
+                          const data = await sendMedia(
                             "/api/club-workspace/" + club + "/media/" + kind,
-                            { method: "POST", headers: { "X-Workspace-Token": token }, body },
+                            token,
+                            payload,
+                            (loaded, total) => {
+                              const pct = Math.max(1, Math.round((loaded / total) * 100));
+                              setUpload({
+                                kind,
+                                name: file.name,
+                                status: "running",
+                                pct,
+                                compressing: loaded >= total,
+                              });
+                            },
                           );
-                          const data = await response.json();
-                          if (!response.ok)
-                            throw Error(data.message || tx("上传失败", "Upload failed"));
-                          setForm((f) => ({ ...f, [kind]: data.url }));
-                          setNotice(tx("文件已更新", "Media updated"));
+                          const next = { ...(formRef.current || form), [kind]: data.url };
+                          setForm(next);
+                          if (kind === "video") await persistProfile(next);
+                          else setNotice(tx("文件已更新", "Media updated"));
+                          setUpload((u) => ({ ...u, status: "done", pct: 100 }));
                         });
                         e.target.value = "";
                       }}
                     />
                   </label>
-                  <p className="ws-help">{kind === "logo" ? "JPG / PNG · 10 MB" : "MP4 · 40 MB"}</p>
+                  {upload?.kind === kind && (
+                    <CallChip
+                      icon="file"
+                      name={tx("上传", "Upload")}
+                      argument={
+                        upload.status === "running" && upload.compressing
+                          ? tx("服务器处理中…", "Processing on server…")
+                          : upload.name
+                      }
+                      status={upload.status}
+                      progress={upload.compressing ? undefined : upload.pct / 100}
+                      surfaceColor="#efebf4"
+                      color="#514663"
+                    />
+                  )}
+                  <p className="ws-help">
+                    {kind === "logo"
+                      ? "JPG / PNG · 10 MB"
+                      : tx(
+                          "MP4 / MOV · 200 MB · 已是 720p 的视频会很快保存，其它会加快压缩",
+                          "MP4 / MOV · 200 MB · 720p videos save quickly; others compress faster",
+                        )}
+                  </p>
                 </section>
               ))}
             </div>

@@ -1,5 +1,10 @@
 import { localizeCalendar } from "./activity-language.mjs";
 import DateJump from "./DateJump";
+import RubberSegment from "./RubberSegment";
+import SpringCheck from "./SpringCheck";
+import HoldButton from "./HoldButton";
+import StatusMark from "./StatusMark";
+import GlideSelect from "./GlideSelect";
 import React, { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import CardNav from "./CardNav";
@@ -168,32 +173,27 @@ function Editor({ entry, onClose, onSave, onDelete, busy, error }) {
             <div className="cal-fields">
               <label>
                 {tx("类型", "Type")}
-                <span className="cal-select">
-                  <select value={value.kind} onChange={(e) => field("kind", e.target.value)}>
-                    {["homework", "memo", "event"].map((k) => (
-                      <option value={k} key={k}>
-                        {kindName(k)}
-                      </option>
-                    ))}
-                  </select>
-                  <CaretDown size={18} aria-hidden="true" />
-                </span>
+                <GlideSelect
+                  ariaLabel={tx("类型", "Type")}
+                  value={value.kind}
+                  onChange={(kind) => field("kind", kind)}
+                  options={["homework", "memo", "event"].map((k) => ({
+                    value: k,
+                    label: kindName(k),
+                  }))}
+                />
               </label>
               <label>
                 {tx("提醒", "Reminder")}
-                <span className="cal-select">
-                  <select
-                    value={value.reminderMinutes}
-                    onChange={(e) => field("reminderMinutes", Number(e.target.value))}
-                  >
-                    {[-1, 0, 5, 15, 30, 60, 1440].map((n) => (
-                      <option value={n} key={n}>
-                        {reminderName(n)}
-                      </option>
-                    ))}
-                  </select>
-                  <CaretDown size={18} aria-hidden="true" />
-                </span>
+                <GlideSelect
+                  ariaLabel={tx("提醒", "Reminder")}
+                  value={value.reminderMinutes}
+                  onChange={(n) => field("reminderMinutes", n)}
+                  options={[-1, 0, 5, 15, 30, 60, 1440].map((n) => ({
+                    value: n,
+                    label: reminderName(n),
+                  }))}
+                />
               </label>
             </div>
             <div className="cal-fields">
@@ -234,26 +234,19 @@ function Editor({ entry, onClose, onSave, onDelete, busy, error }) {
                 onChange={(e) => field("description", e.target.value)}
               />
             </label>
-            <label className="cal-check">
-              <input
-                type="checkbox"
-                checked={value.completed}
-                onChange={(e) => field("completed", e.target.checked)}
-              />
-              {tx("已完成", "Completed")}
-            </label>
+            <SpringCheck
+              label={tx("已完成", "Completed")}
+              checked={value.completed}
+              onChange={(done) => field("completed", done)}
+              disabled={busy}
+            />
             {confirm ? (
               <div className="cal-delete-confirm">
                 <p>{tx("确认删除此个人事件？", "Delete this personal entry?")}</p>
                 <div className="cal-actions">
-                  <button
-                    type="button"
-                    className="cal-danger"
-                    disabled={busy}
-                    onClick={() => onDelete(entry.id)}
-                  >
-                    {tx("确认删除", "Confirm delete")}
-                  </button>
+                  <HoldButton disabled={busy} onHold={() => onDelete(entry.id)}>
+                    {tx("长按删除", "Hold to delete")}
+                  </HoldButton>
                   <button type="button" onClick={() => setConfirm(false)}>
                     {tx("取消", "Cancel")}
                   </button>
@@ -345,9 +338,9 @@ function InlineEditor({ entry, busy, onSave, onClose, onDetails, onDelete }) {
       </button>
       {confirm ? (
         <div className="cal-inline-confirm">
-          <button className="cal-danger" onClick={onDelete}>
-            {tx("确认删除", "Delete")}
-          </button>
+          <HoldButton size="sm" onHold={onDelete}>
+            {tx("长按删除", "Hold to delete")}
+          </HoldButton>
           <button onClick={() => setConfirm(false)}>{tx("取消", "Cancel")}</button>
         </div>
       ) : (
@@ -660,6 +653,7 @@ function Calendar() {
         return saved;
       } catch (e) {
         setError(e.message);
+        return false;
       } finally {
         setBusy(false);
       }
@@ -796,24 +790,23 @@ function Calendar() {
                 </h2>
               </div>
               <div className="cal-toolbar-actions">
-                <div className="cal-view" role="group" aria-label={tx("日历视图", "Calendar view")}>
-                  {[
-                    ["day", tx("日", "Day")],
-                    ["week", tx("周", "Week")],
-                    ["list", tx("列表", "List")],
-                  ].map(([key, label]) => (
-                    <button
-                      key={key}
-                      aria-pressed={view === key}
-                      onClick={() => {
-                        if (key === "day" && selected) setDate(selected.start.slice(0, 10));
-                        setView(key);
-                      }}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
+                <RubberSegment
+                  trackColor="#242428"
+                  thumbColor="#eeecf2"
+                  textColor="#aaa5b3"
+                  activeTextColor="#201c28"
+                  aria-label={tx("日历视图", "Calendar view")}
+                  value={view}
+                  items={[
+                    { value: "day", label: tx("日", "Day") },
+                    { value: "week", label: tx("周", "Week") },
+                    { value: "list", label: tx("列表", "List") },
+                  ]}
+                  onChange={(key) => {
+                    if (key === "day" && selected) setDate(selected.start.slice(0, 10));
+                    setView(key);
+                  }}
+                />
                 <button className="cal-primary" disabled={!data} onClick={add}>
                   <Plus size={18} /> {tx("新建", "New")}
                 </button>
@@ -821,36 +814,47 @@ function Calendar() {
             </div>
             {loading && (
               <p className="cal-loading" role="status">
-                {tx("正在同步日历…", "Syncing calendar…")}
+                <StatusMark status="running" label={tx("正在同步日历…", "Syncing calendar…")} />
               </p>
             )}
             {view === "list" ? (
               <div className="cal-list">
                 {events.map((e) => (
-                  <button
-                    key={e.id}
-                    className={"cal-list-entry kind-" + e.kind + (e.completed ? " completed" : "")}
-                    onClick={() => select(e)}
-                  >
-                    <time>
-                      {dateLabel(e.start.slice(0, 10))}
-                      <small>
-                        {clock(e.start)}–{clock(e.end)}
-                      </small>
-                    </time>
-                    <div>
-                      <strong>{e.title}</strong>
-                      <span>
-                        {e.clubId
-                          ? en
-                            ? e.clubNameEn || e.clubName
-                            : e.clubName
-                          : kindName(e.kind)}{" "}
-                        {e.location && " · " + e.location}
-                        {e.completed && tx(" · 已完成", " · Completed")}
-                      </span>
-                    </div>
-                  </button>
+                  <div className="cal-task-row" key={e.id}>
+                    {e.kind !== "club" && (
+                      <SpringCheck
+                        ariaLabel={tx("标记完成：", "Mark complete: ") + e.title}
+                        checked={e.completed}
+                        disabled={busy}
+                        onChange={(completed) => write({ ...e, completed })}
+                      />
+                    )}
+                    <button
+                      className={
+                        "cal-list-entry kind-" + e.kind + (e.completed ? " completed" : "")
+                      }
+                      onClick={() => select(e)}
+                    >
+                      <time>
+                        {dateLabel(e.start.slice(0, 10))}
+                        <small>
+                          {clock(e.start)}–{clock(e.end)}
+                        </small>
+                      </time>
+                      <div>
+                        <strong>{e.title}</strong>
+                        <span>
+                          {e.clubId
+                            ? en
+                              ? e.clubNameEn || e.clubName
+                              : e.clubName
+                            : kindName(e.kind)}{" "}
+                          {e.location && " · " + e.location}
+                          {e.completed && tx(" · 已完成", " · Completed")}
+                        </span>
+                      </div>
+                    </button>
+                  </div>
                 ))}
                 {!loading && !events.length && (
                   <p className="cal-empty">
@@ -1002,3 +1006,4 @@ function Calendar() {
 createRoot(document.getElementById("personal-calendar")).render(<Calendar />);
 
 import "./CampusMotion.css";
+import "./ControlRefinements.css";

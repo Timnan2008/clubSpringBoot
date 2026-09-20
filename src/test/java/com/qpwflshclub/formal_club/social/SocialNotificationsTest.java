@@ -4,7 +4,9 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.qpwflshclub.formal_club.pojo.Club.Club;
 import com.qpwflshclub.formal_club.pojo.User.User;
+import com.qpwflshclub.formal_club.repository.Club.ClubRepository;
 import com.qpwflshclub.formal_club.workspace.*;
 import java.nio.file.Path;
 import java.util.*;
@@ -51,7 +53,7 @@ class SocialNotificationsTest {
         var access = mock(WorkspaceAccess.class);
         var store = new SocialStore(json, dir.toString());
         var notifications = new SocialNotifications(json, dir.toString());
-        var c = new NotificationController(a, access, store, notifications);
+        var c = new NotificationController(a, access, store, notifications, null, null);
         var user = new User();
         user.setEmail("bob@example.com");
         String me = SchoolAccounts.key(user.getEmail());
@@ -76,6 +78,14 @@ class SocialNotificationsTest {
         assertThat(notifications.read("outsider", "mention:" + p.id())).isFalse();
         store.recall(m.id(), "alice", me);
         assertThat(json.valueToTree(c.get(r)).get("unread").asInt()).isZero();
+        var reply = store.reply(p.id(), "alice", "@Bob in a comment");
+        notifications.attach(reply.id(), List.of(new SocialNotifications.Mention(0, 4, me)));
+        var afterReply = json.valueToTree(c.get(r));
+        assertThat(afterReply.get("unread").asInt()).isEqualTo(1);
+        assertThat(afterReply.get("items").findValuesAsText("id")).contains(
+            "mention:" + reply.id()
+        );
+        c.read(new NotificationController.ReadInput("mention:" + reply.id(), false), r);
         store.delete(p.id(), "alice", false);
         assertThat(json.valueToTree(c.get(r)).get("items")).isEmpty();
         assertThatThrownBy(() ->
@@ -114,5 +124,52 @@ class SocialNotificationsTest {
                 a
             )
         ).hasMessageContaining("400");
+    }
+
+    @Test
+    void pendingJoinRequestsNotifyOfficersAndDecisionsNotifyApplicants() throws Exception {
+        var accounts = mock(SchoolAccounts.class);
+        var access = mock(WorkspaceAccess.class);
+        var store = new SocialStore(json, dir.toString());
+        var notifications = new SocialNotifications(json, dir.toString());
+        var joins = new JoinRequests(dir.resolve("join").toString());
+        var clubs = mock(ClubRepository.class);
+        var inbox = new NotificationController(
+            accounts,
+            access,
+            store,
+            notifications,
+            joins,
+            clubs
+        );
+        var officer = new User();
+        officer.setEmail("leader@example.com");
+        var applicant = new User();
+        applicant.setEmail("nantian@example.com");
+        var club = new Club();
+        club.setId(1);
+        club.setClubName("测试社");
+        when(access.clubs(officer)).thenReturn(List.of(club));
+        when(access.clubs(applicant)).thenReturn(List.of());
+        when(clubs.findById(1)).thenReturn(Optional.of(club));
+        when(accounts.directory()).thenReturn(Map.of());
+        when(access.token(any())).thenReturn("token");
+        var officerRequest = new MockHttpServletRequest();
+        when(accounts.current(officerRequest)).thenReturn(officer);
+        var entry = joins.apply(1, SchoolAccounts.key(applicant.getEmail()), "南天", "", "测试");
+        var listed = json.valueToTree(inbox.get(officerRequest));
+        assertThat(listed.get("unread").asInt()).isEqualTo(1);
+        assertThat(listed.get("items").findValuesAsText("type")).contains("join_request");
+        assertThat(listed.get("items").findValuesAsText("clubName")).contains("测试社");
+        assertThat(listed.get("items").findValuesAsText("url")).contains(
+            "/page/club/workspace?tab=recruitment&club=1"
+        );
+        joins.decide(1, entry.id(), "approved", SchoolAccounts.key(officer.getEmail()));
+        assertThat(json.valueToTree(inbox.get(officerRequest)).get("unread").asInt()).isZero();
+        var applicantRequest = new MockHttpServletRequest();
+        when(accounts.current(applicantRequest)).thenReturn(applicant);
+        var decided = json.valueToTree(inbox.get(applicantRequest));
+        assertThat(decided.get("items").findValuesAsText("type")).contains("join_approved");
+        assertThat(decided.get("unread").asInt()).isEqualTo(1);
     }
 }

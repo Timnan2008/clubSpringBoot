@@ -755,6 +755,27 @@ body.auth-page {
 .ideas-turnstile p {
   font-size: 13px;
 }
+.ideas-turnstile-slot {
+  min-height: 72px;
+}
+.ideas-turnstile-host {
+  min-height: 65px;
+  pointer-events: auto;
+}
+.ideas-turnstile-browser {
+  margin: 0 0 10px;
+  color: #d6c4a8;
+  line-height: 1.65;
+}
+.ideas-turnstile button {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: #cbb6ff;
+  text-decoration: underline;
+  cursor: pointer;
+  font: inherit;
+}
 
 @media (min-width: 761px) {
   .auth-layout {

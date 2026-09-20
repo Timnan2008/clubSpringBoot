@@ -79,12 +79,16 @@ public class OfficerAssignments {
     }
 
     public static boolean named(UserBase p) {
-        String name = Objects.toString(p.getUsername(), "").strip();
-        if (name.isBlank()) name = Objects.toString(p.getUsernameEn(), "").strip();
+        return named(p == null ? "" : p.getUsername(), p == null ? "" : p.getUsernameEn());
+    }
+
+    public static boolean named(String name, String nameEn) {
+        String value = Objects.toString(name, "").strip();
+        if (value.isBlank()) value = Objects.toString(nameEn, "").strip();
         return (
-            !name.isBlank() &&
-            !name.matches(".*(?:副社长|社长)\\s*\\d*") &&
-            !name.matches("(?i).*(?:vice[ -]?)?president\\s*\\d*")
+            !value.isBlank() &&
+            !value.matches(".*(?:副社长|社长)\\s*\\d*") &&
+            !value.matches("(?i).*(?:vice[ -]?)?president\\s*\\d*")
         );
     }
 

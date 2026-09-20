@@ -32,6 +32,9 @@ public class SocialController {
     @org.springframework.beans.factory.annotation.Autowired
     private SocialNotifications notifications;
 
+    @org.springframework.beans.factory.annotation.Autowired
+    private ContentDiscipline discipline;
+
     private final SchoolAccounts accounts;
     private final WorkspaceAccess access;
     private final SocialStore store;
@@ -71,6 +74,13 @@ public class SocialController {
         );
     }
 
+    private void rejectAnonymous(boolean anonymous) {
+        if (anonymous) throw SchoolAccounts.error(
+            400,
+            "校园墙已取消匿名发布 / Anonymous posts are disabled"
+        );
+    }
+
     private String key(UserBase u) {
         return SchoolAccounts.key(u.getEmail());
     }
@@ -94,7 +104,9 @@ public class SocialController {
                 .map(c ->
                     Map.of("id", c.getId(), "name", Objects.toString(c.getClubName(), "社团"))
                 )
-                .toList()
+                .toList(),
+            "mutedUntil",
+            discipline == null ? "" : discipline.until(key(u))
         );
     }
 
@@ -237,13 +249,14 @@ public class SocialController {
                 ? new SchoolAccounts.Account("", "匿名楼主", "", "anonymous")
                 : author(people, r.author())
         );
-        row.put("text", r.text());
+        row.put("text", ContentModeration.mask(r.text()));
         row.put("createdAt", r.createdAt());
         row.put("likes", r.likes().size());
         row.put("liked", r.likes().contains(me));
         row.put("own", r.author().equals(me));
         row.put("parentReply", r.parentReply());
         try {
+            row.put("mentions", notifications == null ? List.of() : notifications.mentions(r.id()));
             var replies = store.snapshot().replies();
             row.put(
                 "replyCount",
@@ -289,7 +302,7 @@ public class SocialController {
                 ? new SchoolAccounts.Account("", "匿名同学", "", "anonymous")
                 : author(people, p.author())
         );
-        row.put("text", p.text());
+        row.put("text", ContentModeration.mask(p.text()));
         row.put("mentions", notifications == null ? List.of() : notifications.mentions(p.id()));
         row.put(
             "attachments",
@@ -450,10 +463,10 @@ public class SocialController {
     public Object post(@RequestBody PostInput body, HttpServletRequest request) throws IOException {
         UserBase u = current(request, true);
         canPost(u);
+        rejectAnonymous(body.anonymous());
         String clubName = "";
         if (body.club() != 0) {
             var club = access.require(u, body.club());
-            if (body.anonymous()) throw SchoolAccounts.error(400, "社团发布不能匿名");
             clubName = Objects.toString(club.getClubName(), "社团");
         }
         var mentions =
@@ -464,12 +477,12 @@ public class SocialController {
             key(u),
             body.text(),
             Objects.toString(body.category(), "general"),
-            body.anonymous(),
+            false,
             body.club(),
             clubName
         );
         if (notifications != null) notifications.attach(p.id(), mentions);
-        audit(p.id(), key(u), body.anonymous());
+        audit(p.id(), key(u), false);
         return Map.of("id", p.id());
     }
 
@@ -484,7 +497,7 @@ public class SocialController {
 
     @PostMapping(value = "/posts", consumes = "multipart/form-data")
     public Object uploadPost(
-        @RequestParam String text,
+        @RequestParam(defaultValue = "") String text,
         @RequestParam(defaultValue = "general") String category,
         @RequestParam(defaultValue = "false") boolean anonymous,
         @RequestParam(defaultValue = "0") int club,
@@ -494,13 +507,12 @@ public class SocialController {
     ) throws IOException {
         var u = current(request, true);
         canPost(u);
-        ContentModeration.check(text);
-        SocialStore.text(text, 1000);
+        rejectAnonymous(anonymous);
+        boolean hasFiles =
+            uploads != null && uploads.stream().anyMatch(f -> f != null && !f.isEmpty());
+        SocialStore.text(text, 1000, hasFiles);
         String name = "";
-        if (club != 0) {
-            name = access.require(u, club).getClubName();
-            if (anonymous) throw SchoolAccounts.error(400, "社团发布不能匿名");
-        }
+        if (club != 0) name = access.require(u, club).getClubName();
         if (
             uploads.size() > 4 ||
             uploads
@@ -530,11 +542,11 @@ public class SocialController {
         List<SocialStore.Attachment> attachments = new ArrayList<>();
         boolean saved = false;
         try {
-            for (var upload : uploads) attachments.add(files.save(upload, anonymous));
-            var post = store.post(key(u), text, category, anonymous, club, name, attachments);
+            for (var upload : uploads) attachments.add(files.save(upload, false));
+            var post = store.post(key(u), text, category, false, club, name, attachments);
             saved = true;
             if (notifications != null) notifications.attach(post.id(), tagged);
-            audit(post.id(), key(u), anonymous);
+            audit(post.id(), key(u), false);
             return Map.of("id", post.id());
         } finally {
             if (!saved) for (var attachment : attachments) files.remove(attachment.id());
@@ -649,7 +661,20 @@ public class SocialController {
         return reply(id, new ReplyInput(body.text(), ""), request);
     }
 
-    public record ReplyInput(String text, String parentReply) {}
+    public record ReplyInput(
+        String text,
+        String parentReply,
+        List<SocialNotifications.Mention> mentions
+    ) {
+        public ReplyInput {
+            parentReply = parentReply == null ? "" : parentReply;
+            mentions = mentions == null ? List.of() : mentions;
+        }
+
+        public ReplyInput(String text, String parentReply) {
+            this(text, parentReply, List.of());
+        }
+    }
 
     @PostMapping("/posts/{id}/replies")
     public Object reply(
@@ -659,7 +684,12 @@ public class SocialController {
     ) throws IOException {
         UserBase u = current(request, true);
         canPost(u);
+        var mentions =
+            notifications == null
+                ? List.<SocialNotifications.Mention>of()
+                : notifications.validate(body.text(), body.mentions(), accounts);
         var r = store.reply(id, key(u), body.text(), body.parentReply());
+        if (notifications != null) notifications.attach(r.id(), mentions);
         return Map.of("id", r.id());
     }
 

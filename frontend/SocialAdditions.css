@@ -369,8 +369,8 @@ body.social-network-theme .social-replies .reply-avatar {
   min-width: 0;
   margin: 0;
   padding: 0;
-  overflow: hidden;
-  border-radius: 12px;
+  overflow: visible;
+  border-radius: 0;
 }
 body.social-network-theme .social-replies .reply-avatar .campus-avatar {
   width: 36px;

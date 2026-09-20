@@ -44,8 +44,16 @@ public class SuggestionController {
     ) {
         var actor = accounts.current(request);
         access.mutation(request);
-        com.qpwflshclub.formal_club.social.ContentModeration.check(suggestionDTO.getContext());
-        suggestionDTO.setName(suggestionDTO.isAnonymous() ? "" : actor.getUsername());
+        if (suggestionDTO.isAnonymous()) throw com.qpwflshclub.formal_club.social.SchoolAccounts.error(
+            400,
+            "青源智造不支持匿名提交，请使用实名。 / Qingyuan Ideas cannot be submitted anonymously."
+        );
+        com.qpwflshclub.formal_club.social.ContentModeration.check(
+            suggestionDTO.getTitle(),
+            suggestionDTO.getContext()
+        );
+        suggestionDTO.setAnonymous(false);
+        suggestionDTO.setName(java.util.Objects.toString(actor.getUsername(), ""));
         turnstile.verify(suggestionDTO.getTurnstileToken());
         suggestionDTO.setPass(false);
         suggestionDTO.setId(null);
@@ -54,15 +62,17 @@ public class SuggestionController {
             "campus_suggestion id={} account={} anonymous={}",
             suggestion.getId(),
             com.qpwflshclub.formal_club.social.SchoolAccounts.key(actor.getEmail()),
-            suggestionDTO.isAnonymous()
+            false
         );
         audit.record(
             "suggestion",
             String.valueOf(suggestion.getId()),
             com.qpwflshclub.formal_club.social.SchoolAccounts.key(actor.getEmail()),
-            suggestionDTO.isAnonymous()
+            false
         );
-        suggestion.setNameEn(suggestionDTO.isAnonymous() ? "" : actor.getUsernameEn());
+        suggestion.setName(suggestionDTO.getName());
+        suggestion.setAnonymous(false);
+        suggestion.setNameEn(java.util.Objects.toString(actor.getUsernameEn(), ""));
         return ResponseMessage.success(suggestion);
     }
 
@@ -112,30 +122,23 @@ public class SuggestionController {
         ) throw new org.springframework.web.server.ResponseStatusException(
             org.springframework.http.HttpStatus.NOT_FOUND
         );
-        var publicView = new Suggestion();
-        publicView.setId(suggestion.getId());
-        publicView.setTitle(suggestion.getTitle());
-        publicView.setContext(suggestion.getContext());
-        publicView.setAnonymous(suggestion.isAnonymous());
-        publicView.setPass(true);
-        publicView.setName(suggestion.isAnonymous() ? "" : suggestion.getName());
-        return ResponseMessage.success(publicView);
+        return ResponseMessage.success(publicView(suggestion));
     }
 
     private Suggestion publicView(Suggestion s) {
         var v = new Suggestion();
         v.setId(s.getId());
         v.setTitle(s.getTitle());
-        v.setContext(s.getContext());
-        v.setAnonymous(s.isAnonymous());
+        v.setContext(com.qpwflshclub.formal_club.social.ContentModeration.mask(s.getContext()));
+        v.setAnonymous(false);
         v.setPass(s.isPass());
-        v.setName(s.isAnonymous() ? "" : s.getName());
+        v.setName(java.util.Objects.toString(s.getName(), ""));
         v.setNameEn("");
-        if (!s.isAnonymous() && audit != null && accounts != null) {
+        if (audit != null && accounts != null) {
             String actor = audit.actor("suggestion", String.valueOf(s.getId()));
             var people = accounts.directory();
             var person = actor == null ? null : people.get(actor);
-            if (person == null) {
+            if (person == null && s.getName() != null && !s.getName().isBlank()) {
                 var matches = people
                     .values()
                     .stream()
@@ -163,8 +166,9 @@ public class SuggestionController {
         if (!isAdmin(request)) {
             return adminOnlyError();
         }
-        List<Suggestion> suggestions = suggestionService.findAll();
-        return ResponseMessage.success(suggestions);
+        return ResponseMessage.success(
+            suggestionService.findAll().stream().map(this::publicView).toList()
+        );
     }
 
     private boolean isAdmin(HttpServletRequest request) {

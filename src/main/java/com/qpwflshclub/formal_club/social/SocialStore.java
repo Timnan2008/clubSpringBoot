@@ -247,11 +247,18 @@ public class SocialStore {
     }
 
     public static String text(String value, int max) {
-        if (value == null || value.isBlank() || value.length() > max) throw SchoolAccounts.error(
+        return text(value, max, false);
+    }
+
+    public static String text(String value, int max, boolean allowBlank) {
+        String raw = value == null ? "" : value;
+        if (raw.length() > max || (!allowBlank && raw.isBlank())) throw SchoolAccounts.error(
             400,
             "内容不能为空，最多 " + max + " 字"
         );
-        return value.trim();
+        String trimmed = raw.trim();
+        if (!trimmed.startsWith("e2ee:v1:")) ContentModeration.check(trimmed);
+        return trimmed;
     }
 
     public synchronized Post post(String author, String text) throws IOException {
@@ -283,7 +290,6 @@ public class SocialStore {
         String clubName,
         List<Attachment> attachments
     ) throws IOException {
-        ContentModeration.check(text);
         if (
             !Set.of("recruit", "help", "team", "general", "other").contains(category)
         ) throw SchoolAccounts.error(400, "请选择有效的发布类型");
@@ -291,7 +297,7 @@ public class SocialStore {
         Post p = new Post(
             UUID.randomUUID().toString(),
             author,
-            text(text, 1000),
+            text(text, 1000, attachments != null && !attachments.isEmpty()),
             now(),
             new HashSet<>(),
             category,
@@ -387,7 +393,6 @@ public class SocialStore {
 
     public synchronized Reply reply(String id, String actor, String text, String parentReply)
         throws IOException {
-        ContentModeration.check(text);
         Data d = read();
         post(d, id);
         String target = Objects.toString(parentReply, "");

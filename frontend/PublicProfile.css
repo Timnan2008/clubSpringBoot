@@ -145,6 +145,8 @@
   border: 1px solid #2f3336;
   border-radius: 16px;
   padding: 4px 10px;
+  white-space: nowrap;
+  max-width: 100%;
 }
 .profile-home-tags > a {
   color: #1d9bf0;

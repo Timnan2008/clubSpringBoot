@@ -17,26 +17,38 @@ public class TurnstileService {
 
     private final String siteKey, secret;
     private final Set<String> hostnames;
+    private final boolean localPass;
     private final ObjectMapper mapper;
     private final HttpClient client = HttpClient.newBuilder()
         .connectTimeout(Duration.ofSeconds(5))
         .build();
 
+    public TurnstileService(ObjectMapper mapper, String siteKey, String secret, String hosts) {
+        this(mapper, siteKey, secret, hosts, false);
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
     public TurnstileService(
         ObjectMapper mapper,
         @Value("${club.turnstile.site-key:}") String siteKey,
         @Value("${club.turnstile.secret-key:}") String secret,
-        @Value("${club.turnstile.hostnames:qpwflhsclub.com,www.qpwflhsclub.com}") String hosts
+        @Value(
+            "${club.turnstile.hostnames:qpwflhsclub.com,www.qpwflhsclub.com,localhost,127.0.0.1}"
+        ) String hosts,
+        @Value("${club.turnstile.local-pass:false}") boolean localPass
     ) {
         this.mapper = mapper;
         this.siteKey = siteKey;
         this.secret = secret;
+        this.localPass = localPass;
         this.hostnames = new HashSet<>(
             Arrays.asList(hosts.toLowerCase(Locale.ROOT).split("\\s*,\\s*"))
         );
+        if (localPass) this.hostnames.addAll(List.of("localhost", "127.0.0.1", "[::1]"));
     }
 
     public Map<String, Object> configuration() {
+        if (localPass) return Map.of("siteKey", "", "ready", true, "local", true);
         return Map.of("siteKey", siteKey, "ready", !siteKey.isBlank() && !secret.isBlank());
     }
 
@@ -45,6 +57,7 @@ public class TurnstileService {
     }
 
     public void verify(String token, String action) {
+        if (localPass) return;
         if (siteKey.isBlank() || secret.isBlank()) throw SchoolAccounts.error(
             503,
             "人机验证尚未配置，请稍后再试"

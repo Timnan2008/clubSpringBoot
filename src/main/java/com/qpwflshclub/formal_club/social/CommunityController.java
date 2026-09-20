@@ -21,6 +21,9 @@ public class CommunityController {
     @org.springframework.beans.factory.annotation.Autowired
     private ProfileAppearance appearance;
 
+    @org.springframework.beans.factory.annotation.Autowired
+    private ContentDiscipline discipline;
+
     private final SchoolAccounts accounts;
     private final WorkspaceAccess access;
     private final MessageKeys keys;
@@ -159,7 +162,9 @@ public class CommunityController {
             "details",
             profiles.get(u.getEmail()),
             "offices",
-            offices(u)
+            offices(u),
+            "mutedUntil",
+            discipline == null ? "" : discipline.until(SchoolAccounts.key(u.getEmail()))
         );
     }
 
@@ -281,6 +286,7 @@ public class CommunityController {
     }
 
     @GetMapping("/me/clubs")
+    @Transactional(readOnly = true)
     public Object mine(HttpServletRequest r) {
         var u = current(r, false);
         Map<Integer, Map<String, Object>> result = new LinkedHashMap<>();
@@ -449,17 +455,23 @@ public class CommunityController {
         if (me instanceof Teacher) {
             StringJoiner names = new StringJoiner("、"),
                 english = new StringJoiner(", ");
-            for (var t : teachers.findAll())
+            String self = SchoolAccounts.key(me.getEmail());
+            for (var t : teachers.findAll()) {
                 if (
-                    t.getClubs() != null &&
+                    t.getClubs() == null ||
                     t
                         .getClubs()
                         .stream()
-                        .anyMatch(c -> c.getId() == id)
-                ) {
-                    names.add(t.getUsername());
-                    english.add(t.getUsernameEn());
-                }
+                        .noneMatch(c -> c.getId() == id)
+                ) continue;
+                if (t.getEmail() != null && SchoolAccounts.key(t.getEmail()).equals(self)) continue;
+                if (t.getUsername() != null && !t.getUsername().isBlank()) names.add(
+                    t.getUsername().strip()
+                );
+                if (t.getUsernameEn() != null && !t.getUsernameEn().isBlank()) english.add(
+                    t.getUsernameEn().strip()
+                );
+            }
             club.setTeacher(names.toString());
             club.setTeacherEn(english.toString());
         }
@@ -484,14 +496,13 @@ public class CommunityController {
     public Object publicProfile(@PathVariable String id, HttpServletRequest request) {
         current(request, false);
         var user = accounts.find(id);
+        if (redundantPlaceholder(user)) throw SchoolAccounts.error(404, "没有找到这个账号");
         var info = profiles.get(user.getEmail());
         return Map.of(
             "account",
             accounts.view(user),
             "tags",
-            appearance == null || appearance.get(id).tags() == null
-                ? info.tags()
-                : info.tags().stream().filter(appearance.get(id).tags()::contains).toList(),
+            profileTags(id, info),
             "bio",
             info.bio(),
             "offices",
@@ -499,18 +510,76 @@ public class CommunityController {
         );
     }
 
+    private List<String> profileTags(String id, AccountProfiles.Profile info) {
+        List<String> tags = new ArrayList<>(info.tags());
+        var shown = appearance == null ? null : appearance.get(id).tags();
+        if (shown != null) for (String tag : shown) if (!tags.contains(tag)) tags.add(tag);
+        return List.copyOf(tags);
+    }
+
     private List<Map<String, Object>> offices(UserBase user) {
-        List<Map<String, Object>> result = new ArrayList<>();
-        if (user instanceof ClubPresident p && p.getMainClub() != null) result.add(
+        Map<Integer, Map<String, Object>> result = new LinkedHashMap<>();
+        if (user instanceof ClubPresident p && p.getMainClub() != null) result.put(
+            p.getMainClub().getId(),
             club(p.getMainClub(), p.isVicePresident() ? "副社长" : "社长")
         );
         if (officers != null) for (var o : officers.forAccount(SchoolAccounts.key(user.getEmail())))
             clubs
                 .findById(o.club())
                 .ifPresent(c ->
-                    result.add(club(c, o.position().equals("vice_president") ? "副社长" : "社长"))
+                    result.put(
+                        c.getId(),
+                        club(c, o.position().equals("vice_president") ? "副社长" : "社长")
+                    )
                 );
-        return result;
+        return List.copyOf(result.values());
+    }
+
+    boolean redundantPlaceholder(UserBase user) {
+        if (!(user instanceof ClubPresident) || OfficerAssignments.named(user)) return false;
+        var mine = offices(user);
+        if (mine.isEmpty()) return true;
+        String self = SchoolAccounts.key(user.getEmail());
+        return mine
+            .stream()
+            .allMatch(o ->
+                officeHeldByOther((int) o.get("id"), Objects.toString(o.get("role"), ""), self)
+            );
+    }
+
+    private boolean officeHeldByOther(int club, String role, String self) {
+        boolean vice = "副社长".equals(role);
+        for (var p : presidents.findAll()) {
+            if (
+                p.getMainClub() != null &&
+                p.getMainClub().getId() == club &&
+                p.isVicePresident() == vice &&
+                !SchoolAccounts.key(p.getEmail()).equals(self)
+            ) return true;
+        }
+        if (officers != null) for (var o : officers.all()) {
+            if (
+                o.club() == club &&
+                o.position().equals(vice ? "vice_president" : "president") &&
+                !o.account().equals(self)
+            ) return true;
+        }
+        return false;
+    }
+
+    void retirePlaceholderOfficers(int club, String position, String keep) {
+        boolean vice = "vice_president".equals(position);
+        for (var p : presidents.findAll()) {
+            if (
+                OfficerAssignments.named(p) ||
+                p.getMainClub() == null ||
+                p.getMainClub().getId() != club ||
+                p.isVicePresident() != vice ||
+                SchoolAccounts.key(p.getEmail()).equals(keep)
+            ) continue;
+            p.setMainClub(null);
+            presidents.save(p);
+        }
     }
 
     public void syncLeaderLabels(int id) {
@@ -560,16 +629,16 @@ public class CommunityController {
         if (!(actor instanceof Admin)) throw SchoolAccounts.error(403, "仅管理员可直接任命负责人");
         clubs.findById(id).orElseThrow(() -> SchoolAccounts.error(404, "社团不存在"));
         var user = accounts.find(account);
-        if (!(user instanceof User || user instanceof ClubPresident)) throw SchoolAccounts.error(
-            400,
-            "请选择学生账号"
-        );
+        if (
+            !(user instanceof User || user instanceof ClubPresident || user instanceof Admin)
+        ) throw SchoolAccounts.error(400, "请选择学生账号");
         if (
             user instanceof ClubPresident p &&
             p.getMainClub() != null &&
             p.getMainClub().getId() == id
         ) throw SchoolAccounts.error(409, "该账号已在此社团任职，请调整原职务");
         officers.assign(account, id, input.position());
+        retirePlaceholderOfficers(id, input.position(), account);
         syncLeaderLabels(id);
         accounts.invalidateDirectory();
         return Map.of("ok", true, "offices", offices(user));

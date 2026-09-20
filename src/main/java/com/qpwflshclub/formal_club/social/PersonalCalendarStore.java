@@ -106,6 +106,7 @@ public class PersonalCalendarStore {
     private static String clean(String text, int max) {
         String value = Objects.toString(text, "").strip();
         if (value.length() > max) throw SchoolAccounts.error(400, "填写内容过长");
+        ContentModeration.check(value);
         return value;
     }
 

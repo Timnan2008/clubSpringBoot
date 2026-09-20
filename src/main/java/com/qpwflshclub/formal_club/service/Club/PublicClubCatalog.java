@@ -2,9 +2,12 @@ package com.qpwflshclub.formal_club.service.Club;
 
 import com.qpwflshclub.formal_club.pojo.Club.Club;
 import java.time.Clock;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -35,8 +38,13 @@ public class PublicClubCatalog {
         synchronized (this) {
             current = snapshot;
             if (current == null || clock.millis() >= current.expiresAt()) {
-                List<Entry> entries = source.findAll().stream().map(Entry::from).toList();
-                current = new Snapshot(entries, clock.millis() + TTL_MILLIS);
+                List<Entry> entries = source
+                    .findAll()
+                    .stream()
+                    .map(Entry::from)
+                    .collect(Collectors.toCollection(ArrayList::new));
+                entries.sort(Comparator.comparing((Entry e) -> !e.openSteam()));
+                current = new Snapshot(List.copyOf(entries), clock.millis() + TTL_MILLIS);
                 snapshot = current;
             }
             return current;
@@ -88,6 +96,13 @@ public class PublicClubCatalog {
                 c.getClubURL(),
                 c.isGreatClub()
             );
+        }
+
+        boolean openSteam() {
+            String blob = (Objects.toString(name, "") + Objects.toString(nameEn, ""))
+                .toLowerCase(Locale.ROOT)
+                .replace(" ", "");
+            return blob.contains("opensteam");
         }
 
         boolean matches(String term) {

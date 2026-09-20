@@ -2,6 +2,7 @@ package com.qpwflshclub.formal_club.controller;
 
 import com.qpwflshclub.formal_club.config.RegistrationVerification;
 import com.qpwflshclub.formal_club.pojo.Club.Club;
+import com.qpwflshclub.formal_club.social.SchoolAccounts;
 import com.qpwflshclub.formal_club.pojo.ResponseMessage;
 import com.qpwflshclub.formal_club.pojo.User.Admin;
 import com.qpwflshclub.formal_club.pojo.User.ClubPresident;
@@ -14,6 +15,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -40,6 +42,9 @@ public class UserController {
     com.qpwflshclub.formal_club.social.AccountProfiles profiles;
 
     @Autowired
+    com.qpwflshclub.formal_club.config.StudentRoster roster;
+
+    @Autowired
     com.qpwflshclub.formal_club.social.MessageKeyVault keyVault;
 
     @Autowired
@@ -50,11 +55,20 @@ public class UserController {
 
     public record SignupVerification(String email, String role, String turnstileToken) {}
 
+    public record SignupAvailability(
+        String email,
+        String studentNumber,
+        String role,
+        String username,
+        String usernameEn
+    ) {}
+
     @PostMapping("/registration-verification")
     public ResponseMessage<?> verifySignup(
         @RequestBody SignupVerification body,
         HttpServletRequest request
     ) {
+        requireSignupEmailAvailable(body.email());
         long expires = RegistrationVerification.require(
             request,
             body.email(),
@@ -63,6 +77,39 @@ public class UserController {
             turnstile
         );
         return ResponseMessage.success(Map.of("expires", expires));
+    }
+
+    @PostMapping("/registration-availability")
+    public ResponseMessage<?> availability(@RequestBody SignupAvailability body) {
+        String role = body.role() == null || body.role().isBlank() ? "user" : body.role();
+        if (!role.equals("user") && !role.equals("teacher")) {
+            throw com.qpwflshclub.formal_club.social.SchoolAccounts.error(
+                400,
+                "注册邮箱或身份无效 / Invalid signup email or role"
+            );
+        }
+        if (body.email() != null && !body.email().isBlank()) {
+            requireSignupEmailAvailable(body.email());
+        }
+        if (
+            role.equals("user") && body.studentNumber() != null && !body.studentNumber().isBlank()
+        ) {
+            if (roster != null) roster.requireMatchingStudent(
+                body.studentNumber(),
+                body.username(),
+                body.usernameEn()
+            );
+            if (profiles != null) profiles.requireStudentNumberAvailable(
+                body.email() == null ? "" : body.email(),
+                body.studentNumber()
+            );
+        }
+        return ResponseMessage.success(Map.of("available", true));
+    }
+
+    private void requireSignupEmailAvailable(String email) {
+        if (loginEmails != null) loginEmails.requireAvailable(email);
+        if (profiles != null) profiles.requireEmailAvailable(email);
     }
 
     private void verifyRegistrationEmail(HttpServletRequest request, String email, String code) {
@@ -129,9 +176,9 @@ public class UserController {
             400,
             "教师请使用 @shwfl.edu.cn 邮箱 / Teachers must use @shwfl.edu.cn"
         );
+        requireSignupEmailAvailable(teacherDTO.getEmail());
         verifyRegistrationEmail(request, teacherDTO.getEmail(), teacherDTO.getEmailCode());
         teacherDTO.setClubs(List.of());
-        if (loginEmails != null) loginEmails.requireAvailable(teacherDTO.getEmail());
         Teacher teacher = profiles.register(
             teacherDTO.getEmail(),
             "",
@@ -170,6 +217,11 @@ public class UserController {
             userDTO.getUsername(),
             userDTO.getUsernameEn()
         );
+        if (roster != null) roster.requireMatchingStudent(
+            userDTO.getStudentNumber(),
+            userDTO.getUsername(),
+            userDTO.getUsernameEn()
+        );
         RegistrationVerification.require(
             request,
             userDTO.getEmail(),
@@ -178,9 +230,9 @@ public class UserController {
             turnstile
         );
         com.qpwflshclub.formal_club.config.PasswordPolicy.require(userDTO.getPassword());
+        requireSignupEmailAvailable(userDTO.getEmail());
         verifyRegistrationEmail(request, userDTO.getEmail(), userDTO.getEmailCode());
         userDTO.setClubs(List.of());
-        if (loginEmails != null) loginEmails.requireAvailable(userDTO.getEmail());
         User user = profiles.register(
             userDTO.getEmail(),
             userDTO.getStudentNumber(),
@@ -326,7 +378,24 @@ public class UserController {
             default -> 0;
         };
         // Names are not unique identifiers. Delete only the selected typed account.
+        UserBase target = switch (type) {
+            case "teacher" -> userService.findTeacherByID(userDTO.getId());
+            case "club-president" -> userService.findClubPresidentByID(userDTO.getId());
+            case "admin" -> userService.findAdminByID(userDTO.getId());
+            default -> userService.findUserById(userDTO.getId());
+        };
+        String email = target == null ? "" : Objects.toString(target.getEmail(), "");
         userService.delete(userDTO.getId(), role);
+        if (!email.isBlank()) {
+            if (profiles != null) profiles.removeAccount(SchoolAccounts.key(email));
+            if (loginEmails != null) {
+                try {
+                    loginEmails.removeAccount(email);
+                } catch (IOException e) {
+                    throw new IllegalStateException("Cannot release login email", e);
+                }
+            }
+        }
         return new ResponseMessage<>(200, "删除成功", Long.toString(userDTO.getId()));
     }
 

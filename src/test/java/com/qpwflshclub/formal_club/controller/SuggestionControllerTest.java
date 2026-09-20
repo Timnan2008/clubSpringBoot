@@ -128,25 +128,45 @@ class SuggestionControllerTest {
         assertThat(dto.isPass()).isFalse();
         assertThat(dto.getId()).isNull();
         verify(suggestionService).add(dto);
+        assertThat(dto.isAnonymous()).isFalse();
+        assertThat(dto.getName()).isEqualTo("测试同学");
     }
 
-    @org.junit.jupiter.api.Test
-    void publicTitleCannotExposePendingOrAnonymousIdentity() {
+    @Test
+    void qingyuanIdeasRejectsAnonymousSubmit() {
+        controller.turnstile = org.mockito.Mockito.mock(
+            com.qpwflshclub.formal_club.service.Suggestion.TurnstileService.class
+        );
+        var dto = new com.qpwflshclub.formal_club.pojo.dto.Suggestion.SuggestionDTO();
+        dto.setAnonymous(true);
+        dto.setTitle("general");
+        dto.setContext("把图书馆开放时间延长");
+        dto.setTurnstileToken("valid");
+        org.assertj.core.api.Assertions.assertThatThrownBy(() ->
+            controller.addSuggestion(dto, request)
+        ).hasMessageContaining("匿名");
+        verify(suggestionService, never()).add(dto);
+    }
+
+    @Test
+    void publicTitleHidesPendingButShowsNamedAuthor() {
         var service = org.mockito.Mockito.mock(
             com.qpwflshclub.formal_club.service.Suggestion.ISuggestionService.class
         );
         var c = new SuggestionController();
         c.suggestionService = service;
         var suggestion = new com.qpwflshclub.formal_club.pojo.Suggestion.Suggestion();
-        suggestion.setName("Private name");
+        suggestion.setName("李同学");
         suggestion.setAnonymous(true);
+        suggestion.setContext("延长图书馆开放时间");
         org.mockito.Mockito.when(service.findByTitle("other")).thenReturn(suggestion);
         org.assertj.core.api.Assertions.assertThatThrownBy(() ->
             c.getSuggestion("other")
         ).hasMessageContaining("404");
         suggestion.setPass(true);
         var view = c.getSuggestion("other").getData();
-        org.assertj.core.api.Assertions.assertThat(view.getName()).isEmpty();
-        org.assertj.core.api.Assertions.assertThat(suggestion.getName()).isEqualTo("Private name");
+        org.assertj.core.api.Assertions.assertThat(view.getName()).isEqualTo("李同学");
+        org.assertj.core.api.Assertions.assertThat(view.isAnonymous()).isFalse();
+        org.assertj.core.api.Assertions.assertThat(view.getContext()).isEqualTo("延长图书馆开放时间");
     }
 }

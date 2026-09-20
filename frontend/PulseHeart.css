@@ -1,0 +1,67 @@
+button.pulse-heart {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  min-height: 40px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--ph-corner);
+  background: transparent;
+  box-shadow: none;
+  color: var(--ph-idle);
+  cursor: pointer;
+  touch-action: manipulation;
+}
+button.pulse-heart:hover {
+  background: color-mix(in srgb, var(--ph-liked) 8%, transparent);
+  color: var(--ph-liked);
+}
+.pulse-heart__pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 9px;
+  background: var(--ph-pill);
+  border-radius: var(--ph-corner);
+}
+.pulse-heart__heart {
+  display: block;
+  width: var(--ph-size);
+  height: var(--ph-size);
+  color: inherit;
+}
+.pulse-heart__heart svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  stroke: currentColor;
+  stroke-width: 1.65;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  overflow: visible;
+}
+button.pulse-heart[data-liked="true"] {
+  color: var(--ph-liked);
+}
+.pulse-heart__count {
+  display: inline-flex;
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  color: var(--ph-text);
+}
+.pulse-heart__count > span {
+  display: block;
+}
+.pulse-heart:focus-visible {
+  outline: 2px solid var(--ph-liked);
+  outline-offset: 3px;
+}
+.pulse-heart:disabled {
+  cursor: default;
+  opacity: 0.6;
+}

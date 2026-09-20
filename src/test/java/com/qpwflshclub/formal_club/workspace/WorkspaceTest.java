@@ -156,6 +156,70 @@ class WorkspaceTest {
     }
 
     @Test
+    void uploadedFilesCanBeDeletedAndDetachFromReports() throws Exception {
+        var uploaded = controller.upload(
+            1,
+            new MockMultipartFile(
+                "file",
+                "minutes.pdf",
+                "application/pdf",
+                "%PDF-minutes".getBytes()
+            ),
+            "Activity notes",
+            request
+        );
+        Path file = store.file(1, store.document(1, uploaded.id()));
+        assertThat(file).exists();
+        ClubOperationsStore operations = new ClubOperationsStore(
+            new ObjectMapper(),
+            directory.toString()
+        );
+        org.springframework.test.util.ReflectionTestUtils.setField(
+            controller,
+            "operations",
+            operations
+        );
+        operations.term(1, "2026 S1", "2026-09-01", "2027-01-31");
+        var term = operations.read(1).terms().getFirst();
+        operations.report(
+            1,
+            new ClubOperationsStore.Report(
+                "",
+                term.id(),
+                "feedback",
+                "activity-1",
+                "Session",
+                "What happened",
+                "Members liked it",
+                "Next week",
+                "",
+                "",
+                "",
+                "",
+                "",
+                uploaded.id(),
+                "submitted",
+                "",
+                "",
+                "president@example.com"
+            )
+        );
+        assertThat(controller.deleteDocument(1, uploaded.id(), request)).containsEntry(
+            "message",
+            "附件已删除"
+        );
+        assertThat(store.read(1).documents()).isEmpty();
+        assertThat(file).doesNotExist();
+        assertThat(operations.read(1).reports().getFirst().document()).isEmpty();
+        assertThatThrownBy(() ->
+            controller.deleteDocument(2, uploaded.id(), request)
+        ).hasMessageContaining("403");
+        assertThatThrownBy(() ->
+            controller.deleteDocument(1, uploaded.id(), request)
+        ).hasMessageContaining("404");
+    }
+
+    @Test
     void applicationsRequireAdminReviewAndPersistOutcome() throws Exception {
         String start = LocalDateTime.now().plusDays(2).toString(),
             end = LocalDateTime.now().plusDays(2).plusHours(1).toString();

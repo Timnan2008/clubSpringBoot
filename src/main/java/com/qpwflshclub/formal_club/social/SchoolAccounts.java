@@ -307,7 +307,13 @@ public class SchoolAccounts {
         return directory()
             .values()
             .stream()
-            .filter(a -> (includeSelf || !a.id().equals(own)) && matches(a, q))
+            .filter(
+                a ->
+                    (includeSelf || !a.id().equals(own)) &&
+                    matches(a, q) &&
+                    (!"president".equals(a.role()) ||
+                        OfficerAssignments.named(a.name(), a.nameEn()))
+            )
             .sorted(
                 Comparator.<Account>comparingInt(a ->
                     ContentModeration.normalize(a.nickname()).equals(q) ||

@@ -68,6 +68,11 @@ public class ClubAppointments {
             } catch (java.io.IOException e) {
                 throw SchoolAccounts.error(503, "任职保存失败，请重试");
             }
+            retirePlaceholderOfficers(
+                club.getId(),
+                invitation.role(),
+                SchoolAccounts.key(target.getEmail())
+            );
             updateNames(club);
             accounts.invalidateDirectory();
             return;
@@ -91,6 +96,11 @@ public class ClubAppointments {
             Objects.equals(c.getId(), club.getId())
         );
         presidents.save(p);
+        retirePlaceholderOfficers(
+            club.getId(),
+            invitation.role(),
+            SchoolAccounts.key(target.getEmail())
+        );
         List<ClubPresident> team = new ArrayList<>();
         presidents.findAll().forEach(team::add);
         ClubPresident accepted = p;
@@ -142,6 +152,21 @@ public class ClubAppointments {
         club.setVicePresident(names(team, true, false));
         club.setVicePresidentEn(names(team, true, true));
         clubs.save(club);
+    }
+
+    private void retirePlaceholderOfficers(int club, String position, String keep) {
+        boolean vice = "vice_president".equals(position);
+        for (var p : presidents.findAll()) {
+            if (
+                OfficerAssignments.named(p) ||
+                p.getMainClub() == null ||
+                p.getMainClub().getId() != club ||
+                p.isVicePresident() != vice ||
+                SchoolAccounts.key(p.getEmail()).equals(keep)
+            ) continue;
+            p.setMainClub(null);
+            presidents.save(p);
+        }
     }
 
     private String names(List<ClubPresident> team, boolean vice, boolean english) {

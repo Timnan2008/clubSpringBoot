@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.file.*;
+import java.util.concurrent.TimeUnit;
 import javax.imageio.ImageIO;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
@@ -86,5 +87,50 @@ class MediaCompressionTest {
         assertThatThrownBy(() ->
             MediaCompression.video(bad, dir.resolve("bad-out.mp4"))
         ).hasMessageContaining("400");
+    }
+
+    @Test
+    void alreadyWebReadyVideoIsRemuxedInsteadOfReencoded() throws Exception {
+        Path input = dir.resolve("ready.mp4"),
+            output = dir.resolve("ready-out.mp4");
+        var proc = new ProcessBuilder(
+            "ffmpeg",
+            "-nostdin",
+            "-y",
+            "-v",
+            "error",
+            "-f",
+            "lavfi",
+            "-i",
+            "testsrc2=size=1280x720:rate=24",
+            "-f",
+            "lavfi",
+            "-i",
+            "sine=frequency=440:sample_rate=44100",
+            "-t",
+            "1",
+            "-c:v",
+            "libx264",
+            "-pix_fmt",
+            "yuv420p",
+            "-c:a",
+            "aac",
+            "-shortest",
+            "-movflags",
+            "+faststart",
+            input.toString()
+        )
+            .redirectError(ProcessBuilder.Redirect.DISCARD)
+            .start();
+        assertThat(proc.waitFor()).isZero();
+        long started = System.nanoTime();
+        MediaCompression.video(input, output);
+        assertThat(System.nanoTime() - started).isLessThan(TimeUnit.SECONDS.toNanos(12));
+        assertThat(Files.size(output)).isGreaterThan(0);
+        String raw = new String(
+            Files.readAllBytes(output),
+            java.nio.charset.StandardCharsets.ISO_8859_1
+        );
+        assertThat(raw.indexOf("moov")).isLessThan(raw.indexOf("mdat"));
     }
 }

@@ -125,7 +125,9 @@ public class ClubProfileController {
         if (s == null || (required && s.isBlank()) || s.length() > max) throw WorkspaceStore.bad(
             "请完整填写资料，并遵守字数限制"
         );
-        return s.trim();
+        String trimmed = s.trim();
+        com.qpwflshclub.formal_club.social.ContentModeration.check(trimmed);
+        return trimmed;
     }
 
     @ExceptionHandler(ResponseStatusException.class)

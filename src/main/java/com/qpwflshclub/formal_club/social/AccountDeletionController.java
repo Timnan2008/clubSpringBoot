@@ -99,6 +99,9 @@ public class AccountDeletionController {
     ContentAudit audit;
 
     @Autowired
+    ContentDiscipline discipline;
+
+    @Autowired
     WallFiles files;
 
     @Autowired
@@ -255,6 +258,7 @@ public class AccountDeletionController {
         }
         officers.removeAccount(id);
         audit.removeAccount(id);
+        if (discipline != null) discipline.removeAccount(id);
         recovery.remove(id);
         keys.removeAccount(id);
         logins.removeAccount(email);

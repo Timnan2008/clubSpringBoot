@@ -42,7 +42,7 @@ export default function Avatar({ person, className = "" }) {
           }
           sizes="(max-width:600px) 160px, 256px"
           style={{
-            transform: `translate(${(look.x || 0) * 100}%, ${(look.y || 0) * 100}%) scale(${look.scale || 1})`,
+            transform: `translate(-50%, -50%) translate(${(look.x || 0) * 100}%, ${(look.y || 0) * 100}%) scale(${look.scale || 1})`,
           }}
           alt=""
           aria-hidden="true"

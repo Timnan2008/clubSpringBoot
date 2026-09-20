@@ -82,6 +82,13 @@ public class BookingRepository {
         );
     }
 
+    public Optional<Reservation> find(long id) {
+        return jdbc
+            .query("SELECT * FROM club_booking_reservation WHERE id=?", RESERVATION, id)
+            .stream()
+            .findFirst();
+    }
+
     public Optional<Reservation> request(String owner, String key) {
         return jdbc
             .query(
@@ -108,6 +115,13 @@ public class BookingRepository {
             "SELECT * FROM club_booking_reservation WHERE owner_key=? ORDER BY start_time DESC,id DESC",
             RESERVATION,
             owner
+        );
+    }
+
+    public List<Reservation> all() {
+        return jdbc.query(
+            "SELECT * FROM club_booking_reservation ORDER BY start_time DESC,id DESC LIMIT 5000",
+            RESERVATION
         );
     }
 

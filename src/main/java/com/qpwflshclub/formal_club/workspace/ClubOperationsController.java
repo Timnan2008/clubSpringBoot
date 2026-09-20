@@ -65,7 +65,12 @@ public class ClubOperationsController {
         String feedback,
         String improvements,
         String document,
-        String status
+        String status,
+        String recruitment,
+        String project,
+        String outcomes,
+        String resources,
+        String weeklyPlan
     ) {}
 
     private WorkspaceStore.Activity activity(int club, String id) throws IOException {
@@ -90,15 +95,20 @@ public class ClubOperationsController {
     ) throws IOException {
         var actor = require(club, r, true);
         var term = store.term(store.read(club), input.term());
+        String kind = Objects.toString(input.kind(), "");
+        String status = Objects.toString(input.status(), "");
         if (
-            !Set.of("proposal", "review", "feedback").contains(
-                Objects.toString(input.kind(), "")
-            ) ||
-            !Set.of("draft", "submitted").contains(Objects.toString(input.status(), ""))
+            !Set.of("proposal", "review", "feedback").contains(kind) ||
+            !Set.of("draft", "submitted", "not_held").contains(status)
         ) throw WorkspaceStore.bad("记录类型或提交状态无效");
-        boolean submit = input.status().equals("submitted");
+        boolean notHeld = status.equals("not_held");
+        if (notHeld && !kind.equals("feedback")) throw WorkspaceStore.bad(
+            "只有活动反馈可标记未举行"
+        );
+        boolean submit = status.equals("submitted");
         String activity = Objects.toString(input.activity(), "");
-        if (input.kind().equals("feedback")) {
+        String title = Objects.toString(input.title(), "");
+        if (kind.equals("feedback")) {
             var a = activity(club, activity);
             if (
                 a.start().substring(0, 10).compareTo(term.start()) < 0 ||
@@ -108,30 +118,33 @@ public class ClubOperationsController {
                 submit &&
                 LocalDateTime.parse(a.end()).isAfter(LocalDateTime.now(ZoneId.of("Asia/Shanghai")))
             ) throw WorkspaceStore.bad("活动结束后才能提交反馈记录，可先保存草稿");
+            if (notHeld && title.isBlank()) title = a.title() + " · 未举行";
         } else if (!activity.isEmpty()) throw WorkspaceStore.bad("学期记录不能关联单次活动");
         String document = Objects.toString(input.document(), "");
         if (!document.isEmpty()) workspace.document(club, document);
+        boolean proposal = kind.equals("proposal");
         return store.report(
             club,
             new ClubOperationsStore.Report(
                 "",
                 term.id(),
-                input.kind(),
+                kind,
                 activity,
-                ClubOperationsStore.text(input.title(), 160, submit),
+                ClubOperationsStore.text(title, 160, submit),
                 ClubOperationsStore.text(input.content(), 10000, submit),
-                ClubOperationsStore.text(
-                    input.feedback(),
-                    5000,
-                    submit && input.kind().equals("feedback")
-                ),
+                ClubOperationsStore.text(input.feedback(), 5000, submit && kind.equals("feedback")),
                 ClubOperationsStore.text(
                     input.improvements(),
                     5000,
-                    submit && !input.kind().equals("proposal")
+                    submit && !kind.equals("proposal")
                 ),
+                ClubOperationsStore.text(input.recruitment(), 5000, submit && proposal),
+                ClubOperationsStore.text(input.project(), 10000, submit && proposal),
+                ClubOperationsStore.text(input.outcomes(), 8000, submit && proposal),
+                ClubOperationsStore.text(input.resources(), 5000, submit && proposal),
+                ClubOperationsStore.weeks(input.weeklyPlan(), submit && proposal),
                 document,
-                input.status(),
+                status,
                 "",
                 "",
                 actor.getEmail()
@@ -151,12 +164,7 @@ public class ClubOperationsController {
         HttpServletRequest r
     ) throws IOException {
         var actor = require(club, r, true);
-        var event = activity(club, activity);
-        if (
-            LocalDateTime.parse(event.start()).isAfter(
-                LocalDateTime.now(ZoneId.of("Asia/Shanghai"))
-            )
-        ) throw WorkspaceStore.bad("活动开始后才能签到");
+        activity(club, activity);
         if (input.marks() == null || input.marks().size() > 5000) throw WorkspaceStore.bad(
             "签到名单无效"
         );

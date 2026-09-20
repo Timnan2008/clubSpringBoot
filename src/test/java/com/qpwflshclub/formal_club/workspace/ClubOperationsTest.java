@@ -9,6 +9,7 @@ import com.qpwflshclub.formal_club.pojo.User.*;
 import com.qpwflshclub.formal_club.repository.Club.ClubRepository;
 import com.qpwflshclub.formal_club.repository.User.*;
 import com.qpwflshclub.formal_club.service.User.IUserService;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.*;
 import java.util.*;
@@ -115,7 +116,31 @@ class ClubOperationsTest {
             feedback,
             improvements,
             "",
-            status
+            status,
+            "",
+            "",
+            "",
+            "",
+            ""
+        );
+    }
+
+    ClubOperationsController.ReportInput proposal(String content, String status) {
+        return new ClubOperationsController.ReportInput(
+            term,
+            "proposal",
+            "",
+            "Title",
+            content,
+            "",
+            "",
+            "",
+            status,
+            "Recruit at the fair",
+            "Term project",
+            "LO 1 and LO 5",
+            "Classroom and printer",
+            "[{\"week\":\"第1–6周\",\"plan\":\"Weekly meeting\"}]"
         );
     }
 
@@ -140,12 +165,8 @@ class ClubOperationsTest {
         assertThatThrownBy(() ->
             controller.report(1, report("proposal", "", "", "", "", "submitted"), request)
         ).hasMessageContaining("400");
-        controller.report(
-            1,
-            report("proposal", "", "Goals and schedule", "", "", "submitted"),
-            request
-        );
-        controller.report(1, report("proposal", "", "Updated plan", "", "", "submitted"), request);
+        controller.report(1, proposal("Goals and schedule", "submitted"), request);
+        controller.report(1, proposal("Updated plan", "submitted"), request);
         var data = new ClubOperationsStore(new ObjectMapper(), dir.toString()).read(1);
         assertThat(data.reports()).hasSize(1);
         assertThat(data.reports().getFirst().content()).isEqualTo("Updated plan");
@@ -162,6 +183,36 @@ class ClubOperationsTest {
             request
         );
         assertThat(store.read(1).reports()).hasSize(2);
+    }
+
+    @Test
+    void proposalSubmitRequiresCasTemplateSections() throws Exception {
+        assertThatThrownBy(() ->
+            controller.report(1, report("proposal", "", "Goals only", "", "", "submitted"), request)
+        ).hasMessageContaining("请完整填写");
+        var saved = (ClubOperationsStore.Report) controller.report(
+            1,
+            proposal("Goals and schedule", "submitted"),
+            request
+        );
+        assertThat(saved.recruitment()).contains("Recruit");
+        assertThat(saved.project()).isEqualTo("Term project");
+        assertThat(saved.outcomes()).contains("LO");
+        assertThat(saved.resources()).contains("Classroom");
+        assertThat(saved.weeklyPlan()).contains("Weekly meeting");
+        Files.writeString(
+            dir.resolve("1/operations.json"),
+            """
+            {"terms":[],"reports":[{"id":"old","term":"t","kind":"proposal","activity":"","title":"A","content":"B","feedback":"","improvements":"","document":"","status":"draft","updatedAt":"","submittedAt":"","author":"a"}],"attendance":[],"candidates":[]}
+            """
+        );
+        assertThat(
+            new ClubOperationsStore(new ObjectMapper(), dir.toString())
+                .read(1)
+                .reports()
+                .getFirst()
+                .recruitment()
+        ).isEmpty();
     }
 
     @Test
@@ -207,6 +258,53 @@ class ClubOperationsTest {
     }
 
     @Test
+    void feedbackCanBeMarkedNotHeldWithoutFillingFields() throws Exception {
+        assertThatThrownBy(() ->
+            controller.report(1, report("proposal", "", "", "", "", "not_held"), request)
+        ).hasMessageContaining("只有活动反馈");
+        controller.report(
+            1,
+            new ClubOperationsController.ReportInput(
+                term,
+                "feedback",
+                future,
+                "",
+                "",
+                "",
+                "",
+                "",
+                "not_held",
+                "",
+                "",
+                "",
+                "",
+                ""
+            ),
+            request
+        );
+        var saved = store.read(1).reports().getFirst();
+        assertThat(saved.status()).isEqualTo("not_held");
+        assertThat(saved.content()).isEmpty();
+        assertThat(saved.feedback()).isEmpty();
+        assertThat(saved.title()).contains("未举行");
+        assertThat(saved.submittedAt()).isNotBlank();
+        assertThatThrownBy(() ->
+            controller.report(1, report("feedback", future, "Draft", "", "", "draft"), request)
+        ).hasMessageContaining("已提交");
+        controller.report(1, report("feedback", event, "", "", "", "not_held"), request);
+        assertThat(
+            store
+                .read(1)
+                .reports()
+                .stream()
+                .filter(r -> r.activity().equals(event))
+                .findFirst()
+                .orElseThrow()
+                .status()
+        ).isEqualTo("not_held");
+    }
+
+    @Test
     void attachmentsMustBeStoredInsideTheAuthorizedClub() throws Exception {
         var doc = workspace.upload(
             2,
@@ -228,11 +326,55 @@ class ClubOperationsTest {
             "",
             "",
             doc.id(),
-            "submitted"
+            "submitted",
+            "",
+            "",
+            "",
+            "",
+            ""
         );
         assertThatThrownBy(() -> controller.report(1, input, request)).hasMessageContaining(
             "文件不存在"
         );
+    }
+
+    @Test
+    void deletingAnAttachmentUnlinksItFromSavedReports() throws Exception {
+        var doc = workspace.upload(
+            1,
+            new org.springframework.mock.web.MockMultipartFile(
+                "file",
+                "notes.pdf",
+                "application/pdf",
+                "notes".getBytes()
+            ),
+            "feedback",
+            "author"
+        );
+        controller.report(
+            1,
+            new ClubOperationsController.ReportInput(
+                term,
+                "proposal",
+                "",
+                "Plan",
+                "Content",
+                "",
+                "",
+                doc.id(),
+                "submitted",
+                "Recruit at the fair",
+                "Term project",
+                "LO 1 and LO 5",
+                "Classroom and printer",
+                "[{\"week\":\"第1–6周\",\"plan\":\"Weekly meeting\"}]"
+            ),
+            request
+        );
+        assertThat(store.read(1).reports().getFirst().document()).isEqualTo(doc.id());
+        store.unlinkDocument(1, doc.id());
+        assertThat(store.read(1).reports().getFirst().document()).isEmpty();
+        assertThat(store.read(1).reports().getFirst().title()).isEqualTo("Plan");
     }
 
     @Test
@@ -245,9 +387,6 @@ class ClubOperationsTest {
             controller.attendance(1, event, foreign, request)
         ).hasMessageContaining("本社团成员");
         student.getClubs().add(club);
-        assertThatThrownBy(() ->
-            controller.attendance(1, future, foreign, request)
-        ).hasMessageContaining("开始后");
         for (String status : List.of("present", "leave", "absent")) {
             controller.attendance(
                 1,
@@ -290,6 +429,58 @@ class ClubOperationsTest {
         assertThatThrownBy(() -> members.removeEvent(1, event, request)).hasMessageContaining(
             "不能删除"
         );
+    }
+
+    @Test
+    void attendanceAllowsAnyScheduledActivity() throws Exception {
+        student.getClubs().add(club);
+        LocalDate day = LocalDate.now(ZoneId.of("Asia/Shanghai"));
+        String later = add("same-day", day.toString());
+        workspace.add(
+            1,
+            new WorkspaceStore.Activity(
+                "late-today",
+                "late-today",
+                day + "T23:59",
+                day.plusDays(1) + "T00:30",
+                "Room",
+                "Evening",
+                10,
+                "event",
+                "scheduled",
+                "author",
+                day.toString(),
+                "",
+                ""
+            )
+        );
+        controller.attendance(
+            1,
+            later,
+            new ClubOperationsController.AttendanceInput(
+                List.of(new ClubOperationsController.MarkInput("student:1", "present"))
+            ),
+            request
+        );
+        controller.attendance(
+            1,
+            "late-today",
+            new ClubOperationsController.AttendanceInput(
+                List.of(new ClubOperationsController.MarkInput("student:1", "leave"))
+            ),
+            request
+        );
+        controller.attendance(
+            1,
+            future,
+            new ClubOperationsController.AttendanceInput(
+                List.of(new ClubOperationsController.MarkInput("student:1", "present"))
+            ),
+            request
+        );
+        assertThat(store.read(1).attendance())
+            .extracting(ClubOperationsStore.Attendance::activity)
+            .contains("same-day", "late-today", "future");
     }
 
     @Test

@@ -11,7 +11,7 @@
 }
 .mention-composer .mention-options {
   position: absolute;
-  z-index: 110;
+  z-index: 220;
   box-sizing: border-box;
   padding: 5px;
   overflow-y: auto;

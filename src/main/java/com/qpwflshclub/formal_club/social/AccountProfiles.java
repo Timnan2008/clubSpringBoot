@@ -2,6 +2,7 @@ package com.qpwflshclub.formal_club.social;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.qpwflshclub.formal_club.config.LoginEmails;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.*;
@@ -12,6 +13,10 @@ import org.springframework.stereotype.Service;
 /** Single-instance private profile registry. Student numbers are unique and immutable. */
 @Service
 public class AccountProfiles {
+
+    public static final String EMAIL_REGISTERED = LoginEmails.EMAIL_REGISTERED;
+    public static final String STUDENT_NUMBER_REGISTERED =
+        "这个学生号已绑定账户，请直接登录 / This student number is already registered. Please sign in.";
 
     public record Profile(
         String studentNumber,
@@ -55,6 +60,7 @@ public class AccountProfiles {
             value.length() > limit ||
             value.codePoints().anyMatch(c -> Character.isISOControl(c) && c != '\n')
         ) throw SchoolAccounts.error(400, "资料超出长度限制 / Profile text is too long");
+        ContentModeration.check(value);
         return value;
     }
 
@@ -79,11 +85,19 @@ public class AccountProfiles {
                 .entrySet()
                 .stream()
                 .anyMatch(e -> !e.getKey().equals(me) && n.equals(e.getValue().studentNumber()))
-        ) throw SchoolAccounts.error(
-            409,
-            "这个学生号已绑定账户 / This student number is already registered"
-        );
+        ) throw SchoolAccounts.error(409, STUDENT_NUMBER_REGISTERED);
         return n;
+    }
+
+    public synchronized void requireEmailAvailable(String email) {
+        if (profiles.containsKey(SchoolAccounts.key(email))) throw SchoolAccounts.error(
+            409,
+            EMAIL_REGISTERED
+        );
+    }
+
+    public synchronized void requireStudentNumberAvailable(String email, String studentNumber) {
+        number(email == null ? "" : email, studentNumber);
     }
 
     private void persist() {
@@ -118,10 +132,7 @@ public class AccountProfiles {
         Supplier<T> create
     ) {
         String key = SchoolAccounts.key(email);
-        if (profiles.containsKey(key)) throw SchoolAccounts.error(
-            409,
-            "此邮箱已注册 / Email already registered"
-        );
+        requireEmailAvailable(email);
         String n = number(email, studentNumber);
         if (student && n.isEmpty()) throw SchoolAccounts.error(
             400,
@@ -177,5 +188,14 @@ public class AccountProfiles {
     public synchronized void removeAccount(String id) {
         profiles.remove(id);
         persist();
+    }
+
+    public synchronized int retain(Set<String> ids) {
+        if (ids == null || ids.isEmpty()) return 0;
+        int before = profiles.size();
+        profiles.keySet().retainAll(ids);
+        int removed = before - profiles.size();
+        if (removed > 0) persist();
+        return removed;
     }
 }

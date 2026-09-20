@@ -1,7 +1,12 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { tx, en } from "./language";
+import { embeddedBrowser as detectEmbedded } from "./embedded-browser.mjs";
 let loading,
   loadSequence = 0;
+export function embeddedBrowser(ua = navigator.userAgent || "") {
+  return detectEmbedded(ua);
+}
 // Keep one SDK request for all widgets; only cache successful initialization.
 export function loadTurnstile() {
   if (window.turnstile?.render) return Promise.resolve(window.turnstile);
@@ -56,20 +61,68 @@ async function configuration(signal) {
     signal.removeEventListener("abort", cancel);
   }
 }
-export default function Turnstile({ onToken, reset, action = "suggestion" }) {
-  const root = useRef(),
+function errorText(code) {
+  if (embeddedBrowser())
+    return tx(
+      "当前浏览器无法完成验证。请点右上角 ···，选择在 Safari 或系统浏览器中打开。",
+      "This in-app browser cannot finish verification. Open the page in Safari or Chrome from the menu.",
+    );
+  const value = String(code || "");
+  if (value.startsWith("600") || value.startsWith("300") || value === "110600")
+    return tx(
+      "安全验证未通过。请关闭加速器后重试，或换用 Safari / Chrome。",
+      "Verification did not complete. Turn off a VPN and retry in Safari or Chrome.",
+    );
+  if (value === "200500" || value === "script-network" || value === "script-timeout")
+    return tx(
+      "连不上验证服务。请检查网络后重试，校园网有时会拦截。",
+      "Cannot reach verification. Check the network and retry.",
+    );
+  return (
+    tx("验证未完成，请重试。", "Verification did not finish. Please retry.") +
+    (value ? " (" + value + ")" : "")
+  );
+}
+export default function Turnstile({ onToken, reset, action = "suggestion", theme = "light" }) {
+  const slot = useRef(),
+    host = useRef(),
     callback = useRef(onToken),
+    failures = useRef(0),
     [error, setError] = useState(""),
     [attempt, setAttempt] = useState(0),
     [passed, setPassed] = useState(false),
-    [loaded, setLoaded] = useState(false);
+    [loaded, setLoaded] = useState(false),
+    [box, setBox] = useState(null);
   callback.current = onToken;
+  useLayoutEffect(() => {
+    const el = slot.current;
+    if (!el) return;
+    const update = () => {
+      const r = el.getBoundingClientRect();
+      setBox({
+        top: Math.round(r.top),
+        left: Math.round(r.left),
+        width: Math.max(Math.round(r.width), 280),
+      });
+    };
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(el);
+    window.addEventListener("resize", update);
+    window.addEventListener("scroll", update, true);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", update);
+      window.removeEventListener("scroll", update, true);
+    };
+  }, [attempt, reset]);
   useEffect(() => {
     let live = true,
       id,
       api,
       timer;
     const abort = new AbortController();
+    failures.current = 0;
     callback.current("");
     setPassed(false);
     setError("");
@@ -81,19 +134,34 @@ export default function Turnstile({ onToken, reset, action = "suggestion" }) {
       }
     };
     const start = async () => {
+      await new Promise((resolve) => {
+        timer = setTimeout(resolve, 480);
+      });
+      if (!live) return;
       for (let n = 0; n < 3 && live; n++)
         try {
-          const [ts, config] = await Promise.all([loadTurnstile(), configuration(abort.signal)]);
+          const config = await configuration(abort.signal);
           if (!live) return;
+          if (config.local) {
+            setLoaded(true);
+            setPassed(true);
+            callback.current("local");
+            return;
+          }
+          const ts = await loadTurnstile();
+          if (!live) return;
+          if (!host.current) await new Promise((resolve) => requestAnimationFrame(() => resolve()));
+          if (!live || !host.current) return;
           api = ts;
-          id = ts.render(root.current, {
+          id = ts.render(host.current, {
             sitekey: config.siteKey,
             action,
-            theme: "light",
+            theme,
             size: "flexible",
+            appearance: "always",
             language: en ? "en" : "zh-cn",
             retry: "auto",
-            "retry-interval": 3000,
+            "retry-interval": 8000,
             "refresh-expired": "auto",
             "refresh-timeout": "auto",
             callback: (token) => {
@@ -107,14 +175,9 @@ export default function Turnstile({ onToken, reset, action = "suggestion" }) {
             "timeout-callback": clear,
             "error-callback": (code) => {
               clear();
-              if (live)
-                setError(
-                  tx("验证暂未完成，正在重试。", "Verification interrupted. Retrying.") +
-                    " (" +
-                    code +
-                    ")",
-                );
-              return true;
+              failures.current += 1;
+              if (live) setError(errorText(code));
+              return failures.current >= 2;
             },
           });
           setLoaded(true);
@@ -131,9 +194,7 @@ export default function Turnstile({ onToken, reset, action = "suggestion" }) {
             return;
           }
           if (n === 2) {
-            setError(
-              tx("暂时无法连接验证服务，请重试。", "Unable to reach verification. Please retry."),
-            );
+            setError(errorText(e.message));
             return;
           }
           await new Promise((resolve) => {
@@ -153,16 +214,50 @@ export default function Turnstile({ onToken, reset, action = "suggestion" }) {
       window.removeEventListener("online", online);
       if (api && id !== undefined) api.remove(id);
     };
-  }, [attempt, reset, action]);
+  }, [attempt, reset, action, theme]);
   return (
     <div className="ideas-turnstile">
       <strong className="verification-label">
         {tx("安全验证 · Cloudflare", "Security check · Cloudflare")}
       </strong>
+      {embeddedBrowser() && (
+        <p className="ideas-turnstile-browser" role="status">
+          {tx(
+            "微信、QQ 里通常过不了这项验证。请点右上角 ···，选择在 Safari 或系统浏览器中打开。",
+            "WeChat and QQ in-app browsers usually fail this check. Open the page in Safari or Chrome from the menu.",
+          )}
+        </p>
+      )}
       {!loaded && !error && (
         <p role="status">{tx("正在连接验证服务…", "Connecting to verification…")}</p>
       )}
-      <div ref={root} />
+      <div ref={slot} className="ideas-turnstile-slot" />
+      {createPortal(
+        <div
+          ref={host}
+          className="ideas-turnstile-host"
+          style={
+            box
+              ? {
+                  position: "fixed",
+                  top: box.top,
+                  left: box.left,
+                  width: box.width,
+                  zIndex: 40,
+                  transform: "none",
+                  filter: "none",
+                  perspective: "none",
+                }
+              : {
+                  position: "fixed",
+                  left: -9999,
+                  top: 0,
+                  width: 300,
+                }
+          }
+        />,
+        document.body,
+      )}
       {passed && (
         <small className="ideas-verified" role="status">
           ✓ {tx("人机验证已通过", "Verification complete")}

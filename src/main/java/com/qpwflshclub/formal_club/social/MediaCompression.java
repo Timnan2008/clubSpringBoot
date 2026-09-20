@@ -1,8 +1,11 @@
 package com.qpwflshclub.formal_club.social;
 
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
 import java.util.concurrent.*;
@@ -88,48 +91,11 @@ public final class MediaCompression {
         Process process = null;
         boolean complete = false;
         try {
-            process = new ProcessBuilder(
-                "ffmpeg",
-                "-nostdin",
-                "-y",
-                "-v",
-                "error",
-                "-protocol_whitelist",
-                "file,pipe",
-                "-f",
-                "mov",
-                "-i",
-                input.toAbsolutePath().toString(),
-                "-map",
-                "0:v:0",
-                "-map",
-                "0:a:0?",
-                "-vf",
-                "scale=w='min(1280,iw)':h='min(720,ih)':force_original_aspect_ratio=decrease:force_divisible_by=2",
-                "-c:v",
-                "libx264",
-                "-preset",
-                "veryfast",
-                "-crf",
-                "27",
-                "-pix_fmt",
-                "yuv420p",
-                "-threads",
-                "2",
-                "-c:a",
-                "aac",
-                "-b:a",
-                "96k",
-                "-map_metadata",
-                "-1",
-                "-movflags",
-                "+faststart",
-                output.toAbsolutePath().toString()
-            )
+            process = new ProcessBuilder(command(input, output, inspect(input)))
                 .redirectErrorStream(true)
                 .redirectOutput(log.toFile())
                 .start();
-            if (!process.waitFor(90, TimeUnit.SECONDS)) {
+            if (!process.waitFor(300, TimeUnit.SECONDS)) {
                 process.destroyForcibly();
                 throw SchoolAccounts.error(
                     400,
@@ -148,6 +114,162 @@ public final class MediaCompression {
             Files.deleteIfExists(log);
             if (!complete) Files.deleteIfExists(output);
             videos.release();
+        }
+    }
+
+    private record Inspect(boolean copyVideo, boolean copyAudio, boolean limitFps) {
+        static final Inspect ENCODE = new Inspect(false, false, false);
+    }
+
+    private static Inspect inspect(Path input) {
+        try {
+            String[] video = capture(
+                List.of(
+                    "ffprobe",
+                    "-v",
+                    "error",
+                    "-f",
+                    "mov",
+                    "-i",
+                    input.toAbsolutePath().toString(),
+                    "-select_streams",
+                    "v:0",
+                    "-show_entries",
+                    "stream=codec_name,width,height,pix_fmt,avg_frame_rate",
+                    "-of",
+                    "csv=p=0"
+                )
+            )
+                .strip()
+                .split(",", -1);
+            String audio = capture(
+                List.of(
+                    "ffprobe",
+                    "-v",
+                    "error",
+                    "-f",
+                    "mov",
+                    "-i",
+                    input.toAbsolutePath().toString(),
+                    "-select_streams",
+                    "a:0",
+                    "-show_entries",
+                    "stream=codec_name",
+                    "-of",
+                    "csv=p=0"
+                )
+            ).strip();
+            if (video.length < 3) return Inspect.ENCODE;
+            int width = parseInt(video[1]),
+                height = parseInt(video[2]);
+            String pix = video.length > 3 ? video[3].strip() : "";
+            boolean copyVideo =
+                "h264".equals(video[0].strip()) &&
+                width > 0 &&
+                height > 0 &&
+                width <= 1280 &&
+                height <= 720 &&
+                (pix.isEmpty() || "yuv420p".equals(pix));
+            boolean copyAudio = audio.isEmpty() || "aac".equals(audio);
+            return new Inspect(
+                copyVideo,
+                copyAudio,
+                !copyVideo && parseFps(video.length > 4 ? video[4] : "") > 30.5
+            );
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return Inspect.ENCODE;
+        } catch (Exception ignored) {
+            return Inspect.ENCODE;
+        }
+    }
+
+    private static List<String> command(Path input, Path output, Inspect inspect) {
+        List<String> command = new ArrayList<>(
+            List.of(
+                "ffmpeg",
+                "-nostdin",
+                "-y",
+                "-v",
+                "error",
+                "-protocol_whitelist",
+                "file,pipe",
+                "-f",
+                "mov",
+                "-i",
+                input.toAbsolutePath().toString(),
+                "-map",
+                "0:v:0",
+                "-map",
+                "0:a:0?"
+            )
+        );
+        if (inspect.copyVideo() && inspect.copyAudio()) {
+            command.addAll(List.of("-c", "copy"));
+        } else if (inspect.copyVideo()) {
+            command.addAll(List.of("-c:v", "copy", "-c:a", "aac", "-b:a", "96k"));
+        } else {
+            command.addAll(
+                List.of(
+                    "-vf",
+                    (inspect.limitFps() ? "fps=30," : "") +
+                        "scale=w='min(1280,iw)':h='min(720,ih)':force_original_aspect_ratio=decrease:force_divisible_by=2",
+                    "-c:v",
+                    "libx264",
+                    "-preset",
+                    "ultrafast",
+                    "-crf",
+                    "28",
+                    "-pix_fmt",
+                    "yuv420p",
+                    "-threads",
+                    "2"
+                )
+            );
+            if (inspect.copyAudio()) command.addAll(List.of("-c:a", "copy"));
+            else command.addAll(List.of("-c:a", "aac", "-b:a", "96k"));
+        }
+        command.addAll(
+            List.of(
+                "-map_metadata",
+                "-1",
+                "-movflags",
+                "+faststart",
+                output.toAbsolutePath().toString()
+            )
+        );
+        return command;
+    }
+
+    private static String capture(List<String> command) throws IOException, InterruptedException {
+        Process process = new ProcessBuilder(command)
+            .redirectError(ProcessBuilder.Redirect.DISCARD)
+            .start();
+        byte[] out = process.getInputStream().readAllBytes();
+        if (!process.waitFor(15, TimeUnit.SECONDS)) {
+            process.destroyForcibly();
+            throw new IOException("ffprobe timed out");
+        }
+        if (process.exitValue() != 0) throw new IOException("ffprobe failed");
+        return new String(out, StandardCharsets.US_ASCII);
+    }
+
+    private static int parseInt(String value) {
+        try {
+            return Integer.parseInt(value.strip());
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    private static double parseFps(String value) {
+        String[] parts = value.strip().split("/", 2);
+        try {
+            double numerator = Double.parseDouble(parts[0]);
+            double denominator = parts.length == 1 ? 1 : Double.parseDouble(parts[1]);
+            return denominator == 0 ? 0 : numerator / denominator;
+        } catch (NumberFormatException e) {
+            return 0;
         }
     }
 }

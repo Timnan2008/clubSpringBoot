@@ -1,3 +1,4 @@
+import CodeSlots from "./CodeSlots";
 import ForgotPassword from "./ForgotPassword";
 import { tr as localize } from "./language";
 import PasswordStrength, { passwordChecks } from "./PasswordStrength";
@@ -136,11 +137,30 @@ function Auth() {
     }
     return "";
   }
+  const [codeStatus, setCodeStatus] = useState("idle");
   async function guard(current) {
     const msg = validation(current);
     setError(msg);
     if (msg) return false;
     setInfo("");
+    if ((current === 3 && form.role === "user") || current === 4) {
+      try {
+        await request("/api/user/registration-availability", {
+          role: form.role,
+          email: current === 4 ? form.email.trim() : undefined,
+          studentNumber: form.role === "user" ? form.studentNumber.trim() : undefined,
+          username: form.name.trim(),
+          usernameEn: form.nameEn.trim(),
+        });
+      } catch (e) {
+        const text =
+          e.name === "TimeoutError"
+            ? t("请求超时，请稍后重试。", "Request timed out. Please retry.")
+            : e.message;
+        setError(text);
+        return false;
+      }
+    }
     return true;
   }
   async function sendCode() {
@@ -173,11 +193,11 @@ function Auth() {
         ),
       );
     } catch (e) {
-      setError(
+      const text =
         e.name === "TimeoutError"
           ? t("请求超时，请稍后重试。", "Request timed out. Please retry.")
-          : e.message,
-      );
+          : e.message;
+      setError(text);
     } finally {
       sendLock.current = false;
       setSending(false);
@@ -249,14 +269,15 @@ function Auth() {
       setDone(true);
       return true;
     } catch (e) {
-      setError(
+      const text =
         e.name === "TimeoutError"
           ? t(
               "请求超时。若账号已创建，请尝试登录；否则可以重试。",
               "Request timed out. Try signing in if the account was created, or retry.",
             )
-          : e.message,
-      );
+          : e.message;
+      setError(text);
+      if (/验证码|verification code|email code/i.test(text)) setCodeStatus("error");
       return false;
     } finally {
       lock.current = false;
@@ -755,20 +776,26 @@ function Auth() {
                             action="register"
                             onToken={setTurnstileToken}
                             reset={verificationReset}
+                            theme="dark"
                           />
                         )}
                         <div className="auth-code-row">
-                          <Field
-                            id="register-code"
-                            label={t("验证码", "Verification code")}
-                            inputMode="numeric"
-                            autoComplete="one-time-code"
-                            maxLength={6}
-                            value={form.code}
-                            disabled={busy}
-                            onChange={(e) => change("code", e.target.value.replace(/\D/g, ""))}
-                            placeholder="000000"
-                          />
+                          <div className="auth-field">
+                            <span>{t("验证码", "Verification code")}</span>
+                            <CodeSlots
+                              inputId="register-code"
+                              value={form.code}
+                              disabled={busy}
+                              status={codeStatus}
+                              slotSize={34}
+                              gap={6}
+                              onChange={(code) => {
+                                setCodeStatus("idle");
+                                change("code", code);
+                              }}
+                              ariaLabel={t("验证码", "Verification code")}
+                            />
+                          </div>
                           <button
                             type="button"
                             className="auth-secondary"

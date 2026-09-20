@@ -1,3 +1,5 @@
+import CallChip from "./CallChip";
+import StatusMark from "./StatusMark";
 import React, { useEffect, useRef, useState } from "react";
 import {
   Paperclip,
@@ -73,6 +75,14 @@ export function ChatComposer({
         if (!disabled && !busy) onFiles([...e.dataTransfer.files]);
       }}
     >
+      {busy && files.length > 0 && (
+        <CallChip
+          icon="file"
+          status="running"
+          name={tx("加密上传", "Encrypted upload")}
+          argument={files.map((file) => file.name).join(", ")}
+        />
+      )}
       {!!files.length && (
         <ul className="chat-draft-files">
           {files.map((file, index) => (
@@ -141,7 +151,7 @@ export function ChatComposer({
           disabled={busy || disabled || (!text.trim() && !files.length)}
           aria-label={busy ? tx("发送中…", "Sending…") : tx("发送消息", "Send message")}
         >
-          <ArrowUp size={22} weight="bold" />
+          {busy ? <StatusMark status="running" size={20} /> : <ArrowUp size={22} weight="bold" />}
         </button>
       </div>
       {!!files.length && (

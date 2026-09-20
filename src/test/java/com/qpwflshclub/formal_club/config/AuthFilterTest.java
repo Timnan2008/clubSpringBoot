@@ -17,6 +17,7 @@ class AuthFilterTest {
         Set<String> publicPostPaths = (Set<String>) field.get(null);
 
         assertThat(publicPostPaths)
+            .contains("/api/user/registration-availability")
             .doesNotContain("/api/user/add/admin")
             .doesNotContain("/api/user/add/club-president");
     }

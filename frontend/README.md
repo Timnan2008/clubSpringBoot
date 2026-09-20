@@ -28,6 +28,13 @@
 - `page-window.mjs`：页码窗口逻辑。
 - `PersonalWelcome.jsx`：读取当前账号欢迎配置并向服务器领取一次性展示资格；不是依靠浏览器缓存判断已读。
 - `useAnimatedClose.js` / `MotionPrimitives.jsx`：公共动效。修改时保留减少动画偏好和卸载清理。
+- `GlideSelect`、`HoldButton`、`RubberSegment`、`SpringCheck`、`PulseHeart`、`StatusMark`：基于用户提供的 React Bits 源码适配的交互控件，许可证同上。选择、日历视图、待办、点赞、长按确认和上传反馈分别由这些组件负责。
+- `HoldButton.onHold` 应返回操作 Promise；拒绝或返回 `false` 表示失败，按钮恢复可重试。父页面捕获错误后也要返回 `false`，不能吞掉错误后显示成功。长按不会替代服务端权限检查或账号注销的密码确认。
+- 点赞使用受控的 `liked/count`，服务器成功后更新；上传拿不到真实进度时使用 `StatusMark status="running"`，不传虚构百分比。
+- `ControlRefinements.css` 处理这组控件与旧页面样式的兼容，以及学期材料布局。不要改动编程社背景鼠标效果。
+- `PixelCard.jsx` 用于 OpenSTEAM（28 号社团）的独立 Logo 展示；进入、悬停和键盘聚焦触发像素效果，其他社团仍用原来的 `PixelTransition`。
+- `PixelSnow.jsx` 只在详情页按需加载，shader 放在 `pixel-snow-shader.js`。背景位于内容下层，不接收点击；低分辨率画布限制渲染开销，隐藏或移出视口暂停，减少动态效果时静止显示，不支持 WebGL 时保留正常页面。退出页面会销毁 WebGL 资源。
+- `AdminBadge.jsx` 根据服务器提供的 `role === "admin"` 显示金色流光标签；匿名帖子不展示该标签。标签仅用于身份展示，不参与权限判定。
 
 ## 样式怎么找
 
@@ -44,8 +51,12 @@ npm ci
 npm run format          # 统一 JSX / JS / CSS / Java / HTML 格式
 npm run format:check    # 只检查，不修改
 npm run test:frontend
+npm run test:controls   # Chrome 浏览器交互回归；CHROME_BIN 可指定可执行文件
+npm run test:club-effects # 社团详情、像素动画、移动布局和管理员标签；使用模拟接口
 npm run build
 ```
+
+需要用真实服务器测试新版前端时，在构建后运行 `node scripts/preview-live.mjs`。它只监听 `127.0.0.1:8088`：`/javascript/ui/` 和 `/javascript/darkveil/` 读取本地构建，其余页面、接口、登录会话和媒体由 `https://qpwflhsclub.com` 提供。因此登录后提交的操作会写入真实服务器。服务不会保存账号密码，退出进程即可停止预览；也可用 `PORT=8089` 指定其他本地端口。
 
 `build.mjs` 定义页面入口和产物路径。`build/preloads.mjs` 按 esbuild 依赖图刷新模板的模块预加载标签，并保持模板可读。构建完成后再用 Maven 打包 JAR。
 

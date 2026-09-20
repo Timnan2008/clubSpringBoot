@@ -14,6 +14,18 @@ class AccountProfilesTest {
     Path root;
 
     @Test
+    void duplicateEmailIsRejectedWithSignInHint() throws Exception {
+        var store = new AccountProfiles(root.resolve("profiles.json").toString());
+        store.register("a@example.com", "100", "", true, () -> true);
+        assertThatThrownBy(() -> store.requireEmailAvailable("A@example.com"))
+            .hasMessageContaining("409")
+            .hasMessageContaining("已注册");
+        assertThatThrownBy(() -> store.register("a@example.com", "200", "", true, () -> true))
+            .hasMessageContaining("409")
+            .hasMessageContaining("请直接登录");
+    }
+
+    @Test
     void studentNumberIsUniqueImmutableAndPersists() throws Exception {
         var store = new AccountProfiles(root.resolve("profiles.json").toString());
         store.register("a@example.com", "00123", "Nick", true, () -> true);
@@ -95,5 +107,19 @@ class AccountProfilesTest {
         assertThat(p.studentNumber()).isEmpty();
         assertThat(p.grade()).isEmpty();
         assertThat(p.tags()).containsExactly("Robotics");
+    }
+
+    @Test
+    void retainDropsOrphanedNumbersWithoutWipingWhenKeepSetIsEmpty() throws Exception {
+        var store = new AccountProfiles(root.resolve("profiles.json").toString());
+        store.register("gone@example.com", "20260314", "", true, () -> true);
+        store.register("keep@example.com", "20260315", "", true, () -> true);
+        assertThat(store.retain(Set.of())).isZero();
+        assertThatThrownBy(() -> store.requireStudentNumberAvailable("", "20260314"))
+            .hasMessageContaining("409");
+        assertThat(store.retain(Set.of(SchoolAccounts.key("keep@example.com")))).isEqualTo(1);
+        store.requireStudentNumberAvailable("", "20260314");
+        assertThatThrownBy(() -> store.requireStudentNumberAvailable("", "20260315"))
+            .hasMessageContaining("409");
     }
 }
