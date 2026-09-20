@@ -13,31 +13,17 @@
 
 The release preserves `spring.jpa.hibernate.ddl-auto=none` and does not apply schema migrations.
 
-- MySQL and the application's 8088 listener bind to loopback. Nginx remains the HTTPS entry point.
-- The application uses `club_app@localhost`, restricted to SELECT/INSERT/UPDATE/DELETE on `club_demo`. It does not use the database administrator account.
-- Exposed database administrator credentials are replaced; the wildcard root account is locked. Current administrator credentials are stored only in `/root/.config/club-app/mysql-admin.cnf` (0600).
+- The application binds its 8088 listener to loopback; Nginx remains the HTTPS entry point.
+- Database listener, accounts, passwords and permissions are intentionally unchanged at the user's request. Keep the existing SSH-based database access arrangement. Removing a credential from the repository does not invalidate it in Git history: the existing database password still requires a separately coordinated rotation.
 - systemd runs as `club-app` with no capabilities, NoNewPrivileges, private temporary files, a read-only filesystem and write access only to the application's data/media directories. Private metadata and release backups are not readable by other unprivileged users. Nginx retains read access to public media.
 - Nginx replaces client-provided forwarding chains, adds HSTS for this hostname, and serves legacy uploaded media with nosniff and a sandbox CSP.
 
-Use an SSH tunnel for remote database access, for example:
-
-```sh
-ssh -N -L 13308:127.0.0.1:3306 root@123.57.189.22
-```
-
-Then connect the database client to `127.0.0.1:13308` using an explicitly provisioned database account. Do not restore the former public database listener or commit credentials.
-
-For a server-side database backup, use the root-only option file rather than expanding a password on the command line:
-
-```sh
-mysqldump --defaults-extra-file=/root/.config/club-app/mysql-admin.cnf --single-transaction --no-tablespaces club_demo > /root/club_demo.sql
-chmod 600 /root/club_demo.sql
-```
+Keep using the existing SSH access arrangement for database administration. This release neither creates remote database accounts nor changes MySQL network configuration.
 
 ## Verification and limits
 
-Automated checks cover forged and missing origins, proxy-header spoofing, logout, legitimate browser requests, upload type spoofing and size limits, alongside the existing authorization, business and MySQL integration tests. Production verification also checks HTTPS, login, Secure cookies, service identity, database privileges and listener scope. The npm runtime audit is separate from the Maven/runtime security review.
+Automated checks cover forged and missing origins, proxy-header spoofing, logout, legitimate browser requests, upload type spoofing and size limits, alongside the existing authorization, business and MySQL integration tests. Production verification also checks HTTPS, login, Secure cookies, service identity, unchanged database settings and application listener scope. The npm runtime audit is separate from the Maven/runtime security review.
 
-This is a targeted hardening pass, not a claim that the entire application has passed an independent penetration test. Historical credentials remain in Git history but must no longer authenticate. Signature checks are not antivirus; stronger script CSP and periodic authenticated endpoint review remain useful follow-up work.
+This is a targeted hardening pass, not a claim that the entire application has passed an independent penetration test. Historical credentials remain in Git history. Database credential rotation is deferred to preserve the user-requested configuration; the current SMTP secret differs from the removed historical test credential. Signature checks are not antivirus; stronger script CSP and periodic authenticated endpoint review remain useful follow-up work.
 
 References: [OWASP CSRF prevention](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html), [OWASP upload security](https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html).
