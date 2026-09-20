@@ -1,0 +1,131 @@
+package com.qpwflshclub.formal_club.Clubs.service;
+
+import com.qpwflshclub.formal_club.Clubs.pojo.Club;
+import java.time.Clock;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+/** Public read model only. Never stores accounts, memberships or managed JPA entities. */
+@Service
+public class PublicClubCatalog {
+
+    private static final long TTL_MILLIS = 2000;
+    private final IClubService source;
+    private final Clock clock;
+    private volatile Snapshot snapshot;
+
+    @Autowired
+    public PublicClubCatalog(IClubService source) {
+        this(source, Clock.systemUTC());
+    }
+
+    /** 带注入时钟的构造器：测试（在别的包）要能拿来验证快照会过期，所以是 public。 */
+    public PublicClubCatalog(IClubService source, Clock clock) {
+        this.source = source;
+        this.clock = clock;
+    }
+
+    // One reload per process on expiry, even when many readers arrive together.
+    private Snapshot snapshot() {
+        Snapshot current = snapshot;
+        if (current != null && clock.millis() < current.expiresAt()) return current;
+        synchronized (this) {
+            current = snapshot;
+            if (current == null || clock.millis() >= current.expiresAt()) {
+                List<Entry> entries = source
+                    .findAll()
+                    .stream()
+                    .map(Entry::from)
+                    .collect(Collectors.toCollection(ArrayList::new));
+                entries.sort(Comparator.comparing((Entry e) -> !e.openSteam()));
+                current = new Snapshot(List.copyOf(entries), clock.millis() + TTL_MILLIS);
+                snapshot = current;
+            }
+            return current;
+        }
+    }
+
+    public List<Club> all() {
+        return snapshot().entries().stream().map(Entry::copy).toList();
+    }
+
+    public List<Club> search(String keyword) {
+        if (keyword == null || keyword.isBlank()) return List.of();
+        String term = keyword.strip().toLowerCase(Locale.ROOT);
+        if (term.length() > 200) return List.of();
+        return snapshot()
+            .entries()
+            .stream()
+            .filter(e -> e.matches(term))
+            .map(Entry::copy)
+            .toList();
+    }
+
+    private record Snapshot(List<Entry> entries, long expiresAt) {}
+
+    private record Entry(
+        Integer id,
+        String name,
+        String nameEn,
+        String description,
+        String descriptionEn,
+        String brief,
+        String briefEn,
+        String image,
+        String category,
+        String url,
+        boolean great
+    ) {
+        static Entry from(Club c) {
+            return new Entry(
+                c.getId(),
+                c.getClubName(),
+                c.getClubNameEn(),
+                c.getClubDescription(),
+                c.getClubDescriptionEn(),
+                c.getSortDescription(),
+                c.getSortDescriptionEn(),
+                c.getClubItem(),
+                c.getClubClass(),
+                c.getClubURL(),
+                c.isGreatClub()
+            );
+        }
+
+        boolean openSteam() {
+            String blob = (Objects.toString(name, "") + Objects.toString(nameEn, ""))
+                .toLowerCase(Locale.ROOT)
+                .replace(" ", "");
+            return blob.contains("opensteam");
+        }
+
+        boolean matches(String term) {
+            return Stream.of(name, nameEn, description, descriptionEn, brief, briefEn)
+                .filter(Objects::nonNull)
+                .anyMatch(v -> v.toLowerCase(Locale.ROOT).contains(term));
+        }
+
+        Club copy() {
+            Club c = new Club();
+            c.setId(id);
+            c.setClubName(name);
+            c.setClubNameEn(nameEn);
+            c.setClubDescription(description);
+            c.setClubDescriptionEn(descriptionEn);
+            c.setSortDescription(brief);
+            c.setSortDescriptionEn(briefEn);
+            c.setClubItem(image);
+            c.setClubClass(category);
+            c.setClubURL(url);
+            c.setGreatClub(great);
+            return c;
+        }
+    }
+}

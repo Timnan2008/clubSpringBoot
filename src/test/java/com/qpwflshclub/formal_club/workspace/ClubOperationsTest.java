@@ -4,11 +4,15 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.qpwflshclub.formal_club.pojo.Club.Club;
-import com.qpwflshclub.formal_club.pojo.User.*;
-import com.qpwflshclub.formal_club.repository.Club.ClubRepository;
-import com.qpwflshclub.formal_club.repository.User.*;
-import com.qpwflshclub.formal_club.service.User.IUserService;
+import com.qpwflshclub.formal_club.Clubs.pojo.Club;
+import com.qpwflshclub.formal_club.Clubs.repository.ClubRepository;
+import com.qpwflshclub.formal_club.User.pojo.*;
+import com.qpwflshclub.formal_club.User.pojo.ClubPresident;
+import com.qpwflshclub.formal_club.User.pojo.User;
+import com.qpwflshclub.formal_club.User.repository.*;
+import com.qpwflshclub.formal_club.User.repository.ClubPresidentRepository;
+import com.qpwflshclub.formal_club.User.repository.UserRepository;
+import com.qpwflshclub.formal_club.User.service.IUserService;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.*;
@@ -65,7 +69,15 @@ class ClubOperationsTest {
         store = new ClubOperationsStore(new ObjectMapper(), dir.toString());
         members = new WorkspaceController(access, workspace, students, presidents);
         org.springframework.test.util.ReflectionTestUtils.setField(members, "operations", store);
-        controller = new ClubOperationsController(access, workspace, store, members, students);
+        // 第六个参数是违禁词闸门：该测试只跑工作台逻辑，传 null（控制器里对 null 有保护）
+        controller = new ClubOperationsController(
+            access,
+            workspace,
+            store,
+            members,
+            students,
+            null
+        );
         request = new MockHttpServletRequest();
         request.getSession().setAttribute("authenticatedEmail", leader.getEmail());
         request.addHeader("X-Workspace-Token", access.token(request));

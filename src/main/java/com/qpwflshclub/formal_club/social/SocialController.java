@@ -1,6 +1,7 @@
 package com.qpwflshclub.formal_club.social;
 
-import com.qpwflshclub.formal_club.pojo.User.*;
+import com.qpwflshclub.formal_club.User.pojo.*;
+import com.qpwflshclub.formal_club.social.service.*;
 import com.qpwflshclub.formal_club.workspace.WorkspaceAccess;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
@@ -34,6 +35,14 @@ public class SocialController {
 
     @org.springframework.beans.factory.annotation.Autowired
     private ContentDiscipline discipline;
+
+    /** 违禁词闸门：私信/聊天等入口都要过一遍。 */
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.qpwflshclub.formal_club.social.service.ModerationGate moderation;
+
+    /** 私信解密器：只送了密文时，服务器自己解出明文来查违禁词（不落盘）。 */
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.qpwflshclub.formal_club.social.service.ChatPlaintext chatPlaintext;
 
     private final SchoolAccounts accounts;
     private final WorkspaceAccess access;
@@ -258,29 +267,41 @@ public class SocialController {
         try {
             row.put("mentions", notifications == null ? List.of() : notifications.mentions(r.id()));
             var replies = store.snapshot().replies();
-            row.put(
-                "replyCount",
-                replies
-                    .stream()
-                    .filter(v -> v.parentReply().equals(r.id()))
-                    .count()
-            );
-            replies
-                .stream()
-                .filter(v -> v.id().equals(r.parentReply()) && v.post().equals(r.post()))
-                .findFirst()
-                .ifPresent(v ->
-                    row.put(
-                        "replyingTo",
-                        parent.anonymous() && parent.author().equals(v.author())
-                            ? new SchoolAccounts.Account("", "匿名楼主", "", "anonymous")
-                            : author(people, v.author())
-                    )
+            ensureReplyIndex(replies);
+            // 原来这两步各要扫一遍全部回复（每条回复都扫一次 → O(n²)），现在都是 O(1)
+            row.put("replyCount", childrenOf.getOrDefault(r.id(), 0L));
+            var parentReply = replyById.get(r.parentReply());
+            if (parentReply != null && parentReply.post().equals(r.post())) {
+                row.put(
+                    "replyingTo",
+                    parent.anonymous() && parent.author().equals(parentReply.author())
+                        ? new SchoolAccounts.Account("", "匿名楼主", "", "anonymous")
+                        : author(people, parentReply.author())
                 );
+            }
         } catch (IOException e) {
             throw new java.io.UncheckedIOException(e);
         }
         return row;
+    }
+
+    /** 回复索引的源快照；同一个快照对象只建一次索引（SocialStore.snapshot() 返回缓存实例）。 */
+    private List<SocialStore.Reply> replyIndexSource;
+    private Map<String, SocialStore.Reply> replyById = Map.of();
+    private Map<String, Long> childrenOf = Map.of();
+
+    /** 建立「回复 id → 回复」和「父回复 id → 子回复条数」两张索引，供给上面两个 O(1) 查询。 */
+    private synchronized void ensureReplyIndex(List<SocialStore.Reply> replies) {
+        if (replies == replyIndexSource) return;
+        Map<String, SocialStore.Reply> byId = new HashMap<>(Math.max(16, replies.size() * 2));
+        Map<String, Long> children = new HashMap<>();
+        for (var reply : replies) {
+            byId.put(reply.id(), reply);
+            children.merge(Objects.toString(reply.parentReply(), ""), 1L, Long::sum);
+        }
+        replyById = byId;
+        childrenOf = children;
+        replyIndexSource = replies;
     }
 
     private Map<String, Object> postView(
@@ -451,7 +472,15 @@ public class SocialController {
         }
     }
 
-    public record TextInput(String text) {}
+    /**
+     * 私信内容：{@code text} 是发给对方看的密文（端到端加密）；
+     * {@code plainText} 是同一句话的明文，只用来在服务器上查违禁词，不会被保存。
+     */
+    public record TextInput(String text, String plainText) {
+        public TextInput(String text) {
+            this(text, null);
+        }
+    }
 
     public record LikeInput(boolean liked) {}
 
@@ -511,6 +540,13 @@ public class SocialController {
         boolean hasFiles =
             uploads != null && uploads.stream().anyMatch(f -> f != null && !f.isEmpty());
         SocialStore.text(text, 1000, hasFiles);
+        // 附件文件名也检查一遍（文件名同样会显示给别的同学看）
+        for (var upload : uploads)
+            moderation.inspect(
+                SchoolAccounts.key(u.getEmail()),
+                com.qpwflshclub.formal_club.social.service.ModerationGate.FILES,
+                upload.getOriginalFilename()
+            );
         String name = "";
         if (club != 0) name = access.require(u, club).getClubName();
         if (
@@ -839,20 +875,54 @@ public class SocialController {
         UserBase me = current(request, true);
         accounts.find(peer);
         if (preferences != null) preferences.requireAllowed(key(me), peer);
+        // 私信是端到端加密的：前端送了明文就用明文，只送密文就由服务器自己解（不落盘）
+        moderation.inspect(
+            key(me),
+            com.qpwflshclub.formal_club.social.service.ModerationGate.CHAT,
+            chatPlain(key(me), peer, body.text(), body.plainText())
+        );
         messageKeys.validateMessage(key(me), peer, body.text());
         return store.message(key(me), peer, body.text());
+    }
+
+    /** 取明文做检查：优先用前端送来的明文，没有就退回 raw（未加密的消息）。 */
+    private static String plain(String text, String plainText) {
+        return plainText == null || plainText.isBlank() ? text : plainText;
+    }
+
+    /**
+     * 取「这条私信里可检查的文字」：
+     * 前端送来明文就直接用；只送密文（旧前端、第三方客户端）时，用服务器托管的私钥自己解出来。
+     * 这样私信违禁词屏蔽不再依赖前端是否更新，解不开就返回原样（不影响发送）。
+     */
+    private String chatPlain(String sender, String recipient, String text, String plainText) {
+        String supplied = plain(text, plainText);
+        if (
+            chatPlaintext == null ||
+            !com.qpwflshclub.formal_club.social.service.ChatPlaintext.isEncrypted(supplied)
+        ) {
+            return supplied;
+        }
+        String decrypted = chatPlaintext.decrypt(sender, recipient, supplied);
+        return decrypted == null ? supplied : decrypted;
     }
 
     @PostMapping(value = "/conversations/{peer}/attachments", consumes = "multipart/form-data")
     public Object messageFiles(
         @PathVariable String peer,
         @RequestParam String text,
+        @RequestParam(required = false) String plainText,
         @RequestParam("files") List<org.springframework.web.multipart.MultipartFile> uploads,
         HttpServletRequest request
     ) throws IOException {
         String me = key(current(request, true));
         accounts.find(peer);
         if (preferences != null) preferences.requireAllowed(me, peer);
+        moderation.inspect(
+            me,
+            com.qpwflshclub.formal_club.social.service.ModerationGate.CHAT,
+            chatPlain(me, peer, text, plainText)
+        );
         messageKeys.validateMessage(me, peer, text);
         if (
             uploads.isEmpty() ||

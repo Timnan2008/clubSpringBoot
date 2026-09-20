@@ -5,15 +5,17 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.qpwflshclub.formal_club.pojo.Club.Club;
-import com.qpwflshclub.formal_club.pojo.Club.ClubVO;
-import com.qpwflshclub.formal_club.pojo.Club.SearchResultVO;
+import com.qpwflshclub.formal_club.Clubs.controller.ClubController;
+import com.qpwflshclub.formal_club.Clubs.pojo.Club;
+import com.qpwflshclub.formal_club.Clubs.pojo.ClubVO;
+import com.qpwflshclub.formal_club.Clubs.pojo.SearchResultVO;
+import com.qpwflshclub.formal_club.Clubs.pojo.dto.ClubDTO;
+import com.qpwflshclub.formal_club.Clubs.service.IClubService;
+import com.qpwflshclub.formal_club.Clubs.service.PublicClubCatalog;
+import com.qpwflshclub.formal_club.User.pojo.Admin;
+import com.qpwflshclub.formal_club.User.pojo.Teacher;
+import com.qpwflshclub.formal_club.User.service.IUserService;
 import com.qpwflshclub.formal_club.pojo.ResponseMessage;
-import com.qpwflshclub.formal_club.pojo.User.Admin;
-import com.qpwflshclub.formal_club.pojo.User.Teacher;
-import com.qpwflshclub.formal_club.pojo.dto.Club.ClubDTO;
-import com.qpwflshclub.formal_club.service.Club.IClubService;
-import com.qpwflshclub.formal_club.service.User.IUserService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Locale;
@@ -47,7 +49,7 @@ class ClubControllerTest {
         ReflectionTestUtils.setField(
             controller,
             "publicCatalog",
-            new com.qpwflshclub.formal_club.service.Club.PublicClubCatalog(clubService)
+            new PublicClubCatalog(clubService)
         );
         ReflectionTestUtils.setField(controller, "userService", userService);
         LocaleContextHolder.setLocale(Locale.CHINA);

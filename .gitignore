@@ -28,6 +28,9 @@ target/
 build/
 !**/src/main/**/build/
 !**/src/test/**/build/
+# 前端打包要用到 frontend/build/preloads.mjs，别把它一起忽略掉
+!frontend/build/
+!frontend/build/**
 
 ### VS Code ###
 .vscode/

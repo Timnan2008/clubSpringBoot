@@ -5,11 +5,16 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.qpwflshclub.formal_club.Suggestion.controller.SuggestionController;
+import com.qpwflshclub.formal_club.Suggestion.pojo.Suggestion;
+import com.qpwflshclub.formal_club.Suggestion.pojo.dto.SuggestionDTO;
+import com.qpwflshclub.formal_club.Suggestion.service.ISuggestionService;
+import com.qpwflshclub.formal_club.User.pojo.Admin;
+import com.qpwflshclub.formal_club.User.pojo.Teacher;
+import com.qpwflshclub.formal_club.User.pojo.User;
 import com.qpwflshclub.formal_club.pojo.ResponseMessage;
-import com.qpwflshclub.formal_club.pojo.Suggestion.Suggestion;
-import com.qpwflshclub.formal_club.pojo.User.Admin;
-import com.qpwflshclub.formal_club.pojo.User.Teacher;
-import com.qpwflshclub.formal_club.service.Suggestion.ISuggestionService;
+import com.qpwflshclub.formal_club.social.service.ContentAudit;
+import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,19 +34,29 @@ class SuggestionControllerTest {
     SuggestionController controller;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         controller = new SuggestionController();
         controller.suggestionService = suggestionService;
-        controller.accounts = org.mockito.Mockito.mock(
-            com.qpwflshclub.formal_club.social.SchoolAccounts.class
-        );
+        controller.accounts = org.mockito.Mockito.mock(SchoolAccounts.class);
         controller.access = org.mockito.Mockito.mock(
             com.qpwflshclub.formal_club.workspace.WorkspaceAccess.class
         );
-        controller.audit = org.mockito.Mockito.mock(
-            com.qpwflshclub.formal_club.social.ContentAudit.class
+        controller.audit = org.mockito.Mockito.mock(ContentAudit.class);
+        // 违禁词闸门也是字段注入：塞一个真实实例（违禁词库走打包的那份），
+        // 否则 addSuggestion 里 moderation.inspect 会 NPE
+        org.springframework.test.util.ReflectionTestUtils.setField(
+            controller,
+            "moderation",
+            new com.qpwflshclub.formal_club.social.service.ModerationGate(
+                new com.qpwflshclub.formal_club.social.service.ModerationPenalty(
+                    java.nio.file.Path.of(
+                        System.getProperty("java.io.tmpdir"),
+                        "club-suggestion-penalties.json"
+                    ).toString()
+                )
+            )
         );
-        var actor = new com.qpwflshclub.formal_club.pojo.User.User();
+        var actor = new User();
         actor.setEmail("fixture@example.com");
         actor.setUsername("测试同学");
         org.mockito.Mockito.lenient().when(controller.accounts.current(request)).thenReturn(actor);
@@ -49,9 +64,7 @@ class SuggestionControllerTest {
 
     @Test
     void passSuggestionRejectsStudent() {
-        when(request.getAttribute("currentUser")).thenReturn(
-            new com.qpwflshclub.formal_club.pojo.User.User()
-        );
+        when(request.getAttribute("currentUser")).thenReturn(new User());
 
         ResponseMessage<Suggestion> response = controller.passSuggestion(1L, request);
 
@@ -82,9 +95,7 @@ class SuggestionControllerTest {
 
     @Test
     void deleteSuggestionRejectsStudent() {
-        when(request.getAttribute("currentUser")).thenReturn(
-            new com.qpwflshclub.formal_club.pojo.User.User()
-        );
+        when(request.getAttribute("currentUser")).thenReturn(new User());
 
         ResponseMessage<Suggestion> response = controller.deleteSuggestion(1L, request);
 
@@ -98,7 +109,7 @@ class SuggestionControllerTest {
         controller.turnstile = org.mockito.Mockito.mock(
             com.qpwflshclub.formal_club.service.Suggestion.TurnstileService.class
         );
-        var dto = new com.qpwflshclub.formal_club.pojo.dto.Suggestion.SuggestionDTO();
+        var dto = new SuggestionDTO();
         dto.setTurnstileToken("expired");
         org.mockito.Mockito.doThrow(
             new org.springframework.web.server.ResponseStatusException(
@@ -118,7 +129,7 @@ class SuggestionControllerTest {
         controller.turnstile = org.mockito.Mockito.mock(
             com.qpwflshclub.formal_club.service.Suggestion.TurnstileService.class
         );
-        var dto = new com.qpwflshclub.formal_club.pojo.dto.Suggestion.SuggestionDTO();
+        var dto = new SuggestionDTO();
         dto.setTurnstileToken("valid");
         dto.setPass(true);
         dto.setId(8L);
@@ -137,7 +148,7 @@ class SuggestionControllerTest {
         controller.turnstile = org.mockito.Mockito.mock(
             com.qpwflshclub.formal_club.service.Suggestion.TurnstileService.class
         );
-        var dto = new com.qpwflshclub.formal_club.pojo.dto.Suggestion.SuggestionDTO();
+        var dto = new com.qpwflshclub.formal_club.Suggestion.pojo.dto.SuggestionDTO();
         dto.setAnonymous(true);
         dto.setTitle("general");
         dto.setContext("把图书馆开放时间延长");
@@ -150,12 +161,10 @@ class SuggestionControllerTest {
 
     @Test
     void publicTitleHidesPendingButShowsNamedAuthor() {
-        var service = org.mockito.Mockito.mock(
-            com.qpwflshclub.formal_club.service.Suggestion.ISuggestionService.class
-        );
+        var service = org.mockito.Mockito.mock(ISuggestionService.class);
         var c = new SuggestionController();
         c.suggestionService = service;
-        var suggestion = new com.qpwflshclub.formal_club.pojo.Suggestion.Suggestion();
+        var suggestion = new com.qpwflshclub.formal_club.Suggestion.pojo.Suggestion();
         suggestion.setName("李同学");
         suggestion.setAnonymous(true);
         suggestion.setContext("延长图书馆开放时间");
@@ -167,6 +176,8 @@ class SuggestionControllerTest {
         var view = c.getSuggestion("other").getData();
         org.assertj.core.api.Assertions.assertThat(view.getName()).isEqualTo("李同学");
         org.assertj.core.api.Assertions.assertThat(view.isAnonymous()).isFalse();
-        org.assertj.core.api.Assertions.assertThat(view.getContext()).isEqualTo("延长图书馆开放时间");
+        org.assertj.core.api.Assertions.assertThat(view.getContext()).isEqualTo(
+            "延长图书馆开放时间"
+        );
     }
 }

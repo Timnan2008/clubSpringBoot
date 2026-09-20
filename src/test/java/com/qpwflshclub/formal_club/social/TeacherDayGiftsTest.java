@@ -3,8 +3,9 @@ package com.qpwflshclub.formal_club.social;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.qpwflshclub.formal_club.pojo.User.*;
-import com.qpwflshclub.formal_club.repository.User.TeacherRepository;
+import com.qpwflshclub.formal_club.User.pojo.Teacher;
+import com.qpwflshclub.formal_club.User.pojo.User;
+import com.qpwflshclub.formal_club.User.repository.TeacherRepository;
 import java.nio.file.*;
 import java.time.LocalDate;
 import java.util.List;

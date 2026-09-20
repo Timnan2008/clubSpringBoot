@@ -2,7 +2,8 @@ package com.qpwflshclub.formal_club.config;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.qpwflshclub.formal_club.social.SchoolAccounts;
+import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
+import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -79,7 +80,8 @@ public class StudentRoster {
         String rosterZh = compactName(student.name());
         String rosterEn = englishName(student.nameEn());
         boolean zhConflicts = !zh.isEmpty() && !rosterZh.isEmpty() && !zh.equals(rosterZh);
-        boolean enConflicts = !english.isEmpty() && !rosterEn.isEmpty() && !english.equals(rosterEn);
+        boolean enConflicts =
+            !english.isEmpty() && !rosterEn.isEmpty() && !english.equals(rosterEn);
         boolean zhMatches = !zh.isEmpty() && !rosterZh.isEmpty() && zh.equals(rosterZh);
         boolean enMatches = !english.isEmpty() && !rosterEn.isEmpty() && english.equals(rosterEn);
         if (zhConflicts || enConflicts || (!zhMatches && !enMatches)) {

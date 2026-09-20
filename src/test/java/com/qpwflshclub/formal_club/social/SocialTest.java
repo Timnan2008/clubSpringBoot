@@ -4,11 +4,17 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.qpwflshclub.formal_club.pojo.Club.Club;
-import com.qpwflshclub.formal_club.pojo.User.*;
-import com.qpwflshclub.formal_club.repository.Club.ClubRepository;
-import com.qpwflshclub.formal_club.repository.User.*;
-import com.qpwflshclub.formal_club.service.User.IUserService;
+import com.qpwflshclub.formal_club.Clubs.pojo.Club;
+import com.qpwflshclub.formal_club.Clubs.repository.ClubRepository;
+import com.qpwflshclub.formal_club.User.pojo.*;
+import com.qpwflshclub.formal_club.User.repository.AdminRepository;
+import com.qpwflshclub.formal_club.User.repository.ClubPresidentRepository;
+import com.qpwflshclub.formal_club.User.repository.TeacherRepository;
+import com.qpwflshclub.formal_club.User.repository.UserRepository;
+import com.qpwflshclub.formal_club.User.service.IUserService;
+import com.qpwflshclub.formal_club.social.controller.CommunityController;
+import com.qpwflshclub.formal_club.social.controller.NotificationController;
+import com.qpwflshclub.formal_club.social.service.*;
 import com.qpwflshclub.formal_club.workspace.*;
 import jakarta.servlet.http.Cookie;
 import java.nio.file.Path;
@@ -57,7 +63,7 @@ class SocialTest {
     }
 
     @BeforeEach
-    void setup() {
+    void setup() throws Exception {
         users = mock(IUserService.class);
         students = mock(UserRepository.class);
         presidents = mock(ClubPresidentRepository.class);
@@ -93,7 +99,19 @@ class SocialTest {
         store = new SocialStore(new ObjectMapper(), dir.toString());
         appointments = new ClubAppointments(accounts, access, presidents, clubs);
         social = new SocialController(accounts, access, store, appointments);
-        profile = new ClubProfileController(access, clubs);
+        // 违禁词闸门在控制器里是 @Autowired 字段注入：测试必须手动塞一个真实实例，
+        // 否则 moderation 为 null，发帖 / 私信 / 上传路径会 NPE（这套测试以前就卡在这）
+        org.springframework.test.util.ReflectionTestUtils.setField(
+            social,
+            "moderation",
+            new com.qpwflshclub.formal_club.social.service.ModerationGate(
+                new com.qpwflshclub.formal_club.social.service.ModerationPenalty(
+                    dir.resolve("penalties.json").toString()
+                )
+            )
+        );
+        // 第三个参数是违禁词闸门：这个测试不关心内容审核，传 null（控制器里对 null 有保护）
+        profile = new ClubProfileController(access, clubs, null);
         org.springframework.test.util.ReflectionTestUtils.setField(
             social,
             "messageKeys",

@@ -3,8 +3,8 @@ package com.qpwflshclub.formal_club.config;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.qpwflshclub.formal_club.pojo.User.User;
-import com.qpwflshclub.formal_club.service.User.IUserService;
+import com.qpwflshclub.formal_club.User.pojo.User;
+import com.qpwflshclub.formal_club.User.service.IUserService;
 import jakarta.servlet.http.Cookie;
 import java.nio.file.*;
 import org.junit.jupiter.api.Test;

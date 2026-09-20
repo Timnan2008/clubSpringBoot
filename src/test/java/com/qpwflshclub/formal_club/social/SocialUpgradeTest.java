@@ -3,6 +3,8 @@ package com.qpwflshclub.formal_club.social;
 import static org.assertj.core.api.Assertions.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.qpwflshclub.formal_club.social.service.ChatPreferences;
+import com.qpwflshclub.formal_club.social.service.ProfileAppearance;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.nio.file.*;

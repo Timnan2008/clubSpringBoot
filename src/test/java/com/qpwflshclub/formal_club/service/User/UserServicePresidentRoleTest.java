@@ -6,14 +6,17 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.qpwflshclub.formal_club.pojo.Club.Club;
-import com.qpwflshclub.formal_club.pojo.User.ClubPresident;
-import com.qpwflshclub.formal_club.pojo.User.User;
-import com.qpwflshclub.formal_club.repository.Club.ClubRepository;
-import com.qpwflshclub.formal_club.repository.User.AdminRepository;
-import com.qpwflshclub.formal_club.repository.User.ClubPresidentRepository;
-import com.qpwflshclub.formal_club.repository.User.TeacherRepository;
-import com.qpwflshclub.formal_club.repository.User.UserRepository;
+import com.qpwflshclub.formal_club.Clubs.pojo.Club;
+import com.qpwflshclub.formal_club.Clubs.repository.ClubRepository;
+import com.qpwflshclub.formal_club.User.pojo.ClubPresident;
+import com.qpwflshclub.formal_club.User.pojo.Teacher;
+import com.qpwflshclub.formal_club.User.pojo.User;
+import com.qpwflshclub.formal_club.User.pojo.dto.TeacherDTO;
+import com.qpwflshclub.formal_club.User.repository.AdminRepository;
+import com.qpwflshclub.formal_club.User.repository.ClubPresidentRepository;
+import com.qpwflshclub.formal_club.User.repository.TeacherRepository;
+import com.qpwflshclub.formal_club.User.repository.UserRepository;
+import com.qpwflshclub.formal_club.User.service.UserService;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -61,7 +64,8 @@ class UserServicePresidentRoleTest {
         User student = user(12L, "王艺蒙", "Thomas", List.of(managedClub, otherClub));
 
         when(clubRepository.findById(8)).thenReturn(Optional.of(managedClub));
-        when(userRepository.findAll()).thenReturn(List.of(student));
+        // 服务层现在用 findByUsernameEn 查人（不再 findAll 里遍历）——测试跟着改
+        when(userRepository.findByUsernameEn("Thomas")).thenReturn(Optional.of(student));
         when(clubPresidentRepository.save(any(ClubPresident.class))).thenAnswer(invocation ->
             invocation.getArgument(0)
         );
@@ -90,7 +94,7 @@ class UserServicePresidentRoleTest {
         );
 
         when(clubRepository.findById(8)).thenReturn(Optional.of(managedClub));
-        when(userRepository.findAll()).thenReturn(List.of(student));
+        when(userRepository.findByUsernameEn("Thomas")).thenReturn(Optional.of(student));
         when(clubPresidentRepository.findAll()).thenReturn(List.of(existingPresident));
         when(clubPresidentRepository.save(any(ClubPresident.class))).thenAnswer(invocation ->
             invocation.getArgument(0)
@@ -138,7 +142,6 @@ class UserServicePresidentRoleTest {
         ClubPresident president = president(3L, "王艺蒙", "Thomas", managedClub, List.of());
 
         when(clubRepository.findById(8)).thenReturn(Optional.of(managedClub));
-        when(userRepository.findAll()).thenReturn(List.of(student));
         when(clubPresidentRepository.findAll()).thenReturn(List.of(president));
 
         List<Map<String, Object>> members = userService.getClubMembersWithRoles(8);
@@ -177,10 +180,10 @@ class UserServicePresidentRoleTest {
         var old = club(200, "Old");
         var next = club(201, "New");
         var detached = club(Integer.valueOf("201"), "New");
-        var teacher = new com.qpwflshclub.formal_club.pojo.User.Teacher();
+        var teacher = new Teacher();
         teacher.setId(9L);
         teacher.setClubs(List.of(old));
-        var dto = new com.qpwflshclub.formal_club.pojo.dto.User.TeacherDTO();
+        var dto = new TeacherDTO();
         dto.setId(9L);
         dto.setTeacherName("张老师");
         dto.setTeacherNameEn("Ms Zhang");

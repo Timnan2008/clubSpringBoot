@@ -1,9 +1,11 @@
 package com.qpwflshclub.formal_club.social;
 
-import com.qpwflshclub.formal_club.repository.User.AdminRepository;
-import com.qpwflshclub.formal_club.repository.User.ClubPresidentRepository;
-import com.qpwflshclub.formal_club.repository.User.TeacherRepository;
-import com.qpwflshclub.formal_club.repository.User.UserRepository;
+import com.qpwflshclub.formal_club.User.repository.AdminRepository;
+import com.qpwflshclub.formal_club.User.repository.ClubPresidentRepository;
+import com.qpwflshclub.formal_club.User.repository.TeacherRepository;
+import com.qpwflshclub.formal_club.User.repository.UserRepository;
+import com.qpwflshclub.formal_club.social.service.AccountProfiles;
+import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
 import java.util.HashSet;
 import java.util.Set;
 import org.springframework.boot.context.event.ApplicationReadyEvent;

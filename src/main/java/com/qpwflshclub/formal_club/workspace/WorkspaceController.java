@@ -1,9 +1,12 @@
 package com.qpwflshclub.formal_club.workspace;
 
-import com.qpwflshclub.formal_club.pojo.Club.Club;
-import com.qpwflshclub.formal_club.pojo.User.*;
-import com.qpwflshclub.formal_club.repository.User.ClubPresidentRepository;
-import com.qpwflshclub.formal_club.repository.User.UserRepository;
+import com.qpwflshclub.formal_club.Clubs.pojo.Club;
+import com.qpwflshclub.formal_club.User.pojo.*;
+import com.qpwflshclub.formal_club.User.repository.AdminRepository;
+import com.qpwflshclub.formal_club.User.repository.ClubPresidentRepository;
+import com.qpwflshclub.formal_club.User.repository.UserRepository;
+import com.qpwflshclub.formal_club.social.service.OfficerAssignments;
+import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -25,13 +28,13 @@ public class WorkspaceController {
     private ClubOperationsStore operations;
 
     @org.springframework.beans.factory.annotation.Autowired
-    private com.qpwflshclub.formal_club.social.SchoolAccounts accounts;
+    private SchoolAccounts accounts;
 
     @org.springframework.beans.factory.annotation.Autowired
-    private com.qpwflshclub.formal_club.social.OfficerAssignments officers;
+    private OfficerAssignments officers;
 
     @org.springframework.beans.factory.annotation.Autowired
-    private com.qpwflshclub.formal_club.repository.User.AdminRepository admins;
+    private AdminRepository admins;
 
     private final WorkspaceAccess access;
     private final WorkspaceStore store;
@@ -147,9 +150,7 @@ public class WorkspaceController {
             email,
             ""
         );
-        var person = accounts
-            .directory()
-            .get(com.qpwflshclub.formal_club.social.SchoolAccounts.key(email));
+        var person = accounts.directory().get(SchoolAccounts.key(email));
         if (person == null) return email;
         return org.springframework.context.i18n.LocaleContextHolder.getLocale()
             .getLanguage()
@@ -215,7 +216,7 @@ public class WorkspaceController {
             "grade",
             accounts == null ? "" : accounts.view(u).grade(),
             "account",
-            com.qpwflshclub.formal_club.social.SchoolAccounts.key(u.getEmail())
+            SchoolAccounts.key(u.getEmail())
         );
     }
 

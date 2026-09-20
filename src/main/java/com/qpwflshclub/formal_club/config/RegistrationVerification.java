@@ -1,7 +1,7 @@
 package com.qpwflshclub.formal_club.config;
 
 import com.qpwflshclub.formal_club.service.Suggestion.TurnstileService;
-import com.qpwflshclub.formal_club.social.SchoolAccounts;
+import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
 import jakarta.servlet.http.HttpServletRequest;
 
 /** A short-lived, session-bound receipt for one signup. Never stores a reusable Turnstile token. */

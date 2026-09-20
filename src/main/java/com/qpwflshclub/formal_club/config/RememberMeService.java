@@ -1,8 +1,8 @@
 package com.qpwflshclub.formal_club.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.qpwflshclub.formal_club.pojo.User.UserBase;
-import com.qpwflshclub.formal_club.service.User.IUserService;
+import com.qpwflshclub.formal_club.User.pojo.UserBase;
+import com.qpwflshclub.formal_club.User.service.IUserService;
 import jakarta.servlet.http.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;

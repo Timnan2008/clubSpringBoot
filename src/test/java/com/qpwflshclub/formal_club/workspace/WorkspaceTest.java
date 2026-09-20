@@ -4,11 +4,15 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.qpwflshclub.formal_club.pojo.Club.Club;
-import com.qpwflshclub.formal_club.pojo.User.*;
-import com.qpwflshclub.formal_club.repository.Club.ClubRepository;
-import com.qpwflshclub.formal_club.repository.User.*;
-import com.qpwflshclub.formal_club.service.User.IUserService;
+import com.qpwflshclub.formal_club.Clubs.pojo.Club;
+import com.qpwflshclub.formal_club.Clubs.repository.ClubRepository;
+import com.qpwflshclub.formal_club.User.pojo.Admin;
+import com.qpwflshclub.formal_club.User.pojo.ClubPresident;
+import com.qpwflshclub.formal_club.User.pojo.User;
+import com.qpwflshclub.formal_club.User.repository.ClubPresidentRepository;
+import com.qpwflshclub.formal_club.User.repository.UserRepository;
+import com.qpwflshclub.formal_club.User.service.IUserService;
+import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
 import jakarta.servlet.http.Cookie;
 import java.nio.file.*;
 import java.time.LocalDateTime;
@@ -65,16 +69,9 @@ class WorkspaceTest {
         student.setUsernameEn("Eric");
         student.setClubs(List.of());
         when(students.findAll()).thenReturn(List.of(student));
-        var accounts = mock(com.qpwflshclub.formal_club.social.SchoolAccounts.class);
+        var accounts = mock(SchoolAccounts.class);
         when(accounts.view(student)).thenReturn(
-            new com.qpwflshclub.formal_club.social.SchoolAccounts.Account(
-                "public-id",
-                "张扬",
-                "Eric",
-                "student",
-                "",
-                "Sunny"
-            )
+            new SchoolAccounts.Account("public-id", "张扬", "Eric", "student", "", "Sunny")
         );
         org.springframework.test.util.ReflectionTestUtils.setField(
             controller,

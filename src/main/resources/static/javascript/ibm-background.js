@@ -1,7 +1,13 @@
-// ibm-background.js — Ultra-Glass Parallax Matrix
-// Shared by index page (.bg-viewport) and 404 page (.bg-viewport)
+// ============================================================
+// ibm-background.js —— 首页/404 页的「玻璃卡片视差矩阵」背景（gyhchang-cell 写的）
+//
+// 效果：在 .bg-viewport 里铺 15 张写着 QPWFL 的玻璃卡片，分 5 层（lv1~lv5）随机漂浮，
+//       鼠标移动时整个舞台跟着轻微旋转，做出景深感。
+// 用法：页面里放一个 <div class="bg-viewport"></div> 再引入本文件即可（样式在 index_style.css）。
+// ============================================================
 (function () {
   var viewport = document.querySelector('.bg-viewport');
+  // 页面上没有这个容器就直接不做事（比如其它页面引到了这个脚本）
   if (!viewport) return;
 
   // Create inner stage for parallax rotation
@@ -9,6 +15,7 @@
   stage.className = 'bg-stage';
   viewport.appendChild(stage);
 
+  // 每张卡片的位置：t=上下位置(vh)、l=左右位置(vw)、layer=第几层（决定大小/模糊）
   var positions = [
     { t: 75, l: 5, layer: 'lv1' }, { t: 85, l: 45, layer: 'lv1' }, { t: 95, l: 85, layer: 'lv1' },
     { t: 55, l: -5, layer: 'lv2' }, { t: 65, l: 35, layer: 'lv2' }, { t: 45, l: 75, layer: 'lv2' },
@@ -17,6 +24,7 @@
     { t: -15, l: 20, layer: 'lv5' }, { t: -20, l: 60, layer: 'lv5' }, { t: -10, l: -20, layer: 'lv5' }
   ];
 
+  // 逐张造卡片：位置、漂浮动画的时长与延迟、以及这只卡片自己的漂移方向 --fx/--fy/--fz
   positions.forEach(function (pos) {
     var wrap = document.createElement('div');
     wrap.className = 'bg-card-wrapper ' + pos.layer;

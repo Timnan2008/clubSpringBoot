@@ -1,7 +1,7 @@
 package com.qpwflshclub.formal_club.config;
 
 import com.qpwflshclub.formal_club.social.ContentModeration;
-import com.qpwflshclub.formal_club.social.SchoolAccounts;
+import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
 
 public final class RegistrationNames {
 

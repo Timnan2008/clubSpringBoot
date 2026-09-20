@@ -1,9 +1,14 @@
 package com.qpwflshclub.formal_club.workspace;
 
-import com.qpwflshclub.formal_club.pojo.Club.Club;
-import com.qpwflshclub.formal_club.pojo.User.*;
-import com.qpwflshclub.formal_club.repository.Club.ClubRepository;
-import com.qpwflshclub.formal_club.service.User.IUserService;
+import com.qpwflshclub.formal_club.Clubs.pojo.Club;
+import com.qpwflshclub.formal_club.Clubs.repository.ClubRepository;
+import com.qpwflshclub.formal_club.User.pojo.Admin;
+import com.qpwflshclub.formal_club.User.pojo.ClubPresident;
+import com.qpwflshclub.formal_club.User.pojo.Teacher;
+import com.qpwflshclub.formal_club.User.pojo.UserBase;
+import com.qpwflshclub.formal_club.User.service.IUserService;
+import com.qpwflshclub.formal_club.social.service.OfficerAssignments;
+import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.*;
 import org.springframework.http.HttpStatus;
@@ -14,7 +19,7 @@ import org.springframework.web.server.ResponseStatusException;
 public class WorkspaceAccess {
 
     @org.springframework.beans.factory.annotation.Autowired
-    private com.qpwflshclub.formal_club.social.OfficerAssignments officers;
+    private OfficerAssignments officers;
 
     private final IUserService users;
     private final ClubRepository clubs;
@@ -75,7 +80,7 @@ public class WorkspaceAccess {
     private List<Club> additional(UserBase user) {
         if (officers == null) return List.of();
         return officers
-            .forAccount(com.qpwflshclub.formal_club.social.SchoolAccounts.key(user.getEmail()))
+            .forAccount(SchoolAccounts.key(user.getEmail()))
             .stream()
             .map(o -> clubs.findById(o.club()).orElse(null))
             .filter(Objects::nonNull)
@@ -91,7 +96,7 @@ public class WorkspaceAccess {
         return (
             officers != null &&
             officers
-                .forAccount(com.qpwflshclub.formal_club.social.SchoolAccounts.key(user.getEmail()))
+                .forAccount(SchoolAccounts.key(user.getEmail()))
                 .stream()
                 .anyMatch(o -> o.club() == id && o.position().equals("vice_president"))
         );

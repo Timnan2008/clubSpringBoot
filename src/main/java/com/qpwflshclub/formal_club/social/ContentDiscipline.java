@@ -2,6 +2,7 @@ package com.qpwflshclub.formal_club.social;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import java.io.IOException;
@@ -148,10 +149,7 @@ public class ContentDiscipline {
         Path tmp = Files.createTempFile(file.toAbsolutePath().getParent(), "discipline-", ".json");
         try {
             try {
-                Files.setPosixFilePermissions(
-                    tmp,
-                    PosixFilePermissions.fromString("rw-------")
-                );
+                Files.setPosixFilePermissions(tmp, PosixFilePermissions.fromString("rw-------"));
             } catch (UnsupportedOperationException ignored) {}
             json.writeValue(tmp.toFile(), next);
             Files.move(

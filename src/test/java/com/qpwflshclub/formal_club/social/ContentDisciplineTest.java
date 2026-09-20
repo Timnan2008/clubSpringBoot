@@ -3,6 +3,7 @@ package com.qpwflshclub.formal_club.social;
 import static org.assertj.core.api.Assertions.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
 import java.nio.file.Path;
 import java.time.*;
 import org.junit.jupiter.api.AfterEach;
@@ -23,15 +24,14 @@ class ContentDisciplineTest {
     @Test
     void fiveBlockedAttemptsMuteTheAccountForAWeek() throws Exception {
         var clock = Clock.fixed(Instant.parse("2026-09-17T09:00:00Z"), ZoneOffset.UTC);
-        var discipline = new ContentDiscipline(new ObjectMapper(), dir.toString()).withClock(
-            clock
-        );
+        var discipline = new ContentDiscipline(new ObjectMapper(), dir.toString()).withClock(clock);
         discipline.start();
         ContentDiscipline.bind("student@example.invalid");
         for (int i = 1; i <= 4; i++) {
             int strike = i;
-            assertThatThrownBy(() -> ContentModeration.check("nmsl"))
-                .hasMessageContaining(strike + "/5");
+            assertThatThrownBy(() -> ContentModeration.check("nmsl")).hasMessageContaining(
+                strike + "/5"
+            );
         }
         assertThatThrownBy(() -> ContentModeration.check("nmsl")).hasMessageContaining("禁言至");
         assertThat(discipline.until(SchoolAccounts.key("student@example.invalid"))).isEqualTo(

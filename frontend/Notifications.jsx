@@ -128,6 +128,17 @@ export default function Notifications({ enabled }) {
             </button>
           </header>
           {error && <p role="alert">{error}</p>}
+          {/* 「网管」的提醒/封禁记录（每次命中违禁词都会留一条） */}
+          {data.notices?.length ? (
+            <div className="notification-notices">
+              {data.notices.map((notice) => (
+                <p key={notice.id} className={notice.unread ? "unread" : ""}>
+                  <b>{tx("网管", "Network Admin")}</b>
+                  <span> {notice.text}</span>
+                </p>
+              ))}
+            </div>
+          ) : null}
           <div className="notification-items">
             {data.items.length ? (
               data.items.map((item) => (

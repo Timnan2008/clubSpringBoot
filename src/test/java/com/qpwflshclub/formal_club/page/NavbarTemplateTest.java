@@ -22,10 +22,10 @@ class NavbarTemplateTest {
             "<a th:if=\"${loginUser != null && loginUser.getUserRight() < 1}\" th:href=\"@{/page/my-clubs}\">我的社团</a>"
         );
         assertThat(template).containsIgnoringWhitespaces(
-            "<a th:if=\"${loginUser != null && (loginUser.getUserRight() == 1 || loginUser.getUserRight() == 2)}\" th:href=\"@{/page/club/workspace}\">Club Management</a>"
+            "<a th:if=\"${loginUser != null && loginUser.getUserRight() >= 1}\" th:href=\"@{/page/club/workspace}\">Club Management</a>"
         );
         assertThat(template).containsIgnoringWhitespaces(
-            "<a th:if=\"${loginUser != null && (loginUser.getUserRight() == 1 || loginUser.getUserRight() == 2)}\" th:href=\"@{/page/club/workspace}\">社团管理</a>"
+            "<a th:if=\"${loginUser != null && loginUser.getUserRight() >= 1}\" th:href=\"@{/page/club/workspace}\">社团管理</a>"
         );
     }
 }

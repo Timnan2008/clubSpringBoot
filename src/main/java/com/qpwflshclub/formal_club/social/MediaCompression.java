@@ -1,5 +1,6 @@
 package com.qpwflshclub.formal_club.social;
 
+import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
@@ -10,7 +11,6 @@ import java.nio.file.*;
 import java.util.*;
 import java.util.concurrent.*;
 import javax.imageio.*;
-import javax.imageio.stream.*;
 
 public final class MediaCompression {
 
