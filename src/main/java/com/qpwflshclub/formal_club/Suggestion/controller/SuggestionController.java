@@ -1,13 +1,14 @@
 package com.qpwflshclub.formal_club.Suggestion.controller;
 
-import com.qpwflshclub.formal_club.pojo.ResponseMessage;
 import com.qpwflshclub.formal_club.Suggestion.pojo.Suggestion;
-import com.qpwflshclub.formal_club.User.pojo.Admin;
-import com.qpwflshclub.formal_club.User.pojo.UserBase;
 import com.qpwflshclub.formal_club.Suggestion.pojo.dto.SuggestionDTO;
 import com.qpwflshclub.formal_club.Suggestion.service.ISuggestionService;
+import com.qpwflshclub.formal_club.User.pojo.Admin;
+import com.qpwflshclub.formal_club.User.pojo.UserBase;
+import com.qpwflshclub.formal_club.pojo.ResponseMessage;
 import com.qpwflshclub.formal_club.social.service.ContentAudit;
 import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
+import com.qpwflshclub.formal_club.workspace.service.WorkspaceAccess;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +32,7 @@ public class SuggestionController {
     SchoolAccounts accounts;
 
     @Autowired
-    com.qpwflshclub.formal_club.workspace.WorkspaceAccess access;
+    WorkspaceAccess access;
 
     @GetMapping("/verification")
     public Object verification() {

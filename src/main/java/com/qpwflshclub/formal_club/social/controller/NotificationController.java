@@ -1,9 +1,9 @@
 package com.qpwflshclub.formal_club.social.controller;
 
 import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
-import com.qpwflshclub.formal_club.social.SocialNotifications;
-import com.qpwflshclub.formal_club.social.SocialStore;
-import com.qpwflshclub.formal_club.workspace.WorkspaceAccess;
+import com.qpwflshclub.formal_club.social.service.SocialNotifications;
+import com.qpwflshclub.formal_club.social.service.SocialStore;
+import com.qpwflshclub.formal_club.workspace.service.WorkspaceAccess;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.*;

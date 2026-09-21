@@ -3,8 +3,8 @@ package com.qpwflshclub.formal_club.controller;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.qpwflshclub.formal_club.Clubs.pojo.Club;
-import com.qpwflshclub.formal_club.User.pojo.Teacher;
 import com.qpwflshclub.formal_club.Clubs.service.IClubService;
+import com.qpwflshclub.formal_club.User.pojo.Teacher;
 import com.qpwflshclub.formal_club.User.service.IUserService;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;

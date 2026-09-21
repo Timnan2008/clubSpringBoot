@@ -2,7 +2,7 @@ package com.qpwflshclub.formal_club.Booking.controller;
 
 import com.qpwflshclub.formal_club.Booking.service.BookingService;
 import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
-import com.qpwflshclub.formal_club.workspace.WorkspaceAccess;
+import com.qpwflshclub.formal_club.workspace.service.WorkspaceAccess;
 import jakarta.servlet.http.*;
 import java.util.Map;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;

@@ -2,12 +2,12 @@ package com.qpwflshclub.formal_club.social;
 
 import static org.assertj.core.api.Assertions.*;
 
+import com.qpwflshclub.formal_club.social.service.AvatarStore;
+import com.qpwflshclub.formal_club.social.service.WallFiles;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.file.*;
 import javax.imageio.ImageIO;
-
-import com.qpwflshclub.formal_club.social.service.AvatarStore;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.mock.web.MockMultipartFile;

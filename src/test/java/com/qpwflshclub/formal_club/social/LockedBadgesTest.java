@@ -5,15 +5,14 @@ import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.qpwflshclub.formal_club.User.pojo.User;
-import com.qpwflshclub.formal_club.User.service.IUserService;
-import java.nio.file.*;
-
 import com.qpwflshclub.formal_club.User.repository.AdminRepository;
 import com.qpwflshclub.formal_club.User.repository.ClubPresidentRepository;
 import com.qpwflshclub.formal_club.User.repository.TeacherRepository;
 import com.qpwflshclub.formal_club.User.repository.UserRepository;
+import com.qpwflshclub.formal_club.User.service.IUserService;
 import com.qpwflshclub.formal_club.social.service.LockedBadges;
 import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
+import java.nio.file.*;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 

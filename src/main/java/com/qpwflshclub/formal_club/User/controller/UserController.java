@@ -1,16 +1,16 @@
 package com.qpwflshclub.formal_club.User.controller;
 
-import com.qpwflshclub.formal_club.config.RegistrationVerification;
 import com.qpwflshclub.formal_club.Clubs.pojo.Club;
-import com.qpwflshclub.formal_club.pojo.ResponseMessage;
 import com.qpwflshclub.formal_club.User.pojo.Admin;
 import com.qpwflshclub.formal_club.User.pojo.ClubPresident;
 import com.qpwflshclub.formal_club.User.pojo.Teacher;
 import com.qpwflshclub.formal_club.User.pojo.User;
 import com.qpwflshclub.formal_club.User.pojo.UserBase;
-import com.qpwflshclub.formal_club.User.service.IUserService;
 import com.qpwflshclub.formal_club.User.pojo.dto.*;
 import com.qpwflshclub.formal_club.User.repository.UserRepository;
+import com.qpwflshclub.formal_club.User.service.IUserService;
+import com.qpwflshclub.formal_club.config.RegistrationVerification;
+import com.qpwflshclub.formal_club.pojo.ResponseMessage;
 import com.qpwflshclub.formal_club.social.service.AccountProfiles;
 import com.qpwflshclub.formal_club.social.service.MessageKeyVault;
 import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
@@ -252,13 +252,7 @@ public class UserController {
         ) {
             if (
                 keyVault != null &&
-                !keyVault
-                    .get(
-                        SchoolAccounts.key(
-                            currentUser.getEmail()
-                        )
-                    )
-                    .isBlank()
+                !keyVault.get(SchoolAccounts.key(currentUser.getEmail())).isBlank()
             ) throw SchoolAccounts.error(
                 400,
                 "请在个人资料页面更新密码 / Change your password in Profile"

@@ -1,6 +1,5 @@
 package com.qpwflshclub.formal_club.social.service;
 
-import com.qpwflshclub.formal_club.User.service.IUserService;
 import com.qpwflshclub.formal_club.User.pojo.Admin;
 import com.qpwflshclub.formal_club.User.pojo.ClubPresident;
 import com.qpwflshclub.formal_club.User.pojo.Teacher;
@@ -9,8 +8,8 @@ import com.qpwflshclub.formal_club.User.repository.AdminRepository;
 import com.qpwflshclub.formal_club.User.repository.ClubPresidentRepository;
 import com.qpwflshclub.formal_club.User.repository.TeacherRepository;
 import com.qpwflshclub.formal_club.User.repository.UserRepository;
+import com.qpwflshclub.formal_club.User.service.IUserService;
 import com.qpwflshclub.formal_club.social.ContentModeration;
-import com.qpwflshclub.formal_club.social.TeacherDayGifts;
 import jakarta.servlet.http.HttpServletRequest;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;

@@ -7,20 +7,19 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.qpwflshclub.formal_club.Clubs.pojo.Club;
+import com.qpwflshclub.formal_club.Clubs.repository.ClubRepository;
 import com.qpwflshclub.formal_club.User.pojo.ClubPresident;
 import com.qpwflshclub.formal_club.User.pojo.Teacher;
 import com.qpwflshclub.formal_club.User.pojo.User;
-import com.qpwflshclub.formal_club.Clubs.repository.ClubRepository;
 import com.qpwflshclub.formal_club.User.pojo.dto.TeacherDTO;
 import com.qpwflshclub.formal_club.User.repository.AdminRepository;
 import com.qpwflshclub.formal_club.User.repository.ClubPresidentRepository;
 import com.qpwflshclub.formal_club.User.repository.TeacherRepository;
 import com.qpwflshclub.formal_club.User.repository.UserRepository;
+import com.qpwflshclub.formal_club.User.service.UserService;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
-import com.qpwflshclub.formal_club.User.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

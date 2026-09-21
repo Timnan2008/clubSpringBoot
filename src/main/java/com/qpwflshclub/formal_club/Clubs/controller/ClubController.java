@@ -1,24 +1,24 @@
 package com.qpwflshclub.formal_club.Clubs.controller;
 
-import com.qpwflshclub.formal_club.Clubs.repository.ClubLikeDeviceRepository;
-import com.qpwflshclub.formal_club.Clubs.repository.ClubRepository;
-import com.qpwflshclub.formal_club.Clubs.service.PublicClubCatalog;
 import com.qpwflshclub.formal_club.Clubs.pojo.Club;
 import com.qpwflshclub.formal_club.Clubs.pojo.ClubInfoVO;
 import com.qpwflshclub.formal_club.Clubs.pojo.ClubVO;
 import com.qpwflshclub.formal_club.Clubs.pojo.SearchResultVO;
-import com.qpwflshclub.formal_club.pojo.ResponseMessage;
+import com.qpwflshclub.formal_club.Clubs.pojo.dto.ClubDTO;
+import com.qpwflshclub.formal_club.Clubs.repository.ClubLikeDeviceRepository;
+import com.qpwflshclub.formal_club.Clubs.repository.ClubRepository;
+import com.qpwflshclub.formal_club.Clubs.service.ClubLikeService;
+import com.qpwflshclub.formal_club.Clubs.service.IClubService;
+import com.qpwflshclub.formal_club.Clubs.service.PublicClubCatalog;
 import com.qpwflshclub.formal_club.User.pojo.Admin;
 import com.qpwflshclub.formal_club.User.pojo.ClubPresident;
 import com.qpwflshclub.formal_club.User.pojo.Teacher;
 import com.qpwflshclub.formal_club.User.pojo.UserBase;
-import com.qpwflshclub.formal_club.Clubs.pojo.dto.ClubDTO;
-import com.qpwflshclub.formal_club.Clubs.service.ClubLikeService;
-import com.qpwflshclub.formal_club.Clubs.service.IClubService;
 import com.qpwflshclub.formal_club.User.service.IUserService;
+import com.qpwflshclub.formal_club.pojo.ResponseMessage;
 import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
+import com.qpwflshclub.formal_club.workspace.service.WorkspaceAccess;
 import jakarta.servlet.http.HttpServletRequest;
-
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -203,7 +203,7 @@ public class ClubController {
     private SchoolAccounts likeAccounts;
 
     @Autowired
-    private com.qpwflshclub.formal_club.workspace.WorkspaceAccess likeAccess;
+    private WorkspaceAccess likeAccess;
 
     @Autowired
     private ClubLikeDeviceRepository likeDevices;
@@ -261,9 +261,7 @@ public class ClubController {
         @RequestHeader(value = "Device-Id", required = false) String deviceId,
         HttpServletRequest request
     ) {
-        deviceId = SchoolAccounts.key(
-            likeAccounts.current(request).getEmail()
-        );
+        deviceId = SchoolAccounts.key(likeAccounts.current(request).getEmail());
         likeAccess.mutation(request);
         boolean ok = clubLikeService.like(clubName, deviceId);
         if (!ok) {
@@ -281,9 +279,7 @@ public class ClubController {
         @RequestHeader(value = "X-Device-Id", required = false) String deviceId,
         HttpServletRequest request
     ) {
-        deviceId = SchoolAccounts.key(
-            likeAccounts.current(request).getEmail()
-        );
+        deviceId = SchoolAccounts.key(likeAccounts.current(request).getEmail());
         likeAccess.mutation(request);
 
         boolean ok = clubLikeService.dislike(clubName, deviceId);

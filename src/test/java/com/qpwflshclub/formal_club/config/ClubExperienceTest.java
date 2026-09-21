@@ -3,15 +3,15 @@ package com.qpwflshclub.formal_club.config;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.qpwflshclub.formal_club.controller.*;
 import com.qpwflshclub.formal_club.Clubs.pojo.Club;
 import com.qpwflshclub.formal_club.Clubs.repository.ClubRepository;
-import com.qpwflshclub.formal_club.User.service.IUserService;
 import com.qpwflshclub.formal_club.User.pojo.ClubPresident;
 import com.qpwflshclub.formal_club.User.pojo.Teacher;
 import com.qpwflshclub.formal_club.User.pojo.User;
 import com.qpwflshclub.formal_club.User.pojo.UserBase;
-import com.qpwflshclub.formal_club.workspace.WorkspaceAccess;
+import com.qpwflshclub.formal_club.User.service.IUserService;
+import com.qpwflshclub.formal_club.controller.*;
+import com.qpwflshclub.formal_club.workspace.service.WorkspaceAccess;
 import jakarta.servlet.http.Cookie;
 import java.util.*;
 import org.junit.jupiter.api.Test;

@@ -3,12 +3,11 @@ package com.qpwflshclub.formal_club.social;
 import static org.assertj.core.api.Assertions.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.qpwflshclub.formal_club.social.service.MessageKeys;
 import java.nio.file.Path;
 import java.security.*;
 import java.security.spec.*;
 import java.util.*;
-
-import com.qpwflshclub.formal_club.social.service.MessageKeys;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 

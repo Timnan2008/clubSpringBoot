@@ -2,14 +2,13 @@ package com.qpwflshclub.formal_club.social.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.qpwflshclub.formal_club.social.MediaCompression;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
 import javax.imageio.ImageIO;
-
-import com.qpwflshclub.formal_club.social.MediaCompression;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;

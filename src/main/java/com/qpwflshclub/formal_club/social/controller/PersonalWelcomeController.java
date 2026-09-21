@@ -2,7 +2,7 @@ package com.qpwflshclub.formal_club.social.controller;
 
 import com.qpwflshclub.formal_club.social.service.PersonalWelcomeStore;
 import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
-import com.qpwflshclub.formal_club.workspace.WorkspaceAccess;
+import com.qpwflshclub.formal_club.workspace.service.WorkspaceAccess;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.Map;

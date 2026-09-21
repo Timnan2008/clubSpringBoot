@@ -3,15 +3,15 @@ package com.qpwflshclub.formal_club.social;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.qpwflshclub.formal_club.config.*;
 import com.qpwflshclub.formal_club.User.controller.UserController;
 import com.qpwflshclub.formal_club.User.pojo.User;
 import com.qpwflshclub.formal_club.User.pojo.dto.LoginDTO;
-import com.qpwflshclub.formal_club.service.Suggestion.MailService;
 import com.qpwflshclub.formal_club.User.service.IUserService;
+import com.qpwflshclub.formal_club.config.*;
+import com.qpwflshclub.formal_club.service.Suggestion.MailService;
 import com.qpwflshclub.formal_club.social.controller.EmailChangeController;
 import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
-import com.qpwflshclub.formal_club.workspace.WorkspaceAccess;
+import com.qpwflshclub.formal_club.workspace.service.WorkspaceAccess;
 import java.nio.file.Path;
 import java.time.Instant;
 import org.junit.jupiter.api.*;

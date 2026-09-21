@@ -1,5 +1,6 @@
-package com.qpwflshclub.formal_club.workspace;
+package com.qpwflshclub.formal_club.workspace.controller;
 
+import com.qpwflshclub.formal_club.workspace.service.WorkspaceAccess;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

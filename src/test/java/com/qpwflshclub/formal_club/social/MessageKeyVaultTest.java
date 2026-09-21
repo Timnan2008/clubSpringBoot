@@ -4,11 +4,10 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.util.*;
-
 import com.qpwflshclub.formal_club.social.repository.MessageKeyBackup;
 import com.qpwflshclub.formal_club.social.repository.MessageKeyBackupRepository;
 import com.qpwflshclub.formal_club.social.service.MessageKeyVault;
+import java.util.*;
 import org.junit.jupiter.api.Test;
 
 class MessageKeyVaultTest {

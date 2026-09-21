@@ -2,11 +2,10 @@ package com.qpwflshclub.formal_club.social;
 
 import static org.assertj.core.api.Assertions.*;
 
+import com.qpwflshclub.formal_club.social.service.AccountProfiles;
 import java.nio.file.*;
 import java.util.*;
 import java.util.concurrent.*;
-
-import com.qpwflshclub.formal_club.social.service.AccountProfiles;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 

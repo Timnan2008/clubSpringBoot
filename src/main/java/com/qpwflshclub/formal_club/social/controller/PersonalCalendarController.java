@@ -2,7 +2,8 @@ package com.qpwflshclub.formal_club.social.controller;
 
 import com.qpwflshclub.formal_club.social.service.PersonalCalendarStore;
 import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
-import com.qpwflshclub.formal_club.workspace.*;
+import com.qpwflshclub.formal_club.workspace.service.WorkspaceAccess;
+import com.qpwflshclub.formal_club.workspace.service.WorkspaceStore;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.time.*;

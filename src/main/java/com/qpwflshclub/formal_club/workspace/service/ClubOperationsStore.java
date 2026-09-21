@@ -1,4 +1,4 @@
-package com.qpwflshclub.formal_club.workspace;
+package com.qpwflshclub.formal_club.workspace.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;

@@ -1,8 +1,10 @@
-package com.qpwflshclub.formal_club.workspace;
+package com.qpwflshclub.formal_club.workspace.controller;
 
 import com.qpwflshclub.formal_club.Clubs.pojo.Club;
 import com.qpwflshclub.formal_club.Clubs.repository.ClubLikeDeviceRepository;
 import com.qpwflshclub.formal_club.Clubs.repository.ClubRepository;
+import com.qpwflshclub.formal_club.workspace.service.WorkspaceAccess;
+import com.qpwflshclub.formal_club.workspace.service.WorkspaceStore;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.*;
 import org.springframework.http.ResponseEntity;

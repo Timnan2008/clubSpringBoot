@@ -1,11 +1,11 @@
 package com.qpwflshclub.formal_club.social.controller;
 
-import com.qpwflshclub.formal_club.config.*;
-import com.qpwflshclub.formal_club.service.Suggestion.MailService;
 import com.qpwflshclub.formal_club.User.pojo.Teacher;
 import com.qpwflshclub.formal_club.User.pojo.UserBase;
+import com.qpwflshclub.formal_club.config.*;
+import com.qpwflshclub.formal_club.service.Suggestion.MailService;
 import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
-import com.qpwflshclub.formal_club.workspace.WorkspaceAccess;
+import com.qpwflshclub.formal_club.workspace.service.WorkspaceAccess;
 import jakarta.servlet.http.*;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;

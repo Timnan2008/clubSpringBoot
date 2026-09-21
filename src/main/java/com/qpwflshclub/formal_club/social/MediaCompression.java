@@ -1,7 +1,6 @@
 package com.qpwflshclub.formal_club.social;
 
 import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
-
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;

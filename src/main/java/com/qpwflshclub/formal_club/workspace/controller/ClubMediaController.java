@@ -1,8 +1,10 @@
-package com.qpwflshclub.formal_club.workspace;
+package com.qpwflshclub.formal_club.workspace.controller;
 
 import com.qpwflshclub.formal_club.Clubs.repository.ClubRepository;
 import com.qpwflshclub.formal_club.social.*;
 import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
+import com.qpwflshclub.formal_club.social.service.WallFiles;
+import com.qpwflshclub.formal_club.workspace.service.WorkspaceAccess;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.*;
 import java.nio.file.*;

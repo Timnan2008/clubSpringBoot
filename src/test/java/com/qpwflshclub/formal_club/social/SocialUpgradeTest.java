@@ -3,14 +3,15 @@ package com.qpwflshclub.formal_club.social;
 import static org.assertj.core.api.Assertions.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.qpwflshclub.formal_club.social.service.ChatPreferences;
+import com.qpwflshclub.formal_club.social.service.ProfileAppearance;
+import com.qpwflshclub.formal_club.social.service.SocialStore;
+import com.qpwflshclub.formal_club.social.service.WallFiles;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.nio.file.*;
 import java.util.*;
 import javax.imageio.ImageIO;
-
-import com.qpwflshclub.formal_club.social.service.ChatPreferences;
-import com.qpwflshclub.formal_club.social.service.ProfileAppearance;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.mock.web.MockMultipartFile;

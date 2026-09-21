@@ -6,15 +6,16 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.qpwflshclub.formal_club.Suggestion.controller.SuggestionController;
-import com.qpwflshclub.formal_club.Suggestion.pojo.dto.SuggestionDTO;
-import com.qpwflshclub.formal_club.pojo.ResponseMessage;
 import com.qpwflshclub.formal_club.Suggestion.pojo.Suggestion;
+import com.qpwflshclub.formal_club.Suggestion.pojo.dto.SuggestionDTO;
+import com.qpwflshclub.formal_club.Suggestion.service.ISuggestionService;
 import com.qpwflshclub.formal_club.User.pojo.Admin;
 import com.qpwflshclub.formal_club.User.pojo.Teacher;
-import com.qpwflshclub.formal_club.Suggestion.service.ISuggestionService;
 import com.qpwflshclub.formal_club.User.pojo.User;
+import com.qpwflshclub.formal_club.pojo.ResponseMessage;
 import com.qpwflshclub.formal_club.social.service.ContentAudit;
 import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
+import com.qpwflshclub.formal_club.workspace.service.WorkspaceAccess;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,15 +38,9 @@ class SuggestionControllerTest {
     void setUp() {
         controller = new SuggestionController();
         controller.suggestionService = suggestionService;
-        controller.accounts = org.mockito.Mockito.mock(
-            SchoolAccounts.class
-        );
-        controller.access = org.mockito.Mockito.mock(
-            com.qpwflshclub.formal_club.workspace.WorkspaceAccess.class
-        );
-        controller.audit = org.mockito.Mockito.mock(
-            ContentAudit.class
-        );
+        controller.accounts = org.mockito.Mockito.mock(SchoolAccounts.class);
+        controller.access = org.mockito.Mockito.mock(WorkspaceAccess.class);
+        controller.audit = org.mockito.Mockito.mock(ContentAudit.class);
         var actor = new User();
         actor.setEmail("fixture@example.com");
         actor.setUsername("测试同学");
@@ -54,9 +49,7 @@ class SuggestionControllerTest {
 
     @Test
     void passSuggestionRejectsStudent() {
-        when(request.getAttribute("currentUser")).thenReturn(
-            new User()
-        );
+        when(request.getAttribute("currentUser")).thenReturn(new User());
 
         ResponseMessage<Suggestion> response = controller.passSuggestion(1L, request);
 
@@ -87,9 +80,7 @@ class SuggestionControllerTest {
 
     @Test
     void deleteSuggestionRejectsStudent() {
-        when(request.getAttribute("currentUser")).thenReturn(
-            new User()
-        );
+        when(request.getAttribute("currentUser")).thenReturn(new User());
 
         ResponseMessage<Suggestion> response = controller.deleteSuggestion(1L, request);
 
@@ -137,9 +128,7 @@ class SuggestionControllerTest {
 
     @org.junit.jupiter.api.Test
     void publicTitleCannotExposePendingOrAnonymousIdentity() {
-        var service = org.mockito.Mockito.mock(
-            ISuggestionService.class
-        );
+        var service = org.mockito.Mockito.mock(ISuggestionService.class);
         var c = new SuggestionController();
         c.suggestionService = service;
         var suggestion = new Suggestion();

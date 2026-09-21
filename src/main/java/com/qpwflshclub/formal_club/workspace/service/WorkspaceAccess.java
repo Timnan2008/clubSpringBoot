@@ -1,12 +1,12 @@
-package com.qpwflshclub.formal_club.workspace;
+package com.qpwflshclub.formal_club.workspace.service;
 
 import com.qpwflshclub.formal_club.Clubs.pojo.Club;
 import com.qpwflshclub.formal_club.Clubs.repository.ClubRepository;
-import com.qpwflshclub.formal_club.User.service.IUserService;
 import com.qpwflshclub.formal_club.User.pojo.Admin;
 import com.qpwflshclub.formal_club.User.pojo.ClubPresident;
 import com.qpwflshclub.formal_club.User.pojo.Teacher;
 import com.qpwflshclub.formal_club.User.pojo.UserBase;
+import com.qpwflshclub.formal_club.User.service.IUserService;
 import com.qpwflshclub.formal_club.social.service.OfficerAssignments;
 import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
 import jakarta.servlet.http.HttpServletRequest;

@@ -2,12 +2,12 @@ package com.qpwflshclub.formal_club.controller;
 
 import com.qpwflshclub.formal_club.Clubs.pojo.Club;
 import com.qpwflshclub.formal_club.Clubs.repository.ClubRepository;
+import com.qpwflshclub.formal_club.Clubs.service.IClubService;
 import com.qpwflshclub.formal_club.User.pojo.Admin;
 import com.qpwflshclub.formal_club.User.pojo.ClubPresident;
 import com.qpwflshclub.formal_club.User.pojo.Teacher;
 import com.qpwflshclub.formal_club.User.pojo.UserBase;
 import com.qpwflshclub.formal_club.User.repository.UserRepository;
-import com.qpwflshclub.formal_club.Clubs.service.IClubService;
 import com.qpwflshclub.formal_club.User.service.IUserService;
 import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
 import jakarta.servlet.http.Cookie;
@@ -17,7 +17,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

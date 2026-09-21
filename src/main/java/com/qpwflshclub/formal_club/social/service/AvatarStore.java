@@ -1,9 +1,8 @@
 package com.qpwflshclub.formal_club.social.service;
 
+import com.qpwflshclub.formal_club.social.MediaCompression;
 import java.io.*;
 import java.nio.file.*;
-
-import com.qpwflshclub.formal_club.social.MediaCompression;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;

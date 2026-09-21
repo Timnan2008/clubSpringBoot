@@ -1,4 +1,4 @@
-package com.qpwflshclub.formal_club.social;
+package com.qpwflshclub.formal_club.social.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -9,8 +9,6 @@ import java.io.IOException;
 import java.nio.file.*;
 import java.time.*;
 import java.util.*;
-
-import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
