@@ -27,7 +27,6 @@ function Suggestions() {
     [category, setCategory] = useState("general"),
     [text, setText] = useState(""),
     [name, setName] = useState(""),
-    [anonymous, setAnonymous] = useState(false),
     [busy, setBusy] = useState(false),
     [notice, setNotice] = useState(""),
     [error, setError] = useState(""),
@@ -39,7 +38,8 @@ function Suggestions() {
     last = useRef(0);
   const [page, setPage] = useState(1),
     [keyword, setKeyword] = useState(""),
-    [token, setToken] = useState("");
+    [token, setToken] = useState(""),
+    [mutedUntil, setMutedUntil] = useState("");
   useEffect(() => {
     if (document.getElementById("campus-ideas").dataset.authenticated === "false") return;
     fetch("/api/campus-social/me")
@@ -48,6 +48,7 @@ function Suggestions() {
         if (p) {
           setAccount(p.account);
           setToken(p.token);
+          setMutedUntil(p.mutedUntil || "");
           setName(en ? p.account.nameEn || p.account.name : p.account.name);
         }
       })
@@ -75,6 +76,15 @@ function Suggestions() {
       setError(tx("请先登录再提交建议。", "Sign in to submit an idea."));
       return;
     }
+    if (mutedUntil) {
+      setError(
+        tx(
+          `因多次发送不当用语，账号已禁言至 ${mutedUntil}。`,
+          `This account is muted until ${mutedUntil} for repeated inappropriate language.`,
+        ),
+      );
+      return;
+    }
     setError("");
     setNotice("");
     if (text.trim().length < 5) {
@@ -98,18 +108,20 @@ function Suggestions() {
         body: JSON.stringify({
           title: category,
           context: text.trim(),
-          anonymous,
-          name: anonymous ? "" : name.trim(),
+          anonymous: false,
+          name: name.trim(),
           turnstileToken,
         }),
       });
       const d = await r.json();
       if (!r.ok || d.code !== 200)
-        throw Error(en ? "Unable to submit. Please try again." : d.message);
+        throw Error(
+          d.message || tx("提交失败，请重试。", "Unable to submit. Please try again."),
+        );
       try {
         localStorage.setItem(
           "wfl_my_ideas_v2_" + account.id,
-          JSON.stringify([...readLocal(account), { ...d.data, anonymous }].slice(-30)),
+          JSON.stringify([...readLocal(account), { ...d.data, anonymous: false }].slice(-30)),
         );
       } catch {}
       setNotice(
@@ -149,7 +161,7 @@ function Suggestions() {
     .filter((p) =>
       [
         p.context,
-        p.anonymous || p.isAnonymous ? "" : p.name,
+        p.name,
         categories.find((c) => c[0] === p.title)?.[1],
       ].some((v) =>
         String(v || "")
@@ -242,7 +254,15 @@ function Suggestions() {
                         </a>
                       </p>
                     )}
-                    <fieldset disabled={busy || !account}>
+                    {mutedUntil && (
+                      <p className="ideas-alert" role="alert">
+                        {tx(
+                          `因多次发送不当用语，账号已禁言至 ${mutedUntil}。`,
+                          `This account is muted until ${mutedUntil} for repeated inappropriate language.`,
+                        )}
+                      </p>
+                    )}
+                    <fieldset disabled={busy || !account || !!mutedUntil}>
                       <legend className="ideas-sr-only">{tx("建议分类", "Category")}</legend>
                       <div className="ideas-categories">
                         {categories.map(([key, label]) => (
@@ -274,35 +294,17 @@ function Suggestions() {
                         />
                         <small>{text.length} / 500</small>
                       </label>
-                      <label className="ideas-anonymous">
+                      <label className="ideas-field">
+                        <span>{tx("你的姓名", "Your name")}</span>
                         <input
-                          type="checkbox"
-                          checked={anonymous}
-                          onChange={(e) => setAnonymous(e.target.checked)}
+                          readOnly
+                          autoComplete="name"
+                          maxLength={80}
+                          required
+                          value={name}
+                          onChange={(e) => setName(e.target.value)}
                         />
-                        {tx("匿名提交", "Submit anonymously")}
                       </label>
-                      {anonymous && (
-                        <p className="account-hint">
-                          {tx(
-                            "对其他用户匿名；学校后台保留账号归属，用于处理违规。",
-                            "Anonymous to other users; school staff retain account ownership for moderation.",
-                          )}
-                        </p>
-                      )}
-                      {!anonymous && (
-                        <label className="ideas-field">
-                          <span>{tx("你的姓名", "Your name")}</span>
-                          <input
-                            readOnly
-                            autoComplete="name"
-                            maxLength={80}
-                            required
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                          />
-                        </label>
-                      )}
                       <div className="ideas-bottom">
                         <Turnstile onToken={setTurnstileToken} reset={verificationReset} />
                         <button
@@ -359,10 +361,8 @@ function Suggestions() {
                           </header>
                           <p>{p.context}</p>
                           <footer>
-                            {p.anonymous || p.isAnonymous
-                              ? tx("匿名", "Anonymous")
-                              : (en ? p.nameEn || p.name : p.name) ||
-                                tx("校园成员", "School member")}
+                            {(en ? p.nameEn || p.name : p.name) ||
+                              tx("校园成员", "School member")}
                           </footer>
                         </article>
                       ))

@@ -55,6 +55,25 @@ class PublicClubCatalogTest {
     }
 
     @Test
+    void openSteamIsListedFirstAmongAllClubs() {
+        IClubService source = mock(IClubService.class);
+        Club coding = club();
+        Club steam = new Club();
+        steam.setId(28);
+        steam.setClubName("OpenSTEAM社团");
+        steam.setClubNameEn("OpenSTEAM CLUB");
+        Club cafe = new Club();
+        cafe.setId(2);
+        cafe.setClubName("咖啡社");
+        cafe.setClubNameEn("ORCAFE");
+        when(source.findAll()).thenReturn(List.of(coding, cafe, steam));
+        PublicClubCatalog catalog = new PublicClubCatalog(source);
+        assertThat(catalog.all())
+            .extracting(Club::getClubNameEn)
+            .containsExactly("OpenSTEAM CLUB", "Codecraft", "ORCAFE");
+    }
+
+    @Test
     void languageQueriesShareDataWithoutCachingLocaleAndBlankQueriesDoNotReadDatabase() {
         IClubService source = mock(IClubService.class);
         PublicClubCatalog catalog = new PublicClubCatalog(source);

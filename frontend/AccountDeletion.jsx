@@ -1,11 +1,28 @@
 import React, { useState } from "react";
 import { tx, tr } from "./language";
+import HoldButton from "./HoldButton";
 export default function AccountDeletion({ write, account }) {
   const [open, setOpen] = useState(false),
     [password, setPassword] = useState(""),
     [confirmation, setConfirmation] = useState(""),
     [busy, setBusy] = useState(false),
     [error, setError] = useState("");
+  const remove = async () => {
+    if (busy || confirmation !== "DELETE" || !password) return false;
+    setBusy(true);
+    setError("");
+    try {
+      await write("/me/account", "DELETE", { password, confirmation });
+      const { forgetIdentity } = await import("./message-crypto.js");
+      await forgetIdentity(account).catch(() => {});
+      sessionStorage.clear();
+      location.assign("/page/user/login?deleted=1");
+    } catch (e) {
+      setError(tr(e.message));
+      setBusy(false);
+      return false;
+    }
+  };
   return (
     <section className="account-card account-deletion">
       <h2>{tx("注销账号", "Delete account")}</h2>
@@ -20,24 +37,7 @@ export default function AccountDeletion({ write, account }) {
           {tx("注销我的账号", "Delete my account")}
         </button>
       ) : (
-        <form
-          onSubmit={async (e) => {
-            e.preventDefault();
-            if (busy) return;
-            setBusy(true);
-            setError("");
-            try {
-              await write("/me/account", "DELETE", { password, confirmation });
-              const { forgetIdentity } = await import("./message-crypto.js");
-              await forgetIdentity(account).catch(() => {});
-              sessionStorage.clear();
-              location.assign("/page/user/login?deleted=1");
-            } catch (e) {
-              setError(tr(e.message));
-              setBusy(false);
-            }
-          }}
-        >
+        <form onSubmit={(e) => e.preventDefault()}>
           <label>
             {tx("当前密码", "Current password")}
             <input
@@ -61,14 +61,9 @@ export default function AccountDeletion({ write, account }) {
             </p>
           )}
           <div className="account-confirm-actions">
-            <button
-              className="account-danger"
-              disabled={busy || confirmation !== "DELETE" || !password}
-            >
-              {busy
-                ? tx("正在清理账号数据…", "Deleting account data…")
-                : tx("永久注销", "Permanently delete")}
-            </button>
+            <HoldButton disabled={busy || confirmation !== "DELETE" || !password} onHold={remove}>
+              {tx("长按永久注销", "Hold to delete account")}
+            </HoldButton>
             <button
               className="account-cancel"
               type="button"

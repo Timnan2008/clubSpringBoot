@@ -28,7 +28,7 @@
 .account-identity {
   padding: 38px 0 28px;
 }
-.account-identity > span {
+.account-identity > .campus-avatar {
   display: grid;
   place-items: center;
   width: 72px;
@@ -371,7 +371,7 @@
 .account-identity {
   padding: 6px 15px 28px;
 }
-.account-identity > span {
+.account-identity > .campus-avatar {
   width: 58px;
   height: 58px;
   border-radius: 50%;
@@ -379,6 +379,13 @@
   color: #5b4c65;
   font-size: 24px;
   box-shadow: none;
+}
+.account-identity .teacher-day-badge,
+.account-identity .exclusive-bestie-badge {
+  display: inline-flex;
+  width: auto;
+  height: auto;
+  margin: 4px 0 12px;
 }
 .account-identity h2 {
   font-size: 19px;
@@ -647,14 +654,28 @@
 .account-leave-confirm p {
   font-size: 13px;
   line-height: 1.6;
+  color: #3a2e44;
 }
 .account-leave-confirm button {
   margin-right: 12px;
-  padding: 9px 12px;
+  margin-top: 10px;
+  padding: 9px 14px;
   border: 1px solid #c9bdd3;
   border-radius: 8px;
   cursor: pointer;
-  background: white;
+  background: #fff;
+  color: #3a2e44;
+  font: inherit;
+  font-size: 13px;
+}
+.account-leave-confirm .account-leave-yes {
+  background: #be343c;
+  border-color: #be343c;
+  color: #fff;
+}
+.account-leave-confirm .account-leave-cancel {
+  background: #fff;
+  color: #3a2e44;
 }
 
 .account-card select,

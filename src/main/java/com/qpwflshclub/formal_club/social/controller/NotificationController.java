@@ -4,6 +4,14 @@ import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
 import com.qpwflshclub.formal_club.social.service.SocialNotifications;
 import com.qpwflshclub.formal_club.social.service.SocialStore;
 import com.qpwflshclub.formal_club.workspace.service.WorkspaceAccess;
+import com.qpwflshclub.formal_club.Clubs.pojo.Club;
+import com.qpwflshclub.formal_club.Clubs.repository.ClubRepository;
+import com.qpwflshclub.formal_club.User.pojo.UserBase;
+import com.qpwflshclub.formal_club.social.service.SocialNotifications;
+import com.qpwflshclub.formal_club.social.service.SocialStore;
+import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
+import com.qpwflshclub.formal_club.workspace.controller.JoinRequests;
+import com.qpwflshclub.formal_club.workspace.service.WorkspaceAccess;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.*;
@@ -17,17 +25,58 @@ public class NotificationController {
     private final WorkspaceAccess access;
     private final SocialStore social;
     private final SocialNotifications notifications;
+    private final JoinRequests joins;
+    private final ClubRepository clubs;
+
+    /** 违禁词处罚台账：把「网管」的提醒/封禁通知一起送进通知中心。 */
+    @org.springframework.beans.factory.annotation.Autowired
+    private com.qpwflshclub.formal_club.social.service.ModerationPenalty penalties;
+
+    /**
+     * 「网管」的提醒记录：每次命中违禁词都会留一条，学生在这里能看到自己被提醒/被封到什么时间。
+     * 独立的 notices 列表，不改动原有 items 的结构（前端单独渲染一块）。
+     */
+    private List<Map<String, Object>> wardenNotices(String me) throws IOException {
+        if (penalties == null) return List.of();
+        var history = penalties.state(me).history();
+        List<Map<String, Object>> notices = new ArrayList<>();
+        for (int i = history.size() - 1; i >= 0; i--) {
+            var strike = history.get(i);
+            String id = "warden:" + strike.at() + ":" + i;
+            Map<String, Object> row = new LinkedHashMap<>();
+            row.put("id", id);
+            row.put("at", strike.at());
+            row.put("where", strike.where());
+            row.put("word", strike.word());
+            row.put(
+                "text",
+                String.format(
+                    "【网管】在第 %d 次违规里拦截了违禁词「%s」（位置：%s），请不要再发类似内容。",
+                    history.size() - i,
+                    strike.word(),
+                    strike.where()
+                )
+            );
+            row.put("unread", !notifications.read(me, id));
+            notices.add(row);
+        }
+        return notices;
+    }
 
     public NotificationController(
         SchoolAccounts a,
         WorkspaceAccess w,
         SocialStore s,
-        SocialNotifications n
+        SocialNotifications n,
+        JoinRequests j,
+        ClubRepository c
     ) {
         accounts = a;
         access = w;
         social = s;
         notifications = n;
+        joins = j;
+        clubs = c;
     }
 
     public record Item(
@@ -36,10 +85,23 @@ public class NotificationController {
         String actor,
         String url,
         String createdAt,
-        boolean unread
-    ) {}
+        boolean unread,
+        String clubName
+    ) {
+        public Item(
+            String id,
+            String type,
+            String actor,
+            String url,
+            String createdAt,
+            boolean unread
+        ) {
+            this(id, type, actor, url, createdAt, unread, "");
+        }
+    }
 
-    private List<Item> list(String me) throws IOException {
+    private List<Item> list(UserBase user) throws IOException {
+        String me = SchoolAccounts.key(user.getEmail());
         var d = social.snapshot();
         var list = new ArrayList<Item>();
         for (var p : d.posts())
@@ -64,32 +126,48 @@ public class NotificationController {
             }
         var posts = new HashMap<String, SocialStore.Post>();
         for (var p : d.posts()) posts.put(p.id(), p);
+        // 先把回复按 id 建索引：原来在循环里又一次扫全部回复找父回复，回复一多就是 O(n²)，
+        // 现在查父回复是 O(1)，整体回到 O(n)。判断顺序与结果保持不变。
+        var repliesById = new HashMap<String, SocialStore.Reply>();
+        for (var r : d.replies()) repliesById.put(r.id(), r);
         for (var r : d.replies()) {
-            var p = posts.get(r.post());
+            var parent = posts.get(r.post());
+            if (parent == null || r.author().equals(me)) continue;
             if (
-                p != null &&
-                (p.author().equals(me) ||
-                    d
-                        .replies()
-                        .stream()
-                        .anyMatch(
-                            parent ->
-                                parent.id().equals(r.parentReply()) && parent.author().equals(me)
-                        )) &&
-                !r.author().equals(me)
+                notifications
+                    .mentions(r.id())
+                    .stream()
+                    .anyMatch(m -> m.account().equals(me))
             ) {
-                String id = "reply:" + r.id();
+                String id = "mention:" + r.id();
                 list.add(
                     new Item(
                         id,
-                        "reply",
-                        p.anonymous() && p.author().equals(r.author()) ? "" : r.author(),
+                        "mention",
+                        parent.anonymous() && parent.author().equals(r.author()) ? "" : r.author(),
                         "/page/wall?post=" + r.post(),
                         r.createdAt(),
                         !notifications.read(me, id)
                     )
                 );
             }
+        }
+        for (var r : d.replies()) {
+            var p = posts.get(r.post());
+            if (p == null) continue;
+            var parent = repliesById.get(r.parentReply());
+            if (!p.author().equals(me) && (parent == null || !parent.author().equals(me))) continue;
+            String id = "reply:" + r.id();
+            list.add(
+                new Item(
+                    id,
+                    "reply",
+                    p.anonymous() && p.author().equals(r.author()) ? "" : r.author(),
+                    "/page/wall?post=" + r.post(),
+                    r.createdAt(),
+                    !notifications.read(me, id)
+                )
+            );
         }
         for (var m : d.messages())
             if (m.recipient().equals(me) && !m.recalled()) list.add(
@@ -102,14 +180,62 @@ public class NotificationController {
                     !m.read()
                 )
             );
+        addJoinItems(user, me, list);
         list.sort(Comparator.comparing(Item::createdAt).reversed());
         return list;
     }
 
+    private void addJoinItems(UserBase user, String me, List<Item> list) throws IOException {
+        if (joins == null) return;
+        Map<Integer, Club> managed = new LinkedHashMap<>();
+        List<Club> managedClubs = access.clubs(user);
+        if (managedClubs != null) for (Club club : managedClubs) managed.put(club.getId(), club);
+        for (var entry : joins.all().entrySet()) {
+            Club club = managed.get(entry.getKey());
+            if (club == null && clubs != null) club = clubs.findById(entry.getKey()).orElse(null);
+            String clubName = club == null ? "" : Objects.toString(club.getClubName(), "");
+            for (var request : entry.getValue()) {
+                if (managed.containsKey(entry.getKey()) && request.status().equals("pending")) {
+                    if (request.account().equals(me)) continue;
+                    String id = "join-request:" + request.id();
+                    list.add(
+                        new Item(
+                            id,
+                            "join_request",
+                            request.account(),
+                            "/page/club/workspace?tab=recruitment&club=" + entry.getKey(),
+                            request.createdAt(),
+                            !notifications.read(me, id),
+                            clubName
+                        )
+                    );
+                }
+                if (
+                    request.account().equals(me) &&
+                    (request.status().equals("approved") || request.status().equals("declined"))
+                ) {
+                    String id = "join-decision:" + request.id();
+                    list.add(
+                        new Item(
+                            id,
+                            request.status().equals("approved") ? "join_approved" : "join_declined",
+                            request.reviewedBy(),
+                            "/page/clubs/" + entry.getKey(),
+                            request.createdAt(),
+                            !notifications.read(me, id),
+                            clubName
+                        )
+                    );
+                }
+            }
+        }
+    }
+
     @GetMapping
     public Object get(HttpServletRequest r) throws IOException {
-        String me = SchoolAccounts.key(accounts.current(r).getEmail());
-        var all = list(me);
+        var user = accounts.current(r);
+        String me = SchoolAccounts.key(user.getEmail());
+        var all = list(user);
         var people = accounts.directory();
         var items = all
             .stream()
@@ -123,6 +249,10 @@ public class NotificationController {
                 row.put("createdAt", i.createdAt());
                 row.put("unread", i.unread());
                 row.put("actor", people.get(i.actor()));
+                if (i.clubName() != null && !i.clubName().isBlank()) row.put(
+                    "clubName",
+                    i.clubName()
+                );
                 return row;
             })
             .toList();
@@ -131,6 +261,8 @@ public class NotificationController {
             items,
             "unread",
             all.stream().filter(Item::unread).count(),
+            "notices",
+            wardenNotices(me),
             "token",
             access.token(r)
         );
@@ -140,16 +272,22 @@ public class NotificationController {
 
     @PostMapping("/read")
     public Object read(@RequestBody ReadInput body, HttpServletRequest r) throws IOException {
-        String me = SchoolAccounts.key(accounts.current(r).getEmail());
+        var user = accounts.current(r);
+        String me = SchoolAccounts.key(user.getEmail());
         access.mutation(r);
-        var selected = list(me)
+        var selected = list(user)
             .stream()
             .filter(i -> body.all() || i.id().equals(body.id()))
             .toList();
-        if (!body.all() && selected.isEmpty()) throw SchoolAccounts.error(
-            404,
-            "通知不存在 / Notification not found"
-        );
+        // 「网管」提醒也支持已读
+        var noticeSelected = wardenNotices(me)
+            .stream()
+            .filter(n -> body.all() || String.valueOf(n.get("id")).equals(body.id()))
+            .map(n -> String.valueOf(n.get("id")))
+            .toList();
+        if (
+            !body.all() && selected.isEmpty() && noticeSelected.isEmpty()
+        ) throw SchoolAccounts.error(404, "通知不存在 / Notification not found");
         social.readMessages(
             selected
                 .stream()
@@ -166,6 +304,7 @@ public class NotificationController {
                 .map(Item::id)
                 .toList()
         );
+        notifications.mark(me, noticeSelected);
         return Map.of("ok", true);
     }
 }

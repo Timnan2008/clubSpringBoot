@@ -14,6 +14,7 @@ import com.qpwflshclub.formal_club.User.repository.UserRepository;
 import com.qpwflshclub.formal_club.User.service.IUserService;
 import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
 import com.qpwflshclub.formal_club.workspace.service.WorkspaceAccess;
+import com.qpwflshclub.formal_club.workspace.service.WorkspaceAccess;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.*;
 
@@ -31,7 +32,12 @@ class BookingAuthorizationTest {
         );
         var access = new WorkspaceAccess(users, mock(ClubRepository.class));
         var service = mock(BookingService.class);
-        var controller = new BookingApiController(accounts, access, service);
+        var controller = new BookingApiController(
+            accounts,
+            access,
+            service,
+            new BookingOverseers("")
+        );
         var request = new MockHttpServletRequest();
         request.setCookies(
             new jakarta.servlet.http.Cookie("user_session", "forged@example.invalid")
@@ -48,9 +54,14 @@ class BookingAuthorizationTest {
         assertThatThrownBy(() ->
             controller.submit(input, request, new MockHttpServletResponse())
         ).hasMessageContaining("403");
+        assertThatThrownBy(() ->
+            controller.cancel(1L, request, new MockHttpServletResponse())
+        ).hasMessageContaining("403");
         verifyNoInteractions(service);
         request.addHeader("X-Workspace-Token", access.token(request));
         controller.submit(input, request, new MockHttpServletResponse());
         verify(service).submit(new BookingService.Actor(user.getEmail(), "Owner", false), input);
+        controller.cancel(1L, request, new MockHttpServletResponse());
+        verify(service).cancel(new BookingService.Actor(user.getEmail(), "Owner", false), 1L);
     }
 }

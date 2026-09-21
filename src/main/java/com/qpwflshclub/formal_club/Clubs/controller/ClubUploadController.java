@@ -53,10 +53,11 @@ public class ClubUploadController {
         }
 
         try {
+            com.qpwflshclub.formal_club.config.MediaUploadPolicy.validate(file, ext, false);
             // 1. 确保目录存在
             File dir = new File(UPLOAD_DIR);
             if (!dir.exists() && !dir.mkdirs()) {
-                return ResponseMessage.error("目录创建失败: " + UPLOAD_DIR);
+                return ResponseMessage.error("上传暂时不可用，请稍后重试");
             }
 
             // 2. 构建唯一文件名，保留原文件扩展名
@@ -74,9 +75,11 @@ public class ClubUploadController {
             clubService.update(club.toDTO());
 
             return ResponseMessage.success(fileUrl);
+        } catch (IllegalArgumentException e) {
+            return ResponseMessage.error(e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseMessage.error("上传失败: " + e.getMessage());
+            return ResponseMessage.error("上传失败，请稍后重试");
         }
     }
 

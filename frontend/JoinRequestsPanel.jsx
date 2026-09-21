@@ -88,7 +88,7 @@ export default function JoinRequestsPanel({ club, token, onChanged }) {
                 </button>
               </div>
             ) : (
-              <span className="ws-badge">
+              <span className={"ws-badge " + (i.status === "approved" ? "approved" : "rejected")}>
                 {i.status === "approved" ? tx("已通过", "Approved") : tx("已拒绝", "Declined")}
               </span>
             )}

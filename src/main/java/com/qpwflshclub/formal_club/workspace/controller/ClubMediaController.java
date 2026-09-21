@@ -44,9 +44,12 @@ public class ClubMediaController {
     ) throws IOException {
         var c = access.require(access.current(request), club);
         access.mutation(request);
-        if (file.isEmpty() || file.getSize() > 40L * 1024 * 1024) throw SchoolAccounts.error(
+        long limit = kind.equals("logo") ? 10L * 1024 * 1024 : 200L * 1024 * 1024;
+        if (file.isEmpty() || file.getSize() > limit) throw SchoolAccounts.error(
             400,
-            "文件不能超过 40 MB / Files must be under 40 MB"
+            kind.equals("logo")
+                ? "Logo 不能超过 10 MB / Logo must be under 10 MB"
+                : "视频不能超过 200 MB / Video must be under 200 MB"
         );
         Files.createDirectories(root);
         String name = UUID.randomUUID() + (kind.equals("logo") ? ".jpg" : ".mp4");
@@ -63,16 +66,24 @@ public class ClubMediaController {
                 images.remove(saved.id());
             }
         } else if (kind.equals("video")) {
-            try (var input = file.getInputStream()) {
-                byte[] h = input.readNBytes(12);
-                if (
-                    h.length < 12 ||
-                    !new String(h, 4, 4, java.nio.charset.StandardCharsets.US_ASCII).equals("ftyp")
-                ) throw SchoolAccounts.error(400, "请选择 MP4 视频 / Select an MP4 video");
-            }
             Path input = Files.createTempFile("club-video-", ".mp4");
             try {
-                file.transferTo(input);
+                try (var stream = file.getInputStream()) {
+                    Files.copy(stream, input, StandardCopyOption.REPLACE_EXISTING);
+                }
+                byte[] header;
+                try (var stream = Files.newInputStream(input)) {
+                    header = stream.readNBytes(12);
+                }
+                if (
+                    header.length < 12 ||
+                    !new String(header, 4, 4, java.nio.charset.StandardCharsets.US_ASCII).equals(
+                        "ftyp"
+                    )
+                ) throw SchoolAccounts.error(
+                    400,
+                    "请选择 MP4 或 MOV 视频 / Select an MP4 or MOV video"
+                );
                 MediaCompression.video(input, target);
             } finally {
                 Files.deleteIfExists(input);
@@ -108,7 +119,25 @@ public class ClubMediaController {
                           : "video/mp4"
                 )
             )
+            .cacheControl(CacheControl.maxAge(30, java.util.concurrent.TimeUnit.DAYS).cachePublic())
             .header("X-Content-Type-Options", "nosniff")
             .body(new FileSystemResource(p));
+    }
+
+    @ExceptionHandler(org.springframework.web.server.ResponseStatusException.class)
+    public ResponseEntity<?> error(org.springframework.web.server.ResponseStatusException e) {
+        return ResponseEntity.status(e.getStatusCode()).body(
+            Map.of("message", Objects.toString(e.getReason(), "请求未成功"))
+        );
+    }
+
+    @ExceptionHandler(IOException.class)
+    public ResponseEntity<?> io(IOException e) {
+        return ResponseEntity.internalServerError().body(
+            Map.of(
+                "message",
+                "视频暂时无法保存，请稍后重试 / Unable to save the video, try again shortly"
+            )
+        );
     }
 }

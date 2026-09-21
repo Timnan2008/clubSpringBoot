@@ -1,4 +1,9 @@
 body.social-network-theme {
+  --control-surface: #16181c;
+  --control-highlight: #282b32;
+  --control-ink: #e7e9ea;
+  --control-muted: #8b98a5;
+  --control-accent: #1d9bf0;
   background: #000 !important;
   color: #e7e9ea !important;
   font-family:
@@ -56,7 +61,11 @@ body.social-network-theme {
   background: #080808;
 }
 .social-network-theme .social-post > .post-avatar-link {
-  flex: 0 0 44px;
+  flex: 0 0 56px;
+  width: 56px;
+  display: grid;
+  place-items: center;
+  overflow: visible;
 }
 .social-network-theme .social-post .campus-avatar {
   width: 44px;

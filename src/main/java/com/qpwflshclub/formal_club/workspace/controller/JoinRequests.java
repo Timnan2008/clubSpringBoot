@@ -38,6 +38,20 @@ public class JoinRequests {
             : new ArrayList<>();
     }
 
+    public synchronized Map<Integer, List<Entry>> all() throws IOException {
+        if (!Files.isDirectory(root)) return Map.of();
+        Map<Integer, List<Entry>> result = new LinkedHashMap<>();
+        try (var files = Files.list(root)) {
+            for (Path path : files.toList()) {
+                String name = path.getFileName().toString();
+                if (!name.matches("\\d+\\.json")) continue;
+                int club = Integer.parseInt(name.substring(0, name.length() - 5));
+                result.put(club, read(club));
+            }
+        }
+        return result;
+    }
+
     private void write(int club, List<Entry> entries) throws IOException {
         Files.createDirectories(root);
         Path p = Files.createTempFile(root, "join-", ".tmp");
@@ -74,6 +88,7 @@ public class JoinRequests {
         if (note != null && note.length() > 1000) throw WorkspaceStore.bad(
             "申请理由不能超过1000字"
         );
+        com.qpwflshclub.formal_club.social.ContentModeration.check(note);
         var e = new Entry(
             UUID.randomUUID().toString(),
             account,

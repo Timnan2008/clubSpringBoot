@@ -1,10 +1,51 @@
 import Notifications from "./Notifications";
 import PersonalWelcome from "./PersonalWelcome";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import StaggeredMenu from "./StaggeredMenu";
 import Search from "./Search";
 import "./navigation.css";
+
+function withWorkspace(items, language) {
+  if (items.some((item) => item.link === "/page/club/workspace")) return items;
+  const next = [...items];
+  const workspace = {
+    label: language === "en" ? "Club management" : "社团管理",
+    link: "/page/club/workspace",
+  };
+  const booking = next.findIndex((item) => item.link === "/page/booking");
+  next.splice(booking >= 0 ? booking + 1 : next.length, 0, workspace);
+  return next;
+}
+
+function HomeMenu({ language, initialItems, socialItems }) {
+  const [items, setItems] = useState(initialItems);
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch("/api/campus-social/me", { signal: controller.signal })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((me) => {
+        if (
+          !me ||
+          !(["president", "teacher", "admin"].includes(me.account?.role) || me.offices?.length)
+        )
+          return;
+        setItems((current) => withWorkspace(current, language));
+      })
+      .catch(() => {});
+    return () => controller.abort();
+  }, [language]);
+  return (
+    <StaggeredMenu
+      language={language}
+      items={items}
+      colors={["#c9b6de", "#7543a3"]}
+      displaySocials
+      socialItems={socialItems}
+    />
+  );
+}
+
 const navbar = document.querySelector(".navbar");
 if (navbar) {
   const welcomeHost = document.createElement("div");
@@ -26,16 +67,19 @@ if (navbar) {
     { label: en ? "Badminton booking" : "羽毛球场预约", link: "/page/booking" },
     { label: en ? "QingYuan Studio" : "青源智造", link: "/page/suggestion" },
   ];
-  navbar.querySelectorAll(".user-dropdown .dropdown-content a").forEach((a) =>
+  navbar.querySelectorAll(".user-dropdown .dropdown-content a").forEach((a) => {
+    const href = a.getAttribute("href");
+    if (href === "/page/club/workspace" || href === "/page/club/manage") {
+      const next = withWorkspace(items, language);
+      items.splice(0, items.length, ...next);
+      return;
+    }
     items.push({
       label: a.textContent.trim(),
-      link:
-        a.getAttribute("href") === "/page/club/manage"
-          ? "/page/club/workspace"
-          : a.getAttribute("href"),
-      action: a.getAttribute("href") === "#" ? "logout" : undefined,
-    }),
-  );
+      link: href,
+      action: href === "#" ? "logout" : undefined,
+    });
+  });
   const login = navbar.querySelector(".navbar-login-btn");
   const nav = navbar.querySelector(".navbar-links");
   if (login && nav) nav.append(login);
@@ -61,11 +105,9 @@ if (navbar) {
     return next.pathname + next.search;
   };
   createRoot(menu).render(
-    <StaggeredMenu
+    <HomeMenu
       language={language}
-      items={items}
-      colors={["#c9b6de", "#7543a3"]}
-      displaySocials
+      initialItems={items}
       socialItems={[
         { label: "中文", link: langLink("zh") },
         { label: "English", link: langLink("en") },

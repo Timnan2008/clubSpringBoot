@@ -52,7 +52,8 @@ public class EmailChangeController {
 
     public record Verify(@NotBlank String email, @NotBlank @Size(min = 6, max = 6) String code) {}
 
-    record Challenge(
+    /** 改邮箱的挑战记录：测试与同包外的代码都要能访问（原来漏了 public，导致整个测试套件编译不过）。 */
+    public record Challenge(
         String canonical,
         String email,
         String code,

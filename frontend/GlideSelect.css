@@ -1,0 +1,183 @@
+.glide-select {
+  position: relative;
+  display: inline-block;
+  min-width: 0;
+  vertical-align: middle;
+}
+.glide-select:has([aria-expanded="true"]) {
+  z-index: 60;
+}
+.glide-select .glide-select__trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  width: 100%;
+  min-height: 40px;
+  margin: 0;
+  padding: 9px 12px;
+  border: 1px solid color-mix(in srgb, var(--gs-text) 15%, transparent);
+  border-radius: var(--gs-radius);
+  background: var(--gs-surface);
+  color: var(--gs-text);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.3;
+  cursor: pointer;
+  box-shadow: none;
+  transition:
+    background 160ms,
+    border-color 160ms;
+}
+.glide-select .glide-select__trigger:hover,
+.glide-select__trigger[aria-expanded="true"] {
+  background: var(--gs-highlight);
+}
+.glide-select .glide-select__trigger:focus-visible {
+  outline: 2px solid var(--gs-accent);
+  outline-offset: 3px;
+}
+.glide-select__trigger:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.glide-select__trigger > svg {
+  flex: none;
+  transition: transform 200ms;
+}
+.glide-select__trigger[aria-expanded="true"] > svg {
+  transform: rotate(180deg);
+}
+.glide-select__label,
+.glide-select__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.glide-select__menu {
+  position: absolute;
+  z-index: 60;
+  box-sizing: border-box;
+  width: var(--gs-menu-w);
+  min-width: 100%;
+  max-width: calc(100vw - 24px);
+  padding: 4px;
+  border: 1px solid color-mix(in srgb, var(--gs-text) 12%, transparent);
+  border-radius: var(--gs-radius);
+  background: var(--gs-surface);
+  box-shadow: 0 12px 36px #0002;
+  overflow: auto;
+  overscroll-behavior: contain;
+  translate: var(--gs-shift) 0;
+  animation: gs-pop var(--gs-pop) cubic-bezier(0.23, 1, 0.32, 1);
+}
+.glide-select__menu[data-side="bottom"] {
+  top: calc(100% + 6px);
+  transform-origin: top;
+}
+.glide-select__menu[data-side="top"] {
+  bottom: calc(100% + 6px);
+  transform-origin: bottom;
+}
+.glide-select__menu[data-align="left"] {
+  left: 0;
+}
+.glide-select__menu[data-align="right"] {
+  right: 0;
+}
+.glide-select__list {
+  position: relative;
+  display: grid;
+  gap: 1px;
+}
+.glide-select__pill {
+  position: absolute;
+  inset: 0 0 auto;
+  height: var(--gs-row);
+  border-radius: calc(var(--gs-radius) - 4px);
+  background: var(--gs-highlight);
+  pointer-events: none;
+  transition: transform var(--gs-glide) cubic-bezier(0.23, 1, 0.32, 1);
+}
+.glide-select__option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-sizing: border-box;
+  height: var(--gs-row);
+  padding: 0 10px;
+  color: var(--gs-text);
+  font-size: 14px;
+  cursor: pointer;
+  user-select: none;
+}
+.glide-select__name {
+  flex: 1;
+}
+.glide-select__option small {
+  opacity: 0.55;
+  font-size: 11px;
+}
+.glide-select__option > svg {
+  flex: none;
+}
+@keyframes gs-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(-3px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.glide-select__menu[data-open="false"] {
+  opacity: 0;
+  transform: scale(0.97);
+  pointer-events: none;
+  transition:
+    opacity calc(var(--gs-pop) * 0.66),
+    transform calc(var(--gs-pop) * 0.66);
+}
+@media (prefers-reduced-motion: reduce) {
+  .glide-select *,
+  .glide-select__menu {
+    animation: none;
+    transition: none;
+  }
+}
+.glide-select[data-swap] .glide-select__label {
+  animation: gs-swap 160ms ease-out;
+}
+@keyframes gs-swap {
+  from {
+    opacity: 0.5;
+    filter: blur(1.5px);
+    translate: 0 2px;
+  }
+  to {
+    opacity: 1;
+    filter: none;
+    translate: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .glide-select[data-swap] .glide-select__label {
+    animation: none;
+  }
+}
+.glide-select[data-size="sm"] .glide-select__trigger {
+  min-height: 28px;
+  padding: 5px 9px;
+  font-size: 12px;
+}
+.glide-select[data-size="md"] .glide-select__trigger {
+  min-height: 36px;
+  padding: 7px 12px;
+}
+.glide-select[data-size="lg"] .glide-select__trigger {
+  min-height: 44px;
+  padding: 10px 14px;
+}

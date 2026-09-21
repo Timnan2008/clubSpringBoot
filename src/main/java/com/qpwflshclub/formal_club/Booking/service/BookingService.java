@@ -4,6 +4,7 @@ import com.qpwflshclub.formal_club.Booking.BookingPolicy;
 import com.qpwflshclub.formal_club.Booking.repository.BookingRepository;
 import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
 import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -14,7 +15,11 @@ import org.springframework.transaction.support.TransactionTemplate;
 @ConditionalOnProperty(name = "club.booking.backend", havingValue = "main")
 public class BookingService {
 
-    public record Actor(String email, String name, boolean teacher) {
+    public record Actor(String email, String name, boolean teacher, boolean overseer) {
+        public Actor(String email, String name, boolean teacher) {
+            this(email, name, teacher, false);
+        }
+
         public String key() {
             return SchoolAccounts.key(email);
         }
@@ -38,7 +43,8 @@ public class BookingService {
         String status,
         int pending,
         boolean mine,
-        boolean canBook
+        boolean canBook,
+        String bookedBy
     ) {}
 
     public record Calendar(
@@ -49,7 +55,8 @@ public class BookingService {
         List<Cell> cells,
         boolean studentOpen,
         boolean teacher,
-        long serverTime
+        long serverTime,
+        boolean overseer
     ) {}
 
     public record MyBooking(
@@ -62,6 +69,19 @@ public class BookingService {
         String status,
         String note,
         Long confirmAfter
+    ) {}
+
+    public record RosterBooking(
+        long id,
+        int courtId,
+        String courtName,
+        String courtNameEn,
+        long start,
+        long end,
+        String status,
+        String note,
+        String displayName,
+        String email
     ) {}
 
     private final BookingRepository repository;
@@ -89,18 +109,17 @@ public class BookingService {
                 .stream()
                 .filter(BookingRepository.Court::enabled)
                 .toList();
-            var reservations = repository.week(
-                monday.atStartOfDay(policy.zoneId()).toEpochSecond(),
-                monday.plusDays(5).atStartOfDay(policy.zoneId()).toEpochSecond()
-            );
+            var reservations = repository.week(policy.weekStart(monday), policy.weekEnd(monday));
             List<Cell> cells = new ArrayList<>();
             List<String> dates = new ArrayList<>();
-            for (int day = 0; day < 5; day++) {
+            for (int day = 0; day < 7; day++) {
                 LocalDate date = monday.plusDays(day);
                 if (!policy.bookingDays().contains(date.getDayOfWeek().getValue())) continue;
                 dates.add(date.toString());
+                var daySlots = policy.slotsFor(date.getDayOfWeek());
                 for (var court : courts)
                     for (var time : policy.slots()) {
+                        if (!daySlots.contains(time)) continue;
                         long start = date.atTime(time).atZone(policy.zoneId()).toEpochSecond();
                         long end = start + policy.slotMinutes() * 60L;
                         var overlaps = reservations
@@ -127,7 +146,8 @@ public class BookingService {
                                 occupied ? "confirmed" : pending > 0 ? "pending" : "available",
                                 pending,
                                 mine,
-                                !occupied && !mine && (actor.teacher() || policy.studentOpen(now))
+                                !occupied && !mine && (actor.teacher() || policy.studentOpen(now)),
+                                bookedBy(actor, overlaps)
                             )
                         );
                     }
@@ -140,7 +160,8 @@ public class BookingService {
                 cells,
                 policy.studentOpen(now),
                 actor.teacher(),
-                now.getEpochSecond()
+                now.getEpochSecond(),
+                actor.overseer()
             );
         });
     }
@@ -168,6 +189,63 @@ public class BookingService {
             .toList();
     }
 
+    public List<RosterBooking> roster(Actor actor) {
+        requireOverseer(actor);
+        var courts = new HashMap<Integer, BookingRepository.Court>();
+        repository.courts().forEach(c -> courts.put(c.id(), c));
+        return repository
+            .all()
+            .stream()
+            .map(r -> {
+                var court = courts.get(r.courtId());
+                return new RosterBooking(
+                    r.id(),
+                    r.courtId(),
+                    court == null ? "" : court.name(),
+                    court == null ? "" : court.nameEn(),
+                    r.start(),
+                    r.end(),
+                    r.status(),
+                    r.note(),
+                    r.displayName(),
+                    r.ownerEmail()
+                );
+            })
+            .toList();
+    }
+
+    public byte[] export(Actor actor) {
+        List<RosterBooking> items = roster(actor);
+        var zone = repository.policy(false).settings().zoneId();
+        DateTimeFormatter date = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        DateTimeFormatter time = DateTimeFormatter.ofPattern("HH:mm");
+        List<BookingWorkbook.Line> rows = new ArrayList<>();
+        for (RosterBooking item : items) {
+            var start = Instant.ofEpochSecond(item.start()).atZone(zone);
+            var end = Instant.ofEpochSecond(item.end()).atZone(zone);
+            rows.add(
+                new BookingWorkbook.Line(
+                    List.of(
+                        date.format(start),
+                        weekday(start.toLocalDate()),
+                        time.format(start),
+                        time.format(end),
+                        item.courtName(),
+                        Objects.toString(item.displayName(), ""),
+                        Objects.toString(item.email(), ""),
+                        statusLabel(item.status()),
+                        item.note() == null ? "" : item.note()
+                    )
+                )
+            );
+        }
+        return BookingWorkbook.write(
+            "全部预约",
+            List.of("日期", "星期", "开始", "结束", "场地", "预约人", "邮箱", "状态", "备注"),
+            rows
+        );
+    }
+
     /** Session identity is passed by the controller, never accepted from a request payload. */
     public Result submit(Actor actor, Submit input) {
         if (input.requestKey() == null || !input.requestKey().matches("[A-Za-z0-9_-]{16,64}")) fail(
@@ -176,6 +254,7 @@ public class BookingService {
         );
         String note = input.note() == null ? "" : input.note().strip();
         if (note.length() > 500) fail(400, "NOTE_TOO_LONG");
+        com.qpwflshclub.formal_club.social.ContentModeration.check(note);
         return transactions.execute(tx -> {
             var configured = repository.policy(true);
             var previous = repository.request(actor.key(), input.requestKey());
@@ -203,17 +282,11 @@ public class BookingService {
                 .atZone(policy.zoneId())
                 .toLocalDate();
             LocalDate monday = policy.nextWeek(now);
-            if (date.isBefore(monday) || !date.isBefore(monday.plusDays(5))) fail(
-                400,
-                "NEXT_WEEK_ONLY"
-            );
+            if (!policy.inTargetWeek(date, now)) fail(400, "NEXT_WEEK_ONLY");
             if (!actor.teacher() && !policy.studentOpen(now)) fail(403, "STUDENT_WINDOW_CLOSED");
             if (
-                repository.used(
-                    actor.key(),
-                    monday.atStartOfDay(policy.zoneId()).toEpochSecond(),
-                    monday.plusDays(5).atStartOfDay(policy.zoneId()).toEpochSecond()
-                ) >= policy.weeklyLimit()
+                repository.used(actor.key(), policy.weekStart(monday), policy.weekEnd(monday)) >=
+                policy.weeklyLimit()
             ) fail(409, "WEEKLY_LIMIT");
             if (
                 repository.used(
@@ -243,6 +316,26 @@ public class BookingService {
             resolveLocked(now, policy);
             var result = repository.request(actor.key(), input.requestKey()).orElseThrow();
             return new Result(result.id(), result.status());
+        });
+    }
+
+    public Result cancel(Actor actor, long id) {
+        return transactions.execute(tx -> {
+            repository.policy(true);
+            var reservation = repository
+                .find(id)
+                .orElseThrow(() -> SchoolAccounts.error(404, "NOT_FOUND"));
+            if (!reservation.ownerKey().equals(actor.key()) && !actor.overseer()) fail(
+                403,
+                "FORBIDDEN"
+            );
+            if (!Set.of("confirmed", "pending").contains(reservation.status())) fail(
+                409,
+                "ALREADY_CLOSED"
+            );
+            if (reservation.start() <= clock.instant().getEpochSecond()) fail(409, "TOO_LATE");
+            repository.status(id, "cancelled");
+            return new Result(id, "cancelled");
         });
     }
 
@@ -276,6 +369,43 @@ public class BookingService {
             repository.policy(true);
             repository.deleteAccount(SchoolAccounts.key(email));
         });
+    }
+
+    private static String bookedBy(Actor actor, List<BookingRepository.Reservation> overlaps) {
+        if (!actor.overseer() || overlaps.isEmpty()) return "";
+        return overlaps
+            .stream()
+            .filter(r -> r.status().equals("confirmed"))
+            .map(BookingRepository.Reservation::displayName)
+            .filter(name -> name != null && !name.isBlank())
+            .findFirst()
+            .orElseGet(() -> Objects.toString(overlaps.getFirst().displayName(), ""));
+    }
+
+    private static void requireOverseer(Actor actor) {
+        if (!actor.overseer()) fail(403, "FORBIDDEN");
+    }
+
+    private static String weekday(LocalDate date) {
+        return switch (date.getDayOfWeek()) {
+            case MONDAY -> "周一";
+            case TUESDAY -> "周二";
+            case WEDNESDAY -> "周三";
+            case THURSDAY -> "周四";
+            case FRIDAY -> "周五";
+            case SATURDAY -> "周六";
+            case SUNDAY -> "周日";
+        };
+    }
+
+    private static String statusLabel(String status) {
+        return switch (status) {
+            case "confirmed" -> "预约成功";
+            case "pending" -> "教师挂起";
+            case "unavailable" -> "未获分配";
+            case "cancelled" -> "已取消";
+            default -> status == null ? "" : status;
+        };
     }
 
     private static void fail(int status, String code) {

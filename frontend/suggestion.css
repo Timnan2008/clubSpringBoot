@@ -393,6 +393,18 @@ button:disabled {
 .ideas-turnstile p {
   font-size: 13px;
 }
+.ideas-turnstile-slot {
+  min-height: 72px;
+}
+.ideas-turnstile-host {
+  min-height: 65px;
+  pointer-events: auto;
+}
+.ideas-turnstile-browser {
+  margin: 0 0 10px;
+  color: #8a5d4a;
+  line-height: 1.65;
+}
 
 .ideas-all-link {
   position: relative;

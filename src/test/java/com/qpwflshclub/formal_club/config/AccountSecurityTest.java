@@ -9,6 +9,9 @@ class AccountSecurityTest {
 
     @Test
     void namesAcceptEitherScriptAndAtLeastOne() {
+        assertThatThrownBy(() -> RegistrationNames.validate("傻逼", "")).hasMessageContaining(
+            "不适当"
+        );
         RegistrationNames.validate("Jason Li", "");
         RegistrationNames.validate("", "张三");
         RegistrationNames.validate("张三", null);

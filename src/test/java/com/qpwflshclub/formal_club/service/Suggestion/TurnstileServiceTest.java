@@ -43,6 +43,17 @@ class TurnstileServiceTest {
         ).hasMessageContaining("503");
     }
 
+    @Test
+    void localPassSkipsCloudflareAndExposesLocalConfiguration() {
+        var local = new TurnstileService(json, "site", "private-secret", "qpwflhsclub.com", true);
+        assertThat(local.configuration())
+            .containsEntry("local", true)
+            .containsEntry("ready", true)
+            .containsEntry("siteKey", "");
+        local.verify("", "register");
+        local.verify("local", "suggestion");
+    }
+
     @org.junit.jupiter.api.Test
     void registrationHasSeparateAction() throws Exception {
         var mapper = new com.fasterxml.jackson.databind.ObjectMapper();

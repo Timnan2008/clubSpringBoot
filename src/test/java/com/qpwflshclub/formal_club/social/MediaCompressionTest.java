@@ -7,6 +7,7 @@ import com.qpwflshclub.formal_club.social.service.WallFiles;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.file.*;
+import java.util.concurrent.TimeUnit;
 import javax.imageio.ImageIO;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
@@ -16,6 +17,19 @@ class MediaCompressionTest {
 
     @TempDir
     Path dir;
+
+    /** 本机有没有可用的 ffmpeg（视频压缩测试依赖它）。 */
+    private static boolean ffmpegAvailable() {
+        try {
+            var process = new ProcessBuilder("ffmpeg", "-version")
+                .redirectError(ProcessBuilder.Redirect.DISCARD)
+                .redirectOutput(ProcessBuilder.Redirect.DISCARD)
+                .start();
+            return process.waitFor() == 0;
+        } catch (Exception e) {
+            return false;
+        }
+    }
 
     @Test
     void largePhotosAndLegacyAvatarsBecomeSmallerAndAnonymousFilesStayGeneric() throws Exception {
@@ -53,6 +67,12 @@ class MediaCompressionTest {
 
     @Test
     void videoIsEncodedAsPlayableFastStartMp4AndBadInputIsRejected() throws Exception {
+        // 视频压缩要靠本机的 ffmpeg：没装就跳过，而不是把整个测试套件弄红
+        //（这个测试以前就是因为「本机没 ffmpeg」直接报 IOException）
+        Assumptions.assumeTrue(
+            ffmpegAvailable(),
+            "本机没有 ffmpeg，跳过视频压缩测试（装上 ffmpeg 后会自动跑）"
+        );
         Path input = dir.resolve("input.mp4"),
             output = dir.resolve("output.mp4");
         var proc = new ProcessBuilder(
@@ -88,5 +108,50 @@ class MediaCompressionTest {
         assertThatThrownBy(() ->
             MediaCompression.video(bad, dir.resolve("bad-out.mp4"))
         ).hasMessageContaining("400");
+    }
+
+    @Test
+    void alreadyWebReadyVideoIsRemuxedInsteadOfReencoded() throws Exception {
+        Path input = dir.resolve("ready.mp4"),
+            output = dir.resolve("ready-out.mp4");
+        var proc = new ProcessBuilder(
+            "ffmpeg",
+            "-nostdin",
+            "-y",
+            "-v",
+            "error",
+            "-f",
+            "lavfi",
+            "-i",
+            "testsrc2=size=1280x720:rate=24",
+            "-f",
+            "lavfi",
+            "-i",
+            "sine=frequency=440:sample_rate=44100",
+            "-t",
+            "1",
+            "-c:v",
+            "libx264",
+            "-pix_fmt",
+            "yuv420p",
+            "-c:a",
+            "aac",
+            "-shortest",
+            "-movflags",
+            "+faststart",
+            input.toString()
+        )
+            .redirectError(ProcessBuilder.Redirect.DISCARD)
+            .start();
+        assertThat(proc.waitFor()).isZero();
+        long started = System.nanoTime();
+        MediaCompression.video(input, output);
+        assertThat(System.nanoTime() - started).isLessThan(TimeUnit.SECONDS.toNanos(12));
+        assertThat(Files.size(output)).isGreaterThan(0);
+        String raw = new String(
+            Files.readAllBytes(output),
+            java.nio.charset.StandardCharsets.ISO_8859_1
+        );
+        assertThat(raw.indexOf("moov")).isLessThan(raw.indexOf("mdat"));
     }
 }

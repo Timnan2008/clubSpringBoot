@@ -1,10 +1,12 @@
 package com.qpwflshclub.formal_club.Booking;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.time.*;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 
 /** One server-side interpretation of the SQL policy, shared by reads and writes. */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public record BookingPolicy(
     String zone,
     int slotMinutes,
@@ -16,6 +18,10 @@ public record BookingPolicy(
     LocalTime studentClose,
     LocalTime teacherDeadline,
     List<Period> periods,
+    List<Period> fridayPeriods,
+    LocalDate studentForceOpenOn,
+    LocalTime studentForceOpen,
+    LocalTime studentForceClose,
     int rulesVersion
 ) {
     public record Period(LocalTime start, LocalTime end) {}
@@ -30,7 +36,7 @@ public record BookingPolicy(
             weeklyLimit > 50 ||
             bookingDays == null ||
             bookingDays.isEmpty() ||
-            bookingDays.stream().anyMatch(d -> d < 1 || d > 5) ||
+            bookingDays.stream().anyMatch(d -> d < 1 || d > 7) ||
             studentOpenDays == null ||
             studentOpenDays.isEmpty() ||
             studentOpenDays.stream().anyMatch(d -> d < 1 || d > 7) ||
@@ -44,6 +50,29 @@ public record BookingPolicy(
         ) {
             throw new IllegalArgumentException("Invalid booking policy");
         }
+        periods = List.copyOf(validatePeriods(periods, slotMinutes));
+        fridayPeriods = List.copyOf(
+            validatePeriods(
+                fridayPeriods == null || fridayPeriods.isEmpty()
+                    ? List.of(new Period(LocalTime.of(11, 30), LocalTime.of(12, 50)))
+                    : fridayPeriods,
+                slotMinutes
+            )
+        );
+        if (
+            studentForceOpenOn != null &&
+            (studentForceOpen != null || studentForceClose != null) &&
+            (studentForceOpen == null ||
+                studentForceClose == null ||
+                !studentForceOpen.isBefore(studentForceClose))
+        ) {
+            throw new IllegalArgumentException("Invalid booking policy");
+        }
+        bookingDays = List.copyOf(bookingDays);
+        studentOpenDays = List.copyOf(studentOpenDays);
+    }
+
+    private static List<Period> validatePeriods(List<Period> periods, int slotMinutes) {
         LocalTime previousEnd = LocalTime.MIN;
         for (Period period : periods) {
             if (
@@ -59,9 +88,7 @@ public record BookingPolicy(
             }
             previousEnd = period.end();
         }
-        periods = List.copyOf(periods);
-        bookingDays = List.copyOf(bookingDays);
-        studentOpenDays = List.copyOf(studentOpenDays);
+        return periods;
     }
 
     public ZoneId zoneId() {
@@ -72,8 +99,28 @@ public record BookingPolicy(
         return now.atZone(zoneId()).toLocalDate().with(TemporalAdjusters.next(DayOfWeek.MONDAY));
     }
 
+    public long weekStart(LocalDate monday) {
+        return monday.atStartOfDay(zoneId()).toEpochSecond();
+    }
+
+    public long weekEnd(LocalDate monday) {
+        return monday.plusWeeks(1).atStartOfDay(zoneId()).toEpochSecond();
+    }
+
+    public boolean inTargetWeek(LocalDate date, Instant now) {
+        LocalDate monday = nextWeek(now);
+        return !date.isBefore(monday) && date.isBefore(monday.plusWeeks(1));
+    }
+
     public boolean studentOpen(Instant now) {
         var local = now.atZone(zoneId());
+        if (studentForceOpenOn != null && local.toLocalDate().equals(studentForceOpenOn)) {
+            if (studentForceOpen == null || studentForceClose == null) return true;
+            return (
+                !local.toLocalTime().isBefore(studentForceOpen) &&
+                local.toLocalTime().isBefore(studentForceClose)
+            );
+        }
         return (
             studentOpenDays.contains(local.getDayOfWeek().getValue()) &&
             !local.toLocalTime().isBefore(studentOpen) &&
@@ -90,7 +137,21 @@ public record BookingPolicy(
             .toEpochSecond();
     }
 
+    public List<Period> periodsFor(DayOfWeek day) {
+        return day == DayOfWeek.FRIDAY ? fridayPeriods : periods;
+    }
+
+    public List<LocalTime> slotsFor(DayOfWeek day) {
+        return expand(periodsFor(day));
+    }
+
     public List<LocalTime> slots() {
+        LinkedHashSet<LocalTime> times = new LinkedHashSet<>();
+        for (int day : bookingDays) times.addAll(slotsFor(DayOfWeek.of(day)));
+        return List.copyOf(times);
+    }
+
+    private List<LocalTime> expand(List<Period> periods) {
         List<LocalTime> result = new ArrayList<>();
         for (Period period : periods) {
             long duration = Duration.between(period.start(), period.end()).toMinutes();
@@ -108,7 +169,7 @@ public record BookingPolicy(
                 Math.subtractExact(end, start) == slotMinutes * 60L &&
                 local.getSecond() == 0 &&
                 bookingDays.contains(local.getDayOfWeek().getValue()) &&
-                slots().contains(local.toLocalTime())
+                slotsFor(local.getDayOfWeek()).contains(local.toLocalTime())
             );
         } catch (DateTimeException | ArithmeticException invalidTime) {
             return false;

@@ -1,0 +1,72 @@
+button.spring-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  width: auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--sc-ink);
+  font: inherit;
+  font-size: var(--sc-font);
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+button.spring-check:hover {
+  background: transparent;
+}
+.spring-check:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.spring-check__box {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: var(--sc-box);
+  height: var(--sc-box);
+  border-radius: var(--sc-radius);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--sc-ink) 30%, transparent);
+  flex: none;
+}
+.spring-check__fill {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--sc-fill);
+}
+.spring-check__box svg {
+  position: relative;
+  width: 75%;
+  height: 75%;
+  fill: none;
+  stroke: var(--sc-check);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.spring-check__label {
+  position: relative;
+  line-height: 1.5;
+}
+.spring-check__rule {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1.5px;
+  background: currentColor;
+  pointer-events: none;
+}
+.spring-check:focus-visible {
+  outline: none;
+}
+.spring-check:focus-visible .spring-check__box {
+  outline: 2px solid var(--sc-fill);
+  outline-offset: 3px;
+}

@@ -270,7 +270,7 @@ export default function PublicProfile({ id }) {
                     {
                       {
                         teacher: tx("教师", "Teacher"),
-                        admin: tx("管理员 · 学生", "Administrator · Student"),
+                        admin: tx("超级管理员 · 学生", "Super admin · Student"),
                         student: tx("学生", "Student"),
                         president: tx("学生 · 社团负责人", "Student · Club leader"),
                       }[account.role]
@@ -284,6 +284,7 @@ export default function PublicProfile({ id }) {
                   )}
                 </div>
                 <div className="profile-home-tags">
+                  <AdminBadge person={account} />
                   {data.tags.map((tag) => (
                     <span key={tag}>{tag}</span>
                   ))}
@@ -413,3 +414,4 @@ export default function PublicProfile({ id }) {
     </>
   );
 }
+import AdminBadge from "./AdminBadge";

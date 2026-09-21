@@ -1,10 +1,11 @@
 import Avatar from "./Avatar";
 import { ArrowUpRight } from "@phosphor-icons/react";
 import PersonIdentity, { realNames, postName } from "./PersonIdentity";
-import React, { useEffect, useState } from "react";
+import React, { lazy, Suspense, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import CardNav from "./CardNav";
 import PixelTransition from "./PixelTransition";
+import PixelCard from "./PixelCard";
 import AsciiCursor from "./AsciiCursor";
 import videoVariants from "./video-variants.json";
 import RotatingText from "./RotatingText";
@@ -13,6 +14,8 @@ import { AnimatedNumber, TextMorph } from "./MotionPrimitives";
 import ClubLikes from "./ClubLikes";
 import { en, tx } from "./language";
 import "./catalog.css";
+
+const PixelSnow = lazy(() => import("./PixelSnow"));
 
 const host = document.getElementById("club-catalog");
 const categories = [
@@ -46,7 +49,7 @@ async function read(url, signal) {
     throw new Error(tx("加载失败，请重试。", "Unable to load. Please try again."));
   return d.data ?? d;
 }
-function Logo({ src, name, large = false }) {
+function Logo({ src, name, large = false, priority = false }) {
   const [failed, setFailed] = useState(false);
   return (
     <div className={"club-art" + (large ? " club-art-large" : "")}>
@@ -54,7 +57,8 @@ function Logo({ src, name, large = false }) {
         <img
           src={media(src)}
           alt={name}
-          loading={large ? "eager" : "lazy"}
+          loading={large || priority ? "eager" : "lazy"}
+          fetchPriority={large || priority ? "high" : "auto"}
           decoding="async"
           onError={() => setFailed(true)}
         />
@@ -96,7 +100,7 @@ function Catalog() {
       (previous) => (previous + 1 + Math.floor(Math.random() * (memes.length - 1))) % memes.length,
     );
   useEffect(() => {
-    if (host.dataset.mode === "detail")
+    if (host.dataset.mode === "detail" && Number(host.dataset.id) !== 28)
       memes.forEach((src) => {
         const image = new Image();
         image.src = src;
@@ -178,6 +182,19 @@ function Catalog() {
   const name = club && localized(club.clubName, club.clubNameEn);
   return (
     <main className="catalog-shell">
+      {detail && club && Number(club.id) === 28 && (
+        <div className="club-detail-background" aria-hidden="true">
+          <Suspense fallback={null}>
+            <PixelSnow
+              color="#ffffff"
+              density={0.3}
+              speed={1.25}
+              brightness={1}
+              pixelResolution={200}
+            />
+          </Suspense>
+        </div>
+      )}
       {detail && Number(host.dataset.id) === 1 && <AsciiCursor />}
       <CardNav
         autoHide={detail}
@@ -221,27 +238,45 @@ function Catalog() {
                 authenticated={host.dataset.authenticated === "true"}
               />
             </div>
-            <PixelTransition
-              className="club-logo-card"
-              firstContent={
-                <div className="club-pixel-front">
-                  <span>QPWFLHS CLUBS</span>
-                  <img
-                    src={media(club.clubItem) || "/other%20photo/WFL-crest.svg"}
-                    alt={name}
-                    decoding="async"
-                  />
-                </div>
-              }
-              onActivate={nextMeme}
-              secondContent={
-                <div className="club-pixel-meme">
-                  <img src={memes[meme]} alt={tx("猫咪表情包", "Cat meme")} decoding="async" />
-                </div>
-              }
-              gridSize={10}
-              pixelColor="#796094"
-            />
+            {Number(club.id) === 28 ? (
+              <PixelCard
+                variant="blue"
+                className="opensteam-logo"
+                ariaLabel={name + " Logo"}
+                colors="#7dd3fc,#38bdf8,#796094"
+                speed={25}
+                gap={8}
+              >
+                <Logo
+                  src={club.clubItem || "/other%20photo/WFL-crest.svg"}
+                  name={name}
+                  large
+                  priority
+                />
+              </PixelCard>
+            ) : (
+              <PixelTransition
+                className="club-logo-card"
+                firstContent={
+                  <div className="club-pixel-front">
+                    <span>QPWFLHS CLUBS</span>
+                    <img
+                      src={media(club.clubItem) || "/other%20photo/WFL-crest.svg"}
+                      alt={name}
+                      decoding="async"
+                    />
+                  </div>
+                }
+                onActivate={nextMeme}
+                secondContent={
+                  <div className="club-pixel-meme">
+                    <img src={memes[meme]} alt={tx("猫咪表情包", "Cat meme")} decoding="async" />
+                  </div>
+                }
+                gridSize={10}
+                pixelColor="#796094"
+              />
+            )}
           </section>
           <div className="club-detail-grid">
             <div>
@@ -395,9 +430,13 @@ function Catalog() {
             </section>
           )}
           <div className="club-grid">
-            {filtered.map((c) => (
+            {filtered.map((c, i) => (
               <a className="club-tile" href={`/page/clubs/${c.id}`} key={c.id}>
-                <Logo src={c.clubItem} name={localized(c.clubName, c.clubNameEn)} />
+                <Logo
+                  src={c.clubItem}
+                  name={localized(c.clubName, c.clubNameEn)}
+                  priority={i < 6}
+                />
                 <div className="club-tile-copy">
                   <small>{label(c.clubClass)}</small>
                   <h2>
@@ -431,3 +470,4 @@ window.addEventListener("pageshow", (e) => {
 });
 
 import "./CampusMotion.css";
+import "./ControlRefinements.css";

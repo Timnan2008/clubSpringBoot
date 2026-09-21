@@ -52,8 +52,15 @@ public class RememberMeFilter implements Filter {
         var session = request.getSession(false);
         if (
             session != null && session.getAttribute("authenticatedEmail") instanceof String email
-        ) request.setAttribute("verifiedEmail", email);
-        chain.doFilter(req, res);
+        ) {
+            request.setAttribute("verifiedEmail", email);
+            com.qpwflshclub.formal_club.social.ContentDiscipline.bind(email);
+        }
+        try {
+            chain.doFilter(req, res);
+        } finally {
+            com.qpwflshclub.formal_club.social.ContentDiscipline.unbind();
+        }
         if (media && response.getStatus() >= 400) response.setHeader("Cache-Control", "no-store");
     }
 }

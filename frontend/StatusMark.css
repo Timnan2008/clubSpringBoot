@@ -1,0 +1,77 @@
+.status-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  color: var(--sm-color);
+  vertical-align: middle;
+  font-size: var(--sm-font);
+  line-height: 1.4;
+}
+.status-mark__glyph {
+  width: var(--sm-size);
+  height: var(--sm-size);
+  flex: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: color 200ms;
+}
+.status-mark[data-status="done"] .status-mark__glyph {
+  color: var(--sm-done);
+}
+.status-mark[data-status="failed"] .status-mark__glyph {
+  color: var(--sm-error);
+}
+.status-mark__wash {
+  fill: currentColor;
+  fill-opacity: var(--sm-fill);
+  stroke-opacity: 0.15;
+}
+.status-mark__ring {
+  transition:
+    stroke-dasharray 240ms,
+    opacity 240ms;
+}
+.status-mark[data-spin] .status-mark__glyph {
+  animation: sm-spin var(--sm-spin) linear infinite;
+}
+.status-mark__check,
+.status-mark__cross {
+  stroke-dasharray: 1 2;
+  stroke-dashoffset: 1;
+  opacity: 0;
+  transition:
+    stroke-dashoffset var(--sm-draw) ease var(--sm-delay),
+    opacity 120ms;
+}
+.status-mark[data-status="done"] .status-mark__check,
+.status-mark[data-status="failed"] .status-mark__cross,
+.status-mark[data-status="cancelled"] .status-mark__cross {
+  opacity: 1;
+  stroke-dashoffset: 0;
+}
+.status-mark[data-status="done"][data-strike] .status-mark__label {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+.status-mark__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+@keyframes sm-spin {
+  to {
+    rotate: 360deg;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .status-mark[data-spin] .status-mark__glyph {
+    animation: none;
+  }
+  .status-mark * {
+    transition: none;
+  }
+}

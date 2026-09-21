@@ -1,12 +1,22 @@
 package com.qpwflshclub.formal_club.service.Suggestion;
 
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeMessage;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.Properties;
-import org.springframework.mail.SimpleMailMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 @Service
 public class MailService {
+
+    private static final Logger log = LoggerFactory.getLogger(MailService.class);
+    private static final String FROM_NAME = "青浦世外校园社团";
 
     /**
      * 发送邮箱验证码
@@ -32,8 +42,12 @@ public class MailService {
             smtpUser,
             smtpPass,
             to,
-            "【验证码】邮箱验证",
-            "您的验证码是：" + code + "\n有效期 5 分钟，请勿泄露给他人。"
+            "青浦世外校园社团注册验证码",
+            "你的校园社团注册验证码是：" +
+                code +
+                "\n5 分钟内有效。若非本人操作，请忽略此邮件。\n\nQPWFLHS Clubs verification code: " +
+                code +
+                "\nThis code expires in 5 minutes."
         );
     }
 
@@ -52,12 +66,14 @@ public class MailService {
             user,
             password,
             to,
-            en ? "Reset your QPWFLHS Clubs password" : "重置校园社团账号密码",
+            en ? "Reset your QPWFLHS Clubs password" : "青浦世外校园社团密码重置",
             en
                 ? "Your password reset code is: " +
                       code +
                       "\nExpires in 5 minutes. If you did not request this, ignore this email."
-                : "你的密码重置验证码是：" + code + "\n5 分钟内有效。若非本人操作，请忽略此邮件。"
+                : "你的校园社团密码重置验证码是：" +
+                      code +
+                      "\n5 分钟内有效。若非本人操作，请忽略此邮件。"
         );
     }
 
@@ -70,34 +86,55 @@ public class MailService {
         String subject,
         String text
     ) {
+        JavaMailSenderImpl sender = sender(smtpHost, smtpPort, smtpUser, smtpPass);
+        try {
+            sender.send(message(sender, smtpUser, to, subject, text));
+        } catch (RuntimeException | MessagingException | UnsupportedEncodingException e) {
+            log.warn("SMTP delivery failed to {}: {}", to, e.getClass().getSimpleName());
+            throw new IllegalStateException("Cannot send mail", e);
+        }
+    }
+
+    JavaMailSenderImpl sender(String smtpHost, int smtpPort, String smtpUser, String smtpPass) {
         JavaMailSenderImpl sender = new JavaMailSenderImpl();
         sender.setHost(smtpHost);
         sender.setPort(smtpPort);
         sender.setUsername(smtpUser);
         sender.setPassword(smtpPass);
         sender.setProtocol("smtp");
-
+        sender.setDefaultEncoding(StandardCharsets.UTF_8.name());
         Properties props = sender.getJavaMailProperties();
         props.put("mail.smtp.auth", "true");
+        props.put("mail.from", smtpUser);
+        props.put("mail.smtp.localhost", "qpwflhsclub.com");
         if (smtpPort == 465) {
-            // 端口 465 使用 SSL
             props.put("mail.smtp.ssl.enable", "true");
+            props.put("mail.smtp.ssl.protocols", "TLSv1.2 TLSv1.3");
+            props.put("mail.smtp.ssl.trust", smtpHost);
         } else {
-            // 端口 587 使用 STARTTLS
             props.put("mail.smtp.starttls.enable", "true");
+            props.put("mail.smtp.starttls.required", "true");
         }
-        props.put("mail.smtp.connectiontimeout", "5000");
-        props.put("mail.smtp.timeout", "10000");
-        props.put("mail.smtp.writetimeout", "10000");
+        props.put("mail.smtp.connectiontimeout", "8000");
+        props.put("mail.smtp.timeout", "15000");
+        props.put("mail.smtp.writetimeout", "15000");
         props.put("mail.smtp.ssl.checkserveridentity", "true");
+        return sender;
+    }
 
-        // 构建邮件
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(smtpUser);
-        message.setTo(to);
-        message.setSubject(subject);
-        message.setText(text);
-
-        sender.send(message);
+    MimeMessage message(
+        JavaMailSenderImpl sender,
+        String smtpUser,
+        String to,
+        String subject,
+        String text
+    ) throws MessagingException, UnsupportedEncodingException {
+        MimeMessage mime = sender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(mime, false, StandardCharsets.UTF_8.name());
+        helper.setFrom(new InternetAddress(smtpUser, FROM_NAME, StandardCharsets.UTF_8.name()));
+        helper.setTo(to);
+        helper.setSubject(subject);
+        helper.setText(text);
+        return mime;
     }
 }

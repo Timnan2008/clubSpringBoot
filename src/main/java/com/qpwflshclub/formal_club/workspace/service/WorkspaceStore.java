@@ -98,6 +98,7 @@ public class WorkspaceStore {
                 .matches(".+\\.(pdf|docx?|xlsx?|pptx?|txt|csv|png|jpe?g|zip)")
         ) throw bad("支持 PDF、Office 文档、TXT、CSV、图片及 ZIP 文件");
         if (note.length() > 500) throw bad("文件说明最多 500 字");
+        com.qpwflshclub.formal_club.social.ContentModeration.check(name, note);
         String id = UUID.randomUUID().toString();
         byte[] compressed = name.toLowerCase(Locale.ROOT).matches(".+\\.(png|jpe?g)")
             ? com.qpwflshclub.formal_club.social.MediaCompression.image(
@@ -140,6 +141,15 @@ public class WorkspaceStore {
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "文件不存在"));
     }
 
+    public synchronized Document remove(int club, String id) throws IOException {
+        Document document = document(club, id);
+        Data data = read(club);
+        data.documents().removeIf(d -> d.id().equals(id));
+        write(club, data);
+        Files.deleteIfExists(file(club, document));
+        return document;
+    }
+
     public Path file(int club, Document document) {
         return directory(club).resolve(UUID.fromString(document.id()).toString());
     }
@@ -162,6 +172,7 @@ public class WorkspaceStore {
         if (
             note == null || note.length() > 1000 || (decision.equals("rejected") && note.isBlank())
         ) throw bad("驳回时请填写原因，最多 1000 字");
+        com.qpwflshclub.formal_club.social.ContentModeration.check(note);
         Data data = read(club);
         for (int i = 0; i < data.activities().size(); i++) {
             Activity old = data.activities().get(i);

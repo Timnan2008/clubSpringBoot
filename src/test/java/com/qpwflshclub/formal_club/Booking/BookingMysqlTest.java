@@ -92,7 +92,7 @@ class BookingMysqlTest {
             start,
             start + 1200,
             "",
-            1,
+            4,
             UUID.randomUUID().toString()
         );
     }
@@ -103,6 +103,9 @@ class BookingMysqlTest {
             assertThatThrownBy(() -> service.submit(STUDENT, slot(14, time))).hasMessageContaining(
                 "INVALID_SLOT"
             );
+        assertThatThrownBy(() -> service.submit(STUDENT, slot(18, "16:30"))).hasMessageContaining(
+            "INVALID_SLOT"
+        );
         assertThatThrownBy(() -> service.submit(STUDENT, slot(21, "11:30"))).hasMessageContaining(
             "NEXT_WEEK_ONLY"
         );
@@ -110,7 +113,7 @@ class BookingMysqlTest {
         assertThatThrownBy(() ->
             service.submit(
                 STUDENT,
-                new BookingService.Submit(1, valid.start(), valid.end(), "", 0, valid.requestKey())
+                new BookingService.Submit(1, valid.start(), valid.end(), "", 1, valid.requestKey())
             )
         ).hasMessageContaining("RULES_ACK_REQUIRED");
         assertThat(repository.mine(STUDENT.key())).isEmpty();
@@ -220,10 +223,43 @@ class BookingMysqlTest {
     void calendarDoesNotExposeOtherAccountsOrTheirNotesAndHistoryIsOwnerScoped() {
         service.submit(TEACHER, slot(14, "11:30"));
         var calendar = service.calendar(STUDENT);
-        assertThat(calendar.cells()).hasSize(100); // 2 courts x 5 days x 10 slots
+        assertThat(calendar.cells()).hasSize(88); // 2 courts x (4 days x 10 + Friday x 4)
+        assertThat(calendar.dates()).containsExactly(
+            "2026-09-14",
+            "2026-09-15",
+            "2026-09-16",
+            "2026-09-17",
+            "2026-09-18"
+        );
         assertThat(calendar.toString()).doesNotContain(TEACHER.email(), TEACHER.name());
+        assertThat(calendar.overseer()).isFalse();
         assertThat(service.mine(STUDENT)).isEmpty();
         assertThat(service.mine(TEACHER)).hasSize(1);
+        var overseer = new BookingService.Actor("Mengchuan@shwfl.edu.cn", "孟川", true, true);
+        var roster = service.calendar(overseer);
+        assertThat(roster.overseer()).isTrue();
+        assertThat(roster.toString()).contains(TEACHER.name());
+        assertThat(service.roster(overseer)).hasSize(1);
+        assertThatThrownBy(() -> service.roster(STUDENT)).hasMessageContaining("403");
+        assertThat(service.export(overseer)[0]).isEqualTo((byte) 'P');
+        assertThat(service.export(overseer)[1]).isEqualTo((byte) 'K');
+    }
+
+    @Test
+    void cancelFreesTheSlotAndWeeklyQuotaBeforeStart() {
+        var created = service.submit(STUDENT, slot(14, "11:30"));
+        assertThat(service.cancel(STUDENT, created.id()).status()).isEqualTo("cancelled");
+        assertThat(repository.mine(STUDENT.key()).getFirst().status()).isEqualTo("cancelled");
+        assertThat(
+            service.calendar(STUDENT).cells().stream().noneMatch(BookingService.Cell::mine)
+        ).isTrue();
+        service.submit(STUDENT, slot(14, "11:30"));
+        instant.set(Instant.parse("2026-09-14T03:30:00Z"));
+        long id = repository.mine(STUDENT.key()).getFirst().id();
+        assertThatThrownBy(() -> service.cancel(STUDENT, id)).hasMessageContaining("TOO_LATE");
+        var other = new BookingService.Actor("other@example.invalid", "Other", false);
+        instant.set(Instant.parse("2026-09-12T06:00:00Z"));
+        assertThatThrownBy(() -> service.cancel(other, id)).hasMessageContaining("FORBIDDEN");
     }
 
     List<String> race(Callable<?> first, Callable<?> second) throws Exception {

@@ -92,12 +92,12 @@
   background: #faf8fc;
   color: #3d3149;
 }
-.ws-sidebar nav {
+.ws-sidebar nav:not(.line-sidebar) {
   display: flex;
   flex-direction: column;
   gap: 7px;
 }
-.ws-sidebar nav button {
+.ws-sidebar nav:not(.line-sidebar) button {
   border: 0;
   display: flex;
   align-items: center;
@@ -109,21 +109,28 @@
   background: none;
   color: #706578;
 }
-.ws-sidebar nav button span {
+.ws-sidebar nav:not(.line-sidebar) button span {
   font-size: 10px;
   font-weight: 400;
   opacity: 0.6;
 }
-.ws-sidebar nav button b {
+.ws-nav-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #e23b4a;
+  flex: none;
+}
+.ws-sidebar nav:not(.line-sidebar) button b {
   margin-left: auto;
   font-weight: 400;
   opacity: 0;
 }
-.ws-sidebar nav button.active {
+.ws-sidebar nav:not(.line-sidebar) button.active {
   background: #201a28;
   color: white;
 }
-.ws-sidebar nav button.active b {
+.ws-sidebar nav:not(.line-sidebar) button.active b {
   opacity: 1;
 }
 .ws-sidebar-foot {
@@ -512,11 +519,22 @@
   color: #a599ad;
   overflow-wrap: anywhere;
 }
-.ws-file-list a {
+.ws-file-list a,
+.ws-file-actions button {
   color: #846295;
   text-decoration: none;
   font-size: 12px;
   white-space: nowrap;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+.ws-file-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
 }
 .ws-application-list article {
   border: 1px solid #ece5f3;
@@ -635,6 +653,9 @@
   padding: 12px 16px;
   border-radius: 10px;
 }
+.ws-save-notice {
+  margin: 12px 0 0;
+}
 @media (min-width: 1500px) {
   .ws-main {
     padding: 44px 50px;
@@ -695,19 +716,19 @@
   .ws-club-select select {
     flex: 1;
   }
-  .ws-sidebar nav {
+  .ws-sidebar nav:not(.line-sidebar) {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 5px;
   }
-  .ws-sidebar nav button {
+  .ws-sidebar nav:not(.line-sidebar) button {
     justify-content: center;
     padding: 11px 3px;
     font-size: 10px;
     white-space: nowrap;
   }
-  .ws-sidebar nav button span,
-  .ws-sidebar nav button b {
+  .ws-sidebar nav:not(.line-sidebar) button span,
+  .ws-sidebar nav:not(.line-sidebar) button b {
     display: none;
   }
   .ws-main {
@@ -847,10 +868,10 @@
   margin-bottom: 12px;
 }
 @media (max-width: 700px) {
-  .ws-sidebar nav {
+  .ws-sidebar nav:not(.line-sidebar) {
     grid-template-columns: repeat(5, minmax(0, 1fr));
   }
-  .ws-sidebar nav button {
+  .ws-sidebar nav:not(.line-sidebar) button {
     font-size: 9px;
   }
 }
@@ -877,10 +898,10 @@
   position: sticky;
   top: 25px;
 }
-.ws-sidebar nav {
+.ws-sidebar nav:not(.line-sidebar) {
   gap: 4px;
 }
-.ws-sidebar nav button {
+.ws-sidebar nav:not(.line-sidebar) button {
   font-size: 12px;
   padding: 13px 11px;
 }
@@ -920,7 +941,7 @@
 .ws-date {
   white-space: nowrap;
 }
-.ws-sidebar nav button.active {
+.ws-sidebar nav:not(.line-sidebar) button.active {
   background: #302936;
 }
 .ws-shell .ws-days button.selected {
@@ -937,7 +958,7 @@
   .ws-stats {
     grid-template-columns: repeat(2, 1fr);
   }
-  .ws-sidebar nav button {
+  .ws-sidebar nav:not(.line-sidebar) button {
     font-size: 11px;
     gap: 7px;
   }
@@ -958,20 +979,20 @@
   .ws-sidebar-foot {
     display: none;
   }
-  .ws-sidebar nav {
+  .ws-sidebar nav:not(.line-sidebar) {
     display: flex;
     flex-direction: row;
     overflow-x: auto;
     gap: 6px;
     padding: 3px 0 9px;
   }
-  .ws-sidebar nav button {
+  .ws-sidebar nav:not(.line-sidebar) button {
     flex-shrink: 0;
     white-space: nowrap;
     padding: 11px 12px;
   }
-  .ws-sidebar nav button span,
-  .ws-sidebar nav button b {
+  .ws-sidebar nav:not(.line-sidebar) button span,
+  .ws-sidebar nav:not(.line-sidebar) button b {
     display: none;
   }
   .ws-club-select {
@@ -1029,10 +1050,16 @@
 }
 .join-review article {
   display: flex;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 24px;
   padding: 20px 0;
   border-top: 1px solid #e8e2ec;
+}
+.join-review .ws-badge {
+  align-self: center;
+  flex: none;
+  height: fit-content;
 }
 .join-review article > div:first-child {
   min-width: 0;
@@ -1098,6 +1125,25 @@
   display: block;
   width: 100%;
   margin-top: 12px;
+}
+.ws-media-progress {
+  margin-top: 12px;
+}
+.ws-media-progress-track {
+  height: 6px;
+  border-radius: 99px;
+  background: #efe8f5;
+  overflow: hidden;
+}
+.ws-media-progress-track > span {
+  display: block;
+  height: 100%;
+  background: #6d4f82;
+}
+.ws-media-progress p {
+  margin: 8px 0 0;
+  color: #6d5a7a;
+  font-size: 13px;
 }
 .ws-club-likes {
   color: #785b8c;
@@ -1263,4 +1309,97 @@
 .vice-confirm button:first-of-type {
   background: #d92d3a;
   color: white;
+}
+
+.ws-sidebar .line-sidebar {
+  flex-shrink: 0;
+  padding-right: 18px;
+}
+.ws-sidebar .line-sidebar__label {
+  font-weight: 500;
+  line-height: 1.5;
+}
+.ws-member-layout {
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+.ws-member-layout > .branched-menu {
+  position: sticky;
+  top: 100px;
+}
+.ws-member-content {
+  min-width: 0;
+}
+@media (max-width: 1000px) {
+  .ws-member-layout {
+    grid-template-columns: 1fr;
+  }
+  .ws-member-layout > .branched-menu {
+    position: relative;
+    top: auto;
+  }
+}
+@media (max-width: 700px) {
+  .ws-sidebar .line-sidebar {
+    padding: 0 14px 0 32px;
+  }
+  .ws-sidebar .line-sidebar__list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 32px;
+    row-gap: 8px;
+  }
+  .ws-sidebar .line-sidebar__button {
+    padding: 9px 0;
+  }
+  .ws-sidebar .line-sidebar__label {
+    font-size: 12px;
+  }
+  .ws-sidebar .line-sidebar__index {
+    margin-right: 5px;
+  }
+  .ws-sidebar .line-sidebar__item::after {
+    display: none;
+  }
+}
+.ws-shell .line-sidebar__button,
+.ws-shell .line-sidebar__button:hover {
+  display: block;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 10px 0;
+  color: inherit;
+  text-align: left;
+  line-height: 1.2;
+}
+.ws-shell .branched-menu__head,
+.ws-shell .branched-menu__item {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--bm-muted);
+  font: inherit;
+}
+.ws-shell .branched-menu__head {
+  padding: 9px 0;
+  font-size: calc(var(--bm-font) + 1px);
+}
+.ws-shell .branched-menu__item {
+  padding: 0 0 0 var(--bm-indent);
+  height: var(--bm-row);
+}
+.ws-shell .branched-menu__head:hover,
+.ws-shell .branched-menu__item:hover,
+.ws-shell .branched-menu__section[data-open] .branched-menu__head {
+  background: transparent;
+  color: var(--bm-ink);
+}
+.ws-shell .branched-menu [data-active] {
+  color: var(--bm-accent);
+}
+.ws-sidebar .line-sidebar__item::before {
+  inset: -6px 0;
 }

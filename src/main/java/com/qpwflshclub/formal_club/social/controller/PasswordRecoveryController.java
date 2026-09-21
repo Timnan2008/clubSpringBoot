@@ -62,7 +62,7 @@ public class PasswordRecoveryController {
         }
     );
 
-    record Challenge(
+    public record Challenge(
         String login,
         String canonical,
         String version,

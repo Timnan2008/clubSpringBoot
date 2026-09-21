@@ -2,6 +2,7 @@ package com.qpwflshclub.formal_club.social.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.qpwflshclub.formal_club.social.ContentModeration;
 import java.io.IOException;
 import java.nio.file.*;
 import java.time.LocalDateTime;
@@ -106,6 +107,7 @@ public class PersonalCalendarStore {
     private static String clean(String text, int max) {
         String value = Objects.toString(text, "").strip();
         if (value.length() > max) throw SchoolAccounts.error(400, "填写内容过长");
+        ContentModeration.check(value);
         return value;
     }
 

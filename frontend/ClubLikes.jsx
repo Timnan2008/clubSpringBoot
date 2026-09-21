@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { AnimatedNumber, TextMorph } from "./MotionPrimitives";
 import { tx } from "./language";
+import PulseHeart from "./PulseHeart";
 export default function ClubLikes({ club, account }) {
   const [count, setCount] = useState(club.videoLike || 0),
     [liked, setLiked] = useState(false),
@@ -48,27 +48,13 @@ export default function ClubLikes({ club, account }) {
   }
   return (
     <div className="club-like-row">
-      <button
-        type="button"
-        aria-pressed={liked}
+      <PulseHeart
+        liked={liked}
+        count={count}
+        label={liked ? tx("取消喜欢", "Unlike club") : tx("喜欢这个社团", "Like this club")}
         disabled={busy || (!!account && !token)}
-        onClick={toggle}
-      >
-        <svg
-          width="19"
-          height="19"
-          viewBox="0 0 24 24"
-          fill={liked ? "currentColor" : "none"}
-          stroke="currentColor"
-          strokeWidth="1.6"
-        >
-          <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z" />
-        </svg>
-        <AnimatedNumber value={count} />
-        <TextMorph>
-          {liked ? tx("已喜欢", "Liked") : tx("喜欢这个社团", "Like this club")}
-        </TextMorph>
-      </button>
+        onChange={toggle}
+      />
       {error && <small role="alert">{error}</small>}
     </div>
   );

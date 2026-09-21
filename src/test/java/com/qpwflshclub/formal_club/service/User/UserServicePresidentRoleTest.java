@@ -64,7 +64,8 @@ class UserServicePresidentRoleTest {
         User student = user(12L, "王艺蒙", "Thomas", List.of(managedClub, otherClub));
 
         when(clubRepository.findById(8)).thenReturn(Optional.of(managedClub));
-        when(userRepository.findAll()).thenReturn(List.of(student));
+        // 服务层现在用 findByUsernameEn 查人（不再 findAll 里遍历）——测试跟着改
+        when(userRepository.findByUsernameEn("Thomas")).thenReturn(Optional.of(student));
         when(clubPresidentRepository.save(any(ClubPresident.class))).thenAnswer(invocation ->
             invocation.getArgument(0)
         );
@@ -93,7 +94,7 @@ class UserServicePresidentRoleTest {
         );
 
         when(clubRepository.findById(8)).thenReturn(Optional.of(managedClub));
-        when(userRepository.findAll()).thenReturn(List.of(student));
+        when(userRepository.findByUsernameEn("Thomas")).thenReturn(Optional.of(student));
         when(clubPresidentRepository.findAll()).thenReturn(List.of(existingPresident));
         when(clubPresidentRepository.save(any(ClubPresident.class))).thenAnswer(invocation ->
             invocation.getArgument(0)
@@ -141,7 +142,6 @@ class UserServicePresidentRoleTest {
         ClubPresident president = president(3L, "王艺蒙", "Thomas", managedClub, List.of());
 
         when(clubRepository.findById(8)).thenReturn(Optional.of(managedClub));
-        when(userRepository.findAll()).thenReturn(List.of(student));
         when(clubPresidentRepository.findAll()).thenReturn(List.of(president));
 
         List<Map<String, Object>> members = userService.getClubMembersWithRoles(8);

@@ -1,0 +1,338 @@
+body .social-shell button.pulse-heart,
+body .club-like-row button.pulse-heart {
+  min-height: 40px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ph-idle);
+  box-shadow: none;
+}
+body .social-shell button.pulse-heart[data-liked="true"],
+body .club-like-row button.pulse-heart[data-liked="true"] {
+  color: var(--ph-liked);
+  background: transparent;
+}
+body .social-shell button.pulse-heart:hover,
+body .club-like-row button.pulse-heart:hover {
+  color: var(--ph-liked);
+  background: color-mix(in srgb, var(--ph-liked) 8%, transparent);
+}
+body .social-shell .hold-button-wrap .hold-button {
+  background: var(--hb-bg);
+  color: var(--hb-text);
+}
+body .social-shell .glide-select .glide-select__trigger {
+  background: var(--gs-surface);
+  color: var(--gs-text);
+}
+body .social-shell .glide-select .glide-select__trigger:hover {
+  background: var(--gs-highlight);
+  color: var(--gs-text);
+}
+body .social-shell .hold-button-wrap {
+  flex: none;
+}
+body .social-shell .social-confirm {
+  align-items: center;
+  gap: 16px;
+  padding-block: 16px;
+}
+body .social-shell .social-confirm > span:first-child {
+  flex: 1 1 180px;
+}
+/* Keep post/comment deletion inline without a second card inside the post. */
+body .social-shell .social-confirm.social-confirm--compact {
+  gap: 8px;
+  padding: 4px 0;
+  margin-top: 8px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+body .social-shell .social-confirm.social-confirm--compact > .hold-button-wrap {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+body .social-shell .social-confirm--compact > button {
+  min-height: 36px;
+  padding: 0 10px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: inherit;
+  opacity: 0.7;
+}
+body .social-shell .social-confirm--compact > button:hover {
+  opacity: 1;
+}
+.social-confirm--compact .hold-button__hint {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.cal-task-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-inline: 16px;
+  border-bottom: 1px solid #e6e1eb;
+}
+.cal-task-row .cal-list-entry {
+  flex: 1;
+  min-width: 0;
+  border-bottom: 0;
+  padding-inline: 0;
+}
+.cal-task-row .spring-check {
+  flex: none;
+}
+.cal-dialog .glide-select {
+  display: block;
+}
+.cal-dialog .cal-fields > label {
+  min-width: 0;
+}
+.cal-delete-confirm .cal-actions,
+.cal-inline-confirm,
+.account-confirm-actions {
+  align-items: start;
+}
+.ops-materials-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 12px 2px 24px;
+}
+.ops-materials-heading > div > span {
+  color: #85758f;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.12em;
+}
+.ops-materials-heading h3 {
+  margin: 8px 0;
+  font-size: 24px;
+  font-weight: 650;
+  letter-spacing: -0.03em;
+}
+.ops-materials-heading p {
+  margin: 0;
+  font-size: 13px;
+  color: #786d81;
+}
+.ops-root .ops-report-grid {
+  gap: 24px;
+  margin-bottom: 30px;
+}
+.ops-root .ops-report-card {
+  position: relative;
+  gap: 18px;
+  padding: 26px;
+  border-radius: 20px;
+  background: linear-gradient(145deg, #fff, #faf8fc);
+  border: 1px solid #e9e3ef;
+  box-shadow: 0 4px 18px #30213d04;
+}
+.ops-root .ops-card-number {
+  font-size: 32px;
+  line-height: 1;
+  font-weight: 500;
+  letter-spacing: -0.06em;
+  color: #c4b6d3;
+}
+.ops-root .ops-report-card p {
+  min-height: 52px;
+  font-size: 13px;
+  line-height: 1.85;
+  color: #73647e;
+}
+.ops-root .ops-report-card small {
+  font-size: 12px;
+  color: #786984;
+}
+.ops-root .ops-report-card > button {
+  align-self: flex-start;
+  margin-top: auto;
+  min-height: 42px;
+  padding-inline: 20px;
+  border-radius: 12px;
+}
+.ops-root .ops-term-bar {
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: #f4f0f7;
+  gap: 14px 20px;
+}
+.ops-term-bar > label {
+  min-width: 0;
+}
+.ops-term-bar .glide-select {
+  max-width: 300px;
+}
+.ops-root .ops-term-bar > span {
+  font-size: 12px;
+}
+.ops-root .ops-working {
+  position: sticky;
+  top: 16px;
+  z-index: 8;
+  width: fit-content;
+  margin: 0 0 16px auto;
+  padding: 10px 16px;
+  border-radius: 12px;
+  border: 1px solid #e5dcec;
+  background: #fff;
+  box-shadow: 0 5px 20px #3722470a;
+}
+.ops-root .ops-report-editor {
+  padding: 28px;
+  border-radius: 20px;
+}
+.ops-root .ops-report-editor form > label {
+  font-size: 13px;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+.ops-root .ops-report-editor textarea {
+  min-height: 112px;
+  resize: vertical;
+}
+.ops-root .ops-report-editor .ws-section-head {
+  margin-bottom: 28px;
+}
+@media (max-width: 640px) {
+  .ops-root .ops-report-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+  .ops-root .ops-report-card,
+  .ops-root .ops-report-editor {
+    padding: 20px;
+  }
+  .ops-term-bar > label {
+    width: 100%;
+    align-items: start;
+    flex-direction: column;
+  }
+  .ops-term-bar .glide-select {
+    width: 100%;
+    max-width: none;
+  }
+  .ops-materials-heading {
+    padding-top: 4px;
+  }
+  .cal-toolbar-actions {
+    flex-wrap: wrap;
+  }
+  .cal-task-row {
+    gap: 8px;
+    padding-inline: 10px;
+  }
+  .cal-inline-confirm {
+    flex-wrap: wrap;
+  }
+  body .social-shell .social-confirm {
+    flex-wrap: wrap;
+  }
+}
+.cal-shell button.spring-check,
+.cal-dialog button.spring-check {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+  color: var(--sc-ink);
+}
+.cal-shell button.spring-check:hover,
+.cal-dialog button.spring-check:hover {
+  background: transparent;
+}
+.ops-root .ops-term-bar > label {
+  flex: 0 1 auto;
+}
+@media (max-width: 640px) {
+  .ops-root .ops-term-bar > label {
+    flex: 1 1 100%;
+  }
+}
+.cal-board {
+  --control-surface: #1c1c20;
+  --control-highlight: #29292f;
+  --control-ink: #efedf2;
+  --control-muted: #99959f;
+  --control-accent: #a797ce;
+}
+.cal-board .cal-task-row {
+  border-color: #28282c;
+}
+.cal-board .cal-task-row .cal-list-entry {
+  border: 0;
+  background: transparent;
+  padding: 18px 8px;
+}
+.cal-board .cal-task-row .cal-list-entry:hover {
+  background: #171719;
+}
+.cal-board .cal-inline-confirm .hold-button {
+  background: var(--hb-bg);
+  color: var(--hb-text);
+  padding: 0 14px;
+}
+.ops-root .kind-proposal form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 24px;
+}
+.ops-root .kind-proposal form > :is(p, div, label:nth-of-type(1), label:nth-of-type(2)) {
+  grid-column: 1 / -1;
+}
+.ops-root .kind-proposal form > label {
+  min-width: 0;
+  align-content: start;
+}
+.ops-root .kind-proposal form > label > textarea {
+  min-height: 160px;
+}
+.ops-root .ops-report-editor .ops-actions {
+  position: sticky;
+  bottom: 12px;
+  z-index: 3;
+  margin-top: 24px;
+  padding: 14px 16px;
+  border: 1px solid #e8e1ed;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 6px 24px #30213d0a;
+  justify-content: flex-end;
+}
+@media (max-width: 640px) {
+  .ops-root .kind-proposal form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ops-root .ops-report-editor .ops-actions {
+    bottom: 8px;
+    padding: 10px;
+  }
+}
+body.social-network-theme .social-shell button.pulse-heart[data-liked="true"],
+body.social-network-theme .social-shell button.pulse-heart:hover:not(:disabled) {
+  color: var(--ph-liked);
+}
+body.social-network-theme .social-shell button.pulse-heart:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--ph-liked) 8%, transparent);
+}
+body.social-network-theme .social-shell .glide-select .glide-select__trigger:hover:not(:disabled) {
+  background: var(--gs-highlight);
+  color: var(--gs-text);
+}
+body.social-network-theme .social-shell .hold-button-wrap .hold-button:hover:not(:disabled) {
+  background: var(--hb-bg);
+  color: var(--hb-text);
+}

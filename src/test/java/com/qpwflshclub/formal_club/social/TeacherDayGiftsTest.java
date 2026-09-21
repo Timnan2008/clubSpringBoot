@@ -19,7 +19,7 @@ class TeacherDayGiftsTest {
     Path dir;
 
     @Test
-    void giftsAreTeacherOnlyPersistAndRemainAfterTheHoliday() throws Exception {
+    void giftsAreTeacherOnlyPersistAndRemainAfterTheAwardYear() throws Exception {
         var repo = mock(TeacherRepository.class);
         var teacher = new Teacher();
         teacher.setEmail("teacher@example.com");
@@ -27,12 +27,12 @@ class TeacherDayGiftsTest {
         student.setEmail("student@example.com");
         var path = dir.resolve("gifts.json");
         var gifts = spy(new TeacherDayGifts(path.toString(), repo));
-        doReturn(true).when(gifts).today();
+        doReturn(true).when(gifts).thisYear();
         assertThat(gifts.awarded(student)).isFalse();
         assertThat(gifts.awarded(teacher)).isTrue();
         assertThat(gifts.awarded(teacher)).isTrue();
         var later = spy(new TeacherDayGifts(path.toString(), repo));
-        doReturn(false).when(later).today();
+        doReturn(false).when(later).thisYear();
         assertThat(later.awarded(teacher)).isTrue();
         var another = new Teacher();
         another.setEmail("new@example.com");
@@ -47,16 +47,31 @@ class TeacherDayGiftsTest {
         teacher.setEmail("one@example.com");
         when(repo.findAll()).thenReturn(List.of(teacher));
         var gifts = spy(new TeacherDayGifts(dir.resolve("all.json").toString(), repo));
-        doReturn(true).when(gifts).today();
+        doReturn(true).when(gifts).thisYear();
         gifts.distribute();
-        doReturn(false).when(gifts).today();
+        doReturn(false).when(gifts).thisYear();
         assertThat(gifts.awarded(teacher)).isTrue();
     }
 
     @Test
-    void greetingUsesOnlyTheSpecifiedHoliday() {
+    void newTeachersReceiveThisYearsGiftAfterTheHoliday() throws Exception {
+        var repo = mock(TeacherRepository.class);
+        var teacher = new Teacher();
+        teacher.setEmail("later@example.com");
+        var gifts = spy(new TeacherDayGifts(dir.resolve("later.json").toString(), repo));
+        doReturn(false).when(gifts).today();
+        doReturn(true).when(gifts).thisYear();
+        assertThat(gifts.awarded(teacher)).isTrue();
+    }
+
+    @Test
+    void greetingUsesOnlyTheSpecifiedHolidayAndAwardYearIs2026() {
         assertThat(TeacherDayGifts.celebration(LocalDate.of(2026, 9, 10))).isTrue();
         assertThat(TeacherDayGifts.celebration(LocalDate.of(2026, 9, 11))).isFalse();
         assertThat(TeacherDayGifts.celebration(LocalDate.of(2027, 9, 10))).isFalse();
+        assertThat(TeacherDayGifts.awardYear(LocalDate.of(2026, 1, 1))).isTrue();
+        assertThat(TeacherDayGifts.awardYear(LocalDate.of(2026, 12, 31))).isTrue();
+        assertThat(TeacherDayGifts.awardYear(LocalDate.of(2025, 12, 31))).isFalse();
+        assertThat(TeacherDayGifts.awardYear(LocalDate.of(2027, 9, 10))).isFalse();
     }
 }

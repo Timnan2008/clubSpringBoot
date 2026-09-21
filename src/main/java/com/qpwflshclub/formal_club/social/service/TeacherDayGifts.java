@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.qpwflshclub.formal_club.User.pojo.Teacher;
 import com.qpwflshclub.formal_club.User.pojo.UserBase;
 import com.qpwflshclub.formal_club.User.repository.TeacherRepository;
+import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
 import java.io.IOException;
 import java.nio.file.*;
 import java.time.*;
@@ -40,13 +41,21 @@ public class TeacherDayGifts {
         return date.equals(LocalDate.of(2026, 9, 10));
     }
 
+    public static boolean awardYear(LocalDate date) {
+        return date.getYear() == 2026;
+    }
+
     public boolean today() {
         return celebration(LocalDate.now(ZoneId.of("Asia/Shanghai")));
     }
 
+    public boolean thisYear() {
+        return awardYear(LocalDate.now(ZoneId.of("Asia/Shanghai")));
+    }
+
     @EventListener(ApplicationReadyEvent.class)
     public synchronized void distribute() throws IOException {
-        if (!today()) return;
+        if (!thisYear()) return;
         Set<String> before = new LinkedHashSet<>(recipients);
         for (var teacher : teachers.findAll())
             recipients.add(SchoolAccounts.key(teacher.getEmail()));
@@ -62,7 +71,7 @@ public class TeacherDayGifts {
     public synchronized boolean awarded(UserBase user) {
         if (!(user instanceof Teacher)) return false;
         String id = SchoolAccounts.key(user.getEmail());
-        if (!recipients.contains(id) && today()) {
+        if (!recipients.contains(id) && thisYear()) {
             recipients.add(id);
             try {
                 persist();

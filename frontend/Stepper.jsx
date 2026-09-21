@@ -135,7 +135,7 @@ function StepContentWrapper({ isCompleted, currentStep, direction, children, cla
   return (
     <motion.div
       className={className}
-      style={{ position: "relative", overflow: "hidden" }}
+      style={{ position: "relative", overflow: "visible", transform: "none" }}
       animate={{ opacity: isCompleted ? 0 : 1 }}
       transition={{ type: "spring", duration: 0.4 }}
     >
@@ -176,7 +176,7 @@ function SlideTransition({ children, direction, onHeightReady }) {
       animate="center"
       exit="exit"
       transition={{ duration: 0.4 }}
-      style={{ position: "relative", width: "100%" }}
+      style={{ position: "relative", width: "100%", transform: "none" }}
     >
       {children}
     </motion.div>
@@ -184,18 +184,9 @@ function SlideTransition({ children, direction, onHeightReady }) {
 }
 
 const stepVariants = {
-  enter: (dir) => ({
-    x: dir >= 0 ? "-100%" : "100%",
-    opacity: 0,
-  }),
-  center: {
-    x: "0%",
-    opacity: 1,
-  },
-  exit: (dir) => ({
-    x: dir >= 0 ? "50%" : "-50%",
-    opacity: 0,
-  }),
+  enter: { opacity: 0 },
+  center: { opacity: 1 },
+  exit: { opacity: 0 },
 };
 
 export function Step({ children }) {

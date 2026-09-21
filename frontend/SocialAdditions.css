@@ -369,8 +369,8 @@ body.social-network-theme .social-replies .reply-avatar {
   min-width: 0;
   margin: 0;
   padding: 0;
-  overflow: hidden;
-  border-radius: 12px;
+  overflow: visible;
+  border-radius: 0;
 }
 body.social-network-theme .social-replies .reply-avatar .campus-avatar {
   width: 36px;
@@ -451,4 +451,28 @@ body.social-network-theme .social-replies > h2 {
   body.social-network-theme .social-replies .reply-actions {
     gap: 4px;
   }
+}
+
+/* 「网管」提醒：出现在通知面板顶部，提醒学生第几次违规 / 封禁到什么时候 */
+.notification-notices {
+  display: grid;
+  gap: 6px;
+  margin: 8px 0 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(255, 120, 90, 0.12);
+  border: 1px solid rgba(255, 120, 90, 0.35);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.notification-notices p {
+  margin: 0;
+  color: inherit;
+}
+.notification-notices p.unread {
+  font-weight: 600;
+}
+.notification-notices b {
+  color: #ff9a76;
+  margin-right: 4px;
 }

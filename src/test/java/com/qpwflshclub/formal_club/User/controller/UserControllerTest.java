@@ -1,4 +1,4 @@
-package com.qpwflshclub.formal_club.controller;
+package com.qpwflshclub.formal_club.User.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.never;
@@ -245,6 +245,93 @@ class UserControllerTest {
         assertThat(
             com.qpwflshclub.formal_club.config.RegistrationProof.valid(r, dto.getEmail())
         ).isFalse();
+    }
+
+    @Test
+    void signupVerificationRejectsRegisteredEmailBeforeCaptcha() {
+        controller.loginEmails = org.mockito.Mockito.mock(
+            com.qpwflshclub.formal_club.config.LoginEmails.class
+        );
+        org.mockito.Mockito.doThrow(
+            com.qpwflshclub.formal_club.social.service.SchoolAccounts.error(
+                409,
+                com.qpwflshclub.formal_club.config.LoginEmails.EMAIL_REGISTERED
+            )
+        )
+            .when(controller.loginEmails)
+            .requireAvailable("taken@example.com");
+        org.assertj.core.api.Assertions.assertThatThrownBy(() ->
+            controller.verifySignup(
+                new UserController.SignupVerification("taken@example.com", "user", "fresh"),
+                new org.springframework.mock.web.MockHttpServletRequest()
+            )
+        ).hasMessageContaining("409");
+        org.mockito.Mockito.verify(controller.turnstile, never()).verify(
+            org.mockito.ArgumentMatchers.any(),
+            org.mockito.ArgumentMatchers.any()
+        );
+    }
+
+    @Test
+    void availabilityRejectsMismatchedStudentName() {
+        controller.roster = org.mockito.Mockito.mock(
+            com.qpwflshclub.formal_club.config.StudentRoster.class
+        );
+        controller.profiles = org.mockito.Mockito.mock(
+            com.qpwflshclub.formal_club.social.service.AccountProfiles.class
+        );
+        org.mockito.Mockito.doThrow(
+            com.qpwflshclub.formal_club.social.service.SchoolAccounts.error(
+                400,
+                com.qpwflshclub.formal_club.config.StudentRoster.MISMATCH
+            )
+        )
+            .when(controller.roster)
+            .requireMatchingStudent("20260001", "测试乙", "Alice");
+        org.assertj.core.api.Assertions.assertThatThrownBy(() ->
+            controller.availability(
+                new UserController.SignupAvailability(null, "20260001", "user", "测试乙", "Alice")
+            )
+        ).hasMessageContaining("400");
+        org.mockito.Mockito.verify(
+            controller.profiles,
+            org.mockito.Mockito.never()
+        ).requireStudentNumberAvailable(
+            org.mockito.ArgumentMatchers.any(),
+            org.mockito.ArgumentMatchers.any()
+        );
+    }
+
+    @Test
+    void availabilityAllowsUnusedStudentNumber() {
+        controller.profiles = org.mockito.Mockito.mock(
+            com.qpwflshclub.formal_club.social.service.AccountProfiles.class
+        );
+        ResponseMessage<?> response = controller.availability(
+            new UserController.SignupAvailability(null, "NEW-99", "user", "测试甲", "Alice")
+        );
+        assertThat(response.getCode()).isEqualTo(200);
+        org.mockito.Mockito.verify(controller.profiles).requireStudentNumberAvailable("", "NEW-99");
+    }
+
+    @Test
+    void availabilityRejectsRegisteredStudentNumber() {
+        controller.profiles = org.mockito.Mockito.mock(
+            com.qpwflshclub.formal_club.social.service.AccountProfiles.class
+        );
+        org.mockito.Mockito.doThrow(
+            com.qpwflshclub.formal_club.social.service.SchoolAccounts.error(
+                409,
+                com.qpwflshclub.formal_club.social.service.AccountProfiles.STUDENT_NUMBER_REGISTERED
+            )
+        )
+            .when(controller.profiles)
+            .requireStudentNumberAvailable("", "00123");
+        org.assertj.core.api.Assertions.assertThatThrownBy(() ->
+            controller.availability(
+                new UserController.SignupAvailability(null, "00123", "user", "测试甲", "Alice")
+            )
+        ).hasMessageContaining("409");
     }
 
     @Test

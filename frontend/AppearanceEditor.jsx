@@ -1,3 +1,5 @@
+import HoldButton from "./HoldButton";
+import CallChip from "./CallChip";
 import { TeacherBadge } from "./TeacherDay";
 import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import React, { useEffect, useRef, useState } from "react";
@@ -136,10 +138,14 @@ export default function AppearanceEditor({ profile, onSaved }) {
     setDeleting(null);
     setStatus(dirty());
   }
+  const [uploadPhase, setUploadPhase] = useState("idle");
+  const [transferProgress, setTransferProgress] = useState(undefined);
   async function save() {
     if (busy) return;
     setBusy(true);
     setStatus(tx("正在保存装扮…", "Saving appearance…"));
+    setUploadPhase("running");
+    setTransferProgress(undefined);
     try {
       let custom = settings.customFrame;
       for (const id of [...removed.current]) {
@@ -152,7 +158,10 @@ export default function AppearanceEditor({ profile, onSaved }) {
           "/api/campus-social/me/appearance/banner",
           p.file,
           profile.token,
-          (n) => setStatus(tx("保存封面：", "Saving cover: ") + n + "%"),
+          (n) => {
+            setTransferProgress(n < 100 ? n / 100 : undefined);
+            setStatus(tx("保存封面：", "Saving cover: ") + n + "%");
+          },
         );
         cover.current = null;
         URL.revokeObjectURL(p.url);
@@ -163,7 +172,10 @@ export default function AppearanceEditor({ profile, onSaved }) {
           "/api/campus-social/me/appearance/frame",
           p.file,
           profile.token,
-          (n) => setStatus(tx("保存头像框：", "Saving frame: ") + n + "%"),
+          (n) => {
+            setTransferProgress(n < 100 ? n / 100 : undefined);
+            setStatus(tx("保存头像框：", "Saving frame: ") + n + "%");
+          },
         );
         const item = saved.frames.find((f) => f.url === saved.customFrame);
         if (custom === p.url) custom = item.url;
@@ -180,9 +192,11 @@ export default function AppearanceEditor({ profile, onSaved }) {
       setData(d);
       setSettings(d.settings);
       setFrames(d.frames);
+      setUploadPhase("done");
       setStatus(tx("装扮已保存", "Appearance saved"));
       await onSaved?.();
     } catch (e) {
+      setUploadPhase("error");
       setStatus(e.message);
     } finally {
       setBusy(false);
@@ -225,8 +239,8 @@ export default function AppearanceEditor({ profile, onSaved }) {
       oldX: settings[keys[0]] || 0,
       oldY: settings[keys[1]] || 0,
       keys,
-      width: box.width * (target === "frame" ? 1.28 : 1),
-      height: box.height * (target === "frame" ? 1.28 : 1),
+      width: box.width * (target === "frame" ? 1.6 : 1),
+      height: box.height * (target === "frame" ? 1.6 : 1),
     };
   }
   if (!settings) return <p role="status">{status || tx("加载装扮…", "Loading appearance…")}</p>;
@@ -267,6 +281,18 @@ export default function AppearanceEditor({ profile, onSaved }) {
           />
         </label>
       </div>
+      {uploadPhase !== "idle" && (
+        <CallChip
+          icon="file"
+          name={tx("保存装扮", "Save appearance")}
+          argument={status}
+          status={uploadPhase}
+          progress={transferProgress}
+          onRetry={save}
+          surfaceColor="#efebf4"
+          color="#514663"
+        />
+      )}
       <p className="appearance-upload-status" role="status" aria-live="polite">
         {status ||
           tx(
@@ -481,14 +507,13 @@ export default function AppearanceEditor({ profile, onSaved }) {
             )}
           </p>
           <div className="appearance-delete-actions">
-            <button
-              type="button"
-              className="appearance-danger"
+            <HoldButton
               disabled={busy}
-              onClick={() => removeOne(deleting)}
+              onHold={() => removeOne(deleting)}
+              doneLabel={tx("待保存", "Save to apply")}
             >
-              {tx("确认删除此框", "Delete this frame")}
-            </button>
+              {tx("长按删除此框", "Hold to delete frame")}
+            </HoldButton>
             <button type="button" disabled={busy} onClick={() => setDeleting(null)}>
               {tx("取消", "Cancel")}
             </button>

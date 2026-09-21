@@ -1,3 +1,5 @@
+import HoldButton from "./HoldButton";
+import CallChip from "./CallChip";
 import { ChatComposer, ChatMessageFiles, chatPreview } from "./ChatAttachments";
 import { appendChatFiles, prepareChatFiles, parseChatFiles } from "./chat-attachments.mjs";
 import MentionComposer from "./Mentions";
@@ -27,6 +29,13 @@ import {
   safetyCode,
   verifyPeer,
 } from "./message-crypto.js";
+function muteNotice(until) {
+  if (!until) return "";
+  return tx(
+    `因多次发送不当用语，账号已禁言至 ${until}。`,
+    `This account is muted until ${until} for repeated inappropriate language.`,
+  );
+}
 const base = "/api/campus-social",
   mode = document.getElementById("campus-social").dataset.mode || "wall";
 async function api(path = "", options = {}) {
@@ -49,7 +58,7 @@ const roles = {
   student: tr("学生"),
   president: tr("社长"),
   teacher: tr("教师"),
-  admin: tx("管理员 · 学生", "Administrator · Student"),
+  admin: tx("超级管理员 · 学生", "Super admin · Student"),
   anonymous: tr("匿名"),
 };
 const personName = (p) => postName(p, en);
@@ -199,7 +208,6 @@ function Wall({ profile, write }) {
         .catch(() => {});
   }, [scopedClub]);
   const [category, setCategory] = useState("recruit"),
-    [anonymous, setAnonymous] = useState(false),
     [filter, setFilter] = useState(""),
     [events, setEvents] = useState([]);
   useEffect(() => {
@@ -250,28 +258,34 @@ function Wall({ profile, write }) {
     if (!loading && location.hash.startsWith("#post-"))
       document.getElementById(location.hash.slice(1))?.scrollIntoView({ block: "center" });
   }, [loading]);
+  const [postUpload, setPostUpload] = useState(null);
   const publish = async (e) => {
     e.preventDefault();
     if (lock.current) return;
+    if (profile.mutedUntil) {
+      setError(muteNotice(profile.mutedUntil));
+      return;
+    }
+    if (!text.trim() && !files.length) return;
     lock.current = true;
     setBusy(true);
     setError("");
     try {
       if (files.length) {
+        setPostUpload({ name: files.map((f) => f.name).join(", "), status: "running" });
         const body = new FormData();
         body.append("text", text);
         body.append("mentions", JSON.stringify(mentions));
         body.append("category", category);
         body.append("club", postingClub);
-        body.append("anonymous", anonymous);
         for (const f of files) body.append("files", await compressImage(f));
         await api("/posts", {
           method: "POST",
           headers: { "X-Workspace-Token": profile.token },
           body,
         });
-      } else
-        await write("/posts", "POST", { text, category, club: postingClub, anonymous, mentions });
+      } else await write("/posts", "POST", { text, category, club: postingClub, mentions });
+      if (files.length) setPostUpload((u) => ({ ...u, status: "done" }));
       setMentions([]);
       setFiles([]);
       if (fileInput.current) fileInput.current.value = "";
@@ -279,6 +293,7 @@ function Wall({ profile, write }) {
       if (filter && filter !== category) setFilter(category);
       else await load();
     } catch (e) {
+      if (files.length) setPostUpload((u) => ({ ...u, status: "error" }));
       setError(tr(e.message));
     } finally {
       setBusy(false);
@@ -288,6 +303,14 @@ function Wall({ profile, write }) {
   return (
     <>
       <section className="social-feed">
+        {postUpload && (
+          <CallChip
+            icon="file"
+            name={tx("上传附件", "Attachments")}
+            argument={postUpload.name}
+            status={postUpload.status}
+          />
+        )}
         <header className="social-page-title">
           <h1>
             {clubName ? clubName + " · " : ""}
@@ -316,19 +339,16 @@ function Wall({ profile, write }) {
             label={tr("浏览分类")}
           />
         </div>
+        <ErrorMessage>{muteNotice(profile.mutedUntil)}</ErrorMessage>
         {!new URLSearchParams(location.search).get("keyword") &&
           (profile.canPost ? (
             <form
               ref={composerRef}
-              className={
-                "social-composer" +
-                (anonymous ? " is-anonymous" : "") +
-                (composing ? " is-expanded" : " is-collapsed")
-              }
+              className={"social-composer" + (composing ? " is-expanded" : " is-collapsed")}
               onSubmit={publish}
               onFocusCapture={() => setComposing(true)}
             >
-              {!anonymous && <Avatar person={profile.account} />}
+              <Avatar person={profile.account} />
               <div>
                 <label htmlFor="wall-composer" className="social-sr-only">
                   {tr("发布校园动态")}
@@ -350,10 +370,7 @@ function Wall({ profile, write }) {
                         {tx("发布身份", "Post as")}
                         <select
                           value={postingClub}
-                          onChange={(e) => {
-                            setPostingClub(Number(e.target.value));
-                            if (Number(e.target.value)) setAnonymous(false);
-                          }}
+                          onChange={(e) => setPostingClub(Number(e.target.value))}
                         >
                           <option value="0">{tx("个人", "Myself")}</option>
                           {profile.clubs.map((c) => (
@@ -438,30 +455,17 @@ function Wall({ profile, write }) {
                         onChange={setCategory}
                         label={tr("发布类型")}
                       />
-                      <label>
-                        <input
-                          type="checkbox"
-                          disabled={postingClub > 0}
-                          checked={anonymous}
-                          onChange={(e) => setAnonymous(e.target.checked)}
-                        />
-                        {tr("匿名发布")}
-                      </label>
                     </div>
-                    {anonymous && (
-                      <p className="community-anonymous-note">
-                        {tr(
-                          "其他同学看不到姓名和头像；后台保留账号归属。请勿在正文或附件中透露身份。",
-                        )}
-                      </p>
-                    )}
                     <footer>
                       <span>
                         <Icon name="globe" />
                         {tr("校内可见")}
                         <small>{text.length}/1000</small>
                       </span>
-                      <button className="social-primary" disabled={busy || !text.trim()}>
+                      <button
+                        className="social-primary"
+                        disabled={busy || !!profile.mutedUntil || (!text.trim() && !files.length)}
+                      >
                         <TextMorph>{busy ? tr("发布中…") : tr("发布")}</TextMorph>
                       </button>
                     </footer>
@@ -883,6 +887,8 @@ function Conversation({ peer, profile, write, onBack, onChange }) {
           ),
           body = new FormData();
         body.append("text", prepared.text);
+        // 服务器只能看到密文，额外把明文发过去用于违禁词检查（不会保存）
+        body.append("plainText", draft);
         for (const file of prepared.files) body.append("files", file.blob, file.metadata.id);
         await api("/conversations/" + peer.id + "/attachments", {
           method: "POST",
@@ -898,7 +904,11 @@ function Conversation({ peer, profile, write, onBack, onChange }) {
           peer.id,
           draft,
         );
-        await write("/conversations/" + peer.id, "POST", { text: encrypted });
+        await write("/conversations/" + peer.id, "POST", {
+          text: encrypted,
+          // 明文只用于服务器查违禁词，不会被保存（私信本身仍是端到端加密）
+          plainText: draft,
+        });
       }
       setText((current) => (current === draft ? "" : current));
       composerInput.current?.focus();
@@ -1153,11 +1163,13 @@ function Conversation({ peer, profile, write, onBack, onChange }) {
                     : ""}
                 </small>
                 {m.sender === profile.account.id && !m.recalled && (
-                  <button
+                  <HoldButton
+                    size="sm"
+                    doneLabel={tx("已撤回", "Recalled")}
                     className="recall-message"
                     type="button"
                     disabled={busy}
-                    onClick={async () => {
+                    onHold={async () => {
                       if (lock.current) return;
                       lock.current = true;
                       setBusy(true);
@@ -1167,14 +1179,15 @@ function Conversation({ peer, profile, write, onBack, onChange }) {
                         window.dispatchEvent(new Event("campus-notifications-changed"));
                       } catch (e) {
                         setError(tr(e.message));
+                        return false;
                       } finally {
                         lock.current = false;
                         setBusy(false);
                       }
                     }}
                   >
-                    {tx("撤回", "Recall")}
-                  </button>
+                    {tx("长按撤回", "Hold to recall")}
+                  </HoldButton>
                 )}
               </div>
             ))}
@@ -1522,3 +1535,4 @@ function Social() {
 createRoot(document.getElementById("campus-social")).render(<Social />);
 
 import "./CampusMotion.css";
+import "./ControlRefinements.css";

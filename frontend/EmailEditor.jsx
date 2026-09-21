@@ -1,9 +1,11 @@
+import CodeSlots from "./CodeSlots";
 import { useEffect, useRef, useState } from "react";
 import { tx, tr } from "./language";
 export default function EmailEditor({ profile, write, onSaved }) {
   const [email, setEmail] = useState(""),
     [password, setPassword] = useState(""),
     [code, setCode] = useState(""),
+    [codeStatus, setCodeStatus] = useState("idle"),
     [sent, setSent] = useState(""),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
@@ -11,8 +13,7 @@ export default function EmailEditor({ profile, write, onSaved }) {
     [until, setUntil] = useState(0),
     [now, setNow] = useState(Date.now());
   const form = useRef(),
-    lock = useRef(false),
-    codeField = useRef();
+    lock = useRef(false);
   useEffect(() => {
     if (until <= Date.now()) return;
     const timer = setInterval(() => setNow(Date.now()), 1000);
@@ -41,7 +42,13 @@ export default function EmailEditor({ profile, write, onSaved }) {
       onSubmit={(e) => {
         e.preventDefault();
         act(async () => {
-          await write("/me/email", "PUT", { email: sent, code });
+          try {
+            await write("/me/email", "PUT", { email: sent, code });
+          } catch (error) {
+            if (/验证码|verification code|email code/i.test(error.message)) setCodeStatus("error");
+            throw error;
+          }
+          setCodeStatus("success");
           setNotice(
             tx(
               "邮箱已更新，下次请使用新邮箱登录。",
@@ -119,7 +126,8 @@ export default function EmailEditor({ profile, write, onSaved }) {
                     "Code sent. Check your new inbox and spam folder.",
                   ),
                 );
-                setTimeout(() => codeField.current?.focus(), 0);
+                setCode("");
+                setCodeStatus("idle");
               });
             }}
           >
@@ -128,15 +136,22 @@ export default function EmailEditor({ profile, write, onSaved }) {
           {sent && (
             <label>
               {tx("6 位验证码", "6-digit code")}
-              <input
-                ref={codeField}
+              <CodeSlots
                 value={code}
-                onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                pattern="[0-9]{6}"
-                maxLength={6}
-                required
+                status={codeStatus}
+                autoFocus
+                disabled={busy}
+                slotSize={34}
+                gap={6}
+                accentColor="#7654ae"
+                digitColor="#ffffff"
+                inkColor="#7654ae"
+                slotColor="#eeebf3"
+                onChange={(code) => {
+                  setCode(code);
+                  setCodeStatus("idle");
+                }}
+                ariaLabel={tx("6 位验证码", "6-digit verification code")}
               />
             </label>
           )}

@@ -89,6 +89,27 @@
   background: #fcf0ed;
   color: #b07862;
 }
+.ops-status.not-held {
+  background: #ececec;
+  color: #6d6a72;
+}
+.ops-not-held {
+  display: flex !important;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.ops-not-held input {
+  margin-top: 4px;
+  accent-color: #74538d;
+}
+.ops-not-held small {
+  display: block;
+  font-size: 12px;
+  color: #8a7699;
+  margin-top: 4px;
+  font-weight: 400;
+}
 .ops-root table small {
   display: block;
   font-size: 10px;
@@ -102,9 +123,37 @@
   font-size: 11px;
   padding: 8px 11px;
 }
-.ops-report-editor label {
+.ops-lo-help {
+  display: block;
+  font-size: 12px;
+  line-height: 1.7;
+  color: #8a7699;
+  font-weight: 400;
+}
+.ops-week-plan {
   display: grid;
   gap: 10px;
+  margin-bottom: 20px;
+  font-size: 12px;
+  color: #786683;
+}
+.ops-week-plan table {
+  width: 100%;
+}
+.ops-week-plan th:first-child,
+.ops-week-plan td:first-child {
+  width: 34%;
+}
+.ops-week-plan td {
+  vertical-align: top;
+}
+.ops-week-plan input,
+.ops-week-plan textarea {
+  margin: 0;
+}
+.ops-week-plan > button {
+  justify-self: start;
+  font-size: 12px;
 }
 .ops-attachment {
   display: grid;
@@ -117,6 +166,20 @@
   font-size: 12px;
   color: #8a7699;
   min-width: 0;
+}
+.ops-attachment-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+.ops-attachment-actions a,
+.ops-attachment-actions button {
+  font-size: 12px;
+}
+.ops-attachment .ops-confirm {
+  grid-column: 1 / -1;
 }
 .ops-upload input {
   width: 100%;
@@ -180,6 +243,45 @@
 .ops-root table select {
   font-size: 12px;
   min-width: 110px;
+}
+.ops-attendance-picks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.ops-attendance-picks button {
+  min-width: 4.4em;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.ops-attendance-picks button[aria-pressed="false"] {
+  background: #fff;
+  color: #6d6578;
+  border-color: #e1dae8;
+}
+.ops-attendance-picks button[data-status="absent"][aria-pressed="true"],
+.ops-attendance-picks button[data-status="absent"][aria-pressed="true"]:hover {
+  background: #be343c;
+  border-color: #be343c;
+  color: #fff;
+}
+.ops-attendance-picks button[data-status="present"][aria-pressed="true"],
+.ops-attendance-picks button[data-status="present"][aria-pressed="true"]:hover {
+  background: #2f9d5c;
+  border-color: #2f9d5c;
+  color: #fff;
+}
+.ops-attendance-picks button[data-status="leave"][aria-pressed="true"],
+.ops-attendance-picks button[data-status="leave"][aria-pressed="true"]:hover {
+  background: #8b8b8b;
+  border-color: #8b8b8b;
+  color: #fff;
+}
+.ops-attendance-picks button:disabled {
+  opacity: 0.45;
+  cursor: default;
 }
 .ops-candidate-search {
   padding: 20px;
@@ -247,6 +349,9 @@
   padding: 16px;
   border-radius: 9px;
   background: #faf8fc;
+}
+.ops-actions + .ops-confirm {
+  margin-top: 16px;
 }
 .ops-confirm p {
   margin-top: 0;

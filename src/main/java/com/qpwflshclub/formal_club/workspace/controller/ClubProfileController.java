@@ -19,10 +19,17 @@ public class ClubProfileController {
 
     private final WorkspaceAccess access;
     private final ClubRepository clubs;
+    /** 社团资料（名称 / 标语 / 简介）也要过违禁词闸门 —— 这里是全校可见的文字。 */
+    private final com.qpwflshclub.formal_club.social.service.ModerationGate moderation;
 
-    public ClubProfileController(WorkspaceAccess access, ClubRepository clubs) {
+    public ClubProfileController(
+        WorkspaceAccess access,
+        ClubRepository clubs,
+        com.qpwflshclub.formal_club.social.service.ModerationGate moderation
+    ) {
         this.access = access;
         this.clubs = clubs;
+        this.moderation = moderation;
     }
 
     @org.springframework.beans.factory.annotation.Autowired
@@ -105,6 +112,7 @@ public class ClubProfileController {
     @PutMapping
     public Profile update(@PathVariable int club, @RequestBody Profile body, HttpServletRequest r) {
         Club c = require(club, r, true);
+        guardProfileText(r, body);
         String nameEn = text(body.nameEn(), 100, true);
         var existing = clubs.findByClubNameEn(nameEn);
         if (
@@ -124,11 +132,41 @@ public class ClubProfileController {
         return view(c);
     }
 
+    /**
+     * 社团资料里的文字过违禁词：名称、标语、简介、负责人（中英各一份）。
+     * 命中时抛 400，错误信息里带「第几次提醒 / 封几天」，与帖子、个人资料页完全一致。
+     */
+    private void guardProfileText(HttpServletRequest r, Profile body) {
+        if (moderation == null || body == null) {
+            return;
+        }
+        var editor = access.current(r);
+        String email = editor == null ? null : editor.getEmail();
+        moderation.inspect(
+            email == null || email.isBlank()
+                ? null
+                : com.qpwflshclub.formal_club.social.service.SchoolAccounts.key(email),
+            com.qpwflshclub.formal_club.social.service.ModerationGate.CLUB,
+            body.name(),
+            body.nameEn(),
+            body.slogan(),
+            body.sloganEn(),
+            body.description(),
+            body.descriptionEn(),
+            body.president(),
+            body.presidentEn(),
+            body.vicePresident(),
+            body.vicePresidentEn()
+        );
+    }
+
     private String text(String s, int max, boolean required) {
         if (s == null || (required && s.isBlank()) || s.length() > max) throw WorkspaceStore.bad(
             "请完整填写资料，并遵守字数限制"
         );
-        return s.trim();
+        String trimmed = s.trim();
+        com.qpwflshclub.formal_club.social.ContentModeration.check(trimmed);
+        return trimmed;
     }
 
     @ExceptionHandler(ResponseStatusException.class)

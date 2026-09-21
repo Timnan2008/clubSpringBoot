@@ -1,19 +1,28 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { ArrowClockwise, X, CalendarBlank, Clock, CheckCircle } from "@phosphor-icons/react";
+import {
+  ArrowClockwise,
+  X,
+  CalendarBlank,
+  Clock,
+  CheckCircle,
+  DownloadSimple,
+} from "@phosphor-icons/react";
 import CardNav from "./CardNav";
 import { en, tx } from "./language";
-import AeroShards from "../booking/school/aero-shards/AeroShards.jsx";
 import "./booking.css";
 
 const messages = {
   INVALID_SLOT: ["请选择开放时段内的完整预约。", "Choose a complete slot within opening hours."],
   NEXT_WEEK_ONLY: ["只能预约下一周的开放日期。", "Only next week's available dates can be booked."],
   STUDENT_WINDOW_CLOSED: ["当前不在学生预约开放时间内。", "Student booking is currently closed."],
-  WEEKLY_LIMIT: ["已达到本周预约次数上限。", "Your weekly booking limit has been reached."],
+  WEEKLY_LIMIT: [
+    "已达到本周预约或挂起次数上限。",
+    "Your weekly booking or pending limit has been reached.",
+  ],
   DAILY_LIMIT: [
-    "这一天已有预约或教师排队申请。",
-    "You already have a booking or pending request on this date.",
+    "当天预约或挂起次数已达上限。",
+    "Your daily booking or pending limit has been reached.",
   ],
   SLOT_TAKEN: [
     "这个时段刚刚被预约，请选择其他时段。",
@@ -29,6 +38,10 @@ const messages = {
     "本次提交内容已改变，请关闭弹窗后重试。",
     "This submission changed. Close this dialog and try again.",
   ],
+  FORBIDDEN: ["没有权限进行此操作。", "You do not have permission for this action."],
+  NOT_FOUND: ["预约不存在或已删除。", "This booking was not found."],
+  TOO_LATE: ["已开始的预约不能取消。", "A booking that has started cannot be cancelled."],
+  ALREADY_CLOSED: ["该预约无法取消。", "This booking cannot be cancelled."],
 };
 const statusName = (status) =>
   ({
@@ -51,6 +64,61 @@ const timeText = (seconds) =>
     minute: "2-digit",
     hour12: false,
   }).format(new Date(seconds * 1000));
+const shanghaiDate = (seconds) =>
+  new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Shanghai",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date(seconds * 1000));
+const clockText = (time) => (!time ? "" : time.startsWith("23:59:59") ? "24:00" : time.slice(0, 5));
+function studentWindowText(calendar, policy) {
+  if (calendar.teacher)
+    return (
+      tx("教师申请进入挂起队列，周日 ", "Teacher requests wait until Sunday ") +
+      policy.teacherDeadline.slice(0, 5) +
+      tx(" 后自动分配空位。", " for automatic allocation.")
+    );
+  const openNow = calendar.studentOpen
+    ? tx(" · 现在可以预约", " · Open now")
+    : tx(" · 当前未开放", " · Currently closed");
+  const forceStart = clockText(policy.studentForceOpen);
+  const forceEnd = clockText(policy.studentForceClose);
+  if (
+    policy.studentForceOpenOn &&
+    forceStart &&
+    forceEnd &&
+    shanghaiDate(calendar.serverTime) === policy.studentForceOpenOn
+  ) {
+    return (
+      tx(
+        `今日（仅此一天）学生预约开放 ${forceStart}–${forceEnd}`,
+        `Today only: student booking ${forceStart}–${forceEnd}`,
+      ) + openNow
+    );
+  }
+  if (calendar.studentOpen)
+    return tx(
+      "学生预约现已开放，可预约下周开放时段。",
+      "Student booking is open. You can reserve next week's slots.",
+    );
+  return (
+    tx("学生预约开放：", "Student booking opens ") +
+    policy.studentOpenDays
+      .map(
+        (day) =>
+          (en
+            ? ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+            : ["周一", "周二", "周三", "周四", "周五", "周六", "周日"])[day - 1],
+      )
+      .join(en ? ", " : "、") +
+    " " +
+    policy.studentOpen.slice(0, 5) +
+    "–" +
+    policy.studentClose.slice(0, 5) +
+    openNow
+  );
+}
 async function api(path = "", options = {}) {
   const response = await fetch("/api/booking" + path, { cache: "no-store", ...options });
   if (response.status === 401) {
@@ -66,6 +134,117 @@ async function api(path = "", options = {}) {
             tx("预约服务暂时不可用，请重试。", "Booking service is unavailable. Please retry."),
     );
   return data;
+}
+function BookingSlot({ slot, date, time, onSelect }) {
+  const label = !slot
+    ? tx("未开放", "Closed")
+    : slot.mine
+      ? slot.status === "pending"
+        ? tx("我的挂起", "My pending request")
+        : tx("我的预约", "My booking")
+      : slot.status === "confirmed"
+        ? slot.bookedBy || tx("已预约", "Booked")
+        : tx("空闲", "Available");
+  const detail =
+    slot?.status === "confirmed"
+      ? tx("已预约", "Booked")
+      : slot?.pending > 0
+        ? `${tx("教师挂起", "Teacher pending")} · ${slot.pending}${slot.bookedBy ? ` · ${slot.bookedBy}` : ""}`
+        : slot && !slot.canBook && !slot.mine
+          ? tx("预约暂未开放", "Booking currently closed")
+          : "";
+  const content = (
+    <>
+      <span className="booking-slot-label">{label}</span>
+      <small title={detail}>{detail || "\u00a0"}</small>
+    </>
+  );
+  return slot?.canBook ? (
+    <button
+      type="button"
+      className="booking-slot is-available"
+      onClick={() => onSelect(slot)}
+      aria-label={`${date} ${time} ${tx("预约", "Book")}${detail ? ` · ${detail}` : ""}`}
+    >
+      {content}
+    </button>
+  ) : (
+    <div className={`booking-slot${!slot ? " is-closed" : ""}`}>{content}</div>
+  );
+}
+function BookingList({ items, empty, who, token, now, onChanged, onError }) {
+  const [confirming, setConfirming] = useState(0);
+  const [busy, setBusy] = useState(0);
+  if (items === null) return <p>{tx("正在载入…", "Loading…")}</p>;
+  if (items.length === 0) return <p>{empty}</p>;
+  const cancel = async (id) => {
+    if (busy) return;
+    setBusy(id);
+    try {
+      await api("/reservations/" + id, {
+        method: "DELETE",
+        headers: { "X-Workspace-Token": token },
+      });
+      setConfirming(0);
+      onChanged?.();
+    } catch (failure) {
+      setConfirming(0);
+      onError?.(failure.message);
+    } finally {
+      setBusy(0);
+    }
+  };
+  return items.map((item) => {
+    const canCancel =
+      token && (item.status === "confirmed" || item.status === "pending") && item.start > now;
+    return (
+      <article key={item.id}>
+        <div>
+          <h3>
+            {dateText(item.start)} · {timeText(item.start)}–{timeText(item.end)}
+          </h3>
+          <p>{en ? item.courtNameEn : item.courtName}</p>
+          {who && (
+            <p>
+              {item.displayName}
+              {item.email ? ` · ${item.email}` : ""}
+            </p>
+          )}
+          {item.note && <p>{item.note}</p>}
+        </div>
+        <div className="booking-history-side">
+          {canCancel &&
+            (confirming === item.id ? (
+              <>
+                <button type="button" disabled={busy === item.id} onClick={() => setConfirming(0)}>
+                  {tx("再想想", "Keep it")}
+                </button>
+                <button
+                  type="button"
+                  className="booking-cancel-confirm"
+                  disabled={busy === item.id}
+                  onClick={() => cancel(item.id)}
+                >
+                  {busy === item.id
+                    ? tx("取消中…", "Cancelling…")
+                    : tx("确认取消", "Confirm cancel")}
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                className="booking-cancel"
+                disabled={busy === item.id}
+                onClick={() => setConfirming(item.id)}
+              >
+                {tx("取消预约", "Cancel booking")}
+              </button>
+            ))}
+          <span className={`booking-status ${item.status}`}>{statusName(item.status)}</span>
+        </div>
+      </article>
+    );
+  });
 }
 function BookingDialog({ cell, data, onClose, onSaved }) {
   const dialog = useRef(null);
@@ -177,8 +356,8 @@ function BookingDialog({ cell, data, onClose, onSaved }) {
               <h3>{tx("预约须知", "Court-use rules")}</h3>
               <p>
                 {tx(
-                  "请按时使用场地，不得恶意占场或预约后无故缺席。违规将被禁止预约三楼场地。普通预约提交后不能自行修改或删除，请确认日期和时间。",
-                  "Use the court on time. Deliberately holding slots or failing to attend may result in a booking ban. Submitted bookings cannot be edited or deleted by the requester. Check your date and time.",
+                  "每场使用 20 分钟。可预约时段：周一至周四 11:30–12:50、16:30–18:30；周五仅 11:30–12:50。学生预约开放时间：周六、周日 13:00–19:00，预约的是下周这些场地。教师每周最多挂起 3 次。请按时使用场地，不得恶意占场或预约后无故缺席。违规将被禁止预约三楼场地。开始前可在「我的预约」取消。",
+                  "Each booking is 20 minutes. Bookable slots: Mon–Thu 11:30–12:50 and 16:30–18:30; Friday 11:30–12:50 only. Student booking is open Saturday and Sunday 13:00–19:00 for next week's courts. Teachers may pending up to 3 times per week. Use the court on time. Deliberately holding slots or failing to attend may result in a booking ban. You can cancel from My bookings before the slot starts.",
                 )}
               </p>
               {data.calendar.teacher && (
@@ -222,6 +401,7 @@ function Booking() {
     [error, setError] = useState(""),
     [cell, setCell] = useState(null),
     [mine, setMine] = useState(null),
+    [roster, setRoster] = useState(null),
     [tab, setTab] = useState("week"),
     [refreshing, setRefreshing] = useState(false);
   const active = useRef(true),
@@ -249,6 +429,14 @@ function Booking() {
       .catch((failure) => {
         if (active.current) setError(failure.message);
       });
+  const loadRoster = () =>
+    api("/all")
+      .then((items) => {
+        if (active.current) setRoster(items);
+      })
+      .catch((failure) => {
+        if (active.current) setError(failure.message);
+      });
   useEffect(() => {
     active.current = true;
     load();
@@ -268,35 +456,18 @@ function Booking() {
     }, 15000);
     return () => clearInterval(timer);
   }, [tab]);
+  useEffect(() => {
+    if (tab !== "all") return;
+    loadRoster();
+    const timer = setInterval(() => {
+      if (!document.hidden) loadRoster();
+    }, 15000);
+    return () => clearInterval(timer);
+  }, [tab]);
   const calendar = data?.calendar,
     policy = calendar?.policy.settings;
   return (
     <>
-      <div className="booking-background" aria-hidden="true">
-        <AeroShards
-          backgroundColor="#120F17"
-          shardColor="#896ABD"
-          accentColor="#A855F7"
-          placement="full"
-          flow="stream"
-          material="pearl"
-          detail="balanced"
-          effect="none"
-          speed={0.45}
-          density={1.5}
-          shardSize={1.1}
-          glow={0}
-          edgeSoftness={2}
-          bloom={0}
-          grain={0}
-          chromaticAberration={0}
-          interaction="repel"
-          interactionRadius={1.5}
-          interactionStrength={0.5}
-          rippleIntensity={1}
-          holdToGather
-        />
-      </div>
       <CardNav account={data?.account} accountLoading={!data} />
       <main className="booking-main">
         <header className="booking-heading">
@@ -304,10 +475,10 @@ function Booking() {
             <p className="booking-eyebrow">{tx("校园运动 · 试运行", "CAMPUS SPORTS · TRIAL")}</p>
             <h1>{tx("羽毛球场预约", "Book a badminton court")}</h1>
             <p>
-              {policy && tx("试运行阶段仅开放午休和晚间休息时段：", "Trial opening hours: ")}
-              {policy?.periods
-                .map((period) => `${period.start.slice(0, 5)}–${period.end.slice(0, 5)}`)
-                .join(" / ")}
+              {tx(
+                "可预约时段：周一至周四 11:30–12:50、16:30–18:30；周五仅 11:30–12:50。学生预约开放时间：周六、周日 13:00–19:00。教师每周最多挂起 3 次。",
+                "Bookable slots: Mon–Thu 11:30–12:50 and 16:30–18:30; Friday 11:30–12:50 only. Student booking opens Saturday and Sunday 13:00–19:00. Teachers may pending 3 times per week.",
+              )}
             </p>
           </div>
           <button
@@ -316,6 +487,7 @@ function Booking() {
             onClick={() => {
               load();
               if (tab === "mine") loadMine();
+              if (tab === "all") loadRoster();
             }}
             aria-label={tx("刷新预约", "Refresh bookings")}
           >
@@ -341,38 +513,30 @@ function Booking() {
                 <button aria-pressed={tab === "mine"} onClick={() => setTab("mine")}>
                   {tx("我的预约", "My bookings")}
                 </button>
+                {calendar.overseer && (
+                  <button aria-pressed={tab === "all"} onClick={() => setTab("all")}>
+                    {tx("全部预约", "All bookings")}
+                  </button>
+                )}
               </div>
+              {calendar.overseer && (
+                <a className="booking-export" href="/api/booking/export.xlsx">
+                  <DownloadSimple size={18} />
+                  {tx("导出 Excel", "Export Excel")}
+                </a>
+              )}
               <span>
                 {policy.slotMinutes}
                 {tx(" 分钟 / 次", " min / slot")} ·{" "}
-                {tx(
-                  `每周最多 ${policy.weeklyLimit} 次，每天 ${policy.dailyLimit} 次`,
-                  `Up to ${policy.weeklyLimit} per week, ${policy.dailyLimit} per day`,
-                )}
+                {calendar.teacher
+                  ? tx(
+                      `教师每周最多挂起 ${policy.weeklyLimit} 次`,
+                      `Teachers may pending up to ${policy.weeklyLimit} times per week`,
+                    )
+                  : tx(`每周最多 ${policy.weeklyLimit} 次`, `Up to ${policy.weeklyLimit} per week`)}
               </span>
             </div>
-            <p className="booking-window">
-              {calendar.teacher
-                ? tx("教师申请进入挂起队列，周日 ", "Teacher requests wait until Sunday ") +
-                  policy.teacherDeadline.slice(0, 5) +
-                  tx(" 后自动分配空位。", " for automatic allocation.")
-                : tx("学生预约开放：", "Student booking opens ") +
-                  policy.studentOpenDays
-                    .map(
-                      (day) =>
-                        (en
-                          ? ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-                          : ["周一", "周二", "周三", "周四", "周五", "周六", "周日"])[day - 1],
-                    )
-                    .join(en ? ", " : "、") +
-                  " " +
-                  policy.studentOpen.slice(0, 5) +
-                  "–" +
-                  policy.studentClose.slice(0, 5) +
-                  (calendar.studentOpen
-                    ? tx(" · 现在可以预约", " · Open now")
-                    : tx(" · 当前未开放", " · Currently closed"))}
-            </p>
+            <p className="booking-window">{studentWindowText(calendar, policy)}</p>
             {tab === "week" ? (
               calendar.courts.map((court) => (
                 <section key={court.id} className="booking-court">
@@ -380,6 +544,12 @@ function Booking() {
                     <CalendarBlank size={21} />
                     {en ? court.nameEn : court.name}
                   </h2>
+                  <p className="booking-table-hint">
+                    {tx(
+                      "点击空闲时段预约 · 已有预约可在“我的预约”管理",
+                      "Select an available slot to book · Manage existing reservations in My bookings",
+                    )}
+                  </p>
                   <div
                     className="booking-table-scroll"
                     tabIndex={0}
@@ -425,26 +595,12 @@ function Booking() {
                                         : ""
                                   }
                                 >
-                                  {slot && (
-                                    <>
-                                      <button
-                                        disabled={!slot.canBook}
-                                        onClick={() => setCell(slot)}
-                                        aria-label={`${date} ${time} ${tx("预约", "Book")}`}
-                                      >
-                                        {slot.mine
-                                          ? tx("我的预约", "My booking")
-                                          : slot.status === "confirmed"
-                                            ? tx("已预约", "Booked")
-                                            : tx("预约", "Book")}
-                                      </button>
-                                      {slot.pending > 0 && (
-                                        <small className="booking-pending">
-                                          {tx("教师挂起", "Teacher pending")} · {slot.pending}
-                                        </small>
-                                      )}
-                                    </>
-                                  )}
+                                  <BookingSlot
+                                    slot={slot}
+                                    date={date}
+                                    time={time}
+                                    onSelect={setCell}
+                                  />
                                 </td>
                               );
                             })}
@@ -455,29 +611,36 @@ function Booking() {
                   </div>
                 </section>
               ))
-            ) : (
+            ) : tab === "mine" ? (
               <section className="booking-history">
                 <h2>{tx("我的预约记录", "My booking history")}</h2>
-                {mine === null ? (
-                  <p>{tx("正在载入…", "Loading…")}</p>
-                ) : mine.length === 0 ? (
-                  <p>{tx("还没有预约记录。", "No bookings yet.")}</p>
-                ) : (
-                  mine.map((item) => (
-                    <article key={item.id}>
-                      <div>
-                        <h3>
-                          {dateText(item.start)} · {timeText(item.start)}–{timeText(item.end)}
-                        </h3>
-                        <p>{en ? item.courtNameEn : item.courtName}</p>
-                        {item.note && <p>{item.note}</p>}
-                      </div>
-                      <span className={`booking-status ${item.status}`}>
-                        {statusName(item.status)}
-                      </span>
-                    </article>
-                  ))
-                )}
+                <BookingList
+                  items={mine}
+                  empty={tx("还没有预约记录。", "No bookings yet.")}
+                  token={data.token}
+                  now={calendar.serverTime}
+                  onChanged={() => {
+                    load();
+                    loadMine();
+                  }}
+                  onError={setError}
+                />
+              </section>
+            ) : (
+              <section className="booking-history">
+                <h2>{tx("全部预约记录", "All booking records")}</h2>
+                <BookingList
+                  items={roster}
+                  empty={tx("还没有预约记录。", "No bookings yet.")}
+                  who
+                  token={data.token}
+                  now={calendar.serverTime}
+                  onChanged={() => {
+                    load();
+                    loadRoster();
+                  }}
+                  onError={setError}
+                />
               </section>
             )}
           </>

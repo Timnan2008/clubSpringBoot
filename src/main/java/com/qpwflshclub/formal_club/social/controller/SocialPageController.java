@@ -39,4 +39,18 @@ public class SocialPageController {
             return "redirect:/page/user/login?next=/page/calendar";
         }
     }
+
+    /**
+     * 违禁词后台页：登录后才看得到；具体能不能操作由接口再查一次管理员身份
+     * （页面里没有敏感数据，真正的门在 {@link ModerationAdminController}）。
+     */
+    @GetMapping("/page/admin/moderation")
+    public String moderation(HttpServletRequest request, Model model) {
+        try {
+            model.addAttribute("loginUser", accounts.current(request));
+            return "page/admin-moderation";
+        } catch (ResponseStatusException e) {
+            return "redirect:/page/user/login?next=/page/admin/moderation";
+        }
+    }
 }

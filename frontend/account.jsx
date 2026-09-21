@@ -4,6 +4,7 @@ import { TeacherBadge } from "./TeacherDay";
 import PasswordStrength from "./PasswordStrength";
 import PublicProfile from "./PublicProfile";
 import { en, tx, tr } from "./language";
+import HoldButton from "./HoldButton";
 import React, { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { motion, MotionConfig } from "motion/react";
@@ -24,12 +25,18 @@ async function api(path, options = {}) {
   if (!r.ok) throw Error(d.message || tr("操作失败"));
   return d;
 }
+function failMessage(e) {
+  const message = String(e?.message || "");
+  if (!message || message === "error")
+    return tx("操作失败，请稍后重试。", "Something went wrong. Please try again.");
+  return tr(message);
+}
 const roles = {
   student: tr("学生"),
   president: tr("社长"),
   vice_president: tr("副社长"),
   teacher: tr("教师"),
-  admin: tx("管理员 · 学生", "Administrator · Student"),
+  admin: tx("超级管理员 · 学生", "Super admin · Student"),
 };
 function Account() {
   const [leaving, setLeaving] = useState(null),
@@ -86,13 +93,13 @@ function Account() {
         setName(p.account.name);
         setNameEn(p.account.nameEn);
       })
-      .catch((e) => setError(tr(e.message)));
+      .catch((e) => setError(failMessage(e)));
   useEffect(() => {
     load();
     if (mode === "clubs")
       api("/me/clubs")
         .then(setClubs)
-        .catch((e) => setError(tr(e.message)));
+        .catch((e) => setError(failMessage(e)));
   }, []);
   useEffect(() => {
     if (profile && mode === "profile")
@@ -108,7 +115,8 @@ function Account() {
     try {
       await fn();
     } catch (e) {
-      setError(tr(e.message));
+      setError(failMessage(e));
+      return false;
     } finally {
       setBusy(false);
     }
@@ -558,9 +566,9 @@ function Account() {
                                     "Leave this club? Your membership and any management access to this club will be removed.",
                                   )}
                             </p>
-                            <button
+                            <HoldButton
                               disabled={busy}
-                              onClick={() =>
+                              onHold={() =>
                                 act(async () => {
                                   await write("/me/clubs/" + c.id, "DELETE");
                                   setClubs(await api("/me/clubs"));
@@ -570,9 +578,15 @@ function Account() {
                                 })
                               }
                             >
-                              {tx("确认退出", "Confirm leave")}
+                              {tx("长按退出社团", "Hold to leave club")}
+                            </HoldButton>
+                            <button
+                              className="account-leave-cancel"
+                              type="button"
+                              onClick={() => setLeaving(null)}
+                            >
+                              {tx("取消", "Cancel")}
                             </button>
-                            <button onClick={() => setLeaving(null)}>{tx("取消", "Cancel")}</button>
                           </div>
                         )}
                       </div>
@@ -606,3 +620,4 @@ createRoot(document.getElementById("campus-account")).render(
 );
 
 import "./CampusMotion.css";
+import "./ControlRefinements.css";

@@ -1,5 +1,6 @@
 package com.qpwflshclub.formal_club.config;
 
+import com.qpwflshclub.formal_club.social.ContentModeration;
 import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
 
 public final class RegistrationNames {
@@ -19,5 +20,6 @@ public final class RegistrationNames {
                 400,
                 "姓名每项不超过 100 字 / Each name can contain up to 100 characters"
             );
+        ContentModeration.check(chinese, english);
     }
 }

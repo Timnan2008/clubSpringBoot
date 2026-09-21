@@ -159,6 +159,28 @@ body.account-page .account-error {
   background: #2b1118;
   color: #ff9db8;
 }
+body.account-page .teacher-day-badge {
+  background: #2a2318;
+  border-color: #8a7344;
+  color: #e6c27a;
+}
+body.account-page .account-leave-confirm {
+  background: #16181c;
+  border: 1px solid #2f3336;
+}
+body.account-page .account-leave-confirm p {
+  color: #e7e9ea;
+}
+body.account-page .account-leave-confirm .account-leave-yes {
+  background: #be343c;
+  border-color: #be343c;
+  color: #fff;
+}
+body.account-page .account-leave-confirm .account-leave-cancel {
+  background: transparent;
+  color: #e7e9ea;
+  border-color: #536471;
+}
 body.account-page .account-notice {
   background: #082318;
   color: #7be0aa;
@@ -211,9 +233,13 @@ body.account-page .campus-avatar {
   color: #e7e9ea;
 }
 body .campus-top .campus-language {
-  box-shadow: -8px 0 10px #f6f5f3;
+  box-shadow: -8px 0 10px var(--campus-bg, #f6f5f3);
 }
 
+body.social-network-theme .campus-top--sticky {
+  top: 0;
+  background: #000;
+}
 body:is(.social-network-theme, .account-page) .campus-top {
   --campus-bg: #000;
   --campus-panel: #16181c;

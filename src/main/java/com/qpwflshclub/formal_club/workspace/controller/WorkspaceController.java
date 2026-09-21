@@ -343,6 +343,18 @@ public class WorkspaceController {
             .body(new FileSystemResource(store.file(club, document)));
     }
 
+    @DeleteMapping("/{club}/documents/{id}")
+    public Map<String, Object> deleteDocument(
+        @PathVariable int club,
+        @PathVariable String id,
+        HttpServletRequest request
+    ) throws IOException {
+        require(club, request, true);
+        store.remove(club, id);
+        if (operations != null) operations.unlinkDocument(club, id);
+        return Map.of("message", "附件已删除");
+    }
+
     public record ActivityInput(
         String title,
         String start,
@@ -404,7 +416,9 @@ public class WorkspaceController {
         if (value == null || value.isBlank() || value.length() > limit) throw WorkspaceStore.bad(
             label + "不能为空，且不能超过 " + limit + " 字"
         );
-        return value.trim();
+        String trimmed = value.trim();
+        com.qpwflshclub.formal_club.social.ContentModeration.check(trimmed);
+        return trimmed;
     }
 
     @DeleteMapping("/{club}/events/{id}")

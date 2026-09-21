@@ -1,11 +1,13 @@
-import { MentionText } from "./Mentions";
+import MentionComposer, { MentionText } from "./Mentions";
 import React, { useState, useEffect, useRef } from "react";
 import { Heart, ChatCircle, Envelope, Eye, PushPin, Trash, DotsThree } from "@phosphor-icons/react";
+import PulseHeart from "./PulseHeart";
+import HoldButton from "./HoldButton";
 import { motion, AnimatePresence, useIsPresent, useReducedMotion } from "motion/react";
 import { TeacherBadge } from "./TeacherDay";
+import AdminBadge from "./AdminBadge";
 import Avatar from "./Avatar";
 import PostMedia from "./PostMedia";
-import { AnimatedNumber } from "./MotionPrimitives";
 import { tr, tx, en } from "./language";
 import { postName } from "./person-names.mjs";
 import "./social.css";
@@ -19,7 +21,7 @@ const roles = {
   student: tr("学生"),
   teacher: tr("教师"),
   president: tr("社长"),
-  admin: tx("管理员 · 学生", "Administrator · Student"),
+  admin: tx("超级管理员 · 学生", "Super admin · Student"),
 };
 const kinds = {
   recruit: tr("招募伙伴"),
@@ -66,7 +68,7 @@ function ReplyTransition({ children, reduced }) {
       animate={{ height: "auto", opacity: 1 }}
       exit={{ height: 0, opacity: 0 }}
       transition={{ duration: reduced ? 0 : 0.22, ease: [0.22, 1, 0.36, 1] }}
-      style={{ overflow: "hidden" }}
+      style={{ overflow: present ? "visible" : "hidden" }}
     >
       {children}
     </motion.div>
@@ -113,6 +115,7 @@ export default function Post({
   }, [menu]);
   const [replies, setReplies] = useState(null),
     [replyDrafts, setReplyDrafts] = useState({}),
+    [replyMentions, setReplyMentions] = useState({}),
     [busy, setBusy] = useState(false),
     [error, setError] = useState(""),
     [confirm, setConfirm] = useState(false);
@@ -123,8 +126,10 @@ export default function Post({
   const [views, setViews] = useState(post.views || 0);
   // 母帖和每条评论各保留一份草稿；切换回复目标不覆盖其他草稿。
   const draftKey = replyTarget?.id || "post",
-    text = replyDrafts[draftKey] || "";
+    text = replyDrafts[draftKey] || "",
+    mentions = replyMentions[draftKey] || [];
   const setText = (value) => setReplyDrafts((d) => ({ ...d, [draftKey]: value }));
+  const setMentions = (value) => setReplyMentions((d) => ({ ...d, [draftKey]: value }));
   useEffect(() => setViews((v) => Math.max(v, post.views || 0)), [post.views]);
   useEffect(() => {
     let timer,
@@ -218,6 +223,7 @@ export default function Post({
     };
     const wheel = (e) => {
       if (e.ctrlKey) return;
+      if (e.target.closest(".mention-options")) return;
       const input = replyInput.current;
       if (
         inside(e) &&
@@ -265,6 +271,7 @@ export default function Post({
       await fn();
     } catch (e) {
       setError(tr(e.message));
+      return false;
     } finally {
       lock.current = false;
       setBusy(false);
@@ -283,8 +290,10 @@ export default function Post({
           await write("/posts/" + post.id + "/replies", "POST", {
             text,
             parentReply: replyTarget?.id || "",
+            mentions,
           });
           setText("");
+          setMentions([]);
           setReplyOpen(false);
           setReplyTarget(null);
           if (detail) await load();
@@ -311,15 +320,17 @@ export default function Post({
           <Avatar person={profile.account} />
         </span>
         <div className="inline-reply-field">
-          <textarea
+          <MentionComposer
             rows={1}
-            ref={(node) => {
+            inputRef={(node) => {
               if (node) replyInput.current = node;
             }}
             aria-label={tx("发表评论", "Write a comment")}
             value={text}
+            mentions={mentions}
+            onMentionsChange={setMentions}
             maxLength={500}
-            onChange={(e) => setText(e.target.value)}
+            onChange={setText}
             placeholder={tx("写下你的回复…", "Write your reply…")}
           />
           <button className="inline-reply-send" type="submit" disabled={busy || !text.trim()}>
@@ -345,7 +356,7 @@ export default function Post({
           ? (e) => {
               if (
                 !e.target.closest(
-                  "a,button,input,textarea,video,select,.reply-composer-transition,.social-replies,.social-confirm,.post-reply-composer",
+                  "a,button,input,textarea,video,select,.reply-composer-transition,.social-replies,.social-confirm,.post-reply-composer,.mention-composer,.mention-options",
                 ) &&
                 !window.getSelection()?.toString()
               )
@@ -381,7 +392,13 @@ export default function Post({
             <strong>{post.anonymous ? tr("匿名同学") : personName(post.author)}</strong>
           </a>
           <span className="social-handle">
-            {post.anonymous ? tr("匿名发布") : personRole(post.author)}
+            {post.anonymous ? (
+              tr("匿名发布")
+            ) : post.author?.role === "admin" ? (
+              <AdminBadge person={post.author} />
+            ) : (
+              personRole(post.author)
+            )}
           </span>
           <TeacherBadge person={post.author} />
           <time>{stamp(post.createdAt)}</time>
@@ -389,7 +406,10 @@ export default function Post({
             <div className="post-menu" ref={menuRef}>
               <button
                 className="social-icon-button"
-                aria-label={tx("帖子操作：", "Post actions: ") + post.text.slice(0, 15)}
+                aria-label={
+                  tx("帖子操作：", "Post actions: ") +
+                  (post.text.trim() || tx("附件", "attachment")).slice(0, 15)
+                }
                 aria-expanded={menu}
                 onClick={() => setMenu((v) => !v)}
               >
@@ -459,9 +479,11 @@ export default function Post({
           </a>
         )}
         <span className="community-post-kind">{kinds[post.category] || tr("校园分享")}</span>
-        <p className="social-post-text">
-          <MentionText text={post.text} mentions={post.mentions} />
-        </p>
+        {post.text.trim() ? (
+          <p className="social-post-text">
+            <MentionText text={post.text} mentions={post.mentions} />
+          </p>
+        ) : null}
         <PostMedia post={post} />
         <div className="social-post-actions">
           <span
@@ -476,21 +498,18 @@ export default function Post({
               {views.toLocaleString()} {tx("浏览", "views")}
             </span>
           </span>
-          <button
-            aria-label={post.liked ? tr("取消点赞") : tr("点赞")}
-            aria-pressed={post.liked}
+          <PulseHeart
+            label={post.liked ? tr("取消点赞") : tr("点赞")}
+            liked={post.liked}
+            count={post.likes}
             disabled={busy}
-            className={post.liked ? "liked" : ""}
-            onClick={() =>
+            onChange={() =>
               act(async () => {
                 await write("/posts/" + post.id + "/like", "PUT", { liked: !post.liked });
                 onLike(post.id);
               })
             }
-          >
-            <Icon name="heart" />
-            <span>{post.likes ? <AnimatedNumber value={post.likes} /> : tr("点赞")}</span>
-          </button>
+          />
           <button
             className="post-reply-toggle"
             aria-label={tx("回复帖子", "Reply to post")}
@@ -511,19 +530,24 @@ export default function Post({
           )}
         </div>
         {confirm && (
-          <div className="social-confirm">
-            <span>{tr("删除这条帖子及其回复？")}</span>
-            <button
+          <div
+            className="social-confirm social-confirm--compact"
+            role="group"
+            aria-label={tr("删除这条帖子及其回复？")}
+          >
+            <HoldButton
+              size="sm"
+              radius={9}
               disabled={busy}
-              onClick={() =>
+              onHold={() =>
                 act(async () => {
                   await write("/posts/" + post.id, "DELETE");
                   onRemove(post.id);
                 })
               }
             >
-              {tr("确认删除")}
-            </button>
+              {tx("长按删除", "Hold to delete")}
+            </HoldButton>
             <button onClick={() => setConfirm(false)}>{tr("取消")}</button>
           </div>
         )}
@@ -590,14 +614,17 @@ export default function Post({
                         {tx("回复 ", "Replying to ") + personName(r.replyingTo)}
                       </span>
                     )}
-                    <p>{r.text}</p>
+                    <p>
+                      <MentionText text={r.text} mentions={r.mentions} />
+                    </p>
                     <div className="reply-actions">
-                      <button
-                        className={"reply-like" + (r.liked ? " liked" : "")}
-                        aria-label={tx("点赞评论", "Like comment")}
-                        aria-pressed={r.liked}
+                      <PulseHeart
+                        label={tx("点赞评论", "Like comment")}
+                        liked={r.liked}
+                        count={r.likes || 0}
+                        size={19}
                         disabled={busy}
-                        onClick={() =>
+                        onChange={() =>
                           act(async () => {
                             await write("/posts/" + post.id + "/replies/" + r.id + "/like", "PUT", {
                               liked: !r.liked,
@@ -606,10 +633,7 @@ export default function Post({
                             onReply(post.id);
                           })
                         }
-                      >
-                        <Icon name="heart" />
-                        {r.likes || 0}
-                      </button>
+                      />
                       <button
                         className="reply-thread-button"
                         aria-label={tx("回复这条评论", "Reply to this comment")}
@@ -641,11 +665,16 @@ export default function Post({
                       )}
                     </div>
                     {deleteReply === r.id && (
-                      <div className="social-confirm">
-                        <span>{tx("删除这条评论？", "Delete this comment?")}</span>
-                        <button
+                      <div
+                        className="social-confirm social-confirm--compact"
+                        role="group"
+                        aria-label={tx("删除这条评论？", "Delete this comment?")}
+                      >
+                        <HoldButton
+                          size="sm"
+                          radius={9}
                           disabled={busy}
-                          onClick={() =>
+                          onHold={() =>
                             act(async () => {
                               await write("/posts/" + post.id + "/replies/" + r.id, "DELETE");
                               setDeleteReply(null);
@@ -654,8 +683,8 @@ export default function Post({
                             })
                           }
                         >
-                          {tx("确认删除", "Confirm delete")}
-                        </button>
+                          {tx("长按删除", "Hold to delete")}
+                        </HoldButton>
                         <button onClick={() => setDeleteReply(null)}>{tx("取消", "Cancel")}</button>
                       </div>
                     )}

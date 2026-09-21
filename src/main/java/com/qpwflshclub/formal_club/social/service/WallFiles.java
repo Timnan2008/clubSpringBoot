@@ -2,6 +2,7 @@ package com.qpwflshclub.formal_club.social.service;
 
 import com.qpwflshclub.formal_club.social.ContentModeration;
 import com.qpwflshclub.formal_club.social.MediaCompression;
+import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;

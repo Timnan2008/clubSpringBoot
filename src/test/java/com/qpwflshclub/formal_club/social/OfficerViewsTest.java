@@ -80,5 +80,8 @@ class OfficerViewsTest {
         }
         p.setUsername("常云峰");
         assertThat(OfficerAssignments.named(p)).isTrue();
+        assertThat(OfficerAssignments.named("香氛社社长", "Fragrance Club President")).isFalse();
+        assertThat(OfficerAssignments.named("心理社社长", "Club 016 President")).isFalse();
+        assertThat(OfficerAssignments.named("常云峰", "Felix")).isTrue();
     }
 }

@@ -2,9 +2,12 @@ package com.qpwflshclub.formal_club.Clubs.service;
 
 import com.qpwflshclub.formal_club.Clubs.pojo.Club;
 import java.time.Clock;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,7 +26,8 @@ public class PublicClubCatalog {
         this(source, Clock.systemUTC());
     }
 
-    PublicClubCatalog(IClubService source, Clock clock) {
+    /** 带注入时钟的构造器：测试（在别的包）要能拿来验证快照会过期，所以是 public。 */
+    public PublicClubCatalog(IClubService source, Clock clock) {
         this.source = source;
         this.clock = clock;
     }
@@ -35,8 +39,13 @@ public class PublicClubCatalog {
         synchronized (this) {
             current = snapshot;
             if (current == null || clock.millis() >= current.expiresAt()) {
-                List<Entry> entries = source.findAll().stream().map(Entry::from).toList();
-                current = new Snapshot(entries, clock.millis() + TTL_MILLIS);
+                List<Entry> entries = source
+                    .findAll()
+                    .stream()
+                    .map(Entry::from)
+                    .collect(Collectors.toCollection(ArrayList::new));
+                entries.sort(Comparator.comparing((Entry e) -> !e.openSteam()));
+                current = new Snapshot(List.copyOf(entries), clock.millis() + TTL_MILLIS);
                 snapshot = current;
             }
             return current;
@@ -88,6 +97,13 @@ public class PublicClubCatalog {
                 c.getClubURL(),
                 c.isGreatClub()
             );
+        }
+
+        boolean openSteam() {
+            String blob = (Objects.toString(name, "") + Objects.toString(nameEn, ""))
+                .toLowerCase(Locale.ROOT)
+                .replace(" ", "");
+            return blob.contains("opensteam");
         }
 
         boolean matches(String term) {

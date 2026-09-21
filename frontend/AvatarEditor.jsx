@@ -1,11 +1,14 @@
+import CallChip from "./CallChip";
+import HoldButton from "./HoldButton";
 import { compressImage } from "./compress-image";
-import { tr } from "./language";
+import { tr, tx } from "./language";
 import { useEffect, useRef, useState } from "react";
 import Avatar from "./Avatar";
 export default function AvatarEditor({ profile, onSaved }) {
   const [file, setFile] = useState(null),
     [preview, setPreview] = useState(""),
     [busy, setBusy] = useState(false),
+    [upload, setUpload] = useState(null),
     [error, setError] = useState(""),
     [notice, setNotice] = useState("");
   const input = useRef(),
@@ -23,6 +26,7 @@ export default function AvatarEditor({ profile, onSaved }) {
     if (lock.current) return;
     lock.current = true;
     setBusy(true);
+    if (!remove) setUpload({ name: file.name, status: "running" });
     setError("");
     setNotice("");
     try {
@@ -38,11 +42,14 @@ export default function AvatarEditor({ profile, onSaved }) {
       const d = await r.json();
       if (!r.ok) throw Error(d.message || tr("头像保存失败"));
       await onSaved();
+      if (!remove) setUpload((u) => ({ ...u, status: "done" }));
       setFile(null);
       if (input.current) input.current.value = "";
       setNotice(remove ? tr("已恢复默认头像") : tr("头像已更新"));
     } catch (e) {
+      if (!remove) setUpload((u) => ({ ...u, status: "error" }));
       setError(tr(e.message));
+      return false;
     } finally {
       lock.current = false;
       setBusy(false);
@@ -90,11 +97,26 @@ export default function AvatarEditor({ profile, onSaved }) {
             </button>
           )}
           {profile.account.avatarUrl && !file && (
-            <button className="avatar-remove" disabled={busy} onClick={() => save(true)}>
-              {tr("恢复默认头像")}
-            </button>
+            <HoldButton
+              size="sm"
+              disabled={busy}
+              onHold={() => save(true)}
+              doneLabel={tr("已恢复默认头像")}
+            >
+              {tx("长按恢复默认头像", "Hold to reset avatar")}
+            </HoldButton>
           )}
         </div>
+        {upload && (
+          <CallChip
+            icon="file"
+            name={tx("上传头像", "Upload avatar")}
+            argument={upload.name}
+            status={upload.status}
+            surfaceColor="#efebf4"
+            color="#514663"
+          />
+        )}
         {file && (
           <p className="avatar-status">
             {file.name}

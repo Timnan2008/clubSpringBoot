@@ -123,6 +123,11 @@ public class FileUploadController {
         }
 
         try {
+            com.qpwflshclub.formal_club.config.MediaUploadPolicy.validate(
+                file,
+                extension,
+                "video".equals(type)
+            );
             String uploadDir = getUploadDir();
             String accessPathPrefix = getAccessPathPrefix();
             logger.info("上传目录：{}，访问路径前缀：{}", uploadDir, accessPathPrefix);
@@ -154,9 +159,11 @@ public class FileUploadController {
             String accessPath = accessPathPrefix + "/" + type + "/" + newFilename;
             logger.info("返回访问路径：{}", accessPath);
             return ResponseMessage.success(accessPath);
+        } catch (IllegalArgumentException e) {
+            return ResponseMessage.error(e.getMessage());
         } catch (IOException e) {
             logger.error("文件上传失败：{}", e.getMessage(), e);
-            return ResponseMessage.error("文件上传失败：" + e.getMessage());
+            return ResponseMessage.error("文件上传失败，请稍后重试");
         }
     }
 }

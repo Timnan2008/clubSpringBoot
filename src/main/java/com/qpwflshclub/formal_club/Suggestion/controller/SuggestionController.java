@@ -23,16 +23,20 @@ public class SuggestionController {
     public ISuggestionService suggestionService;
 
     @Autowired
-    com.qpwflshclub.formal_club.service.Suggestion.TurnstileService turnstile;
+    public com.qpwflshclub.formal_club.service.Suggestion.TurnstileService turnstile;
 
     @Autowired
-    ContentAudit audit;
+    public ContentAudit audit;
 
     @Autowired
-    SchoolAccounts accounts;
+    public SchoolAccounts accounts;
 
     @Autowired
     WorkspaceAccess access;
+
+    /** 违禁词闸门：建议正文也要过检查，命中会记一次过。 */
+    @Autowired
+    com.qpwflshclub.formal_club.social.service.ModerationGate moderation;
 
     @GetMapping("/verification")
     public Object verification() {
@@ -47,8 +51,20 @@ public class SuggestionController {
     ) {
         var actor = accounts.current(request);
         access.mutation(request);
-        com.qpwflshclub.formal_club.social.ContentModeration.check(suggestionDTO.getContext());
-        suggestionDTO.setName(suggestionDTO.isAnonymous() ? "" : actor.getUsername());
+        if (
+            suggestionDTO.isAnonymous()
+        ) throw com.qpwflshclub.formal_club.social.service.SchoolAccounts.error(
+            400,
+            "青源智造不支持匿名提交，请使用实名。 / Qingyuan Ideas cannot be submitted anonymously."
+        );
+        moderation.inspect(
+            SchoolAccounts.key(actor.getEmail()),
+            com.qpwflshclub.formal_club.social.service.ModerationGate.SUGGESTION,
+            suggestionDTO.getTitle(),
+            suggestionDTO.getContext()
+        );
+        suggestionDTO.setAnonymous(false);
+        suggestionDTO.setName(java.util.Objects.toString(actor.getUsername(), ""));
         turnstile.verify(suggestionDTO.getTurnstileToken());
         suggestionDTO.setPass(false);
         suggestionDTO.setId(null);
@@ -56,16 +72,18 @@ public class SuggestionController {
         org.slf4j.LoggerFactory.getLogger(getClass()).info(
             "campus_suggestion id={} account={} anonymous={}",
             suggestion.getId(),
-            SchoolAccounts.key(actor.getEmail()),
-            suggestionDTO.isAnonymous()
+            com.qpwflshclub.formal_club.social.service.SchoolAccounts.key(actor.getEmail()),
+            false
         );
         audit.record(
             "suggestion",
             String.valueOf(suggestion.getId()),
-            SchoolAccounts.key(actor.getEmail()),
-            suggestionDTO.isAnonymous()
+            com.qpwflshclub.formal_club.social.service.SchoolAccounts.key(actor.getEmail()),
+            false
         );
-        suggestion.setNameEn(suggestionDTO.isAnonymous() ? "" : actor.getUsernameEn());
+        suggestion.setName(suggestionDTO.getName());
+        suggestion.setAnonymous(false);
+        suggestion.setNameEn(java.util.Objects.toString(actor.getUsernameEn(), ""));
         return ResponseMessage.success(suggestion);
     }
 
@@ -115,30 +133,23 @@ public class SuggestionController {
         ) throw new org.springframework.web.server.ResponseStatusException(
             org.springframework.http.HttpStatus.NOT_FOUND
         );
-        var publicView = new Suggestion();
-        publicView.setId(suggestion.getId());
-        publicView.setTitle(suggestion.getTitle());
-        publicView.setContext(suggestion.getContext());
-        publicView.setAnonymous(suggestion.isAnonymous());
-        publicView.setPass(true);
-        publicView.setName(suggestion.isAnonymous() ? "" : suggestion.getName());
-        return ResponseMessage.success(publicView);
+        return ResponseMessage.success(publicView(suggestion));
     }
 
     private Suggestion publicView(Suggestion s) {
         var v = new Suggestion();
         v.setId(s.getId());
         v.setTitle(s.getTitle());
-        v.setContext(s.getContext());
-        v.setAnonymous(s.isAnonymous());
+        v.setContext(com.qpwflshclub.formal_club.social.ContentModeration.mask(s.getContext()));
+        v.setAnonymous(false);
         v.setPass(s.isPass());
-        v.setName(s.isAnonymous() ? "" : s.getName());
+        v.setName(java.util.Objects.toString(s.getName(), ""));
         v.setNameEn("");
-        if (!s.isAnonymous() && audit != null && accounts != null) {
+        if (audit != null && accounts != null) {
             String actor = audit.actor("suggestion", String.valueOf(s.getId()));
             var people = accounts.directory();
             var person = actor == null ? null : people.get(actor);
-            if (person == null) {
+            if (person == null && s.getName() != null && !s.getName().isBlank()) {
                 var matches = people
                     .values()
                     .stream()
@@ -166,8 +177,9 @@ public class SuggestionController {
         if (!isAdmin(request)) {
             return adminOnlyError();
         }
-        List<Suggestion> suggestions = suggestionService.findAll();
-        return ResponseMessage.success(suggestions);
+        return ResponseMessage.success(
+            suggestionService.findAll().stream().map(this::publicView).toList()
+        );
     }
 
     private boolean isAdmin(HttpServletRequest request) {

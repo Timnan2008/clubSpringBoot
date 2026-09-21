@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 public class ClubService implements IClubService {
 
     @Autowired
-    ClubRepository clubRepository;
+    public ClubRepository clubRepository;
 
     @Override
     public Club add(ClubDTO clubDTO) {

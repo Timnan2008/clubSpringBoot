@@ -4,6 +4,32 @@ import Avatar from "./Avatar";
 import { postName } from "./person-names.mjs";
 import { tx, en, tr } from "./language";
 import "./SocialAdditions.css";
+function noticeText(item) {
+  switch (item.type) {
+    case "mention":
+      return tx("提及了你", "mentioned you");
+    case "reply":
+      return tx("回复了你的帖子", "replied to your post");
+    case "message":
+      return tx("发来一条私信", "sent you a message");
+    case "join_request":
+      return (
+        tx("提交了入社申请", "applied to join") + (item.clubName ? " · " + item.clubName : "")
+      );
+    case "join_approved":
+      return tx("你的入社申请已通过", "Your club application was approved");
+    case "join_declined":
+      return tx("你的入社申请未通过", "Your club application was declined");
+    default:
+      return item.type;
+  }
+}
+function noticeTitle(item) {
+  if (item.type === "join_approved" || item.type === "join_declined") {
+    return item.clubName || tx("社团", "Club");
+  }
+  return item.actor ? postName(item.actor, en) : tx("匿名同学", "Anonymous student");
+}
 export default function Notifications({ enabled }) {
   const [data, setData] = useState({ items: [], unread: 0 }),
     [open, setOpen] = useState(false),
@@ -102,6 +128,17 @@ export default function Notifications({ enabled }) {
             </button>
           </header>
           {error && <p role="alert">{error}</p>}
+          {/* 「网管」的提醒/封禁记录（每次命中违禁词都会留一条） */}
+          {data.notices?.length ? (
+            <div className="notification-notices">
+              {data.notices.map((notice) => (
+                <p key={notice.id} className={notice.unread ? "unread" : ""}>
+                  <b>{tx("网管", "Network Admin")}</b>
+                  <span> {notice.text}</span>
+                </p>
+              ))}
+            </div>
+          ) : null}
           <div className="notification-items">
             {data.items.length ? (
               data.items.map((item) => (
@@ -117,16 +154,8 @@ export default function Notifications({ enabled }) {
                     <span className="notification-anonymous">@</span>
                   )}
                   <span>
-                    <b>
-                      {item.actor ? postName(item.actor, en) : tx("匿名同学", "Anonymous student")}
-                    </b>
-                    <span>
-                      {item.type === "mention"
-                        ? tx("在帖子中提及了你", "mentioned you in a post")
-                        : item.type === "reply"
-                          ? tx("回复了你的帖子", "replied to your post")
-                          : tx("发来一条私信", "sent you a message")}
-                    </span>
+                    <b>{noticeTitle(item)}</b>
+                    <span>{noticeText(item)}</span>
                     <time>{item.createdAt?.slice(0, 16).replace("T", " ")}</time>
                   </span>
                   {item.unread && <i />}

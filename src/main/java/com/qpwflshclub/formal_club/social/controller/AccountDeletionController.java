@@ -75,6 +75,10 @@ public class AccountDeletionController {
     @Autowired
     AccountProfiles profiles;
 
+    /** 违规封禁台账：注销账号时一并清掉他的违规记录。 */
+    @Autowired
+    com.qpwflshclub.formal_club.social.service.ModerationPenalty penalties;
+
     @Autowired
     PersonalCalendarStore calendar;
 
@@ -107,6 +111,9 @@ public class AccountDeletionController {
 
     @Autowired
     ContentAudit audit;
+
+    @Autowired
+    ContentDiscipline discipline;
 
     @Autowired
     WallFiles files;
@@ -249,6 +256,7 @@ public class AccountDeletionController {
         avatars.remove(id);
         appearance.removeAccount(id);
         profiles.removeAccount(id);
+        if (penalties != null) penalties.removeAccount(id);
         gifts.removeAccount(id);
         personalWelcome.removeAccount(id);
         lockedBadges.removeAccount(id);
@@ -265,6 +273,7 @@ public class AccountDeletionController {
         }
         officers.removeAccount(id);
         audit.removeAccount(id);
+        if (discipline != null) discipline.removeAccount(id);
         recovery.remove(id);
         keys.removeAccount(id);
         logins.removeAccount(email);
