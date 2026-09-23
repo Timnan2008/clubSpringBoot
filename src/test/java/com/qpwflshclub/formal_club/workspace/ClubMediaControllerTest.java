@@ -21,6 +21,19 @@ class ClubMediaControllerTest {
     @TempDir
     Path dir;
 
+    /** 本机有没有可用的 ffmpeg（视频压缩测试依赖它）。 */
+    private static boolean ffmpegAvailable() {
+        try {
+            var process = new ProcessBuilder("ffmpeg", "-version")
+                .redirectError(ProcessBuilder.Redirect.DISCARD)
+                .redirectOutput(ProcessBuilder.Redirect.DISCARD)
+                .start();
+            return process.waitFor() == 0;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     ClubMediaController controller;
     ClubRepository clubs;
     Club club;
@@ -80,6 +93,11 @@ class ClubMediaControllerTest {
 
     @Test
     void videoUploadSavesCompressedMp4() throws Exception {
+        // 压缩依赖本机的 ffmpeg：没装就跳过，避免把整套测试弄红
+        Assumptions.assumeTrue(
+            ffmpegAvailable(),
+            "本机没有 ffmpeg，跳过视频上传压缩测试（装上 ffmpeg 后会自动跑）"
+        );
         Path source = dir.resolve("source.mp4");
         var proc = new ProcessBuilder(
             "ffmpeg",
