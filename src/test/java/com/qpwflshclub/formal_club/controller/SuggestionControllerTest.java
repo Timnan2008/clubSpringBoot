@@ -39,7 +39,11 @@ class SuggestionControllerTest {
         controller = new SuggestionController();
         controller.suggestionService = suggestionService;
         controller.accounts = org.mockito.Mockito.mock(SchoolAccounts.class);
-        controller.access = org.mockito.Mockito.mock(WorkspaceAccess.class);
+        org.springframework.test.util.ReflectionTestUtils.setField(
+            controller,
+            "access",
+            org.mockito.Mockito.mock(WorkspaceAccess.class)
+        );
         controller.audit = org.mockito.Mockito.mock(ContentAudit.class);
         org.springframework.test.util.ReflectionTestUtils.setField(
             controller,
