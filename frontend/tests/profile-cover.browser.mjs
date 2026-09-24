@@ -109,34 +109,40 @@ try {
   const page = await browser.newPage();
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
-  for (const width of [1440, 390])
-    for (const ratio of ["wide", "portrait"])
+  for (const width of [1440, 390, 320])
+    for (const ratio of ["wide", "portrait", "none"])
       for (const coverWidth of [0, 30, 65, 100]) {
         settings.bannerWidth = coverWidth;
+        settings.banner = ratio === "none" ? "" : "/cover.svg";
         aspect = ratio;
         await page.setViewportSize({ width, height: 1000 });
         await page.goto(`http://127.0.0.1:${server.address().port}`);
-        await page.locator(".profile-cover img").waitFor();
-        const bounds = await page.locator(".profile-cover img").evaluate((img) => {
-          const b = img.getBoundingClientRect(),
+        await page.locator(".profile-cover").waitFor();
+        const bounds = await page.locator(".profile-cover").evaluate((cover) => {
+          const img = cover.querySelector("img");
+          const b = (img || cover).getBoundingClientRect(),
             avatar = document
               .querySelector(".profile-home-avatar-row > .campus-avatar")
               .getBoundingClientRect();
           return {
-            fit: getComputedStyle(img).objectFit,
-            parentWidth: img.parentElement.getBoundingClientRect().width,
-            naturalRatio: img.naturalWidth / img.naturalHeight,
+            fit: img ? getComputedStyle(img).objectFit : "contain",
+            parentWidth: cover.getBoundingClientRect().width,
+            naturalRatio: img ? img.naturalWidth / img.naturalHeight : b.width / b.height,
             bottom: b.bottom,
-            avatarTop: avatar.top,
+            avatarCenter: avatar.top + avatar.height / 2,
+            coverBottom: cover.getBoundingClientRect().bottom,
             width: b.width,
             height: b.height,
             overflow: document.documentElement.scrollWidth > innerWidth,
           };
         });
         assert.equal(bounds.fit, "contain");
-        assert.ok(bounds.avatarTop >= bounds.bottom, "Avatar must not obscure cover");
+        assert.ok(
+          Math.abs(bounds.avatarCenter - bounds.coverBottom) < 1,
+          "Cover boundary must bisect avatar",
+        );
         if (coverWidth === 0) assert.ok(bounds.height <= (width > 600 ? 420 : 320));
-        else {
+        else if (ratio !== "none") {
           assert.ok(Math.abs(bounds.width - (bounds.parentWidth * coverWidth) / 100) < 1);
           assert.ok(Math.abs(bounds.width / bounds.height - bounds.naturalRatio) < 0.01);
         }
@@ -146,6 +152,7 @@ try {
         });
       }
   aspect = "wide";
+  settings.banner = "/cover.svg";
   settings.bannerWidth = 0;
   await page.goto(`http://127.0.0.1:${server.address().port}/edit?lang=zh`);
   const slider = page.getByRole("slider", { name: "封面宽度" });
