@@ -22,6 +22,90 @@ class SocialUpgradeTest {
     Path dir;
 
     @Test
+    void coverWidthPersistsPerAccountAndSurvivesImageChanges() throws Exception {
+        var mapper = new ObjectMapper();
+        var p = new ProfileAppearance(mapper, dir.toString());
+        var settings = new ProfileAppearance.Settings(
+            "none",
+            false,
+            1,
+            0,
+            0,
+            List.of(),
+            "",
+            "",
+            List.of(),
+            1,
+            0,
+            0,
+            65
+        );
+        p.update("owner", settings, false, List.of());
+        var bytes = new ByteArrayOutputStream();
+        ImageIO.write(new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB), "png", bytes);
+        var file = new MockMultipartFile("file", "cover.png", "image/png", bytes.toByteArray());
+        p.upload("owner", "banner", file);
+        p.upload("owner", "frame", file);
+        p.removeFrame("owner");
+        var reloaded = new ProfileAppearance(mapper, dir.toString());
+        assertThat(reloaded.get("owner").bannerWidth()).isEqualTo(65);
+        assertThat(reloaded.get("owner").banner()).isNotBlank();
+        assertThat(reloaded.publicView("owner", false).get("bannerWidth")).isEqualTo(65d);
+        assertThat(reloaded.get("other").bannerWidth()).isZero();
+        var reset = new ProfileAppearance.Settings("none", false, 1, 0, 0, List.of(), "", "");
+        assertThat(reloaded.update("owner", reset, false, List.of()).bannerWidth()).isZero();
+    }
+
+    @Test
+    void coverWidthRejectsInvalidValuesAndDefaultsLegacySettingsToAuto() throws Exception {
+        var mapper = new ObjectMapper();
+        var p = new ProfileAppearance(mapper, dir.toString());
+        for (double width : new double[] { -1, 29, 101, Double.NaN, Double.POSITIVE_INFINITY }) {
+            var input = new ProfileAppearance.Settings(
+                "none",
+                false,
+                1,
+                0,
+                0,
+                List.of(),
+                "",
+                "",
+                List.of(),
+                1,
+                0,
+                0,
+                width
+            );
+            assertThatThrownBy(() ->
+                p.update("owner", input, false, List.of())
+            ).hasMessageContaining("400");
+        }
+        var legacy = mapper.readValue(
+            "{\"frame\":\"none\",\"scale\":1,\"banner\":\"\",\"customFrame\":\"\"}",
+            ProfileAppearance.Settings.class
+        );
+        assertThat(legacy.bannerWidth()).isZero();
+        for (double width : new double[] { 0, 30, 100 }) {
+            var input = new ProfileAppearance.Settings(
+                "none",
+                false,
+                1,
+                0,
+                0,
+                List.of(),
+                "",
+                "",
+                List.of(),
+                1,
+                0,
+                0,
+                width
+            );
+            assertThat(p.update("owner", input, false, List.of()).bannerWidth()).isEqualTo(width);
+        }
+    }
+
+    @Test
     void blockIsBilateralPinIsPrivateAndPersists() throws Exception {
         var p = new ChatPreferences(new ObjectMapper(), dir.toString());
         p.update("a", "b", new ChatPreferences.Preference(true, true));

@@ -440,3 +440,11 @@
     max-height: 320px;
   }
 }
+
+/* Manual width preserves the full image, including tall uploaded covers. */
+.profile-cover[data-image][data-manual-width] img {
+  width: var(--cover-width);
+  height: auto;
+  max-height: none;
+  margin-inline: auto;
+}
