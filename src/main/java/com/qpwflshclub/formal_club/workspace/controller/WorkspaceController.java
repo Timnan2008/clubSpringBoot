@@ -1,4 +1,4 @@
-package com.qpwflshclub.formal_club.workspace;
+package com.qpwflshclub.formal_club.workspace.controller;
 
 import com.qpwflshclub.formal_club.Clubs.pojo.Club;
 import com.qpwflshclub.formal_club.User.pojo.*;
@@ -7,6 +7,9 @@ import com.qpwflshclub.formal_club.User.repository.ClubPresidentRepository;
 import com.qpwflshclub.formal_club.User.repository.UserRepository;
 import com.qpwflshclub.formal_club.social.service.OfficerAssignments;
 import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
+import com.qpwflshclub.formal_club.workspace.service.ClubOperationsStore;
+import com.qpwflshclub.formal_club.workspace.service.WorkspaceAccess;
+import com.qpwflshclub.formal_club.workspace.service.WorkspaceStore;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

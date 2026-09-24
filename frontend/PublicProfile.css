@@ -421,3 +421,22 @@
   outline: 2px solid #1d9bf0;
   outline-offset: 3px;
 }
+
+/* Show the entire uploaded cover, and keep the avatar below its image area. */
+.profile-cover[data-image] {
+  height: auto;
+  min-height: 120px;
+}
+.profile-cover[data-image] img {
+  height: auto;
+  max-height: 420px;
+  object-fit: contain;
+}
+.profile-cover[data-image] + .profile-home-summary .profile-home-avatar-row > .campus-avatar {
+  margin-top: 16px;
+}
+@media (max-width: 600px) {
+  .profile-cover[data-image] img {
+    max-height: 320px;
+  }
+}

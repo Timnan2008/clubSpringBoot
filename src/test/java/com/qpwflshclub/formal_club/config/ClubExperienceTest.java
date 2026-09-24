@@ -11,7 +11,7 @@ import com.qpwflshclub.formal_club.User.pojo.User;
 import com.qpwflshclub.formal_club.User.pojo.UserBase;
 import com.qpwflshclub.formal_club.User.service.IUserService;
 import com.qpwflshclub.formal_club.controller.*;
-import com.qpwflshclub.formal_club.workspace.WorkspaceAccess;
+import com.qpwflshclub.formal_club.workspace.service.WorkspaceAccess;
 import jakarta.servlet.http.Cookie;
 import java.util.*;
 import org.junit.jupiter.api.Test;

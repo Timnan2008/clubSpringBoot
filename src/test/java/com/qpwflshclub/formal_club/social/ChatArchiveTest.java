@@ -6,6 +6,7 @@ import static org.mockito.Mockito.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.qpwflshclub.formal_club.social.service.ChatArchive;
 import com.qpwflshclub.formal_club.social.service.ChatPlaintext;
+import com.qpwflshclub.formal_club.social.service.SocialStore;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;

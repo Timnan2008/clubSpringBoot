@@ -13,7 +13,7 @@ import com.qpwflshclub.formal_club.User.repository.TeacherRepository;
 import com.qpwflshclub.formal_club.User.repository.UserRepository;
 import com.qpwflshclub.formal_club.User.service.IUserService;
 import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
-import com.qpwflshclub.formal_club.workspace.WorkspaceAccess;
+import com.qpwflshclub.formal_club.workspace.service.WorkspaceAccess;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.*;
 

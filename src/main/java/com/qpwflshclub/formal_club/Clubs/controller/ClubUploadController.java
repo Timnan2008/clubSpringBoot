@@ -11,7 +11,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.util.List;
 import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -22,8 +25,20 @@ public class ClubUploadController {
     @Autowired
     private IClubService clubService;
 
-    // Linux服务器上的图片保存根目录（可在application.properties里配置）
-    private static final String UPLOAD_DIR = "/opt/club-app/media/logo/";
+    private static final Logger logger = LoggerFactory.getLogger(ClubUploadController.class);
+
+    /** 未配置 club.media-directory 时的默认目录，与 WebConfig 的 /media/** 静态映射保持一致。 */
+    private static final String DEFAULT_UPLOAD_DIR = "/opt/club-app/media/logo/";
+
+    @Value("${club.media-directory:}")
+    private String mediaDirectory;
+
+    /** 图片保存目录跟随 club.media-directory，保证写盘路径和 /media/** 读取路径一致。 */
+    private String uploadDir() {
+        return mediaDirectory == null || mediaDirectory.isBlank()
+            ? DEFAULT_UPLOAD_DIR
+            : mediaDirectory + "/logo/";
+    }
 
     @PostMapping("/upload/logo/{clubId}")
     public ResponseMessage<String> uploadLogo(
@@ -55,7 +70,8 @@ public class ClubUploadController {
         try {
             com.qpwflshclub.formal_club.config.MediaUploadPolicy.validate(file, ext, false);
             // 1. 确保目录存在
-            File dir = new File(UPLOAD_DIR);
+            String uploadDir = uploadDir();
+            File dir = new File(uploadDir);
             if (!dir.exists() && !dir.mkdirs()) {
                 return ResponseMessage.error("上传暂时不可用，请稍后重试");
             }
@@ -78,7 +94,7 @@ public class ClubUploadController {
         } catch (IllegalArgumentException e) {
             return ResponseMessage.error(e.getMessage());
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("社团图标上传失败：{}", file.getOriginalFilename(), e);
             return ResponseMessage.error("上传失败，请稍后重试");
         }
     }

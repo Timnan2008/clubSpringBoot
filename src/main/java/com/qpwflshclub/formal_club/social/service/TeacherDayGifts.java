@@ -1,4 +1,4 @@
-package com.qpwflshclub.formal_club.social;
+package com.qpwflshclub.formal_club.social.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;

@@ -3,6 +3,7 @@ package com.qpwflshclub.formal_club.social;
 import static org.assertj.core.api.Assertions.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.qpwflshclub.formal_club.social.service.SocialStore;
 import java.nio.file.*;
 import java.util.*;
 import org.junit.jupiter.api.*;

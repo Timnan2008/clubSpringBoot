@@ -300,7 +300,7 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 8px;
-  width: min(100%, 720px);
+  width: min(100%, 520px);
   margin: 0 0 14px;
   color: #c8c8c8;
 }
@@ -398,15 +398,15 @@
   animation: openclaw-pop 180ms cubic-bezier(0.23, 1, 0.32, 1);
 }
 .openclaw-user-wrap[data-editing] {
-  width: min(100%, 720px);
+  width: min(100%, 520px);
   max-width: 100%;
 }
 .openclaw-edit-card {
   box-sizing: border-box;
   width: 100%;
-  padding: 16px;
+  padding: 12px;
   border: 1px solid #ffffff20;
-  border-radius: 20px;
+  border-radius: 16px;
   background: #252525;
 }
 .openclaw-edit-card:focus-within {
@@ -416,8 +416,8 @@
   display: block;
   box-sizing: border-box;
   width: 100%;
-  min-height: 78px;
-  max-height: min(208px, 35dvh);
+  min-height: 24px;
+  max-height: min(160px, 30dvh);
   margin: 0;
   padding: 0;
   border: 0;
@@ -435,11 +435,13 @@
   display: none;
 }
 .openclaw-edit-actions {
-  margin-top: 16px;
+  margin-top: 10px;
 }
 .openclaw-edit-actions button {
-  min-height: 38px;
-  min-width: 70px;
+  min-height: 32px;
+  min-width: 58px;
+  padding: 5px 12px;
+  font-size: 14px;
 }
 .openclaw-edit-actions button:disabled {
   opacity: 0.4;
@@ -1438,4 +1440,63 @@ html:has(body.openclaw-page) {
 .openclaw-rich h6 {
   font-size: 1em;
   margin: 20px 0 10px;
+}
+
+/* The decorative welcome scene is isolated from all interactive controls. */
+.openclaw-main {
+  isolation: isolate;
+}
+.openclaw-ballpit {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0.8;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 18%, #000);
+  mask-image: linear-gradient(to bottom, transparent, #000 18%, #000);
+}
+.openclaw-ballpit canvas {
+  display: block;
+  pointer-events: none;
+}
+.openclaw-welcome h2 {
+  min-height: 1.5em;
+  line-height: 1.5;
+  text-shadow: 0 2px 18px #000;
+}
+.openclaw-main[data-empty] .openclaw-ideas button {
+  background: rgb(14 14 17 / 0.68);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border-radius: 999px;
+  padding: 8px 12px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .openclaw-ballpit {
+    display: none;
+  }
+}
+
+/* Animate only freshly sent messages; opening history must remain still. */
+.openclaw-user-message[data-enter] .openclaw-user-wrap {
+  animation: openclaw-message-enter 500ms cubic-bezier(0.22, 1, 0.36, 1) 100ms both;
+  transform-origin: right bottom;
+}
+@keyframes openclaw-message-enter {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.97);
+    filter: blur(3px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .openclaw-user-message[data-enter] .openclaw-user-wrap {
+    animation: none;
+  }
 }

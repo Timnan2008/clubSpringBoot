@@ -8,6 +8,7 @@ import com.qpwflshclub.formal_club.User.pojo.UserBase;
 import com.qpwflshclub.formal_club.pojo.ResponseMessage;
 import com.qpwflshclub.formal_club.social.service.ContentAudit;
 import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
+import com.qpwflshclub.formal_club.workspace.service.WorkspaceAccess;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +32,7 @@ public class SuggestionController {
     public SchoolAccounts accounts;
 
     @Autowired
-    public com.qpwflshclub.formal_club.workspace.WorkspaceAccess access;
+    WorkspaceAccess access;
 
     /** 违禁词闸门：建议正文也要过检查，命中会记一次过。 */
     @Autowired

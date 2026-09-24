@@ -2,9 +2,9 @@ package com.qpwflshclub.formal_club.social.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.qpwflshclub.formal_club.social.SocialStore;
 import com.qpwflshclub.formal_club.social.repository.ChatArchiveRepository;
 import com.qpwflshclub.formal_club.social.repository.ChatArchiveRow;
+import com.qpwflshclub.formal_club.social.service.SocialStore;
 import java.io.IOException;
 import java.nio.file.*;
 import java.sql.Connection;

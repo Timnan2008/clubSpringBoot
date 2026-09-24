@@ -3,7 +3,7 @@ package com.qpwflshclub.formal_club.Booking.controller;
 import com.qpwflshclub.formal_club.Booking.BookingOverseers;
 import com.qpwflshclub.formal_club.Booking.service.BookingService;
 import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
-import com.qpwflshclub.formal_club.workspace.WorkspaceAccess;
+import com.qpwflshclub.formal_club.workspace.service.WorkspaceAccess;
 import jakarta.servlet.http.*;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;

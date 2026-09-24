@@ -7,6 +7,7 @@ import { tr, changeLanguage, en } from "./language";
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import "./CardNav.css";
+import "./GlassNavigation.css";
 import "./CampusTheme.css";
 import Avatar from "./Avatar";
 import BackButton from "./BackButton";

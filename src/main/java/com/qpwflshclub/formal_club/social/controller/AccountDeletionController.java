@@ -12,7 +12,10 @@ import com.qpwflshclub.formal_club.config.*;
 import com.qpwflshclub.formal_club.social.*;
 import com.qpwflshclub.formal_club.social.repository.MessageKeyBackupRepository;
 import com.qpwflshclub.formal_club.social.service.*;
-import com.qpwflshclub.formal_club.workspace.*;
+import com.qpwflshclub.formal_club.workspace.controller.JoinRequests;
+import com.qpwflshclub.formal_club.workspace.service.ClubOperationsStore;
+import com.qpwflshclub.formal_club.workspace.service.WorkspaceAccess;
+import com.qpwflshclub.formal_club.workspace.service.WorkspaceStore;
 import jakarta.servlet.http.*;
 import java.io.IOException;
 import java.net.*;
@@ -306,7 +309,7 @@ public class AccountDeletionController {
                             t
                                 .getClubs()
                                 .stream()
-                                .anyMatch(c -> c.getId() == club.getId())
+                                .anyMatch(c -> Objects.equals(c.getId(), club.getId()))
                     )
                     .toList();
                 club.setTeacher(

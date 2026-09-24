@@ -15,6 +15,7 @@ import com.qpwflshclub.formal_club.User.pojo.User;
 import com.qpwflshclub.formal_club.pojo.ResponseMessage;
 import com.qpwflshclub.formal_club.social.service.ContentAudit;
 import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
+import com.qpwflshclub.formal_club.workspace.service.WorkspaceAccess;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,12 +39,12 @@ class SuggestionControllerTest {
         controller = new SuggestionController();
         controller.suggestionService = suggestionService;
         controller.accounts = org.mockito.Mockito.mock(SchoolAccounts.class);
-        controller.access = org.mockito.Mockito.mock(
-            com.qpwflshclub.formal_club.workspace.WorkspaceAccess.class
+        org.springframework.test.util.ReflectionTestUtils.setField(
+            controller,
+            "access",
+            org.mockito.Mockito.mock(WorkspaceAccess.class)
         );
         controller.audit = org.mockito.Mockito.mock(ContentAudit.class);
-        // 违禁词闸门也是字段注入：塞一个真实实例（违禁词库走打包的那份），
-        // 否则 addSuggestion 里 moderation.inspect 会 NPE
         org.springframework.test.util.ReflectionTestUtils.setField(
             controller,
             "moderation",
@@ -159,8 +160,8 @@ class SuggestionControllerTest {
         verify(suggestionService, never()).add(dto);
     }
 
-    @Test
-    void publicTitleHidesPendingButShowsNamedAuthor() {
+    @org.junit.jupiter.api.Test
+    void publicTitleCannotExposePendingOrAnonymousIdentity() {
         var service = org.mockito.Mockito.mock(ISuggestionService.class);
         var c = new SuggestionController();
         c.suggestionService = service;

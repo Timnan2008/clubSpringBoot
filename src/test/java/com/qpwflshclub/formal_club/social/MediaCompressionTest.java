@@ -3,6 +3,7 @@ package com.qpwflshclub.formal_club.social;
 import static org.assertj.core.api.Assertions.*;
 
 import com.qpwflshclub.formal_club.social.service.AvatarStore;
+import com.qpwflshclub.formal_club.social.service.WallFiles;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.file.*;
@@ -111,6 +112,11 @@ class MediaCompressionTest {
 
     @Test
     void alreadyWebReadyVideoIsRemuxedInsteadOfReencoded() throws Exception {
+        // 和上一个视频测试一样：本机没 ffmpeg 就跳过，不要让整个测试套件报错
+        Assumptions.assumeTrue(
+            ffmpegAvailable(),
+            "本机没有 ffmpeg，跳过视频转封装测试（装上 ffmpeg 后会自动跑）"
+        );
         Path input = dir.resolve("ready.mp4"),
             output = dir.resolve("ready-out.mp4");
         var proc = new ProcessBuilder(

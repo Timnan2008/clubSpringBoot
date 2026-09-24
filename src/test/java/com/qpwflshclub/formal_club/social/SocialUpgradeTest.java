@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.qpwflshclub.formal_club.social.service.ChatPreferences;
 import com.qpwflshclub.formal_club.social.service.ProfileAppearance;
+import com.qpwflshclub.formal_club.social.service.SocialStore;
+import com.qpwflshclub.formal_club.social.service.WallFiles;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.nio.file.*;

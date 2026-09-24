@@ -9,7 +9,8 @@ import com.qpwflshclub.formal_club.User.repository.TeacherRepository;
 import com.qpwflshclub.formal_club.User.repository.UserRepository;
 import com.qpwflshclub.formal_club.social.ContentDiscipline;
 import com.qpwflshclub.formal_club.social.service.*;
-import com.qpwflshclub.formal_club.workspace.*;
+import com.qpwflshclub.formal_club.workspace.service.WorkspaceAccess;
+import com.qpwflshclub.formal_club.workspace.service.WorkspaceStore;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.*;
@@ -749,7 +750,9 @@ public class CommunityController {
             var membership = new ArrayList<>(
                 current.getClubs() == null ? List.<Club>of() : current.getClubs()
             );
-            if (membership.stream().noneMatch(c -> c.getId() == club.getId())) membership.add(club);
+            if (
+                membership.stream().noneMatch(c -> Objects.equals(c.getId(), club.getId()))
+            ) membership.add(club);
             current.setClubs(membership);
             save(current);
             officers.remove(SchoolAccounts.key(current.getEmail()), input.club());

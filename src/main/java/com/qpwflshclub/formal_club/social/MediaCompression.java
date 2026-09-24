@@ -1,6 +1,7 @@
 package com.qpwflshclub.formal_club.social;
 
 import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
+import java.awt.*;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
@@ -9,6 +10,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.*;
 import javax.imageio.*;
 

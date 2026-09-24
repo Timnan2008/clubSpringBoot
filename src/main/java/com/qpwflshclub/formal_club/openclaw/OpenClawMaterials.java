@@ -2,9 +2,9 @@ package com.qpwflshclub.formal_club.openclaw;
 
 import com.qpwflshclub.formal_club.Clubs.pojo.Club;
 import com.qpwflshclub.formal_club.User.pojo.UserBase;
-import com.qpwflshclub.formal_club.workspace.ClubProfileController;
-import com.qpwflshclub.formal_club.workspace.WorkspaceAccess;
-import com.qpwflshclub.formal_club.workspace.WorkspaceStore;
+import com.qpwflshclub.formal_club.workspace.controller.ClubProfileController;
+import com.qpwflshclub.formal_club.workspace.service.WorkspaceAccess;
+import com.qpwflshclub.formal_club.workspace.service.WorkspaceStore;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;

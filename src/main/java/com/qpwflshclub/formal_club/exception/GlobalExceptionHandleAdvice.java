@@ -32,19 +32,19 @@ public class GlobalExceptionHandleAdvice {
         );
     }
 
-    Logger log = LoggerFactory.getLogger(GlobalExceptionHandleAdvice.class);
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandleAdvice.class);
 
     @ExceptionHandler({ Exception.class })
-    public ResponseMessage handleException(
+    public ResponseMessage<?> handleException(
         Exception e,
         HttpServletRequest request,
         HttpServletResponse response
     ) {
-        //记录日志
-        log.error("请求地址：{}，异常信息：{}", request.getRequestURI(), e.getMessage());
+        // 记录日志：带上异常对象，日志里才有堆栈，只打 message 会丢掉出错位置
+        log.error("请求地址：{}，异常信息：{}", request.getRequestURI(), e.getMessage(), e);
 
         response.setStatus(500);
-        return new ResponseMessage(
+        return new ResponseMessage<>(
             500,
             "操作失败，请稍后重试。 / Something went wrong. Please try again.",
             null

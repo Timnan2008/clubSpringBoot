@@ -13,7 +13,7 @@ import com.qpwflshclub.formal_club.User.service.IUserService;
 import com.qpwflshclub.formal_club.social.controller.AvatarController;
 import com.qpwflshclub.formal_club.social.service.AvatarStore;
 import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
-import com.qpwflshclub.formal_club.workspace.WorkspaceAccess;
+import com.qpwflshclub.formal_club.workspace.service.WorkspaceAccess;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.file.Path;

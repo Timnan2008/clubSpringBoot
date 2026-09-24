@@ -1,7 +1,8 @@
-package com.qpwflshclub.formal_club.workspace;
+package com.qpwflshclub.formal_club.workspace.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.qpwflshclub.formal_club.workspace.service.WorkspaceStore;
 import java.io.IOException;
 import java.nio.file.*;
 import java.time.Instant;

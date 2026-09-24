@@ -1,5 +1,7 @@
-package com.qpwflshclub.formal_club.social;
+package com.qpwflshclub.formal_club.social.service;
 
+import com.qpwflshclub.formal_club.social.ContentModeration;
+import com.qpwflshclub.formal_club.social.MediaCompression;
 import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
 import java.io.*;
 import java.nio.file.*;
@@ -143,8 +145,7 @@ public class WallFiles {
     }
 
     public byte[] read(String id) throws IOException {
-        if (!id.matches("[0-9a-f-]{36}")) throw SchoolAccounts.error(404, "File not found");
-        return Files.readAllBytes(root.resolve(id));
+        return Files.readAllBytes(file(id));
     }
 
     public void remove(String id) throws IOException {

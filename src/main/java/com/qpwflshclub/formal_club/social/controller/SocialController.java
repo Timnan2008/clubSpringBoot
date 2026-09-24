@@ -1,8 +1,9 @@
-package com.qpwflshclub.formal_club.social;
+package com.qpwflshclub.formal_club.social.controller;
 
 import com.qpwflshclub.formal_club.User.pojo.*;
+import com.qpwflshclub.formal_club.social.*;
 import com.qpwflshclub.formal_club.social.service.*;
-import com.qpwflshclub.formal_club.workspace.WorkspaceAccess;
+import com.qpwflshclub.formal_club.workspace.service.WorkspaceAccess;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.*;
