@@ -50,9 +50,7 @@ public class RememberMeFilter implements Filter {
                 request.getRequestURI().startsWith("/booking/"))
         ) response.setHeader("Cache-Control", "no-store");
         var session = request.getSession(false);
-        if (
-            session != null && session.getAttribute("authenticatedEmail") instanceof String email
-        ) {
+        if (session != null && session.getAttribute("authenticatedEmail") instanceof String email) {
             request.setAttribute("verifiedEmail", email);
             com.qpwflshclub.formal_club.social.ContentDiscipline.bind(email);
         }

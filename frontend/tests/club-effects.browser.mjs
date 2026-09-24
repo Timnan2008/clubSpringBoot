@@ -29,7 +29,10 @@ const club = {
   clubClass: "study",
   clubItem: "/qa-logo.svg",
   sortDescription: "一起设计、编程、创造。",
-  clubDescription: "从灵感到作品，在动手实践中探索科技与创造的可能。",
+  clubDescription:
+    "OpenSTEAM机器人社团是一个以前沿技术为核心，融合科学、技术、工程、艺术和数学的创新型社团。致力于为对机器人、人工智能和自动化等技术感兴趣的同学们提供一个动手实践、项目驱动、团队协作的学习平台。",
+  clubDescriptionEn:
+    "OpenSTEAM Robotics Club is an innovative organization centered on cutting-edge technology. A platform for hands-on practice, project-based learning, and teamwork, with robotics, artificial intelligence, automation.",
   teacher: "指导教师",
   videoLike: 12,
 };
@@ -168,6 +171,15 @@ try {
     }),
     "Decoration must stay behind heading",
   );
+  const introduction = page.locator(".blur-highlight");
+  await introduction.scrollIntoViewIfNeeded();
+  await page.waitForFunction(() =>
+    [...document.querySelectorAll(".blur-highlight__mark")].every(
+      (el) => getComputedStyle(el).backgroundSize === "100% 100%",
+    ),
+  );
+  assert.equal(await introduction.textContent(), club.clubDescription);
+  assert.equal(await introduction.locator("mark").count(), 3);
   await page.screenshot({ path: path.join(out, "opensteam-desktop.png"), fullPage: true });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.waitForTimeout(400);
@@ -181,9 +193,14 @@ try {
     "Mobile must not overflow",
   );
   await page.screenshot({ path: path.join(out, "opensteam-mobile.png"), fullPage: true });
+  await page.goto(base + "/?lang=en");
+  await page.locator(".blur-highlight").waitFor();
+  assert.equal(await page.locator(".blur-highlight").textContent(), club.clubDescriptionEn);
+  assert.equal(await page.locator(".blur-highlight mark").count(), 3);
   await page.goto(base + "/?id=1");
   await page.locator(".ascii-cursor-canvas").waitFor();
   assert.equal(await page.locator(".opensteam-logo").count(), 0);
+  assert.equal(await page.locator(".blur-highlight").count(), 0);
   assert.equal(await page.locator(".club-logo-card").count(), 1);
   assert.equal(await page.locator(".pixel-snow-container").count(), 0);
   assert.equal(
@@ -236,6 +253,10 @@ try {
   );
   await page.goto(base);
   await page.locator(".pixel-snow-container canvas").waitFor();
+  assert.equal(
+    await page.locator(".blur-highlight").evaluate((el) => getComputedStyle(el).filter),
+    "none",
+  );
   await page.waitForTimeout(1800);
   const stillA = await snowPixels(page);
   await page.waitForTimeout(350);

@@ -26,10 +26,38 @@ public class SocialStore {
         boolean anonymous,
         int club,
         String clubName,
-        List<Attachment> attachments
+        List<Attachment> attachments,
+        boolean agent
     ) {
         public Post {
             attachments = attachments == null ? List.of() : List.copyOf(attachments);
+        }
+
+        public Post(
+            String id,
+            String author,
+            String text,
+            String createdAt,
+            Set<String> likes,
+            String category,
+            boolean anonymous,
+            int club,
+            String clubName,
+            List<Attachment> attachments
+        ) {
+            this(
+                id,
+                author,
+                text,
+                createdAt,
+                likes,
+                category,
+                anonymous,
+                club,
+                clubName,
+                attachments,
+                false
+            );
         }
 
         public Post(
@@ -194,7 +222,8 @@ public class SocialStore {
                         p.anonymous(),
                         p.club(),
                         p.clubName(),
-                        p.attachments()
+                        p.attachments(),
+                        p.agent()
                     )
                 )
                 .toList(),
@@ -234,7 +263,8 @@ public class SocialStore {
                             p.anonymous(),
                             p.club(),
                             p.clubName(),
-                            p.attachments()
+                            p.attachments(),
+                            p.agent()
                         )
                     )
                     .toList()
@@ -298,7 +328,7 @@ public class SocialStore {
         int club,
         String clubName
     ) throws IOException {
-        return post(author, text, category, anonymous, club, clubName, List.of());
+        return post(author, text, category, anonymous, club, clubName, List.of(), false);
     }
 
     public synchronized Post post(
@@ -309,6 +339,19 @@ public class SocialStore {
         int club,
         String clubName,
         List<Attachment> attachments
+    ) throws IOException {
+        return post(author, text, category, anonymous, club, clubName, attachments, false);
+    }
+
+    public synchronized Post post(
+        String author,
+        String text,
+        String category,
+        boolean anonymous,
+        int club,
+        String clubName,
+        List<Attachment> attachments,
+        boolean agent
     ) throws IOException {
         guard(author, ModerationGate.POST, text);
         if (
@@ -325,7 +368,8 @@ public class SocialStore {
             anonymous,
             club,
             clubName,
-            attachments
+            attachments,
+            agent
         );
         d.posts().add(0, p);
         save(d);

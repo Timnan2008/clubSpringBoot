@@ -3,6 +3,7 @@
  * Run npm run build, then node scripts/preview-live.mjs.
  */
 import http from "node:http";
+import { openClawPreview } from "./preview-openclaw.mjs";
 import https from "node:https";
 import { createReadStream } from "node:fs";
 import { stat } from "node:fs/promises";
@@ -12,6 +13,16 @@ import { pipeline } from "node:stream";
 const upstream = new URL("https://qpwflhsclub.com");
 const root = path.resolve(import.meta.dirname, "../src/main/resources/static");
 const port = Number(process.env.PORT || 8088);
+// Explicit, loopback-only UI identity. It never grants access to production data.
+const previewAccount =
+  process.env.PREVIEW_ACCOUNT === "teacher"
+    ? {
+        id: "local-ui-teacher",
+        name: "本地测试老师",
+        nameEn: "Local test teacher",
+        role: "teacher",
+      }
+    : null;
 const hopHeaders = [
   "connection",
   "keep-alive",
@@ -48,6 +59,34 @@ const server = http.createServer(async (req, res) => {
   if (url.host !== host) {
     res.writeHead(400);
     res.end();
+    return;
+  }
+  if (previewAccount && !["GET", "HEAD"].includes(req.method)) {
+    res.writeHead(405, { "Content-Type": "text/plain; charset=utf-8" });
+    res.end("本地测试账号仅用于界面预览，不能修改学校数据。");
+    return;
+  }
+  const previewProfile = previewAccount
+    ? async () =>
+        new Response(JSON.stringify({ account: previewAccount }), {
+          headers: { "Content-Type": "application/json" },
+        })
+    : undefined;
+  if (await openClawPreview(req, res, url, upstream, previewProfile)) return;
+  if (previewAccount && url.pathname.startsWith("/api/")) {
+    const isProfile = url.pathname === "/api/campus-social/me";
+    res.writeHead(isProfile ? 200 : 403, {
+      "Content-Type": "application/json",
+      "Cache-Control": "no-store",
+      "X-Preview-Source": "local-test-account",
+    });
+    res.end(
+      req.method === "HEAD"
+        ? undefined
+        : JSON.stringify(
+            isProfile ? { account: previewAccount } : { message: "本地测试账号未连接学校数据" },
+          ),
+    );
     return;
   }
   const localAsset = /^\/javascript\/(ui|darkveil)\//.test(url.pathname);
@@ -88,6 +127,10 @@ const server = http.createServer(async (req, res) => {
     return;
   }
   const headers = cleanHeaders(req.headers);
+  if (previewAccount) {
+    delete headers.cookie;
+    delete headers.authorization;
+  }
   headers.host = upstream.host;
   headers["accept-encoding"] = "identity";
   delete headers["x-forwarded-for"];
@@ -102,6 +145,7 @@ const server = http.createServer(async (req, res) => {
     { method: req.method, headers },
     (response) => {
       const out = cleanHeaders(response.headers);
+      if (previewAccount) delete out["set-cookie"];
       out["cache-control"] = "no-store";
       out["x-preview-source"] = "live-server";
       if (out.location?.startsWith(upstream.origin))
@@ -140,6 +184,8 @@ const server = http.createServer(async (req, res) => {
   req.on("aborted", () => remote.destroy());
   pipeline(req, remote, () => {});
 });
-server.listen(port, "127.0.0.1", () =>
-  console.log(`Preview: http://localhost:${port} — local frontend / ${upstream.origin} backend`),
-);
+server.listen(port, "127.0.0.1", () => {
+  console.log(`Preview: http://localhost:${port} — local frontend / ${upstream.origin} backend`);
+  if (previewAccount)
+    console.log("Local test teacher: production cookies stripped, APIs and writes blocked.");
+});

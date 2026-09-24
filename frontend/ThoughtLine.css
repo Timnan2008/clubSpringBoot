@@ -1,0 +1,113 @@
+.thought-line {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  color: var(--tl-color);
+  font-size: var(--tl-font);
+  line-height: 1.45;
+  max-width: 100%;
+}
+.thought-line__head {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+.thought-line__head:focus-visible {
+  outline: 2px solid #c6d9e2;
+  outline-offset: 5px;
+  border-radius: 5px;
+}
+.thought-line__glyph {
+  display: inline-flex;
+  flex: none;
+  color: var(--tl-glyph);
+}
+.thought-line__text {
+  animation: thought-line-settle var(--tl-settle) ease both;
+}
+.thought-line[data-working] .thought-line__text {
+  background: linear-gradient(100deg, currentColor 30%, #ededed 50%, currentColor 70%);
+  background-size: 250% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: #999;
+  -webkit-text-fill-color: transparent;
+  animation: thought-line-shimmer 1.8s linear infinite;
+}
+.thought-line__timer {
+  font-size: 0.85em;
+  opacity: 0.55;
+  font-variant-numeric: tabular-nums;
+}
+.thought-line__chevron {
+  opacity: 0.55;
+  transition: transform 180ms ease;
+}
+.thought-line[data-open] .thought-line__chevron {
+  transform: rotate(180deg);
+}
+.thought-line__trace {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--tl-settle) cubic-bezier(0.23, 1, 0.32, 1);
+}
+.thought-line__trace[data-open] {
+  grid-template-rows: 1fr;
+}
+.thought-line__fold {
+  min-height: 0;
+  overflow: hidden;
+}
+.thought-line__steps {
+  display: grid;
+  gap: 6px;
+  padding: 4px 0 6px 18px;
+  font-size: 0.875em;
+}
+.thought-line__step {
+  overflow-wrap: anywhere;
+}
+.thought-line__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+@keyframes thought-line-shimmer {
+  from {
+    background-position: 125% 0;
+  }
+  to {
+    background-position: -125% 0;
+  }
+}
+@keyframes thought-line-pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+@keyframes thought-line-settle {
+  from {
+    opacity: 0.3;
+    filter: blur(var(--tl-blur));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .thought-line *,
+  .thought-line[data-working] .thought-line__text {
+    animation: none;
+    transition: none;
+  }
+  .thought-line[data-working] .thought-line__text {
+    background: none;
+    -webkit-text-fill-color: currentColor;
+  }
+}

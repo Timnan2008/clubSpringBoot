@@ -1,0 +1,37 @@
+.blur-highlight {
+  --highlight-color: #7c3aed;
+  overflow-wrap: anywhere;
+}
+.blur-highlight__mark {
+  color: #f8f3ff;
+  background: linear-gradient(var(--highlight-color), var(--highlight-color)) no-repeat left
+    center / 0% 100%;
+  border-radius: 0.22em;
+  padding: 0.08em 0.15em;
+  margin-inline: 0.025em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+.blur-highlight[data-visible] .blur-highlight__mark {
+  animation: blur-highlight-sweep 1500ms cubic-bezier(0.22, 1, 0.36, 1)
+    var(--highlight-delay, 350ms) both;
+}
+@keyframes blur-highlight-sweep {
+  from {
+    background-size: 0% 100%;
+  }
+  to {
+    background-size: 100% 100%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .blur-highlight {
+    opacity: 1 !important;
+    filter: none !important;
+    transform: none !important;
+  }
+  .blur-highlight .blur-highlight__mark {
+    animation: none !important;
+    background-size: 100% 100%;
+  }
+}

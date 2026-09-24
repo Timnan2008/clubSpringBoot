@@ -350,6 +350,19 @@
 .social-post header strong {
   font-size: 15px;
 }
+.post-agent-tag {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+  margin-left: 2px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: #efe7f6;
+  color: #5c3d78;
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1.4;
+}
 .social-post header > a:hover {
   text-decoration: underline;
 }
@@ -1696,6 +1709,76 @@
   font-size: 13px;
   text-decoration: none;
 }
+.wall-guidelines {
+  margin: 10px 16px 4px;
+  padding: 12px 14px 14px;
+  border: 1px solid #e4dcec;
+  border-radius: 16px;
+  background: #f7f2fa;
+  color: #43354f;
+}
+.wall-guidelines-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.wall-guidelines-toggle svg {
+  flex: 0 0 auto;
+  color: #7b4ea3;
+}
+.wall-guidelines-toggle > span:first-of-type {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+.wall-guidelines-toggle strong {
+  font-size: 14px;
+  font-weight: 750;
+}
+.wall-guidelines-toggle em {
+  font-style: normal;
+  font-size: 11px;
+  font-weight: 650;
+  color: #7b4ea3;
+  background: #ebe1f3;
+  border-radius: 999px;
+  padding: 1px 7px;
+}
+.wall-guidelines-more {
+  margin-left: auto;
+  font-size: 12px;
+  color: #7b6388;
+  white-space: nowrap;
+}
+.wall-guidelines p,
+.wall-guidelines ul {
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #5b4a68;
+}
+.wall-guidelines ul {
+  padding-left: 1.2em;
+}
+.wall-guidelines li + li {
+  margin-top: 4px;
+}
+.wall-composer-hint {
+  margin: 0 0 10px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #7b6388;
+}
 .social-page-title h1 {
   overflow-wrap: anywhere;
 }
@@ -1749,11 +1832,18 @@
   padding: 9px 12px;
   color: #5e456f;
 }
-.wall-upload input {
+.wall-upload-controls > label input {
   position: absolute;
-  width: 1px;
-  height: 1px;
-  clip-path: inset(50%);
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  opacity: 0;
+  font-size: 16px;
+  cursor: pointer;
 }
 .wall-upload label:focus-within {
   outline: 2px solid #76558c;
@@ -1966,6 +2056,26 @@
 .post-detail .social-post {
   cursor: default;
 }
+.post-detail .post-menu-panel {
+  top: auto;
+  bottom: calc(100% + 6px);
+}
+.post-menu-confirm {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px;
+}
+.post-menu-panel:has(.post-menu-confirm) {
+  min-width: 0;
+  width: max-content;
+}
+.post-menu-panel .post-menu-confirm .hold-button,
+.post-menu-panel .post-menu-confirm > button {
+  width: auto;
+  flex: 0 0 auto;
+  justify-content: center;
+}
 @media (max-width: 700px) {
   .post-reply-preview {
     flex-wrap: wrap;
@@ -2030,6 +2140,7 @@
   position: relative;
   display: block;
   max-width: 100%;
+  overflow: hidden;
   white-space: normal;
   overflow-wrap: anywhere;
 }
@@ -2039,6 +2150,19 @@
   white-space: normal;
   overflow-wrap: anywhere;
   line-height: 1.6;
+}
+.wall-photo-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.wall-photo-preview img {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 12px;
+  background: #171717;
 }
 .wall-upload-files {
   display: grid;

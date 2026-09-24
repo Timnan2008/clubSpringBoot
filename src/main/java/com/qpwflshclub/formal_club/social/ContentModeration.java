@@ -19,7 +19,8 @@ import java.util.regex.Pattern;
  *   <li>环境变量 <code>CLUB_BLOCKED_WORDS</code>（英文逗号分隔，临时追加）</li>
  * </ol>
  *
- * <p>匹配规则：英文按「整词」匹配（避免 school 命中 fool 里的字母组合），中文/符号忽略空格和标点后按包含匹配。
+ * <p>匹配规则：英文按「整词」匹配（避免 school 命中 fool 里的字母组合），纯数字也按整词
+ * （避免 91 命中日期/学号），中文/符号忽略空格和标点后按包含匹配。
  * 命中后由 {@link com.qpwflshclub.formal_club.social.service.ModerationGate} 决定怎么罚。
  */
 public final class ContentModeration {
@@ -44,7 +45,8 @@ public final class ContentModeration {
 
     /**
      * 一条「编译好的」规则：
-     * 英文词用整词正则（避免 school 命中 fool 里的字母组合），中文词用「去掉空格标点后包含」。
+     * 英文词用整词正则（避免 school 命中 fool 里的字母组合），纯数字同样整词，
+     * 中文词用「去掉空格标点后包含」。
      * 编译只在词库变化时做一次，检查时不再重复编译正则 / 重复去标点。
      */
     private record Rule(String word, Pattern latinPattern, String compact) {}
@@ -111,6 +113,13 @@ public final class ContentModeration {
                 new Rule(
                     word,
                     Pattern.compile("(?<![a-z])" + Pattern.quote(word) + "(?![a-z])"),
+                    null
+                )
+            );
+            else if (word.matches("[0-9]+")) compiled.add(
+                new Rule(
+                    word,
+                    Pattern.compile("(?<![0-9])" + Pattern.quote(word) + "(?![0-9])"),
                     null
                 )
             );
@@ -202,7 +211,6 @@ public final class ContentModeration {
 
     /** 只要一句话的检查：命中就直接拒绝提交（旧行为，保留给不需要记过的场景）。 */
     public static void check(String... texts) {
-        ContentDiscipline.guard();
         if (texts == null) return;
         if (findAny(texts) != null) ContentDiscipline.violate();
     }
@@ -221,6 +229,10 @@ public final class ContentModeration {
             if (word.isBlank()) continue;
             if (word.chars().allMatch(c -> c < 128 && Character.isLetter(c))) {
                 result = Pattern.compile("(?i)(?<![A-Za-z])" + Pattern.quote(word) + "(?![A-Za-z])")
+                    .matcher(result)
+                    .replaceAll("*".repeat(word.length()));
+            } else if (word.chars().allMatch(Character::isDigit)) {
+                result = Pattern.compile("(?<![0-9])" + Pattern.quote(word) + "(?![0-9])")
                     .matcher(result)
                     .replaceAll("*".repeat(word.length()));
             } else result = result.replace(word, "*".repeat(Math.max(1, word.length())));

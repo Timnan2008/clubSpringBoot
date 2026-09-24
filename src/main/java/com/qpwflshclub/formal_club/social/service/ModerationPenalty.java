@@ -92,7 +92,7 @@ public class ModerationPenalty {
 
         public String message() {
             if (!banned()) return String.format(
-                "内容里出现了违禁词「%s」，已被拦截。这是第 %d 次提醒（前 2 次只提醒，第 3 次起会封禁账号）。" +
+                "内容里出现了违禁词「%s」，已被拦截。这是第 %d 次提醒（前 2 次只提醒，第 3 次起会限制发言和私信）。" +
                     " / Word \"%s\" blocked. Warning %d of 2.",
                 word,
                 count,
@@ -100,8 +100,8 @@ public class ModerationPenalty {
                 count
             );
             return String.format(
-                "内容里出现了违禁词「%s」，已被拦截。你的账号已被「%s」封禁 %d 天，解封时间：%s。" +
-                    " / Blocked. Suspended for %d day(s) until %s.",
+                "内容里出现了违禁词「%s」，已被拦截。你的账号已被「%s」禁言 %d 天（仅限制发言和私信），解封时间：%s。" +
+                    " / Blocked. Muted for %d day(s) until %s.",
                 word,
                 WARDEN_NAME,
                 banDays,

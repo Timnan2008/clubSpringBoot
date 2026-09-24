@@ -131,6 +131,28 @@ public class JoinRequests {
         return next;
     }
 
+    public synchronized void reopen(int club, String id) throws IOException {
+        var entries = read(club);
+        var e = entries
+            .stream()
+            .filter(x -> x.id().equals(id))
+            .findFirst()
+            .orElseThrow(() -> WorkspaceStore.bad("申请不存在"));
+        if ("pending".equals(e.status())) return;
+        var next = new Entry(
+            e.id(),
+            e.account(),
+            e.name(),
+            e.nameEn(),
+            e.note(),
+            "pending",
+            e.createdAt(),
+            ""
+        );
+        entries.set(entries.indexOf(e), next);
+        write(club, entries);
+    }
+
     public synchronized void removeAccount(int club, String id) throws IOException {
         var rows = read(club);
         rows.removeIf(v -> v.account().equals(id));

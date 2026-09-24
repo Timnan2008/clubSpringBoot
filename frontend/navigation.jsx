@@ -1,5 +1,6 @@
+import "./auto-textarea.mjs";
 import Notifications from "./Notifications";
-import PersonalWelcome from "./PersonalWelcome";
+import { canUseOpenClaw } from "./openclaw-access.mjs";
 import React, { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import StaggeredMenu from "./StaggeredMenu";
@@ -30,7 +31,18 @@ function HomeMenu({ language, initialItems, socialItems }) {
           !(["president", "teacher", "admin"].includes(me.account?.role) || me.offices?.length)
         )
           return;
-        setItems((current) => withWorkspace(current, language));
+        setItems((current) => {
+          const next = withWorkspace(current, language);
+          return canUseOpenClaw(me.account) && !next.some((item) => item.link === "/page/openclaw")
+            ? [
+                ...next,
+                {
+                  label: "Agent Ollie",
+                  link: "/page/openclaw",
+                },
+              ]
+            : next;
+        });
       })
       .catch(() => {});
     return () => controller.abort();
@@ -48,9 +60,6 @@ function HomeMenu({ language, initialItems, socialItems }) {
 
 const navbar = document.querySelector(".navbar");
 if (navbar) {
-  const welcomeHost = document.createElement("div");
-  document.body.append(welcomeHost);
-  createRoot(welcomeHost).render(<PersonalWelcome />);
   const language = navbar.dataset.language || "zh",
     en = language === "en";
   const items = [

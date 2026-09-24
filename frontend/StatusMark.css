@@ -1,20 +1,18 @@
 .status-mark {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: calc(var(--sm-size) * 0.5);
   min-width: 0;
-  color: var(--sm-color);
   vertical-align: middle;
-  font-size: var(--sm-font);
-  line-height: 1.4;
+  line-height: 1;
+  --sm-label-o: 0.65;
 }
 .status-mark__glyph {
-  width: var(--sm-size);
-  height: var(--sm-size);
   flex: none;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  transition: color 200ms;
+  overflow: visible;
+  color: var(--sm-color);
+  transition: color 200ms ease;
 }
 .status-mark[data-status="done"] .status-mark__glyph {
   color: var(--sm-done);
@@ -22,37 +20,104 @@
 .status-mark[data-status="failed"] .status-mark__glyph {
   color: var(--sm-error);
 }
-.status-mark__wash {
+.status-mark__track {
   fill: currentColor;
+  stroke: currentColor;
+  stroke-width: var(--sm-stroke);
+  fill-opacity: 0;
+  stroke-opacity: 0;
+  transition:
+    fill-opacity 180ms,
+    stroke-opacity 200ms;
+}
+.status-mark[data-status="running"] .status-mark__track {
+  stroke-opacity: 0.2;
+}
+.status-mark[data-status="done"] .status-mark__track,
+.status-mark[data-status="failed"] .status-mark__track {
   fill-opacity: var(--sm-fill);
-  stroke-opacity: 0.15;
 }
 .status-mark__ring {
-  transition:
-    stroke-dasharray 240ms,
-    opacity 240ms;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: var(--sm-stroke);
+  stroke-linecap: round;
+  opacity: 0.55;
+  transition: opacity 200ms;
 }
-.status-mark[data-spin] .status-mark__glyph {
-  animation: sm-spin var(--sm-spin) linear infinite;
+.status-mark[data-status="running"] .status-mark__ring,
+.status-mark[data-status="done"] .status-mark__ring,
+.status-mark[data-status="failed"] .status-mark__ring {
+  opacity: 1;
 }
 .status-mark__check,
 .status-mark__cross {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: var(--sm-stroke);
+  stroke-linecap: round;
+  stroke-linejoin: round;
   stroke-dasharray: 1 2;
-  stroke-dashoffset: 1;
+  stroke-dashoffset: 1.05;
   opacity: 0;
   transition:
-    stroke-dashoffset var(--sm-draw) ease var(--sm-delay),
-    opacity 120ms;
+    stroke-dashoffset 160ms ease,
+    opacity 0ms linear 160ms;
 }
 .status-mark[data-status="done"] .status-mark__check,
 .status-mark[data-status="failed"] .status-mark__cross,
 .status-mark[data-status="cancelled"] .status-mark__cross {
-  opacity: 1;
   stroke-dashoffset: 0;
+  opacity: 1;
+  transition:
+    stroke-dashoffset var(--sm-draw) cubic-bezier(0.23, 1, 0.32, 1) 120ms,
+    opacity 0ms linear 120ms;
+}
+.status-mark__label {
+  position: relative;
+  color: var(--sm-color);
+  font-size: var(--sm-font);
+  line-height: 1.4;
+  opacity: var(--sm-label-o);
+  transition: opacity 200ms;
+  overflow-wrap: anywhere;
+}
+.status-mark[data-status="running"],
+.status-mark[data-status="failed"] {
+  --sm-label-o: 1;
+}
+.status-mark[data-status="done"] {
+  --sm-label-o: 0.6;
+}
+.status-mark[data-status="cancelled"] {
+  --sm-label-o: 0.55;
+}
+.status-mark__strike {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: max(1px, calc(var(--sm-font) / 14));
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left center;
+  translate: 0 -50%;
+  pointer-events: none;
+  transition: transform 160ms ease;
+}
+.status-mark[data-status="done"][data-strike] .status-mark__strike {
+  transform: scaleX(1);
+  transition: transform 280ms cubic-bezier(0.23, 1, 0.32, 1) var(--sm-strike-delay);
 }
 .status-mark[data-status="done"][data-strike] .status-mark__label {
   text-decoration: line-through;
-  opacity: 0.6;
+  text-decoration-color: transparent;
+  animation: sm-wrap-strike 1ms step-end calc(var(--sm-strike-delay) + 280ms) forwards;
+}
+@keyframes sm-wrap-strike {
+  to {
+    text-decoration-color: currentColor;
+  }
 }
 .status-mark__sr {
   position: absolute;
@@ -62,16 +127,29 @@
   clip-path: inset(50%);
   white-space: nowrap;
 }
-@keyframes sm-spin {
+@media (prefers-reduced-motion: reduce) {
+  .status-mark * {
+    transition: none !important;
+    animation: none !important;
+  }
+  .status-mark[data-status="done"][data-strike] .status-mark__label {
+    text-decoration-color: currentColor;
+  }
+  .status-mark__check,
+  .status-mark__cross {
+    stroke-dashoffset: 0;
+  }
+}
+.status-mark[data-status="done"][data-strike] .status-mark__strike {
+  animation: sm-strike-settle 1ms step-end calc(var(--sm-strike-delay) + 280ms) forwards;
+}
+@keyframes sm-strike-settle {
   to {
-    rotate: 360deg;
+    opacity: 0;
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .status-mark[data-spin] .status-mark__glyph {
-    animation: none;
-  }
-  .status-mark * {
-    transition: none;
+  .status-mark[data-status="done"] .status-mark__strike {
+    display: none;
   }
 }

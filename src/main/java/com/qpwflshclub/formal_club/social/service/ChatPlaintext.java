@@ -15,7 +15,8 @@ import org.springframework.stereotype.Service;
  * <p>背景：私信是端到端加密的（ECDH P-256 + HKDF-SHA256 + AES-GCM，payload 形如
  * <code>e2ee:v1:{...}</code>），服务器默认只看到密文，所以「发违禁词不会被拦」。
  * 但服务器的密钥托管（{@link MessageRecovery}）本来就保存着账号的加密私钥（用户自己也能取回），
- * 因此这里用同样的算法把新消息解出来，交给 {@link ModerationGate} 检查。
+ * 因此这里用同样的算法把新消息解出来，交给 {@link ModerationGate} 检查；
+ * {@link ChatArchive} 再把解开的正文用本机密钥加密后写入 MySQL，不落明文盘、也不走网页。
  *
  * <p>算法必须和前端 frontend/message-crypto.js 完全一致：
  * <pre>
@@ -48,7 +49,7 @@ public class ChatPlaintext {
     }
 
     /**
-     * 尝试解出私信明文（只为违禁词检查，不落盘、不外传）。
+     * 尝试解出私信明文。发送方或接收方任一方的托管私钥即可（ECDH 对称）。
      *
      * @return 明文；解不开（密钥缺失、格式不对、被篡改）返回 null
      */
@@ -63,11 +64,23 @@ public class ChatPlaintext {
             byte[] ciphertext = Base64.getDecoder().decode(e.path("ciphertext").asText());
             if (iv.length != 12 || ciphertext.length < 17 || ciphertext.length > 11016) return null;
 
-            var sender = recovery.get(senderId); // 发送方身份（含私钥）
-            var recipient = keys.get(recipientId); // 接收方公钥
-            if (sender == null || recipient == null) return null;
-            if (!fingerprintOf(sender.publicKey()).equals(senderFingerprint)) return null;
-            if (!recipient.fingerprint().equals(recipientFingerprint)) return null;
+            var senderInfo = keys.get(senderId);
+            var recipientInfo = keys.get(recipientId);
+            if (senderInfo == null || recipientInfo == null) return null;
+            if (!senderInfo.fingerprint().equals(senderFingerprint)) return null;
+            if (!recipientInfo.fingerprint().equals(recipientFingerprint)) return null;
+
+            var sender = recovery.get(senderId);
+            var recipient = recovery.get(recipientId);
+            byte[] seed = null;
+            if (
+                sender != null && fingerprintOf(sender.publicKey()).equals(senderFingerprint)
+            ) seed = sharedSecret(sender.privateKey(), recipientInfo.publicKey());
+            else if (
+                recipient != null &&
+                fingerprintOf(recipient.publicKey()).equals(recipientFingerprint)
+            ) seed = sharedSecret(recipient.privateKey(), senderInfo.publicKey());
+            if (seed == null) return null;
 
             byte[] info = (
                 "qpwfl-message-v1|" +
@@ -79,7 +92,6 @@ public class ChatPlaintext {
                 "|" +
                 recipientFingerprint
             ).getBytes(StandardCharsets.UTF_8);
-            byte[] seed = sharedSecret(sender.privateKey(), recipient.publicKey());
             byte[] key = hkdfSha256(seed, iv, info, 32);
 
             Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");

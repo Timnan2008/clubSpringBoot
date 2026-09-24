@@ -19,7 +19,7 @@
 .appearance-banner > img {
   width: 100%;
   height: 150px;
-  object-fit: cover;
+  object-fit: contain;
 }
 .appearance-banner-actions {
   display: flex;

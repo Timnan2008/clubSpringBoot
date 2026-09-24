@@ -142,7 +142,15 @@ public record BookingPolicy(
     }
 
     public List<LocalTime> slotsFor(DayOfWeek day) {
-        return expand(periodsFor(day));
+        return expand(periodsFor(day))
+            .stream()
+            .filter(
+                start ->
+                    day != DayOfWeek.THURSDAY ||
+                    !start.isBefore(LocalTime.of(13, 0)) ||
+                    !start.plusMinutes(slotMinutes).isAfter(LocalTime.of(11, 30))
+            )
+            .toList();
     }
 
     public List<LocalTime> slots() {

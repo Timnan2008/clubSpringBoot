@@ -1,5 +1,30 @@
 export const MAX_ATTACHMENTS = 4;
 export const MAX_ATTACHMENT_BYTES = 40 * 1024 * 1024;
+const ALLOWED_ATTACHMENT = /\.(jpe?g|png|mp4|mov|pdf|txt)$/i;
+
+export function attachmentAllowed(file) {
+  return ALLOWED_ATTACHMENT.test(file?.name || "");
+}
+
+let pickerGuardUntil = 0;
+
+export function armAttachmentPicker() {
+  pickerGuardUntil = Date.now() + 4000;
+  if (typeof window === "undefined") return;
+  const release = () => {
+    window.removeEventListener("focus", release);
+    pickerGuardUntil = Date.now() + 700;
+  };
+  window.addEventListener("focus", release);
+}
+
+export function noteAttachmentPickerClosed() {
+  pickerGuardUntil = Date.now() + 700;
+}
+
+export function attachmentPickerArmed() {
+  return Date.now() < pickerGuardUntil;
+}
 export function appendAttachments(existing, selected) {
   const result = [...existing];
   for (const file of selected) {

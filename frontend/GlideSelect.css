@@ -86,6 +86,11 @@
 .glide-select__menu[data-align="right"] {
   right: 0;
 }
+.glide-select__header {
+  margin-bottom: 4px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid color-mix(in srgb, var(--gs-text) 12%, transparent);
+}
 .glide-select__list {
   position: relative;
   display: grid;
@@ -113,8 +118,31 @@
   cursor: pointer;
   user-select: none;
 }
-.glide-select__name {
+.glide-select__copy {
   flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+}
+.glide-select__name {
+  min-width: 0;
+}
+.glide-select__badge {
+  align-self: flex-start;
+  font-size: 10px;
+  line-height: 1.4;
+  padding: 0 6px;
+  border-radius: 999px;
+  color: #c7b27a;
+  background: color-mix(in srgb, #c7b27a 16%, transparent);
+}
+.glide-select__detail {
+  font-size: 11px;
+  line-height: 1.35;
+  opacity: 0.62;
+  white-space: normal;
 }
 .glide-select__option small {
   opacity: 0.55;

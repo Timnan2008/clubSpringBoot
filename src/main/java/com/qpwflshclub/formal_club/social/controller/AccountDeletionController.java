@@ -31,9 +31,6 @@ public class AccountDeletionController {
     LockedBadges lockedBadges;
 
     @Autowired
-    PersonalWelcomeStore personalWelcome;
-
-    @Autowired
     SchoolAccounts accounts;
 
     @Autowired
@@ -255,7 +252,6 @@ public class AccountDeletionController {
         profiles.removeAccount(id);
         if (penalties != null) penalties.removeAccount(id);
         gifts.removeAccount(id);
-        personalWelcome.removeAccount(id);
         lockedBadges.removeAccount(id);
         Set<Long> suggestionIds = new HashSet<>();
         for (String value : audit.owned(id, "suggestion"))

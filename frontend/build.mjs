@@ -1,5 +1,6 @@
 import { build } from "esbuild";
-import { existsSync } from "node:fs";
+import { existsSync, readdirSync, rmSync } from "node:fs";
+import { resolve } from "node:path";
 import { updateModulePreloads } from "./build/preloads.mjs";
 const shared = {
   bundle: true,
@@ -34,6 +35,7 @@ const uiBuild = await build({
     "frontend/catalog.jsx",
     "frontend/calendar.jsx",
     "frontend/booking.jsx",
+    "frontend/openclaw.jsx",
   ],
   outdir: "src/main/resources/static/javascript/ui",
 });
@@ -53,3 +55,13 @@ await build({
 
 // Templates preload shared chunks without changing the lazy-loading boundaries.
 await updateModulePreloads("src/main/resources/templates", uiBuild.metafile.outputs);
+
+// Only delete obsolete generated chunks after a successful build and template update.
+const generatedChunks = "src/main/resources/static/javascript/ui/chunks";
+const currentOutputs = new Set(Object.keys(uiBuild.metafile.outputs).map((path) => resolve(path)));
+if (existsSync(generatedChunks)) {
+  for (const name of readdirSync(generatedChunks)) {
+    const path = `${generatedChunks}/${name}`;
+    if (/\.(js|css|map)$/.test(name) && !currentOutputs.has(resolve(path))) rmSync(path);
+  }
+}

@@ -9,6 +9,7 @@ import AdminBadge from "./AdminBadge";
 import Avatar from "./Avatar";
 import PostMedia from "./PostMedia";
 import { tr, tx, en } from "./language";
+import { attachmentPickerArmed } from "./attachment-selection.mjs";
 import { postName } from "./person-names.mjs";
 import "./social.css";
 import "./ConversationRefinements.css";
@@ -94,15 +95,21 @@ export default function Post({
     autoScrollUntil = useRef(0);
   const reduced = useReducedMotion(),
     menuRef = useRef(null);
-  const [menu, setMenu] = useState(false);
+  const [menu, setMenu] = useState(false),
+    [confirm, setConfirm] = useState(false);
   useEffect(() => {
     if (!menu) return;
     const close = (e) => {
-        if (!menuRef.current?.contains(e.target)) setMenu(false);
+        if (attachmentPickerArmed()) return;
+        if (!menuRef.current?.contains(e.target)) {
+          setMenu(false);
+          setConfirm(false);
+        }
       },
       key = (e) => {
         if (e.key === "Escape") {
           setMenu(false);
+          setConfirm(false);
           menuRef.current?.querySelector("button")?.focus();
         }
       };
@@ -117,8 +124,7 @@ export default function Post({
     [replyDrafts, setReplyDrafts] = useState({}),
     [replyMentions, setReplyMentions] = useState({}),
     [busy, setBusy] = useState(false),
-    [error, setError] = useState(""),
-    [confirm, setConfirm] = useState(false);
+    [error, setError] = useState("");
   const lock = useRef(false);
   const postElement = useRef(null),
     viewWrite = useRef(write);
@@ -354,6 +360,7 @@ export default function Post({
       onClick={
         !detail
           ? (e) => {
+              if (attachmentPickerArmed()) return;
               if (
                 !e.target.closest(
                   "a,button,input,textarea,video,select,.reply-composer-transition,.social-replies,.social-confirm,.post-reply-composer,.mention-composer,.mention-options",
@@ -391,6 +398,9 @@ export default function Post({
           >
             <strong>{post.anonymous ? tr("匿名同学") : personName(post.author)}</strong>
           </a>
+          {post.agent && !post.anonymous && (
+            <span className="post-agent-tag">{tx("系统 · 助手代发", "System · Assistant")}</span>
+          )}
           <span className="social-handle">
             {post.anonymous ? (
               tr("匿名发布")
@@ -411,63 +421,92 @@ export default function Post({
                   (post.text.trim() || tx("附件", "attachment")).slice(0, 15)
                 }
                 aria-expanded={menu}
-                onClick={() => setMenu((v) => !v)}
+                onClick={() =>
+                  setMenu((open) => {
+                    if (open) setConfirm(false);
+                    return !open;
+                  })
+                }
               >
                 <DotsThree size={24} />
               </button>
               {menu && (
                 <div className="post-menu-panel">
-                  {post.own && !post.anonymous && (
-                    <button
-                      disabled={busy}
-                      onClick={() =>
-                        act(async () => {
-                          await write("/posts/" + post.id + "/pin", "PUT", {
-                            scope: "profile",
-                            pinned: !post.profilePinned,
-                          });
-                          setMenu(false);
-                          await (onPin || onLike)?.(post.id);
-                        })
-                      }
+                  {confirm ? (
+                    <div
+                      className="post-menu-confirm"
+                      role="group"
+                      aria-label={tr("删除这条帖子及其回复？")}
                     >
-                      <PushPin size={18} />
-                      {post.profilePinned
-                        ? tx("取消主页置顶", "Unpin from profile")
-                        : tx("置顶到个人主页", "Pin to profile")}
-                    </button>
+                      <HoldButton
+                        size="sm"
+                        radius={9}
+                        disabled={busy}
+                        onHold={() =>
+                          act(async () => {
+                            await write("/posts/" + post.id, "DELETE");
+                            onRemove(post.id);
+                          })
+                        }
+                      >
+                        {tx("长按删除", "Hold to delete")}
+                      </HoldButton>
+                      <button type="button" onClick={() => setConfirm(false)}>
+                        {tr("取消")}
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      {post.own && !post.anonymous && (
+                        <button
+                          disabled={busy}
+                          onClick={() =>
+                            act(async () => {
+                              await write("/posts/" + post.id + "/pin", "PUT", {
+                                scope: "profile",
+                                pinned: !post.profilePinned,
+                              });
+                              setMenu(false);
+                              await (onPin || onLike)?.(post.id);
+                            })
+                          }
+                        >
+                          <PushPin size={18} />
+                          {post.profilePinned
+                            ? tx("取消主页置顶", "Unpin from profile")
+                            : tx("置顶到个人主页", "Pin to profile")}
+                        </button>
+                      )}
+                      {profile.admin && (
+                        <button
+                          disabled={busy}
+                          onClick={() =>
+                            act(async () => {
+                              await write("/posts/" + post.id + "/pin", "PUT", {
+                                scope: "wall",
+                                pinned: !post.wallPinned,
+                              });
+                              setMenu(false);
+                              await (onPin || onLike)?.(post.id);
+                            })
+                          }
+                        >
+                          <PushPin size={18} />
+                          {post.wallPinned
+                            ? tx("取消校园墙置顶", "Unpin from campus wall")
+                            : tx("置顶到校园墙", "Pin to campus wall")}
+                        </button>
+                      )}
+                      <button
+                        className="post-menu-delete"
+                        disabled={busy}
+                        onClick={() => setConfirm(true)}
+                      >
+                        <Trash size={18} />
+                        {tx("删除帖子", "Delete post")}
+                      </button>
+                    </>
                   )}
-                  {profile.admin && (
-                    <button
-                      disabled={busy}
-                      onClick={() =>
-                        act(async () => {
-                          await write("/posts/" + post.id + "/pin", "PUT", {
-                            scope: "wall",
-                            pinned: !post.wallPinned,
-                          });
-                          setMenu(false);
-                          await (onPin || onLike)?.(post.id);
-                        })
-                      }
-                    >
-                      <PushPin size={18} />
-                      {post.wallPinned
-                        ? tx("取消校园墙置顶", "Unpin from campus wall")
-                        : tx("置顶到校园墙", "Pin to campus wall")}
-                    </button>
-                  )}
-                  <button
-                    className="post-menu-delete"
-                    disabled={busy}
-                    onClick={() => {
-                      setMenu(false);
-                      setConfirm(true);
-                    }}
-                  >
-                    <Trash size={18} />
-                    {tx("删除帖子", "Delete post")}
-                  </button>
                 </div>
               )}
             </div>
@@ -529,28 +568,6 @@ export default function Post({
             </a>
           )}
         </div>
-        {confirm && (
-          <div
-            className="social-confirm social-confirm--compact"
-            role="group"
-            aria-label={tr("删除这条帖子及其回复？")}
-          >
-            <HoldButton
-              size="sm"
-              radius={9}
-              disabled={busy}
-              onHold={() =>
-                act(async () => {
-                  await write("/posts/" + post.id, "DELETE");
-                  onRemove(post.id);
-                })
-              }
-            >
-              {tx("长按删除", "Hold to delete")}
-            </HoldButton>
-            <button onClick={() => setConfirm(false)}>{tr("取消")}</button>
-          </div>
-        )}
         {!replyOpen && <ErrorMessage>{error}</ErrorMessage>}
         <AnimatePresence initial={false}>
           {replyOpen && profile.canPost && (!detail || !replyTarget) && (

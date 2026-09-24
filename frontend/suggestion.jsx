@@ -115,9 +115,7 @@ function Suggestions() {
       });
       const d = await r.json();
       if (!r.ok || d.code !== 200)
-        throw Error(
-          d.message || tx("提交失败，请重试。", "Unable to submit. Please try again."),
-        );
+        throw Error(d.message || tx("提交失败，请重试。", "Unable to submit. Please try again."));
       try {
         localStorage.setItem(
           "wfl_my_ideas_v2_" + account.id,
@@ -159,11 +157,7 @@ function Suggestions() {
   ]
     .sort((a, b) => Number(b.id) - Number(a.id))
     .filter((p) =>
-      [
-        p.context,
-        p.name,
-        categories.find((c) => c[0] === p.title)?.[1],
-      ].some((v) =>
+      [p.context, p.name, categories.find((c) => c[0] === p.title)?.[1]].some((v) =>
         String(v || "")
           .normalize("NFKC")
           .toLowerCase()
@@ -361,8 +355,7 @@ function Suggestions() {
                           </header>
                           <p>{p.context}</p>
                           <footer>
-                            {(en ? p.nameEn || p.name : p.name) ||
-                              tx("校园成员", "School member")}
+                            {(en ? p.nameEn || p.name : p.name) || tx("校园成员", "School member")}
                           </footer>
                         </article>
                       ))

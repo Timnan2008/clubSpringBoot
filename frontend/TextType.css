@@ -1,0 +1,21 @@
+.text-type {
+  display: inline-block;
+  white-space: pre-wrap;
+}
+.text-type__cursor {
+  margin-left: 0.12em;
+  display: inline-block;
+  font-weight: 300;
+  color: #c4b5dd;
+}
+.text-type__cursor--hidden {
+  visibility: hidden;
+}
+.text-type__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

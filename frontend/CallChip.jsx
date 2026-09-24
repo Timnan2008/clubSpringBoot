@@ -8,9 +8,7 @@ import {
   Search01Icon,
   Tick02Icon,
 } from "@hugeicons/core-free-icons";
-
 import "./CallChip.css";
-import { tx } from "./language";
 
 const HOLD_AT = 0.9;
 const SHAKE = [0, -1, 1, -0.66, 0.66, -0.33, 0];
@@ -20,13 +18,7 @@ const ICONS = {
   search: Search01Icon,
   edit: PencilEdit01Icon,
 };
-const WORDS = {
-  running: tx("进行中", "running"),
-  done: tx("完成", "done"),
-  error: tx("失败", "failed"),
-  idle: tx("等待中", "queued"),
-};
-
+const WORDS = { running: "running", done: "done", error: "failed", idle: "queued" };
 const fmt = (ms) => (ms < 10000 ? `${Math.round(ms)} ms` : `${(ms / 1000).toFixed(1)} s`);
 const reduceMotion = () => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
 const glyphOf = (s) => (s === "done" ? "check" : s === "error" ? "retry" : "tool");
@@ -34,10 +26,9 @@ const glyphOf = (s) => (s === "done" ? "check" : s === "error" ? "retry" : "tool
 export default function CallChip({
   icon = "terminal",
   name = "bash",
-  argument = "npm test",
+  argument = "",
   status = "running",
   expectedMs = 2500,
-  progress,
   size = 34,
   radius = 10,
   color = "currentColor",
@@ -49,6 +40,9 @@ export default function CallChip({
   washOpacity = 0.14,
   shake = 6,
   showTimer = true,
+  elapsedMs = 0,
+  startedAt = 0,
+  paused = false,
   onRetry,
   className = "",
   style,
@@ -83,11 +77,8 @@ export default function CallChip({
   const apply = (s, animate) => {
     if (s === "running") {
       shakeAnim.current?.cancel();
-      if (Number.isFinite(progress)) setFraction(Math.max(0, Math.min(1, progress)), true);
-      else {
-        setFraction(0, true);
-        if (animate) setFraction(HOLD_AT, false);
-      }
+      setFraction(0, true);
+      if (animate) setFraction(HOLD_AT, false);
     } else if (s === "done") {
       setFraction(1, !animate);
     } else if (s === "error") {
@@ -114,49 +105,46 @@ export default function CallChip({
       mountedRef.current = false;
       shakeAnim.current?.cancel();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   useLayoutEffect(() => {
     if (mountedRef.current) apply(status, true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, progress]);
+  }, [status]);
 
   useEffect(() => {
     const write = (ms) => {
-      clock.current.ms = ms;
-      if (timerRef.current) timerRef.current.textContent = fmt(ms);
+      const shown = Math.max(0, ms);
+      clock.current.ms = shown;
+      if (timerRef.current) timerRef.current.textContent = shown ? fmt(shown) : "—";
     };
-    if (status !== "running") {
-      if ((status === "idle" || !clock.current.ms) && timerRef.current)
-        timerRef.current.textContent = "—";
+    if (paused || status !== "running") {
+      write(elapsedMs || 0);
       return undefined;
     }
-    const startedAt = performance.now();
-    write(0);
+    const origin = startedAt || Date.now();
+    write(Date.now() - origin);
     if (reduceMotion()) {
-      const id = setInterval(() => write(performance.now() - startedAt), 100);
+      const id = setInterval(() => write(Date.now() - origin), 100);
       return () => {
         clearInterval(id);
-        write(performance.now() - startedAt);
+        write(Date.now() - origin);
       };
     }
     let raf = 0;
     const tick = () => {
-      write(performance.now() - startedAt);
+      write(Date.now() - origin);
       raf = requestAnimationFrame(tick);
     };
     tick();
     return () => {
       cancelAnimationFrame(raf);
-      write(performance.now() - startedAt);
+      write(Date.now() - origin);
     };
-  }, [status]);
+  }, [status, elapsedMs, startedAt, paused]);
   useEffect(() => {
     const ms = showTimer && clock.current.ms ? Math.round(clock.current.ms) : 0;
     const when =
       status === "done" && ms ? ` in ${ms} ms` : status === "error" && ms ? ` after ${ms} ms` : "";
     setAnnounce(`${name} ${argument}, ${WORDS[status] ?? status}${when}`);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status]);
 
   const font = Math.max(11, Math.round(size * 0.38));
@@ -171,7 +159,6 @@ export default function CallChip({
       role="status"
       aria-busy={status === "running" || undefined}
       data-status={status}
-      data-indeterminate={status === "running" && !Number.isFinite(progress) ? "" : undefined}
       data-mounted={mounted ? "" : undefined}
       data-pressed={pressed ? "" : undefined}
       className={`call-chip${className ? ` ${className}` : ""}`}
@@ -212,14 +199,14 @@ export default function CallChip({
       </span>
       {showTimer ? (
         <span ref={timerRef} className="call-chip__timer" aria-hidden="true">
-          0 ms
+          {elapsedMs ? fmt(elapsedMs) : status === "running" ? "0 ms" : "—"}
         </span>
       ) : null}
       {status === "error" && onRetry ? (
         <button
           type="button"
           className="call-chip__retry"
-          aria-label={tx("重试 ", "Retry ") + name + " " + argument}
+          aria-label={`Retry ${name} ${argument}`}
           onClick={() => onRetry()}
           onPointerDown={() => setPressed(true)}
           onPointerUp={() => setPressed(false)}

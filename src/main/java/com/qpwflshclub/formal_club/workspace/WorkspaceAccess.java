@@ -23,6 +23,22 @@ public class WorkspaceAccess {
 
     private final IUserService users;
     private final ClubRepository clubs;
+    private final ThreadLocal<Boolean> agentWide = ThreadLocal.withInitial(() -> Boolean.FALSE);
+
+    /** Teachers and super admins see every club only while an agent tool call is on this thread. */
+    public void beginAgentRead(UserBase user) {
+        if (wide(user)) agentWide.set(Boolean.TRUE);
+    }
+
+    public void endAgentRead() {
+        agentWide.remove();
+    }
+
+    private boolean wide(UserBase user) {
+        if (user == null) return false;
+        if (user instanceof Admin || user instanceof Teacher) return true;
+        return user.getUserRight() >= 3;
+    }
 
     public WorkspaceAccess(IUserService users, ClubRepository clubs) {
         this.users = users;
@@ -65,7 +81,9 @@ public class WorkspaceAccess {
     }
 
     public List<Club> clubs(UserBase user) {
-        if (user instanceof Admin) return clubs.findAll();
+        if (
+            user instanceof Admin || (Boolean.TRUE.equals(agentWide.get()) && wide(user))
+        ) return clubs.findAll();
         Map<Integer, Club> result = new LinkedHashMap<>();
         if (user instanceof ClubPresident p && p.getMainClub() != null) result.put(
             p.getMainClub().getId(),

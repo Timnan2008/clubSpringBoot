@@ -126,4 +126,17 @@ class BookingPolicyTest {
             policy.weekStart(policy.nextWeek(saturdayOpen).plusWeeks(1))
         );
     }
+
+    @Test
+    void thursdayLunchIsClubOnlyOnBothCalendarAndSubmission() {
+        var p = policy(null);
+        assertThat(p.slotsFor(DayOfWeek.THURSDAY))
+            .hasSize(6)
+            .allMatch(t -> !t.isBefore(LocalTime.of(13, 0)));
+        long lunch = start(LocalDate.of(2026, 9, 24), "11:30");
+        assertThat(p.validSlot(lunch, lunch + 1200)).isFalse();
+        long evening = start(LocalDate.of(2026, 9, 24), "16:30");
+        assertThat(p.validSlot(evening, evening + 1200)).isTrue();
+        assertThat(p.slotsFor(DayOfWeek.WEDNESDAY)).contains(LocalTime.of(11, 30));
+    }
 }

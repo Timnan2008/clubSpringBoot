@@ -54,8 +54,20 @@ class ModerationTest {
 
     @Test
     void packagedWordListIsLoaded() {
-        assertThat(ContentModeration.words()).isNotEmpty();
-        assertThat(ContentModeration.words()).contains("傻逼");
+        assertThat(ContentModeration.words()).hasSizeGreaterThan(200);
+        assertThat(ContentModeration.words()).contains("傻逼", "代考", "wdnmd", "porn", "91", "78");
+    }
+
+    @Test
+    void numericSlangMatchesWholeNumbersOnly() {
+        ContentModeration.reload();
+        assertThat(ContentModeration.find("去看91")).isEqualTo("91");
+        assertThat(ContentModeration.find("发个78")).isEqualTo("78");
+        assertThat(ContentModeration.blocked("91porn")).isTrue();
+        assertThat(ContentModeration.find("20260918")).isNull();
+        assertThat(ContentModeration.find("学号20260104")).isNull();
+        assertThat(ContentModeration.find("1878年")).isNull();
+        assertThat(ContentModeration.mask("去看91 和 20260918")).isEqualTo("去看** 和 20260918");
     }
 
     @Test
@@ -108,7 +120,7 @@ class ModerationTest {
         assertThat(third.count()).isEqualTo(3);
         assertThat(third.banDays()).isEqualTo(1);
         assertThat(third.banned()).isTrue();
-        assertThat(third.message()).contains("网管").contains("封禁 1 天");
+        assertThat(third.message()).contains("网管").contains("禁言 1 天");
         assertThat(penalty.banned(A)).isTrue();
         assertThat(penalty.remainingMillis(A)).isPositive();
     }

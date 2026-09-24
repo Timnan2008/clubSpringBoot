@@ -1,7 +1,8 @@
+import "./auto-textarea.mjs";
 import Notifications from "./Notifications";
+import { canUseOpenClaw } from "./openclaw-access.mjs";
 import { MagnifyingGlass } from "@phosphor-icons/react";
 import TeacherDayWelcome from "./TeacherDay";
-import PersonalWelcome from "./PersonalWelcome";
 import { tr, changeLanguage, en } from "./language";
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
@@ -112,6 +113,7 @@ export default function CardNav({
         [en ? "All clubs" : "全部社团", "/page/search"],
         [tr("我的社团"), "/page/my-clubs"],
         [tr("羽毛球场预约"), "/page/booking"],
+        ...(canUseOpenClaw(account) ? [["Agent Ollie", "/page/openclaw"]] : []),
         ...(account &&
         (["president", "teacher", "admin"].includes(account.role) ||
           hasOffice ||
@@ -136,26 +138,29 @@ export default function CardNav({
       box = content.current;
     const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
     const animate = () => {
-      gsap.killTweensOf([nav, ...box.children]);
+      const cards = [...box.children];
+      gsap.killTweensOf([nav, ...cards]);
       gsap.to(nav, {
         height: open ? 60 + box.scrollHeight : 60,
         duration: reduced ? 0 : 0.4,
         ease: "power3.out",
       });
-      gsap.fromTo(
-        box.children,
-        {
-          y: open ? 30 : 0,
-          opacity: open ? 0 : 1,
-        },
-        {
-          y: open ? 0 : 12,
-          opacity: open ? 1 : 0,
-          duration: reduced ? 0 : 0.35,
-          stagger: open ? 0.07 : 0,
-          ease: "power3.out",
-        },
-      );
+      if (open) {
+        gsap.fromTo(
+          cards,
+          { y: 16, opacity: 0 },
+          {
+            y: 0,
+            opacity: 1,
+            duration: reduced ? 0 : 0.35,
+            stagger: reduced ? 0 : 0.06,
+            ease: "power3.out",
+            overwrite: true,
+          },
+        );
+      } else {
+        gsap.set(cards, { y: 0, opacity: 1 });
+      }
     };
     animate();
     let width = box.getBoundingClientRect().width;
@@ -193,7 +198,6 @@ export default function CardNav({
   }, [open]);
   return (
     <>
-      <PersonalWelcome enabled={!!account && !guest && !siteOrigin} accountId={account?.id} />
       <TeacherDayWelcome account={account} />
       <div
         className={
@@ -370,6 +374,14 @@ export default function CardNav({
           >
             {tr("个人资料")}
           </a>
+          {canUseOpenClaw(account) && (
+            <a
+              href={siteOrigin + "/page/openclaw"}
+              aria-current={active === "openclaw" ? "page" : undefined}
+            >
+              Agent Ollie
+            </a>
+          )}
           <button
             className="campus-language"
             type="button"

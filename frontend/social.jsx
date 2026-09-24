@@ -9,7 +9,13 @@ import { PushPin, Prohibit, Info, X as CloseIcon, ArrowUp } from "@phosphor-icon
 import "./SocialTheme.css";
 import PersonIdentity, { realNames, postName } from "./PersonIdentity";
 import { TeacherBadge } from "./TeacherDay";
-import { appendAttachments } from "./attachment-selection.mjs";
+import {
+  appendAttachments,
+  armAttachmentPicker,
+  attachmentAllowed,
+  attachmentPickerArmed,
+  noteAttachmentPickerClosed,
+} from "./attachment-selection.mjs";
 import { FileText, X, Eye } from "@phosphor-icons/react";
 import { compressImage } from "./compress-image";
 import { tr, tx, en } from "./language";
@@ -164,6 +170,65 @@ const kinds = {
 };
 const filterOptions = [["", tr("全部")], ...Object.entries(kinds)],
   postOptions = Object.entries(kinds).filter(([k]) => k !== "events");
+function WallGuidelines() {
+  const [open, setOpen] = useState(false);
+  return (
+    <aside className="wall-guidelines">
+      <button
+        type="button"
+        className="wall-guidelines-toggle"
+        aria-expanded={open}
+        onClick={() => setOpen((value) => !value)}
+      >
+        <Info size={18} weight="fill" aria-hidden="true" />
+        <span>
+          <strong>{tx("校园墙公约", "Campus wall guidelines")}</strong>
+          <em>{tx("公示", "Public")}</em>
+        </span>
+        <span className="wall-guidelines-more">
+          {open ? tx("收起", "Hide") : tx("查看全文", "Read more")}
+        </span>
+      </button>
+      <p>
+        {tx(
+          "请使用文明用语，尊重同学。辱骂、歧视、色情、违禁品、代考代写、广告引流会被拦截；多次违规将禁言。",
+          "Keep it civil. Insults, slurs, sexual content, drugs, exam cheating, and ads are blocked. Repeat violations lead to a mute.",
+        )}
+      </p>
+      {open && (
+        <ul>
+          <li>
+            {tx(
+              "发言文明，不辱骂、不人身攻击、不歧视。",
+              "Use civil language. No insults, attacks, or slurs.",
+            )}
+          </li>
+          <li>
+            {tx(
+              "不发色情、毒品、暴力威胁等内容。",
+              "No sexual content, drugs, or violent threats.",
+            )}
+          </li>
+          <li>
+            {tx(
+              "不发代考、代写、买卖答案等作弊信息。",
+              "No exam proxies, ghostwriting, or selling answers.",
+            )}
+          </li>
+          <li>
+            {tx("不做广告、买卖引流或无关推广。", "No ads, sales pitches, or off-topic promotion.")}
+          </li>
+          <li>
+            {tx(
+              "违规会当场拦截并记过，多次将被禁言。",
+              "Violations are blocked and recorded. Repeat cases are muted.",
+            )}
+          </li>
+        </ul>
+      )}
+    </aside>
+  );
+}
 function Wall({ profile, write }) {
   const [composing, setComposing] = useState(false),
     [mentions, setMentions] = useState([]);
@@ -175,9 +240,11 @@ function Wall({ profile, write }) {
       setComposing(false);
     };
     const outside = (e) => {
+      if (attachmentPickerArmed()) return;
       if (!composerRef.current?.contains(e.target)) collapse();
     };
     const scroll = (e) => {
+      if (attachmentPickerArmed()) return;
       if (
         e.target === document ||
         e.target === window ||
@@ -194,12 +261,26 @@ function Wall({ profile, write }) {
     };
   }, [composing]);
   const [files, setFiles] = useState([]);
+  const [photoPreviews, setPhotoPreviews] = useState([]);
   const fileInput = useRef();
   const scopedClub = Number(new URLSearchParams(location.search).get("club")) || 0;
   const [postingClub, setPostingClub] = useState(
       (profile.clubs || []).some((c) => c.id === scopedClub) ? scopedClub : 0,
     ),
     [clubName, setClubName] = useState("");
+  useEffect(() => {
+    const next = files
+      .filter(
+        (file) => /^image\//.test(file.type || "") || /\.jpe?g$|\.png$/i.test(file.name || ""),
+      )
+      .map((file) => ({
+        key: `${file.name}:${file.size}:${file.lastModified}`,
+        name: file.name,
+        url: URL.createObjectURL(file),
+      }));
+    setPhotoPreviews(next);
+    return () => next.forEach((item) => URL.revokeObjectURL(item.url));
+  }, [files]);
   useEffect(() => {
     if (scopedClub)
       fetch("/api/club/id/" + scopedClub)
@@ -326,6 +407,7 @@ function Wall({ profile, write }) {
             ← {tx("查看全部校园墙", "All campus posts")}
           </a>
         )}
+        <WallGuidelines />
         <div className="community-filter">
           <h2>
             {new URLSearchParams(location.search).get("keyword")
@@ -353,6 +435,16 @@ function Wall({ profile, write }) {
                 <label htmlFor="wall-composer" className="social-sr-only">
                   {tr("发布校园动态")}
                 </label>
+                {photoPreviews.length > 0 && (
+                  <div
+                    className="wall-photo-preview"
+                    aria-label={tx("已选照片", "Selected photos")}
+                  >
+                    {photoPreviews.map((photo) => (
+                      <img key={photo.key} src={photo.url} alt={photo.name} />
+                    ))}
+                  </div>
+                )}
                 <MentionComposer
                   id="wall-composer"
                   value={text}
@@ -365,6 +457,12 @@ function Wall({ profile, write }) {
                 />
                 <div className="composer-options" inert={!composing} aria-hidden={!composing}>
                   <div>
+                    <p className="wall-composer-hint">
+                      {tx(
+                        "请使用文明用语。辱骂、色情、代考代写、广告引流等内容会被拦截。",
+                        "Please keep language civil. Insults, sexual content, cheating posts, and ads are blocked.",
+                      )}
+                    </p>
                     {(profile.clubs || []).length > 0 && (
                       <label className="wall-publisher">
                         {tx("发布身份", "Post as")}
@@ -393,12 +491,29 @@ function Wall({ profile, write }) {
                             disabled={busy}
                             type="file"
                             multiple
-                            accept=".jpg,.jpeg,.png,.mp4,.mov,.pdf,.txt"
+                            accept="image/jpeg,image/png,video/mp4,video/quicktime,application/pdf,text/plain,.jpg,.jpeg,.png,.mp4,.mov,.pdf,.txt"
+                            onClick={() => {
+                              armAttachmentPicker();
+                              setComposing(true);
+                            }}
+                            onCancel={() => noteAttachmentPickerClosed()}
                             onChange={(e) => {
+                              noteAttachmentPickerClosed();
                               const selected = [...e.target.files];
                               e.target.value = "";
                               if (!selected.length) return;
-                              const result = appendAttachments(files, selected);
+                              const rejected = selected.filter((file) => !attachmentAllowed(file));
+                              const accepted = selected.filter(attachmentAllowed);
+                              if (!accepted.length) {
+                                setError(
+                                  tx(
+                                    "只能上传 JPG、PNG、MP4、MOV、PDF 或 TXT。",
+                                    "Only JPG, PNG, MP4, MOV, PDF or TXT files can be uploaded.",
+                                  ),
+                                );
+                                return;
+                              }
+                              const result = appendAttachments(files, accepted);
                               if (result.exceeded) {
                                 setError(
                                   tx(
@@ -409,7 +524,14 @@ function Wall({ profile, write }) {
                                 return;
                               }
                               setFiles(result.files);
-                              setError("");
+                              setError(
+                                rejected.length
+                                  ? tx(
+                                      "已跳过不支持的文件。只能上传 JPG、PNG、MP4、MOV、PDF 或 TXT。",
+                                      "Unsupported files were skipped. Only JPG, PNG, MP4, MOV, PDF or TXT can be uploaded.",
+                                    )
+                                  : "",
+                              );
                               setComposing(true);
                             }}
                           />

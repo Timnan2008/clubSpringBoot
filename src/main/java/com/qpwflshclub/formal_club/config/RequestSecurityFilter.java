@@ -33,7 +33,7 @@ public class RequestSecurityFilter implements Filter {
         boolean mutation =
             !SAFE.contains(request.getMethod()) ||
             request.getRequestURI().equals("/api/user/logout") ||
-                request.getServletPath().equals("/api/user/logout");
+            request.getServletPath().equals("/api/user/logout");
         if (request.getMethod().equals("TRACE") || (mutation && !sameOrigin(request))) {
             response.setStatus(403);
             response.setHeader("Cache-Control", "no-store");

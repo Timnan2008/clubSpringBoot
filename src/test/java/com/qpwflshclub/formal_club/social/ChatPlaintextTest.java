@@ -270,6 +270,19 @@ class ChatPlaintextTest {
     }
 
     @Test
+    void decryptsWithRecipientRecoveryWhenSenderBackupIsMissing() throws Exception {
+        String payload = payload(TEXT, iv(), senderFingerprint, recipientFingerprint, false);
+        when(recovery.get(SENDER)).thenReturn(null);
+        when(recovery.get(RECIPIENT)).thenReturn(
+            new MessageRecovery.Identity(
+                recipientPub,
+                base64(recipientPair.getPrivate().getEncoded())
+            )
+        );
+        assertThat(chat.decrypt(SENDER, RECIPIENT, payload)).isEqualTo(TEXT);
+    }
+
+    @Test
     void onlyE2eePayloadsAreTreatedAsEncrypted() {
         assertThat(ChatPlaintext.isEncrypted("e2ee:v1:{}")).isTrue();
         assertThat(ChatPlaintext.isEncrypted("普通明文")).isFalse();
