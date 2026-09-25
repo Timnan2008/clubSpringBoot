@@ -11,8 +11,8 @@ import java.util.function.Supplier;
 /** Per-answer web budget. Failed origins and identical reads never cause retry loops. */
 final class OpenClawResearchBudget {
 
-    private static final int MAX_CALLS = 10;
-    private static final int MAX_ROUNDS = 4;
+    private static final int MAX_CALLS = 24;
+    private static final int MAX_ROUNDS = 10;
     private final Map<String, String> cache = new HashMap<>();
     private final Map<String, Integer> failures = new HashMap<>();
     private final long started = System.nanoTime();
@@ -31,7 +31,7 @@ final class OpenClawResearchBudget {
         return (
             calls >= MAX_CALLS ||
             rounds >= MAX_ROUNDS ||
-            (calls > 0 && System.nanoTime() - started >= Duration.ofSeconds(120).toNanos())
+            (calls > 0 && System.nanoTime() - started >= Duration.ofSeconds(240).toNanos())
         );
     }
 

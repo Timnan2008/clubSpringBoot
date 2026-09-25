@@ -69,8 +69,7 @@ class OpenClawBatchTest {
         assertEquals(13, hits.get());
         verify(tools, times(24)).call(anyString(), any(), eq(user), isNull(), eq(false));
         var events = out.toString(StandardCharsets.UTF_8);
-        assertFalse(events.contains("Checking documents"));
-        assertTrue(events.contains("正在分析请求"));
+        assertTrue(events.contains("Checking documents"));
         assertTrue(events.contains("\"status\":\"pending\""));
         assertTrue(events.contains("\"status\":\"done\""));
         assertTrue(events.contains("[DONE]"));
@@ -89,7 +88,7 @@ class OpenClawBatchTest {
         ).thenAnswer(invocation -> {
             int round = hits.incrementAndGet();
             assertFalse(((List<?>) invocation.getArgument(3)).isEmpty());
-            if (round == 25) assertTrue(
+            if (round == 49) assertTrue(
                 invocation.getArgument(2).toString().contains("工具服务并未下线")
             );
             return new OpenClawGateway.Round(
@@ -115,7 +114,7 @@ class OpenClawBatchTest {
             null,
             out
         );
-        verify(tools, times(24)).call(anyString(), any(), eq(user), isNull(), eq(false));
+        verify(tools, times(48)).call(anyString(), any(), eq(user), isNull(), eq(false));
         assertTrue(out.toString(StandardCharsets.UTF_8).contains("剩余检查尚未执行"));
     }
 
@@ -133,7 +132,7 @@ class OpenClawBatchTest {
             gateway.complete(anyString(), anyString(), anyList(), anyList(), any(), any())
         ).thenAnswer(invocation -> {
             int n = rounds.incrementAndGet();
-            if (n == 5) {
+            if (n == 11) {
                 List<Map<String, Object>> schema = invocation.getArgument(3);
                 assertTrue(
                     schema
@@ -170,7 +169,7 @@ class OpenClawBatchTest {
             null,
             out
         );
-        assertEquals(5, rounds.get());
+        assertEquals(11, rounds.get());
         verify(tools, times(1)).call(eq("web_fetch"), any(), eq(user), isNull(), eq(false));
         assertTrue(out.toString(StandardCharsets.UTF_8).contains("[DONE]"));
     }

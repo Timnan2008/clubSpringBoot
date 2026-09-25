@@ -56,7 +56,23 @@ class OpenClawResearchBudgetTest {
             () -> "body " + count.incrementAndGet()
         );
         assertEquals(2, count.get());
-        for (int i = 0; i < 4; i++) budget.nextRound();
+        for (int i = 0; i < 10; i++) budget.nextRound();
         assertTrue(budget.exhausted());
+    }
+
+    @Test
+    void allowsTwentyFourUniqueRequestsButNeverExecutesTheTwentyFifth() throws Exception {
+        var budget = new OpenClawResearchBudget();
+        var count = new AtomicInteger();
+        for (int i = 0; i < 25; i++) {
+            String result = budget.read(
+                "web_search",
+                json.readTree("{\"query\":\"topic " + i + "\"}"),
+                false,
+                () -> "body " + count.incrementAndGet()
+            );
+            if (i == 24) assertTrue(result.startsWith("WEB_RESEARCH_LIMIT:"));
+        }
+        assertEquals(24, count.get());
     }
 }

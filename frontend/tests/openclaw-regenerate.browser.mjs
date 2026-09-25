@@ -36,7 +36,32 @@ const server = createServer(async (req, res) => {
     for await (const chunk of req) raw += chunk;
     requests.push(JSON.parse(raw));
     res.writeHead(200, { "Content-Type": "text/event-stream" });
-    res.end(`data: ${JSON.stringify({ delta: answers[requests.length - 1] })}\n\ndata: [DONE]\n\n`);
+    if (requests.at(-1).text === "CHECK_TASK_STOP") {
+      const emit = (event) => res.write(`data: ${JSON.stringify(event)}\n\n`);
+      emit({ reasoning: "先核对公开资料，再比较正文来源。\n" });
+      emit({
+        tasks: [
+          { id: "search", label: "检索公开资料", status: "running" },
+          { id: "read", label: "读取正文", status: "pending" },
+          { id: "write", label: "整理结论", status: "pending" },
+        ],
+      });
+      const timer = setTimeout(
+        () =>
+          emit({
+            tasks: [
+              { id: "search", label: "检索公开资料", status: "done" },
+              { id: "read", label: "读取正文", status: "running" },
+            ],
+          }),
+        1200,
+      );
+      res.on("close", () => clearTimeout(timer));
+      return;
+    }
+    res.end(
+      `data: ${JSON.stringify({ delta: requests.at(-1).text === "EDIT_CURRENT_MODEL" ? "EDIT_MODEL_OK" : answers[requests.length - 1] })}\n\ndata: [DONE]\n\n`,
+    );
     return;
   }
   if (url.pathname.startsWith("/api/")) {
@@ -145,6 +170,19 @@ try {
     await page.getByRole("button", { name: "发送消息", exact: true }).click();
     await page.getByText(reply, { exact: true }).waitFor();
   };
+  const capture = await page.context().newCDPSession(page);
+  const exitFrames = [];
+  capture.on("Page.screencastFrame", (event) => {
+    exitFrames.push(event.data);
+    void capture.send("Page.screencastFrameAck", { sessionId: event.sessionId });
+  });
+  await capture.send("Page.startScreencast", {
+    format: "jpeg",
+    quality: 65,
+    maxWidth: 480,
+    maxHeight: 334,
+    everyNthFrame: 1,
+  });
   await send("我的社团是 OpenSTEAM", "EARLIER_REPLY");
   assert.equal(
     await page.locator('.openclaw-ballpit canvas[data-exiting="true"]').count(),
@@ -169,6 +207,29 @@ try {
   await page
     .locator(".openclaw-user-message[data-enter]")
     .waitFor({ state: "detached", timeout: 1500 });
+  await capture.send("Page.stopScreencast");
+  const brightness = await page.evaluate(async (frames) => {
+    const ratios = [];
+    for (const frame of frames) {
+      const img = new Image();
+      img.src = "data:image/jpeg;base64," + frame;
+      await img.decode();
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0);
+      const pixels = ctx.getImageData(0, 0, img.width, img.height).data;
+      let white = 0;
+      for (let i = 0; i < pixels.length; i += 4)
+        if (pixels[i] > 225 && pixels[i + 1] > 225 && pixels[i + 2] > 225) white++;
+      ratios.push(white / (pixels.length / 4));
+    }
+    return { count: ratios.length, maxWhite: Math.max(...ratios) };
+  }, exitFrames);
+  assert.ok(brightness.count > 10, "Capture the full ball exit sequence");
+  assert.ok(brightness.maxWhite < 0.15, "No white flash during ball exit or unmount");
+  console.log("Ball exit frame check", brightness);
   await page.getByRole("button", { name: "重新编辑", exact: true }).click();
   const editor = page.getByRole("textbox", { name: "重新编辑", exact: true });
   assert.ok(
@@ -204,6 +265,35 @@ try {
   assert.ok(JSON.stringify(requests[4].history).includes("REPLACEMENT_REPLY"));
   assert.ok(!JSON.stringify(requests[4].history).includes("OLD_REPLY_SENTINEL"));
   assert.ok(!JSON.stringify(requests[4].history).includes("LATER_REPLY"));
+  await page.getByRole("combobox", { name: "选择模型", exact: true }).click();
+  await page.getByRole("option", { name: /DeepSeek V4 Pro/ }).click();
+  await page.getByRole("button", { name: "深度思考", exact: true }).click();
+  await page.getByRole("button", { name: "重新编辑", exact: true }).last().click();
+  await page.getByRole("textbox", { name: "重新编辑", exact: true }).fill("EDIT_CURRENT_MODEL");
+  await page
+    .locator(".openclaw-edit-card")
+    .getByRole("button", { name: "发送", exact: true })
+    .click();
+  await page.getByRole("button", { name: "确定回溯", exact: true }).click();
+  await page.getByText("EDIT_MODEL_OK", { exact: true }).waitFor();
+  assert.equal(requests.at(-1).model, "v4");
+  assert.equal(requests.at(-1).reasoning, false);
+  assert.ok(!JSON.stringify(requests.at(-1).history).includes("FOLLOWUP_REPLY"));
+  await input.fill("CHECK_TASK_STOP");
+  await page.getByRole("button", { name: "发送消息", exact: true }).click();
+  const rail = page.locator(".openclaw-rail");
+  await rail.locator('.status-mark[data-status="running"]').first().waitFor();
+  await page.getByText("先核对公开资料，再比较正文来源。", { exact: true }).waitFor();
+  await rail.locator('.status-mark[data-status="done"]').first().waitFor();
+  assert.equal(await rail.locator('.status-mark[data-status="done"]').count(), 1);
+  assert.equal(await rail.locator('.status-mark[data-status="running"]').count(), 1);
+  assert.equal(await rail.locator('.status-mark[data-status="pending"]').count(), 1);
+  await page.getByRole("button", { name: "停止回复", exact: true }).click();
+  await page.waitForTimeout(400);
+  assert.equal(await rail.locator(".status-mark[data-indeterminate]").count(), 0);
+  assert.equal(await rail.locator('.status-mark[data-status="done"]').count(), 1);
+  assert.equal(await rail.locator('.status-mark[data-status="cancelled"]').count(), 2);
+  await page.getByText("先核对公开资料，再比较正文来源。", { exact: true }).waitFor();
   await page.getByRole("button", { name: "新对话", exact: true }).click();
   await page.locator('.openclaw-ballpit canvas[data-ready="true"]').waitFor();
   await page.setViewportSize({ width: 390, height: 844 });

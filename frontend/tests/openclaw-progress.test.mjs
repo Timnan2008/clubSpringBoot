@@ -2,6 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   mergeTasks,
+  stopTasks,
+  stopMessages,
   resolvedCalls,
   isInterruptedConversation,
   conversationFailed,
@@ -84,4 +86,27 @@ test("completed research keeps unreadable sources neutral without pretending a r
   assert.equal(resolvedCalls(calls, false)[0].unavailable, undefined);
   assert.equal(resolvedCalls(calls.slice(0, 1), true)[0].unavailable, undefined);
   assert.equal(calls[0].status, "error");
+});
+
+test("stopping freezes unfinished tasks and preserves individual completions", () => {
+  const tasks = [
+    { id: "a", label: "Search", status: "done" },
+    { id: "b", label: "Read", status: "running" },
+    { id: "c", label: "Write", status: "pending" },
+  ];
+  assert.deepEqual(
+    stopTasks(tasks).map((t) => t.status),
+    ["done", "cancelled", "cancelled"],
+  );
+  const messages = stopMessages([
+    { role: "user", content: "test" },
+    { role: "assistant", tasks },
+  ]);
+  assert.equal(messages[1].outcome, "stopped");
+  assert.equal(messages[1].tasks[0].status, "done");
+  assert.equal(tasks[1].status, "running");
+  assert.equal(
+    mergeTasks(tasks, [{ id: "a", label: "Search", status: "pending" }])[0].status,
+    "done",
+  );
 });

@@ -14,6 +14,59 @@ import org.junit.jupiter.api.Test;
 class OpenClawProgressTest {
 
     @Test
+    void stoppedPlanSurvivesHistorySanitization() throws Exception {
+        var json = new ObjectMapper();
+        var history = new OpenClawHistory(
+            mock(org.springframework.jdbc.core.JdbcTemplate.class),
+            json
+        );
+        var saved = history.sanitize(
+            json.readTree(
+                """
+                {"history":[{"id":"11111111-1111-1111-1111-111111111111","stopped":true,
+                  "messages":[{"role":"assistant","outcome":"stopped","tasks":[
+                    {"id":"one","label":"Search","status":"done"},
+                    {"id":"two","label":"Read","status":"cancelled"}]}]}]}
+                """
+            )
+        );
+        var message = saved.path("history").get(0).path("messages").get(0);
+        assertEquals("stopped", message.path("outcome").asText());
+        assertEquals("done", message.path("tasks").get(0).path("status").asText());
+        assertEquals("cancelled", message.path("tasks").get(1).path("status").asText());
+    }
+
+    @Test
+    void streamsUsefulReasoningButFiltersChunkedDocumentEchoAndMarkdownBlocks() throws Exception {
+        var out = new ByteArrayOutputStream();
+        var agent = new OpenClawAgent(
+            mock(OpenClawGateway.class),
+            mock(OpenClawTools.class),
+            mock(OpenClawMaterials.class),
+            new ObjectMapper()
+        );
+        var thought = agent.new ThinkSplitter(false, List.of("这是附件中需要保密的完整原文内容。"));
+        thought.push("先核对公开资料。", out, true);
+        assertTrue(
+            out.toString(java.nio.charset.StandardCharsets.UTF_8).contains("先核对公开资料")
+        );
+        thought.push("这是附件中需要", out, true);
+        thought.push(
+            "保密的完整原文内容。\n```md\n# 内部 Markdown\nprivate body\n```\n",
+            out,
+            true
+        );
+        thought.push("<think>接着比较不同来源。</think>已核实。", out, false);
+        thought.finish(out);
+        String events = out.toString(java.nio.charset.StandardCharsets.UTF_8);
+        assertTrue(events.contains("接着比较不同来源"));
+        assertTrue(events.contains("已核实"));
+        assertFalse(events.contains("保密"));
+        assertFalse(events.contains("private body"));
+        assertFalse(events.contains("内部 Markdown"));
+    }
+
+    @Test
     void emitsStructuredPlanAndReadsBodyWithoutTreatingItsWordsAsErrors() throws Exception {
         var gateway = mock(OpenClawGateway.class);
         var tools = mock(OpenClawTools.class);

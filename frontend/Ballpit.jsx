@@ -239,6 +239,8 @@ class x {
     this.scene.clear();
   }
   dispose() {
+    // Hide the composited surface before releasing its WebGL drawing buffer.
+    this.canvas.style.visibility = "hidden";
     clearTimeout(this.#a);
     this.#y();
     this.#z();
@@ -632,7 +634,7 @@ class Z extends d {
       }
       U.updateMatrix();
       this.setMatrixAt(idx, U.matrix);
-      if (idx === 0) this.light.position.copy(U.position);
+      if (idx === 0 && !this.config.exiting) this.light.position.copy(U.position);
     }
     this.instanceMatrix.needsUpdate = true;
   }
@@ -680,7 +682,13 @@ function createBallpit(e, t = {}) {
       i.clear();
       i.scene.remove(s);
     }
-    s = new Z(i.renderer, e);
+    s = new Z(i.renderer, {
+      ...e,
+      onExitComplete: () => {
+        i.canvas.style.visibility = "hidden";
+        e.onExitComplete?.();
+      },
+    });
     i.scene.add(s);
   }
   let accumulator = 0;
@@ -714,7 +722,13 @@ function createBallpit(e, t = {}) {
         const sizesChanged = ["minSize", "maxSize", "size0"].some(
           (key) => newProps[key] !== undefined && newProps[key] !== s.config[key],
         );
-        Object.assign(s.config, newProps);
+        const { onExitComplete, ...config } = newProps;
+        Object.assign(s.config, config);
+        if (onExitComplete)
+          s.config.onExitComplete = () => {
+            i.canvas.style.visibility = "hidden";
+            onExitComplete();
+          };
         if (newProps.colors) {
           s.setColors(s.config.colors);
         }

@@ -25,6 +25,8 @@ import AssistantText from "./AssistantText";
 import AutoFollowFeed from "./AutoFollowFeed";
 import {
   mergeTasks,
+  stopTasks,
+  stopMessages,
   resolvedCalls,
   conversationFailed,
   isInterruptedConversation,
@@ -277,13 +279,15 @@ const toolLabel = (name) =>
     give_file: tx("准备文件", "Prepare a file"),
   })[name] || name;
 const markStatus = (status) =>
-  status === "error"
-    ? "failed"
-    : status === "done"
-      ? "done"
-      : status === "running"
-        ? "running"
-        : "pending";
+  status === "cancelled"
+    ? "cancelled"
+    : status === "error"
+      ? "failed"
+      : status === "done"
+        ? "done"
+        : status === "running"
+          ? "running"
+          : "pending";
 const ideas = [
   {
     icon: Calendar03Icon,
@@ -358,6 +362,8 @@ export default function OpenClawPage() {
   const [mimoReady, setMimoReady] = useState(false);
   const [quotaText, setQuotaText] = useState("");
   const [reasoning, setReasoning] = useState(true);
+  const modelSettings = useRef({ model, reasoning });
+  modelSettings.current = { model, reasoning };
   const [enabled, setEnabled] = useState([
     "profile",
     "documents",
@@ -697,7 +703,19 @@ export default function OpenClawPage() {
     runToken.current += 1;
     const id = liveRef.current.id;
     if (id) {
-      liveRef.current = { ...liveRef.current, working: false, approval: null };
+      const stoppedMessages = stopMessages(liveRef.current.messages);
+      const stoppedCalls = stopTasks(liveRef.current.calls);
+      liveRef.current = {
+        ...liveRef.current,
+        messages: stoppedMessages,
+        calls: stoppedCalls,
+        working: false,
+        approval: null,
+      };
+      if (viewRef.current === id) {
+        setMessages(stoppedMessages);
+        setCalls(stoppedCalls);
+      }
       setHistory((items) =>
         items.map((item) =>
           item.id === id
@@ -706,6 +724,8 @@ export default function OpenClawPage() {
                 working: false,
                 awaiting: false,
                 stopped: true,
+                messages: stoppedMessages,
+                calls: stoppedCalls,
                 unread: viewRef.current !== id,
               }
             : item,
@@ -818,7 +838,8 @@ export default function OpenClawPage() {
   const sendMessage = async (text, meta, priorMessages) => {
     setFeedback("");
     const chatId = conversationId;
-    const ready = model === "mimo" ? mimoReady : connected;
+    const requestSettings = { ...modelSettings.current };
+    const ready = requestSettings.model === "mimo" ? mimoReady : connected;
     if (!ready) {
       notice(
         tx(
@@ -911,6 +932,7 @@ export default function OpenClawPage() {
           ? {
               ...message,
               outcome: effectiveFailed ? "failed" : "completed",
+              tasks: stopTasks(message.tasks),
               delivered: Boolean(delivered),
             }
           : message,
@@ -1001,8 +1023,8 @@ export default function OpenClawPage() {
           history: conversationContext(prior),
           resetAt: historyReset.current,
           text: body,
-          model,
-          reasoning,
+          model: requestSettings.model,
+          reasoning: requestSettings.reasoning,
           language: en ? "en" : "zh",
           attachments: uploads,
         }),
@@ -1371,7 +1393,13 @@ export default function OpenClawPage() {
   const lastAssistant = [...messages].reverse().find((message) => message.role === "assistant");
   const displayCalls = resolvedCalls(calls, !busy && lastAssistant?.outcome === "completed");
   const todos = lastAssistant?.tasks?.length
-    ? mergeTasks([], lastAssistant.tasks)
+    ? mergeTasks([], lastAssistant.tasks).map((task) =>
+        ["running", "pending"].includes(task.status) && !busy
+          ? { ...task, status: "cancelled" }
+          : task.status === "running" && approval
+            ? { ...task, status: "pending" }
+            : task,
+      )
     : displayCalls.map((call) => ({
         id: call.id,
         label:
@@ -1744,7 +1772,7 @@ export default function OpenClawPage() {
                               }
                               fontSize={14}
                               showTimer
-                              collapseOnSettle
+                              collapseOnSettle={false}
                             />
                           </div>
                         )}

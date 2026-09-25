@@ -227,7 +227,7 @@ public class OpenClawHistory implements ApplicationRunner {
                         row.put("content", clip(message.path("content").asText(""), 8000));
                         row.put("thinking", clip(message.path("thinking").asText(""), 8000));
                         String outcome = message.path("outcome").asText("");
-                        if (List.of("completed", "failed").contains(outcome)) row.put(
+                        if (List.of("completed", "failed", "stopped").contains(outcome)) row.put(
                             "outcome",
                             outcome
                         );

@@ -10,7 +10,7 @@ export function mergeTasks(previous = [], incoming = []) {
     };
     const index = merged.findIndex((item) => item.id === next.id);
     if (index < 0) merged.push(next);
-    else merged[index] = next;
+    else if (merged[index].status !== "done" || next.status === "done") merged[index] = next;
   }
   return merged.slice(0, 20);
 }
@@ -67,4 +67,18 @@ export function conversationFailed(entry) {
     return false;
   if (last?.outcome === "failed") return true;
   return Boolean(entry.failed);
+}
+
+// Stop only unfinished work; completed tasks keep their strike-through.
+export function stopTasks(tasks = []) {
+  return tasks.map((task) =>
+    ["running", "pending"].includes(task.status) ? { ...task, status: "cancelled" } : task,
+  );
+}
+export function stopMessages(messages = []) {
+  return messages.map((message, index) =>
+    index === messages.length - 1 && message.role === "assistant"
+      ? { ...message, outcome: "stopped", tasks: stopTasks(message.tasks) }
+      : message,
+  );
 }
