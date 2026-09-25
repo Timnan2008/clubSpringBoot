@@ -90,10 +90,7 @@ public class WallFiles {
         Path destination = root.resolve(id);
         Files.write(destination, bytes, StandardOpenOption.CREATE_NEW);
         try {
-            Files.setPosixFilePermissions(
-                destination,
-                java.nio.file.attribute.PosixFilePermissions.fromString("rw-------")
-            );
+            com.qpwflshclub.formal_club.Util.SecureFiles.restrict(destination, "rw-------");
         } catch (UnsupportedOperationException ignored) {}
         return new SocialStore.Attachment(
             id,

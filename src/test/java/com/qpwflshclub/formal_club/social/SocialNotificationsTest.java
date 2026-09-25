@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.qpwflshclub.formal_club.Clubs.pojo.Club;
 import com.qpwflshclub.formal_club.Clubs.repository.ClubRepository;
 import com.qpwflshclub.formal_club.User.pojo.User;
+import com.qpwflshclub.formal_club.workspace.controller.JoinRequests;
 import com.qpwflshclub.formal_club.social.controller.NotificationController;
 import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
 import com.qpwflshclub.formal_club.social.service.SocialNotifications;

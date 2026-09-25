@@ -106,10 +106,7 @@ public class AccountProfiles {
             Files.createDirectories(file.toAbsolutePath().getParent());
             Path tmp = Files.createTempFile(file.toAbsolutePath().getParent(), "profiles-", ".tmp");
             try {
-                Files.setPosixFilePermissions(
-                    tmp,
-                    java.nio.file.attribute.PosixFilePermissions.fromString("rw-------")
-                );
+                com.qpwflshclub.formal_club.Util.SecureFiles.restrict(tmp, "rw-------");
                 Files.write(tmp, json.writeValueAsBytes(profiles));
                 Files.move(
                     tmp,

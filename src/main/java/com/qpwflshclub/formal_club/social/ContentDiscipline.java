@@ -149,7 +149,7 @@ public class ContentDiscipline {
         Path tmp = Files.createTempFile(file.toAbsolutePath().getParent(), "discipline-", ".json");
         try {
             try {
-                Files.setPosixFilePermissions(tmp, PosixFilePermissions.fromString("rw-------"));
+                com.qpwflshclub.formal_club.Util.SecureFiles.restrict(tmp, "rw-------");
             } catch (UnsupportedOperationException ignored) {}
             json.writeValue(tmp.toFile(), next);
             Files.move(

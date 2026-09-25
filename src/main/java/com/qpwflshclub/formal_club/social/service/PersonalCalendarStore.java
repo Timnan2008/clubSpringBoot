@@ -53,10 +53,7 @@ public class PersonalCalendarStore {
         Files.createDirectories(root);
         Path temp = Files.createTempFile(root, "calendar-", ".tmp");
         try {
-            Files.setPosixFilePermissions(
-                temp,
-                java.nio.file.attribute.PosixFilePermissions.fromString("rw-------")
-            );
+            com.qpwflshclub.formal_club.Util.SecureFiles.restrict(temp, "rw-------");
             json.writeValue(temp.toFile(), entries);
             Files.move(
                 temp,

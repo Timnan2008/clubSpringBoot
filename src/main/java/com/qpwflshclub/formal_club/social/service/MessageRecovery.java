@@ -39,20 +39,14 @@ public class MessageRecovery {
 
     private byte[] master() throws IOException {
         Files.createDirectories(root);
-        Files.setPosixFilePermissions(
-            root,
-            java.nio.file.attribute.PosixFilePermissions.fromString("rwx------")
-        );
+        com.qpwflshclub.formal_club.Util.SecureFiles.restrict(root, "rwx------");
         Path f = root.resolve("master.key");
         if (!Files.exists(f)) {
             byte[] secret = new byte[32];
             new SecureRandom().nextBytes(secret);
             try {
                 Files.write(f, secret, StandardOpenOption.CREATE_NEW);
-                Files.setPosixFilePermissions(
-                    f,
-                    java.nio.file.attribute.PosixFilePermissions.fromString("rw-------")
-                );
+                com.qpwflshclub.formal_club.Util.SecureFiles.restrict(f, "rw-------");
             } catch (FileAlreadyExistsException ignored) {}
         }
         byte[] value = Files.readAllBytes(f);
@@ -133,10 +127,7 @@ public class MessageRecovery {
             byte[] sealed = crypt(Cipher.ENCRYPT_MODE, id, iv, json.writeValueAsBytes(own));
             Path tmp = Files.createTempFile(root, "recovery-", ".tmp");
             try {
-                Files.setPosixFilePermissions(
-                    tmp,
-                    java.nio.file.attribute.PosixFilePermissions.fromString("rw-------")
-                );
+                com.qpwflshclub.formal_club.Util.SecureFiles.restrict(tmp, "rw-------");
                 byte[] all = new byte[12 + sealed.length];
                 System.arraycopy(iv, 0, all, 0, 12);
                 System.arraycopy(sealed, 0, all, 12, sealed.length);

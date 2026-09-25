@@ -56,10 +56,7 @@ public class JoinRequests {
         Files.createDirectories(root);
         Path p = Files.createTempFile(root, "join-", ".tmp");
         try {
-            Files.setPosixFilePermissions(
-                p,
-                java.nio.file.attribute.PosixFilePermissions.fromString("rw-------")
-            );
+            com.qpwflshclub.formal_club.Util.SecureFiles.restrict(p, "rw-------");
             Files.write(p, json.writeValueAsBytes(entries));
             Files.move(
                 p,

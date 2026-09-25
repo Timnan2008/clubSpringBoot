@@ -38,10 +38,7 @@ public class ContentAudit {
             if (!Files.exists(file)) {
                 Files.createFile(file);
                 try {
-                    Files.setPosixFilePermissions(
-                        file,
-                        PosixFilePermissions.fromString("rw-------")
-                    );
+                    com.qpwflshclub.formal_club.Util.SecureFiles.restrict(file, "rw-------");
                 } catch (UnsupportedOperationException ignored) {}
             }
             Files.writeString(

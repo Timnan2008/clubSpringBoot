@@ -109,10 +109,7 @@ public class LoginEmails {
             ".tmp"
         );
         try {
-            Files.setPosixFilePermissions(
-                temp,
-                java.nio.file.attribute.PosixFilePermissions.fromString("rw-------")
-            );
+            com.qpwflshclub.formal_club.Util.SecureFiles.restrict(temp, "rw-------");
             Files.write(temp, json.writeValueAsBytes(next));
             Files.move(
                 temp,

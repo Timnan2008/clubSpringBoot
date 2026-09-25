@@ -7,7 +7,9 @@ import com.qpwflshclub.formal_club.Clubs.pojo.Club;
 import com.qpwflshclub.formal_club.Clubs.repository.ClubRepository;
 import com.qpwflshclub.formal_club.User.pojo.ClubPresident;
 import com.qpwflshclub.formal_club.User.service.IUserService;
-import com.qpwflshclub.formal_club.social.WallFiles;
+import com.qpwflshclub.formal_club.social.service.WallFiles;
+import com.qpwflshclub.formal_club.workspace.controller.ClubMediaController;
+import com.qpwflshclub.formal_club.workspace.service.WorkspaceAccess;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
@@ -51,6 +53,18 @@ class ClubMediaControllerTest {
         request.addHeader("X-Workspace-Token", access.token(request));
     }
 
+    private static boolean ffmpegAvailable() {
+        try {
+            var process = new ProcessBuilder("ffmpeg", "-version")
+                .redirectError(ProcessBuilder.Redirect.DISCARD)
+                .redirectOutput(ProcessBuilder.Redirect.DISCARD)
+                .start();
+            return process.waitFor() == 0;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     @Test
     void videoUploadRejectsOversizedAndNonMp4Files() {
         var oversized = new MockMultipartFile("file", "clip.mp4", "video/mp4", new byte[] { 0 }) {
@@ -80,6 +94,7 @@ class ClubMediaControllerTest {
 
     @Test
     void videoUploadSavesCompressedMp4() throws Exception {
+        Assumptions.assumeTrue(ffmpegAvailable(), "本机没有 ffmpeg，跳过视频上传测试");
         Path source = dir.resolve("source.mp4");
         var proc = new ProcessBuilder(
             "ffmpeg",

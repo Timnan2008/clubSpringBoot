@@ -87,10 +87,7 @@ public class RememberMeService {
         try {
             Files.createDirectories(root);
             try {
-                Files.setPosixFilePermissions(
-                    root,
-                    java.nio.file.attribute.PosixFilePermissions.fromString("rwx------")
-                );
+                com.qpwflshclub.formal_club.Util.SecureFiles.restrict(root, "rwx------");
             } catch (UnsupportedOperationException ignored) {}
             Path file = root.resolve(hash(token) + ".json");
             Files.write(
@@ -105,10 +102,7 @@ public class RememberMeService {
                 StandardOpenOption.CREATE_NEW
             );
             try {
-                Files.setPosixFilePermissions(
-                    file,
-                    java.nio.file.attribute.PosixFilePermissions.fromString("rw-------")
-                );
+                com.qpwflshclub.formal_club.Util.SecureFiles.restrict(file, "rw-------");
             } catch (UnsupportedOperationException ignored) {}
             cookie(request, response, token, DAYS30);
         } catch (java.io.IOException e) {

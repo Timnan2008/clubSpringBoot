@@ -2,7 +2,6 @@ package com.qpwflshclub.formal_club.social.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.qpwflshclub.formal_club.social.SocialStore;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.*;
