@@ -750,7 +750,9 @@ public class CommunityController {
             var membership = new ArrayList<>(
                 current.getClubs() == null ? List.<Club>of() : current.getClubs()
             );
-            if (membership.stream().noneMatch(c -> c.getId() == club.getId())) membership.add(club);
+            if (
+                membership.stream().noneMatch(c -> Objects.equals(c.getId(), club.getId()))
+            ) membership.add(club);
             current.setClubs(membership);
             save(current);
             officers.remove(SchoolAccounts.key(current.getEmail()), input.club());

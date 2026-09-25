@@ -12,6 +12,7 @@ import com.qpwflshclub.formal_club.social.controller.NotificationController;
 import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
 import com.qpwflshclub.formal_club.social.service.SocialNotifications;
 import com.qpwflshclub.formal_club.social.service.SocialStore;
+import com.qpwflshclub.formal_club.workspace.controller.JoinRequests;
 import com.qpwflshclub.formal_club.workspace.service.WorkspaceAccess;
 import java.nio.file.Path;
 import java.util.*;

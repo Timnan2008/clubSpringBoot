@@ -112,7 +112,11 @@ class MediaCompressionTest {
 
     @Test
     void alreadyWebReadyVideoIsRemuxedInsteadOfReencoded() throws Exception {
-        Assumptions.assumeTrue(ffmpegAvailable(), "本机没有 ffmpeg，跳过视频转封装测试");
+        // 和上一个视频测试一样：本机没 ffmpeg 就跳过，不要让整个测试套件报错
+        Assumptions.assumeTrue(
+            ffmpegAvailable(),
+            "本机没有 ffmpeg，跳过视频转封装测试（装上 ffmpeg 后会自动跑）"
+        );
         Path input = dir.resolve("ready.mp4"),
             output = dir.resolve("ready-out.mp4");
         var proc = new ProcessBuilder(

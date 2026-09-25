@@ -313,7 +313,7 @@ public class AccountDeletionController {
                             t
                                 .getClubs()
                                 .stream()
-                                .anyMatch(c -> c.getId() == club.getId())
+                                .anyMatch(c -> Objects.equals(c.getId(), club.getId()))
                     )
                     .toList();
                 club.setTeacher(
