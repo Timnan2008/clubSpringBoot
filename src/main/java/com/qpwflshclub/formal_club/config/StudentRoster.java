@@ -3,7 +3,6 @@ package com.qpwflshclub.formal_club.config;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
-import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;

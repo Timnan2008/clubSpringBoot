@@ -1,17 +1,17 @@
 package com.qpwflshclub.formal_club.Booking.service;
 
-import com.qpwflshclub.formal_club.Booking.BookingPolicy;
-import com.qpwflshclub.formal_club.Booking.BookingOverseers;
-import com.qpwflshclub.formal_club.Booking.repository.BookingRepository;
-import com.qpwflshclub.formal_club.Booking.service.BookingService;
-import com.qpwflshclub.formal_club.Booking.controller.BookingApiController;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import com.qpwflshclub.formal_club.Booking.BookingOverseers;
+import com.qpwflshclub.formal_club.Booking.BookingPolicy;
+import com.qpwflshclub.formal_club.Booking.controller.BookingApiController;
+import com.qpwflshclub.formal_club.Booking.repository.BookingRepository;
+import com.qpwflshclub.formal_club.Booking.service.BookingService;
+import com.qpwflshclub.formal_club.Clubs.repository.ClubRepository;
 import com.qpwflshclub.formal_club.User.pojo.Admin;
 import com.qpwflshclub.formal_club.User.pojo.Teacher;
 import com.qpwflshclub.formal_club.User.pojo.User;
-import com.qpwflshclub.formal_club.Clubs.repository.ClubRepository;
 import com.qpwflshclub.formal_club.User.repository.*;
 import com.qpwflshclub.formal_club.User.service.IUserService;
 import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
@@ -108,9 +108,7 @@ class BookingOverseerTest {
                     LocalTime.of(19, 0),
                     LocalTime.of(22, 0),
                     LocalTime.of(19, 0),
-                    List.of(
-                        new BookingPolicy.Period(LocalTime.of(11, 30), LocalTime.of(12, 50))
-                    ),
+                    List.of(new BookingPolicy.Period(LocalTime.of(11, 30), LocalTime.of(12, 50))),
                     List.of(),
                     null,
                     null,
@@ -143,12 +141,7 @@ class BookingOverseerTest {
             mock(TransactionTemplate.class),
             Clock.systemUTC()
         );
-        var overseer = new BookingService.Actor(
-            "Mengchuan@shwfl.edu.cn",
-            "孟川",
-            true,
-            true
-        );
+        var overseer = new BookingService.Actor("Mengchuan@shwfl.edu.cn", "孟川", true, true);
         assertThat(service.roster(overseer))
             .extracting(BookingService.RosterBooking::displayName)
             .containsExactly("李同学");
@@ -203,9 +196,7 @@ class BookingOverseerTest {
         when(users.findByEmail(other.getEmail())).thenReturn(other);
         request.getSession().setAttribute("authenticatedEmail", other.getEmail());
         controller.all(request, new MockHttpServletResponse());
-        verify(service).roster(
-            new BookingService.Actor(other.getEmail(), "胡诗萌", true, false)
-        );
+        verify(service).roster(new BookingService.Actor(other.getEmail(), "胡诗萌", true, false));
         var mengchuan = new Teacher();
         mengchuan.setEmail("Mengchuan@shwfl.edu.cn");
         mengchuan.setUsername("孟川");
@@ -213,9 +204,7 @@ class BookingOverseerTest {
         var overseerRequest = new MockHttpServletRequest();
         overseerRequest.getSession().setAttribute("authenticatedEmail", mengchuan.getEmail());
         controller.all(overseerRequest, new MockHttpServletResponse());
-        verify(service).roster(
-            new BookingService.Actor(mengchuan.getEmail(), "孟川", true, true)
-        );
+        verify(service).roster(new BookingService.Actor(mengchuan.getEmail(), "孟川", true, true));
     }
 
     @Test

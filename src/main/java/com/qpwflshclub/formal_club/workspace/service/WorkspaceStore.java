@@ -132,6 +132,68 @@ public class WorkspaceStore {
         return document;
     }
 
+    /** Plain-text document written by the signed-in officer's assistant. */
+    public synchronized Document saveText(
+        int club,
+        String filename,
+        String note,
+        String author,
+        String text
+    ) throws IOException {
+        String body = Objects.toString(text, "");
+        if (body.isBlank() || body.length() > 100_000) throw bad(
+            "文档不能为空，且不能超过 10 万字"
+        );
+        String name = Objects.toString(filename, "文档.txt").replace('\\', '/');
+        name = name.substring(name.lastIndexOf('/') + 1).replaceAll("[\\p{Cntrl}]", "");
+        if (!name.toLowerCase(Locale.ROOT).endsWith(".txt")) name = name.isBlank()
+            ? "文档.txt"
+            : name + ".txt";
+        if (name.length() > 180 || !name.toLowerCase(Locale.ROOT).matches(".+\\.txt")) throw bad(
+            "文档名无效"
+        );
+        String cleanNote = Objects.toString(note, "").trim();
+        if (cleanNote.length() > 500) throw bad("文件说明最多 500 字");
+        com.qpwflshclub.formal_club.social.ContentModeration.check(name, cleanNote, body);
+        Data data = read(club);
+        String finalName = name;
+        if (
+            data
+                .documents()
+                .stream()
+                .anyMatch(existing ->
+                    Objects.toString(existing.name(), "").equalsIgnoreCase(finalName)
+                )
+        ) {
+            throw new ResponseStatusException(
+                HttpStatus.CONFLICT,
+                "同名社团文档已存在，请先核对内容；这次没有完成 / A club document with this name already exists. Review it before trying again; this action did not finish."
+            );
+        }
+        byte[] bytes = body.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        String id = UUID.randomUUID().toString();
+        Document document = new Document(
+            id,
+            name,
+            bytes.length,
+            cleanNote,
+            author,
+            LocalDateTime.now(java.time.ZoneId.of("Asia/Shanghai")).toString()
+        );
+        Path dir = directory(club);
+        Files.createDirectories(dir);
+        Path target = dir.resolve(id);
+        Files.write(target, bytes);
+        try {
+            data.documents().add(0, document);
+            write(club, data);
+        } catch (IOException e) {
+            Files.deleteIfExists(target);
+            throw e;
+        }
+        return document;
+    }
+
     public synchronized Document document(int club, String id) throws IOException {
         return read(club)
             .documents()

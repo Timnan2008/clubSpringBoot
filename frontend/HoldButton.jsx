@@ -15,7 +15,7 @@ export default function HoldButton({
   icon = null,
   doneIcon = null,
   backgroundColor = "#27272a",
-  fillColor = "#5227FF",
+  fillColor = "#e11d48",
   textColor = "#f5f5f5",
   fillTextColor = "#ffffff",
   size = "md",

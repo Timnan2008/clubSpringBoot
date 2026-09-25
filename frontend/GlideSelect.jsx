@@ -26,6 +26,7 @@ export default function GlideSelect({
   highlightColor = "var(--control-highlight, #eeeaf6)",
   textColor = "var(--control-ink, #24212b)",
   name,
+  menuHeader = null,
 }) {
   const items = options.map((o) => (typeof o === "string" ? { value: o, label: o } : o));
   const [inner, setInner] = useState(defaultValue),
@@ -35,16 +36,32 @@ export default function GlideSelect({
     [position, setPosition] = useState({ side: placement, shift: 0, height: 320 });
   const current = value !== undefined ? value : inner;
   const selected = items.findIndex((o) => o.value === current);
+  const firstEnabled = items.findIndex((item) => !item.disabled);
+  const enabledAt = (index, direction = 1) => {
+    if (firstEnabled < 0) return -1;
+    for (let n = 0; n < items.length; n += 1) {
+      const candidate = (index + n * direction + items.length * 2) % items.length;
+      if (!items[candidate].disabled) return candidate;
+    }
+    return -1;
+  };
   const root = useRef(null),
     trigger = useRef(null),
     menu = useRef(null),
     id = useId();
   const row = { sm: 30, md: 36, lg: 42 }[size] || 36;
+  const optionHeight = (item) => (item?.badge || item?.detail ? 76 : row);
+  const optionTop = (index) => {
+    let top = 0;
+    for (let i = 0; i < index && i < items.length; i += 1) top += optionHeight(items[i]) + 1;
+    return top;
+  };
+  const menuShape = items.map((item) => (item?.badge || item?.detail ? "r" : "s")).join("");
   const reveal = (index) => {
     const list = menu.current;
     if (!list || index < 0) return;
-    const top = 4 + index * (row + 1),
-      bottom = top + row + 4;
+    const top = 4 + optionTop(index),
+      bottom = top + optionHeight(items[index]) + 4;
     if (top < list.scrollTop) list.scrollTop = top - 4;
     else if (bottom > list.scrollTop + list.clientHeight)
       list.scrollTop = bottom - list.clientHeight;
@@ -60,7 +77,8 @@ export default function GlideSelect({
   useLayoutEffect(() => {
     if (!open || !menu.current) return;
     const r = trigger.current.getBoundingClientRect();
-    const need = Math.min(items.length * (row + 1) + 8, 320);
+    const headerExtra = menuHeader ? 72 : 0;
+    const need = Math.min(optionTop(items.length) + 8 + headerExtra, 320 + headerExtra);
     const below = innerHeight - r.bottom - 14,
       above = r.top - 14;
     const side =
@@ -76,10 +94,13 @@ export default function GlideSelect({
     setPosition({
       side,
       shift: Math.max(12 - left, Math.min(0, innerWidth - 12 - left - width)),
-      height: Math.max(60, Math.min(320, side === "bottom" ? below : above)),
+      height: Math.max(
+        60 + headerExtra,
+        Math.min(320 + headerExtra, side === "bottom" ? below : above),
+      ),
     });
     reveal(selected);
-  }, [open, placement, align, menuWidth, items.length, row]);
+  }, [open, placement, align, menuWidth, items.length, row, menuHeader, menuShape]);
   useEffect(() => {
     if (!open) return;
     const outside = (e) => {
@@ -104,7 +125,7 @@ export default function GlideSelect({
   }, [disabled]);
   const pick = (index) => {
     const item = items[index];
-    if (!item) return;
+    if (!item || item.disabled) return;
     if (item.value !== current) {
       if (root.current) root.current.dataset.swap = "";
       if (value === undefined) setInner(item.value);
@@ -114,9 +135,11 @@ export default function GlideSelect({
     trigger.current?.focus({ preventScroll: true });
   };
   const show = (keyboard) => {
-    if (!disabled && items.length) {
+    if (!disabled && firstEnabled >= 0) {
       setPresent(true);
-      setActive(selected < 0 && keyboard ? 0 : selected);
+      setActive(
+        selected >= 0 && !items[selected].disabled ? selected : keyboard ? firstEnabled : -1,
+      );
       setOpen(true);
     }
   };
@@ -142,14 +165,15 @@ export default function GlideSelect({
       return;
     }
     let next = active;
-    if (k === "ArrowDown") next = Math.min(items.length - 1, active + 1);
-    else if (k === "ArrowUp") next = Math.max(0, active - 1);
-    else if (k === "Home") next = 0;
-    else if (k === "End") next = items.length - 1;
+    if (k === "ArrowDown") next = enabledAt(Math.min(items.length - 1, active + 1), 1);
+    else if (k === "ArrowUp") next = enabledAt(Math.max(0, active - 1), -1);
+    else if (k === "Home") next = firstEnabled;
+    else if (k === "End") next = enabledAt(items.length - 1, -1);
     else if (k.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
       for (let n = 1; n <= items.length; n++) {
         const i = (Math.max(active, 0) + n) % items.length;
         if (
+          !items[i].disabled &&
           String(items[i].label ?? items[i].value)
             .toLowerCase()
             .startsWith(k.toLowerCase())
@@ -196,7 +220,7 @@ export default function GlideSelect({
         aria-expanded={open}
         aria-controls={open ? `${id}-list` : undefined}
         aria-activedescendant={open && active >= 0 ? `${id}-${active}` : undefined}
-        disabled={disabled || !items.length}
+        disabled={disabled || firstEnabled < 0}
         onClick={() => (open ? close() : show(false))}
         onKeyDown={keyDown}
       >
@@ -222,12 +246,24 @@ export default function GlideSelect({
             if (!rememberPosition) setActive(selected);
           }}
         >
+          {menuHeader ? (
+            <div
+              className="glide-select__header"
+              onPointerDown={(event) => event.stopPropagation()}
+              onKeyDown={(event) => event.stopPropagation()}
+            >
+              {menuHeader}
+            </div>
+          ) : null}
           <div className="glide-select__list">
             {active >= 0 && (
               <span
                 className="glide-select__pill"
                 aria-hidden="true"
-                style={{ transform: `translateY(${active * (row + 1)}px)` }}
+                style={{
+                  transform: `translateY(${optionTop(active)}px)`,
+                  height: optionHeight(items[active]),
+                }}
               />
             )}
             {items.map((item, i) => (
@@ -236,13 +272,15 @@ export default function GlideSelect({
                 id={`${id}-${i}`}
                 role="option"
                 aria-selected={i === selected}
+                aria-disabled={Boolean(item.disabled)}
                 data-index={i}
                 className="glide-select__option"
+                style={{ height: optionHeight(item) }}
                 onPointerEnter={(e) => {
-                  if (e.pointerType !== "touch") setActive(i);
+                  if (e.pointerType !== "touch" && !item.disabled) setActive(i);
                 }}
                 onPointerDown={(e) => {
-                  if (e.button === 0 && e.pointerType !== "touch") {
+                  if (e.button === 0 && e.pointerType !== "touch" && !item.disabled) {
                     e.preventDefault();
                     setActive(i);
                   }
@@ -253,7 +291,11 @@ export default function GlideSelect({
                   pick(i);
                 }}
               >
-                <span className="glide-select__name">{item.label}</span>
+                <span className="glide-select__copy">
+                  <span className="glide-select__name">{item.label}</span>
+                  {item.badge ? <span className="glide-select__badge">{item.badge}</span> : null}
+                  {item.detail ? <span className="glide-select__detail">{item.detail}</span> : null}
+                </span>
                 {showTags && item.tag && <small>{item.tag}</small>}
                 <HugeiconsIcon
                   icon={Tick02Icon}

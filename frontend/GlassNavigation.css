@@ -1,0 +1,39 @@
+/* Shared frosted surface, with host-specific ink preserved. */
+body .campus-top {
+  --nav-glass: rgb(255 255 255 / 0.56);
+  --nav-glass-edge: rgb(255 255 255 / 0.8);
+  --nav-glass-shadow: rgb(29 23 38 / 0.09);
+  --nav-search-glass: rgb(246 245 249 / 0.5);
+  background: transparent !important;
+}
+body:is(.social-network-theme, .account-page, .openclaw-page) .campus-top,
+body.catalog-page:has(#club-catalog[data-mode="detail"][data-id="28"]) .campus-top {
+  --nav-glass: rgb(32 30 38 / 0.66);
+  --nav-glass-edge: rgb(255 255 255 / 0.24);
+  --nav-glass-shadow: rgb(0 0 0 / 0.2);
+  --nav-search-glass: rgb(16 15 21 / 0.35);
+}
+body .campus-top .card-nav {
+  background: var(--nav-glass) !important;
+  border: 1px solid var(--nav-glass-edge) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(135%);
+  backdrop-filter: blur(22px) saturate(135%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.16),
+    inset 0 -1px 0 rgb(255 255 255 / 0.04),
+    0 8px 28px var(--nav-glass-shadow) !important;
+}
+body .campus-top .card-nav-search {
+  background: var(--nav-search-glass) !important;
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  body .campus-top .card-nav {
+    background: var(--campus-panel, #fff) !important;
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  body .campus-top .card-nav {
+    background: var(--campus-panel, #fff) !important;
+    backdrop-filter: none;
+  }
+}

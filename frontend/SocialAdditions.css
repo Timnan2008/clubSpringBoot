@@ -37,8 +37,8 @@
   position: absolute;
   right: -120px;
   top: 48px;
-  width: min(370px, calc(100vw - 32px));
-  max-height: 65vh;
+  width: min(320px, calc(100vw - 32px));
+  max-height: min(420px, 60dvh);
   border: 1px solid #d6d9dd;
   border-radius: 18px;
   background: #fff;
@@ -49,7 +49,7 @@
   animation: notification-enter 0.18s ease-out;
 }
 .notification-panel header {
-  padding: 16px;
+  padding: 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -63,7 +63,7 @@
   cursor: pointer;
 }
 .notification-items {
-  max-height: calc(65vh - 60px);
+  max-height: min(360px, calc(60dvh - 52px));
   overflow: auto;
 }
 .card-nav .notification-item,
@@ -78,7 +78,7 @@
   gap: 12px;
   text-align: left;
   width: 100%;
-  padding: 14px 16px;
+  padding: 10px 12px;
   cursor: pointer;
   font: inherit;
 }
@@ -475,4 +475,15 @@ body.social-network-theme .social-replies > h2 {
 .notification-notices b {
   color: #ff9a76;
   margin-right: 4px;
+}
+
+.notification-panel {
+  font-size: 13px;
+  line-height: 1.45;
+}
+.notification-panel header strong {
+  font-size: 14px;
+}
+.notification-item > span > span {
+  overflow-wrap: anywhere;
 }

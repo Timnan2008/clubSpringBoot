@@ -116,8 +116,7 @@ final class BookingWorkbook {
             """.formatted(last)
         );
         for (int i = 0; i < widths.length; i++) {
-            xml
-                .append("<col min=\"")
+            xml.append("<col min=\"")
                 .append(i + 1)
                 .append("\" max=\"")
                 .append(i + 1)
@@ -153,8 +152,7 @@ final class BookingWorkbook {
     private static String rowXml(int index, List<String> cells, boolean header) {
         StringBuilder xml = new StringBuilder("<row r=\"").append(index).append("\">");
         for (int i = 0; i < cells.size(); i++) {
-            xml
-                .append("<c r=\"")
+            xml.append("<c r=\"")
                 .append(column(i))
                 .append(index)
                 .append("\" t=\"inlineStr\" s=\"")
@@ -170,7 +168,7 @@ final class BookingWorkbook {
         StringBuilder name = new StringBuilder();
         int value = index;
         do {
-            name.insert(0, (char) ('A' + value % 26));
+            name.insert(0, (char) ('A' + (value % 26)));
             value = value / 26 - 1;
         } while (value >= 0);
         return name.toString();

@@ -26,7 +26,6 @@
 - `PersonIdentity.jsx` / `Avatar.jsx` / `TeacherDay.jsx`：身份文字、头像、徽章。服务器下发身份和权限，客户端展示不能授予权限。
 - `mention-state.mjs`：已选择的 @ 用户按字符范围保存，后续输入不会反复匹配旧提及。
 - `page-window.mjs`：页码窗口逻辑。
-- `PersonalWelcome.jsx`：读取当前账号欢迎配置并向服务器领取一次性展示资格；不是依靠浏览器缓存判断已读。
 - `useAnimatedClose.js` / `MotionPrimitives.jsx`：公共动效。修改时保留减少动画偏好和卸载清理。
 - `GlideSelect`、`HoldButton`、`RubberSegment`、`SpringCheck`、`PulseHeart`、`StatusMark`：基于用户提供的 React Bits 源码适配的交互控件，许可证同上。选择、日历视图、待办、点赞、长按确认和上传反馈分别由这些组件负责。
 - `HoldButton.onHold` 应返回操作 Promise；拒绝或返回 `false` 表示失败，按钮恢复可重试。父页面捕获错误后也要返回 `false`，不能吞掉错误后显示成功。长按不会替代服务端权限检查或账号注销的密码确认。
@@ -65,3 +64,5 @@ npm run build
 React Bits 与其他组件的许可证见本目录 `REACT-BITS-LICENSE.md`、`MOTION-PRIMITIVES-LICENSE.md`。
 
 后端接口、数据存储和空文件说明见 [代码维护指南](../docs/代码维护指南.md)。
+
+OpenClaw 已接入主站导航，与校园墙复用深色 CardNav。仅查看界面可运行 `PREVIEW_ACCOUNT=teacher npm run preview:site`，使用本地测试老师，阻止生产 API 和写入；不设置该变量时仍使用真实登录。详情见 [OPENCLAW.md](OPENCLAW.md)。

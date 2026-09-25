@@ -182,29 +182,7 @@ public class SchoolAccounts {
         ) throw error(401, "请先登录校园账号");
         UserBase user = users.findByEmail(email);
         if (user == null) throw error(401, "账号不存在或会话已失效");
-        requireNotBanned(key(user.getEmail()), request);
         return user;
-    }
-
-    /**
-     * 被封禁的账号一律拒绝（未到期自动失效）。
-     * 例外：允许 GET 读取「网管通知」，否则学生连自己被罚了什么都不知道。
-     */
-    private void requireNotBanned(String account, HttpServletRequest request) {
-        if (moderationPenalties == null) return;
-        long until = moderationPenalties.state(account).banUntil();
-        if (until <= System.currentTimeMillis()) return;
-        String path = request.getRequestURI();
-        if ("GET".equalsIgnoreCase(request.getMethod()) && path.endsWith("/notifications")) return;
-        throw error(
-            403,
-            "账号已被「" +
-                com.qpwflshclub.formal_club.social.service.ModerationPenalty.WARDEN_NAME +
-                "」封禁，解封时间：" +
-                com.qpwflshclub.formal_club.social.service.ModerationPenalty.untilText(until) +
-                " / Account suspended until " +
-                com.qpwflshclub.formal_club.social.service.ModerationPenalty.untilText(until)
-        );
     }
 
     public static String key(String email) {

@@ -32,6 +32,25 @@ CREATE TABLE `message_key_backup` (
   PRIMARY KEY (`account`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `chat_archive`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `chat_archive` (
+  `id` varchar(80) NOT NULL,
+  `sender` varchar(64) NOT NULL,
+  `recipient` varchar(64) NOT NULL,
+  `created_at` varchar(64) NOT NULL,
+  `readable` tinyint(1) NOT NULL,
+  `recalled` tinyint(1) NOT NULL,
+  `archived_at` varchar(64) NOT NULL,
+  `iv` varchar(32) NOT NULL,
+  `body` text NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `idx_chat_archive_created` (`created_at`),
+  KEY `idx_chat_archive_sender` (`sender`),
+  KEY `idx_chat_archive_recipient` (`recipient`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `president_club`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;

@@ -1,3 +1,4 @@
+import "./auto-textarea.mjs";
 import CodeSlots from "./CodeSlots";
 import ForgotPassword from "./ForgotPassword";
 import { tr as localize } from "./language";

@@ -240,7 +240,7 @@ body.social-network-theme .campus-top--sticky {
   top: 0;
   background: #000;
 }
-body:is(.social-network-theme, .account-page) .campus-top {
+body:is(.social-network-theme, .account-page, .openclaw-page) .campus-top {
   --campus-bg: #000;
   --campus-panel: #16181c;
   --campus-line: #2f3336;
@@ -249,39 +249,45 @@ body:is(.social-network-theme, .account-page) .campus-top {
   --campus-accent: #1d9bf0;
   color-scheme: dark;
 }
-body:is(.social-network-theme, .account-page) .campus-top .card-nav {
+body:is(.social-network-theme, .account-page, .openclaw-page) .campus-top .card-nav {
   background: #000;
   border-color: #2f3336;
   box-shadow: none;
 }
-body:is(.social-network-theme, .account-page) .campus-top .card-nav-account {
+body:is(.social-network-theme, .account-page, .openclaw-page) .campus-top .card-nav-account {
   background: #eff3f4;
   color: #0f1419;
 }
-body:is(.social-network-theme, .account-page) .campus-top .card-nav-search {
+body:is(.social-network-theme, .account-page, .openclaw-page) .campus-top .card-nav-search {
   background: #16181c;
   border-color: #2f3336;
   color: #8b98a5;
 }
-body:is(.social-network-theme, .account-page) .campus-top .campus-subnav {
+body:is(.social-network-theme, .account-page, .openclaw-page) .campus-top .campus-subnav {
   background: #000;
   border-color: #2f3336;
 }
-body:is(.social-network-theme, .account-page) .campus-top .campus-subnav a {
+body:is(.social-network-theme, .account-page, .openclaw-page) .campus-top .campus-subnav a {
   color: #8b98a5;
 }
-body:is(.social-network-theme, .account-page) .campus-top .campus-subnav a[aria-current] {
+body:is(.social-network-theme, .account-page, .openclaw-page)
+  .campus-top
+  .campus-subnav
+  a[aria-current] {
   color: #e7e9ea;
 }
-body:is(.social-network-theme, .account-page) .campus-top .campus-subnav a[aria-current]:after {
+body:is(.social-network-theme, .account-page, .openclaw-page)
+  .campus-top
+  .campus-subnav
+  a[aria-current]:after {
   background: #1d9bf0;
 }
-body:is(.social-network-theme, .account-page) .campus-top .campus-language {
+body:is(.social-network-theme, .account-page, .openclaw-page) .campus-top .campus-language {
   background: #16181c;
   color: #e7e9ea;
   box-shadow: -8px 0 10px #000;
 }
-body:is(.social-network-theme, .account-page) .campus-top .nav-card {
+body:is(.social-network-theme, .account-page, .openclaw-page) .campus-top .nav-card {
   background: #16181c;
   border: 1px solid #2f3336;
 }

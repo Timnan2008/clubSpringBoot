@@ -67,7 +67,9 @@ export async function updateModulePreloads(templatesDir, outputs) {
   for (const file of htmlFiles(templatesDir)) {
     let html = readFileSync(file, "utf8");
     // 这个模板用到了哪些入口（按网址匹配，忽略 ?v= 之类的查询串）
-    const used = entries.filter(([, url]) => html.includes(`"${url}?`) || html.includes(`"${url}"`));
+    const used = entries.filter(
+      ([, url]) => html.includes(`"${url}?`) || html.includes(`"${url}"`),
+    );
     if (!used.length) continue;
 
     // 期望的 chunk 集合 = 所有用到的入口的依赖，去重后按字母序，保证输出稳定
@@ -82,12 +84,14 @@ export async function updateModulePreloads(templatesDir, outputs) {
 
     // 先删掉旧的全部 modulepreload 行，再插到入口脚本标签前面
     const stripped = html.replace(/^[ \t]*<link rel="modulepreload"[^>]*\/>\r?\n/gm, "");
-    const script = stripped.match(/^([ \t]*)<script type="module" src="\/javascript\/ui\/[^"]*"><\/script>$/m);
+    const script = stripped.match(
+      /^([ \t]*)<script type="module" src="\/javascript\/ui\/[^"]*"><\/script>$/m,
+    );
     const indent = script ? script[1] : "    ";
-    const block = next.map((url) => `${indent}<link rel="modulepreload" href="${url}" />\n`).join("");
-    const updated = script
-      ? stripped.replace(script[0], `${block}${script[0]}`)
-      : stripped;
+    const block = next
+      .map((url) => `${indent}<link rel="modulepreload" href="${url}" />\n`)
+      .join("");
+    const updated = script ? stripped.replace(script[0], `${block}${script[0]}`) : stripped;
     if (updated !== html) {
       writeFileSync(file, updated);
       touched.push(file);

@@ -57,6 +57,7 @@
   padding: 0 20px 18px;
 }
 .profile-home-avatar-row {
+  --profile-avatar-size: 142px;
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
@@ -64,11 +65,14 @@
   min-height: 84px;
 }
 .profile-home-avatar-row > .campus-avatar {
-  width: 142px;
-  height: 142px;
+  box-sizing: border-box;
+  width: var(--profile-avatar-size);
+  height: var(--profile-avatar-size);
+  flex-shrink: 0;
+  align-self: flex-start;
   font-size: 46px;
   border: 4px solid #000;
-  margin-top: -71px;
+  margin-top: calc(var(--profile-avatar-size) / -2);
   position: relative;
   z-index: 1;
 }
@@ -351,12 +355,8 @@
   .profile-home-summary {
     padding: 0 16px 16px;
   }
-  .profile-home-avatar-row > .campus-avatar {
-    width: 108px;
-    height: 108px;
-    margin-top: -54px;
-  }
   .profile-home-avatar-row {
+    --profile-avatar-size: 108px;
     min-height: 66px;
   }
   .profile-home-summary h2 {
@@ -420,4 +420,28 @@
 .profile-home-summary .profile-message-action:focus-visible {
   outline: 2px solid #1d9bf0;
   outline-offset: 3px;
+}
+
+/* Keep the full uploaded cover; the avatar straddles its lower boundary. */
+.profile-cover[data-image] {
+  height: auto;
+  min-height: 120px;
+}
+.profile-cover[data-image] img {
+  height: auto;
+  max-height: 420px;
+  object-fit: contain;
+}
+@media (max-width: 600px) {
+  .profile-cover[data-image] img {
+    max-height: 320px;
+  }
+}
+
+/* Manual width preserves the full image, including tall uploaded covers. */
+.profile-cover[data-image][data-manual-width] img {
+  width: var(--cover-width);
+  height: auto;
+  max-height: none;
+  margin-inline: auto;
 }

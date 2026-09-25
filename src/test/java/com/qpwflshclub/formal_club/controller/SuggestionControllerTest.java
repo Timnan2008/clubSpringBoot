@@ -50,7 +50,10 @@ class SuggestionControllerTest {
             "moderation",
             new com.qpwflshclub.formal_club.social.service.ModerationGate(
                 new com.qpwflshclub.formal_club.social.service.ModerationPenalty(
-                    java.nio.file.Path.of(System.getProperty("java.io.tmpdir"), "club-suggestion-penalties.json").toString()
+                    java.nio.file.Path.of(
+                        System.getProperty("java.io.tmpdir"),
+                        "club-suggestion-penalties.json"
+                    ).toString()
                 )
             )
         );
@@ -143,13 +146,17 @@ class SuggestionControllerTest {
 
     @Test
     void qingyuanIdeasRejectsAnonymousSubmit() {
-        controller.turnstile = org.mockito.Mockito.mock(com.qpwflshclub.formal_club.service.Suggestion.TurnstileService.class);
+        controller.turnstile = org.mockito.Mockito.mock(
+            com.qpwflshclub.formal_club.service.Suggestion.TurnstileService.class
+        );
         var dto = new com.qpwflshclub.formal_club.Suggestion.pojo.dto.SuggestionDTO();
         dto.setAnonymous(true);
         dto.setTitle("general");
         dto.setContext("把图书馆开放时间延长");
         dto.setTurnstileToken("valid");
-        org.assertj.core.api.Assertions.assertThatThrownBy(() -> controller.addSuggestion(dto, request)).hasMessageContaining("匿名");
+        org.assertj.core.api.Assertions.assertThatThrownBy(() ->
+            controller.addSuggestion(dto, request)
+        ).hasMessageContaining("匿名");
         verify(suggestionService, never()).add(dto);
     }
 

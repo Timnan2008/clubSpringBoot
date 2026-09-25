@@ -356,8 +356,8 @@ function BookingDialog({ cell, data, onClose, onSaved }) {
               <h3>{tx("预约须知", "Court-use rules")}</h3>
               <p>
                 {tx(
-                  "每场使用 20 分钟。可预约时段：周一至周四 11:30–12:50、16:30–18:30；周五仅 11:30–12:50。学生预约开放时间：周六、周日 13:00–19:00，预约的是下周这些场地。教师每周最多挂起 3 次。请按时使用场地，不得恶意占场或预约后无故缺席。违规将被禁止预约三楼场地。开始前可在「我的预约」取消。",
-                  "Each booking is 20 minutes. Bookable slots: Mon–Thu 11:30–12:50 and 16:30–18:30; Friday 11:30–12:50 only. Student booking is open Saturday and Sunday 13:00–19:00 for next week's courts. Teachers may pending up to 3 times per week. Use the court on time. Deliberately holding slots or failing to attend may result in a booking ban. You can cancel from My bookings before the slot starts.",
+                  "每场使用 20 分钟。可预约时段：周一至周三 11:30–12:50、16:30–18:30；周四仅 16:30–18:30；周五仅 11:30–12:50。周四 11:30–13:00 为社团时间，三楼羽毛球馆不对外开放。学生预约开放时间：周六、周日 13:00–19:00，预约的是下周这些场地。教师每周最多挂起 3 次。请按时使用场地，不得恶意占场或预约后无故缺席。违规将被禁止预约三楼场地。开始前可在「我的预约」取消。",
+                  "Each booking is 20 minutes. Bookable slots: Mon–Wed 11:30–12:50 and 16:30–18:30; Thursday 16:30–18:30 only; Friday 11:30–12:50 only. Thursday 11:30–13:00 is reserved for clubs; the third-floor hall is closed to public bookings. Student booking is open Saturday and Sunday 13:00–19:00 for next week's courts. Teachers may pending up to 3 times per week. Use the court on time. Deliberately holding slots or failing to attend may result in a booking ban. You can cancel from My bookings before the slot starts.",
                 )}
               </p>
               {data.calendar.teacher && (
@@ -476,8 +476,8 @@ function Booking() {
             <h1>{tx("羽毛球场预约", "Book a badminton court")}</h1>
             <p>
               {tx(
-                "可预约时段：周一至周四 11:30–12:50、16:30–18:30；周五仅 11:30–12:50。学生预约开放时间：周六、周日 13:00–19:00。教师每周最多挂起 3 次。",
-                "Bookable slots: Mon–Thu 11:30–12:50 and 16:30–18:30; Friday 11:30–12:50 only. Student booking opens Saturday and Sunday 13:00–19:00. Teachers may pending 3 times per week.",
+                "可预约时段：周一至周三 11:30–12:50、16:30–18:30；周四仅 16:30–18:30；周五仅 11:30–12:50。周四 11:30–13:00 为社团时间，三楼羽毛球馆不对外开放。学生预约开放时间：周六、周日 13:00–19:00。教师每周最多挂起 3 次。",
+                "Bookable slots: Mon–Wed 11:30–12:50 and 16:30–18:30; Thursday 16:30–18:30 only; Friday 11:30–12:50 only. Thursday 11:30–13:00 is reserved for clubs; the third-floor hall is closed to public bookings. Student booking opens Saturday and Sunday 13:00–19:00. Teachers may pending 3 times per week.",
               )}
             </p>
           </div>

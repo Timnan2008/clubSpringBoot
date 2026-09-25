@@ -28,5 +28,8 @@ export function changeLanguage() {
   document.cookie = `club_language=${next}; Path=/; Max-Age=31536000; SameSite=Lax`;
   const url = new URL(location.href);
   url.searchParams.set("lang", next);
-  location.assign(url.pathname + url.search + url.hash);
+  const href = url.pathname + url.search + url.hash;
+  const event = new CustomEvent("club-language-change", { cancelable: true, detail: { href } });
+  if (!window.dispatchEvent(event)) return;
+  location.assign(href);
 }

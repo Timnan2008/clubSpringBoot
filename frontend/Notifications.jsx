@@ -4,6 +4,30 @@ import Avatar from "./Avatar";
 import { postName } from "./person-names.mjs";
 import { tx, en, tr } from "./language";
 import "./SocialAdditions.css";
+function approvalAction(tool) {
+  switch (tool) {
+    case "update_club_profile":
+      return tx("修改社团资料", "change a club profile");
+    case "write_document":
+      return tx("保存文档", "save a document");
+    case "add_personal_event":
+      return tx("添加个人日程", "add a personal event");
+    case "add_club_event":
+      return tx("添加社团活动", "add a club event");
+    case "publish_post":
+      return tx("发布校园帖", "publish a post");
+    case "review_join_request":
+      return tx("处理入社申请", "review a join request");
+    case "remember":
+      return tx("记住一件事", "remember something");
+    case "forget":
+      return tx("忘掉一件事", "forget something");
+    case "give_file":
+      return tx("准备一个文件", "prepare a file");
+    default:
+      return tx("一项修改", "a change");
+  }
+}
 function noticeText(item) {
   switch (item.type) {
     case "mention":
@@ -13,18 +37,22 @@ function noticeText(item) {
     case "message":
       return tx("发来一条私信", "sent you a message");
     case "join_request":
-      return (
-        tx("提交了入社申请", "applied to join") + (item.clubName ? " · " + item.clubName : "")
-      );
+      return tx("提交了入社申请", "applied to join") + (item.clubName ? " · " + item.clubName : "");
     case "join_approved":
       return tx("你的入社申请已通过", "Your club application was approved");
     case "join_declined":
       return tx("你的入社申请未通过", "Your club application was declined");
+    case "openclaw_approval":
+      return (
+        tx("助手正在等你批准：", "The assistant is waiting for you to approve: ") +
+        approvalAction(item.clubName)
+      );
     default:
       return item.type;
   }
 }
 function noticeTitle(item) {
+  if (item.type === "openclaw_approval") return "Agent Ollie";
   if (item.type === "join_approved" || item.type === "join_declined") {
     return item.clubName || tx("社团", "Club");
   }
@@ -128,17 +156,6 @@ export default function Notifications({ enabled }) {
             </button>
           </header>
           {error && <p role="alert">{error}</p>}
-          {/* 「网管」的提醒/封禁记录（每次命中违禁词都会留一条） */}
-          {data.notices?.length ? (
-            <div className="notification-notices">
-              {data.notices.map((notice) => (
-                <p key={notice.id} className={notice.unread ? "unread" : ""}>
-                  <b>{tx("网管", "Network Admin")}</b>
-                  <span> {notice.text}</span>
-                </p>
-              ))}
-            </div>
-          ) : null}
           <div className="notification-items">
             {data.items.length ? (
               data.items.map((item) => (

@@ -30,3 +30,8 @@ spring:
 # Linux服务器会自动使用 /opt/club-app/media
 file:
   upload-dir:
+
+server:
+  tomcat:
+    max-http-form-post-size: 32MB
+    max-swallow-size: 32MB

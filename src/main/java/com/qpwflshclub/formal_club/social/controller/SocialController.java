@@ -41,9 +41,12 @@ public class SocialController {
     @org.springframework.beans.factory.annotation.Autowired
     private com.qpwflshclub.formal_club.social.service.ModerationGate moderation;
 
-    /** 私信解密器：只送了密文时，服务器自己解出明文来查违禁词（不落盘）。 */
+    /** 私信解密器：只送了密文时，服务器自己解出明文来查违禁词，并写入 ChatArchive。 */
     @org.springframework.beans.factory.annotation.Autowired
     private com.qpwflshclub.formal_club.social.service.ChatPlaintext chatPlaintext;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    private ChatArchive chatArchive;
 
     private final SchoolAccounts accounts;
     private final WorkspaceAccess access;
@@ -64,7 +67,18 @@ public class SocialController {
 
     private UserBase current(HttpServletRequest request, boolean write) {
         UserBase u = accounts.current(request);
-        if (write) access.mutation(request);
+        if (write) {
+            access.mutation(request);
+            String path = request.getRequestURI();
+            if (
+                moderation != null &&
+                "POST".equals(request.getMethod()) &&
+                (path.equals("/api/campus-social/posts") ||
+                    path.matches("/api/campus-social/posts/[^/]+/replies") ||
+                    path.matches("/api/campus-social/conversations/[^/]+(?:/attachments)?") ||
+                    path.startsWith("/api/campus-social/invitations"))
+            ) moderation.requireCanSpeak(SchoolAccounts.key(u.getEmail()));
+        }
         return u;
     }
 
@@ -340,6 +354,7 @@ public class SocialController {
         row.put("replies", replies.size());
         row.put("own", p.author().equals(me));
         row.put("anonymous", p.anonymous());
+        row.put("agent", p.agent());
         row.put("category", Objects.toString(p.category(), "general"));
         if (!replies.isEmpty()) {
             int max = replies
@@ -876,14 +891,16 @@ public class SocialController {
         UserBase me = current(request, true);
         accounts.find(peer);
         if (preferences != null) preferences.requireAllowed(key(me), peer);
-        // 私信是端到端加密的：前端送了明文就用明文，只送密文就由服务器自己解（不落盘）
+        String plaintext = chatPlain(key(me), peer, body.text(), body.plainText());
         moderation.inspect(
             key(me),
             com.qpwflshclub.formal_club.social.service.ModerationGate.CHAT,
-            chatPlain(key(me), peer, body.text(), body.plainText())
+            plaintext
         );
         messageKeys.validateMessage(key(me), peer, body.text());
-        return store.message(key(me), peer, body.text());
+        var stored = store.message(key(me), peer, body.text());
+        if (chatArchive != null) chatArchive.capture(stored, plaintext);
+        return stored;
     }
 
     /** 取明文做检查：优先用前端送来的明文，没有就退回 raw（未加密的消息）。 */
@@ -919,10 +936,11 @@ public class SocialController {
         String me = key(current(request, true));
         accounts.find(peer);
         if (preferences != null) preferences.requireAllowed(me, peer);
+        String plaintext = chatPlain(me, peer, text, plainText);
         moderation.inspect(
             me,
             com.qpwflshclub.formal_club.social.service.ModerationGate.CHAT,
-            chatPlain(me, peer, text, plainText)
+            plaintext
         );
         messageKeys.validateMessage(me, peer, text);
         if (
@@ -946,7 +964,9 @@ public class SocialController {
             ) throw SchoolAccounts.error(400, "附件格式无效或超过 20 MB");
             encrypted.put(id, upload.getBytes());
         }
-        return store.message(me, peer, text, encrypted);
+        var stored = store.message(me, peer, text, encrypted);
+        if (chatArchive != null) chatArchive.capture(stored, plaintext);
+        return stored;
     }
 
     @GetMapping("/conversations/{peer}/messages/{id}/files/{file}")
@@ -972,6 +992,7 @@ public class SocialController {
         HttpServletRequest request
     ) throws IOException {
         store.recall(id, key(current(request, true)), peer);
+        if (chatArchive != null) chatArchive.markRecalled(id);
         return Map.of("ok", true);
     }
 
@@ -985,6 +1006,14 @@ public class SocialController {
         String me = key(current(request, true));
         accounts.find(peer);
         messageKeys.validateMessage(me, peer, body.text());
+        if (chatArchive != null) {
+            for (var m : store.snapshot().messages()) {
+                if (m.id().equals(id)) {
+                    chatArchive.capture(m, m.text());
+                    break;
+                }
+            }
+        }
         store.encryptHistory(id, me, peer, body.text());
         return Map.of("ok", true);
     }

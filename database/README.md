@@ -8,4 +8,4 @@
 
 主站账号资料、聊天、附件、恢复密钥等私有文件位于运行目录 `data/`。完整迁移需要同时迁移数据库、这些目录和服务器环境配置，不能只恢复 JAR。
 
-新版预约已支持主站 MySQL：执行 `migrations/20260912-booking.sql` 新增四张预约表，再迁移旧库数据、启用 `CLUB_BOOKING_BACKEND=main`。详细流程见 [预约后端](../docs/预约后端.md)。不要对现有数据库执行全量 `schema.sql`。
+新版预约已支持主站 MySQL：执行 `migrations/20260912-booking.sql` 新增四张预约表，再迁移旧库数据、启用 `CLUB_BOOKING_BACKEND=main`。详细流程见 [预约后端](../docs/预约后端.md)。不要对现有数据库执行全量 `schema.sql`。私信加密归档表见 `migrations/20260921-chat-archive.sql`。

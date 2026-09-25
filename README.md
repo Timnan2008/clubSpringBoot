@@ -1,6 +1,6 @@
 # 青浦世外新版社团网站 · 完整源码
 
-Spring Boot / Thymeleaf 后端与 React 前端。包含社团目录及工作台、校园墙、评论与 @ 用户、站内通知、私信及附件、密码找回、个人资料与日历。
+Spring Boot / Thymeleaf 后端与 React 前端。包含 Agent Ollie、社团目录及工作台、校园墙、评论与 @ 用户、站内通知、私信及附件、密码找回、个人资料与日历。
 
 ## 从哪里开始读代码
 
@@ -17,6 +17,8 @@ Spring Boot / Thymeleaf 后端与 React 前端。包含社团目录及工作台�
 | `database/` | 主站无数据建表结构与旧版升级 SQL |
 | `deploy/` | Nginx、systemd、环境变量示例及主站发布脚本 |
 | `src/test/`、`frontend/tests/*.test.mjs`、`tests/e2e/` | 后端、前端及浏览器回归测试 |
+
+Agent 的请求流程、联网限制和历史存储边界见 [Agent 维护说明](docs/Agent维护.md)。
 
 ## 构建
 

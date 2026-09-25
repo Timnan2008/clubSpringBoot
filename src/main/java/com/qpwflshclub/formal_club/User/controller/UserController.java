@@ -613,21 +613,6 @@ public class UserController {
             return ResponseMessage.error("用户名或密码错误 / Incorrect email or password");
         }
 
-        // 被封禁的账号（违禁词处罚）在解封前不能登录
-        if (moderationPenalties != null) {
-            long until = moderationPenalties
-                .state(
-                    com.qpwflshclub.formal_club.social.service.SchoolAccounts.key(user.getEmail())
-                )
-                .banUntil();
-            if (until > System.currentTimeMillis()) return ResponseMessage.error(
-                "账号已被「网管」封禁，解封时间：" +
-                    com.qpwflshclub.formal_club.social.service.ModerationPenalty.untilText(until) +
-                    " / Account suspended until " +
-                    com.qpwflshclub.formal_club.social.service.ModerationPenalty.untilText(until)
-            );
-        }
-
         /*
         if (user instanceof User) {
             if(Objects.equals(user.getPassword(), loginDTO.getPassword()))

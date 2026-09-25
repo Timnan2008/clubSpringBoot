@@ -1,0 +1,77 @@
+.swipe-toast {
+  position: fixed;
+  z-index: 1100;
+  bottom: 28px;
+  right: 28px;
+  width: min(390px, calc(100vw - 32px));
+  color: #eee;
+  font-size: 13px;
+}
+.swipe-toast__card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #252525;
+  border-radius: 13px;
+  padding: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 35px #25252520;
+  cursor: grab;
+  touch-action: none;
+}
+.swipe-toast__card:focus-visible {
+  outline: 2px solid #bda4d4;
+  outline-offset: 3px;
+}
+.swipe-toast__body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.swipe-toast__body strong {
+  font-weight: 550;
+}
+.swipe-toast__body span {
+  color: #aaa;
+}
+.swipe-toast button {
+  border: 0;
+  border-radius: 5px;
+  font: inherit;
+  cursor: pointer;
+  padding: 5px 7px;
+  color: #252525;
+  background: #f6effb;
+}
+.swipe-toast button:focus-visible {
+  outline: 2px solid #c9a7e5;
+  outline-offset: 3px;
+}
+.swipe-toast .swipe-toast__close {
+  background: none;
+  color: inherit;
+  padding: 6px;
+  display: grid;
+  place-items: center;
+}
+.swipe-toast__fuse {
+  position: absolute;
+  height: 2px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(90deg, transparent, #c6a8df 25%, #c6a8df 75%, transparent);
+  transform-origin: left;
+  pointer-events: none;
+}
+@media (max-width: 600px) {
+  .swipe-toast {
+    bottom: calc(16px + env(safe-area-inset-bottom));
+    right: 16px;
+  }
+}

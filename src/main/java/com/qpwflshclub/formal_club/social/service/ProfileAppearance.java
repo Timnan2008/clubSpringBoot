@@ -38,12 +38,45 @@ public class ProfileAppearance {
         List<Frame> frames,
         double avatarScale,
         double avatarX,
-        double avatarY
+        double avatarY,
+        double bannerWidth
     ) {
         public Settings {
             tags = tags == null ? null : List.copyOf(tags);
             frames = frames == null ? List.of() : List.copyOf(frames);
             if (avatarScale == 0) avatarScale = 1;
+        }
+
+        // Older clients and saved settings use automatic cover sizing.
+        public Settings(
+            String frame,
+            boolean badge,
+            double scale,
+            double x,
+            double y,
+            List<String> tags,
+            String custom,
+            String banner,
+            List<Frame> frames,
+            double avatarScale,
+            double avatarX,
+            double avatarY
+        ) {
+            this(
+                frame,
+                badge,
+                scale,
+                x,
+                y,
+                tags,
+                custom,
+                banner,
+                frames,
+                avatarScale,
+                avatarX,
+                avatarY,
+                0
+            );
         }
 
         public Settings(
@@ -101,7 +134,8 @@ public class ProfileAppearance {
                 ),
                 s.avatarScale(),
                 s.avatarX(),
-                s.avatarY()
+                s.avatarY(),
+                s.bannerWidth()
             );
         }
         return s;
@@ -191,6 +225,12 @@ public class ProfileAppearance {
             Math.abs(input.avatarX()) > .5 ||
             Math.abs(input.avatarY()) > .5
         ) throw SchoolAccounts.error(400, "头像位置无效 / Invalid avatar position");
+        if (
+            !Double.isFinite(input.bannerWidth()) ||
+            (input.bannerWidth() != 0 && (input.bannerWidth() < 30 || input.bannerWidth() > 100))
+        ) {
+            throw SchoolAccounts.error(400, "封面宽度需为 30%–100% / Cover width must be 30%–100%");
+        }
         var tags =
             input.tags() == null
                 ? null
@@ -215,7 +255,8 @@ public class ProfileAppearance {
                 .toList(),
             input.avatarScale(),
             input.avatarX(),
-            input.avatarY()
+            input.avatarY(),
+            input.bannerWidth()
         );
         save(id, next);
         return next;
@@ -252,7 +293,9 @@ public class ProfileAppearance {
             "avatarX",
             s.avatarX(),
             "avatarY",
-            s.avatarY()
+            s.avatarY(),
+            "bannerWidth",
+            s.bannerWidth()
         );
     }
 
@@ -357,7 +400,8 @@ public class ProfileAppearance {
             frames,
             old.avatarScale(),
             old.avatarX(),
-            old.avatarY()
+            old.avatarY(),
+            old.bannerWidth()
         );
         try {
             save(id, next);
@@ -408,7 +452,8 @@ public class ProfileAppearance {
                 .toList(),
             old.avatarScale(),
             old.avatarX(),
-            old.avatarY()
+            old.avatarY(),
+            old.bannerWidth()
         );
         try {
             for (String f : List.of(

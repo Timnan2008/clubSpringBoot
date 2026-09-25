@@ -154,4 +154,47 @@ public class JoinRequestController {
         }
         return store.decide(id, entry, decision.status(), SchoolAccounts.key(actor.getEmail()));
     }
+
+    public boolean alreadyMember(int clubId, String entryId) throws IOException {
+        var entry = store
+            .read(clubId)
+            .stream()
+            .filter(x -> x.id().equals(entryId))
+            .findFirst()
+            .orElse(null);
+        if (entry == null) return true;
+        var person = accounts.find(entry.account());
+        return person != null && member(person, clubId);
+    }
+
+    public void undo(int clubId, String entryId, boolean removeMember, HttpServletRequest request)
+        throws IOException {
+        var actor = access.current(request);
+        access.require(actor, clubId);
+        access.mutation(request);
+        var entry = store
+            .read(clubId)
+            .stream()
+            .filter(x -> x.id().equals(entryId))
+            .findFirst()
+            .orElseThrow(() -> SchoolAccounts.error(404, "申请不存在"));
+        String reviewer = SchoolAccounts.key(actor.getEmail());
+        if (!reviewer.equals(entry.reviewedBy()) && !entry.reviewedBy().isBlank()) {
+            throw SchoolAccounts.error(403, "只能撤回自己处理的申请");
+        }
+        if (removeMember && "approved".equals(entry.status())) {
+            var person = accounts.find(entry.account());
+            if (person != null && person.getClubs() != null) {
+                var list = new ArrayList<Club>(person.getClubs());
+                boolean changed = list.removeIf(club -> Objects.equals(club.getId(), clubId));
+                if (changed) {
+                    person.setClubs(list);
+                    if (person instanceof User student) students.save(student);
+                    else if (person instanceof ClubPresident president) presidents.save(president);
+                    else if (person instanceof Admin admin) admins.save(admin);
+                }
+            }
+        }
+        store.reopen(clubId, entryId);
+    }
 }

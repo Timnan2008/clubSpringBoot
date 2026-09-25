@@ -37,9 +37,9 @@ class ContentDisciplineTest {
         assertThat(discipline.until(SchoolAccounts.key("student@example.invalid"))).isEqualTo(
             "2026-09-24 17:00"
         );
-        assertThatThrownBy(() -> ContentModeration.check("普通校园分享")).hasMessageContaining(
-            "禁言至"
-        );
+        assertThatThrownBy(() ->
+            discipline.requireOpen(SchoolAccounts.key("student@example.invalid"))
+        ).hasMessageContaining("禁言至");
     }
 
     @Test

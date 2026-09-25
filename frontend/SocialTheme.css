@@ -154,6 +154,25 @@ body.social-network-theme {
   background: transparent !important;
   box-shadow: none !important;
 }
+.social-network-theme .wall-guidelines {
+  margin: 8px 20px 4px;
+  background: #16181c;
+  border-color: #2f3336;
+  color: #e7e9ea;
+}
+.social-network-theme .wall-guidelines-toggle svg,
+.social-network-theme .wall-guidelines-toggle em {
+  color: #1d9bf0;
+}
+.social-network-theme .wall-guidelines-toggle em {
+  background: #1d9bf01f;
+}
+.social-network-theme .wall-guidelines-more,
+.social-network-theme .wall-guidelines p,
+.social-network-theme .wall-guidelines ul,
+.social-network-theme .wall-composer-hint {
+  color: #8b98a5;
+}
 .social-network-theme .social-feed-header h1,
 .social-network-theme .social-rail-card h2,
 .social-network-theme .social-chat h2,

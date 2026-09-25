@@ -224,7 +224,12 @@ export default function PublicProfile({ id }) {
           )}
           {data ? (
             <>
-              <div className="profile-cover">
+              <div
+                className="profile-cover"
+                data-image={account.appearance?.banner ? "" : undefined}
+                data-manual-width={account.appearance?.bannerWidth > 0 ? "" : undefined}
+                style={{ "--cover-width": `${account.appearance?.bannerWidth || 100}%` }}
+              >
                 {account.appearance?.banner && (
                   <img src={account.appearance.banner} alt={tx("主页封面", "Profile cover")} />
                 )}

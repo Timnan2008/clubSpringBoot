@@ -20,6 +20,7 @@
   gap: var(--cc-gap);
   box-sizing: border-box;
   height: var(--cc-size);
+  max-width: 100%;
   padding: 0 var(--cc-pad);
   border-radius: var(--cc-radius);
   overflow: hidden;
@@ -131,6 +132,9 @@
 
 .call-chip__arg {
   opacity: 0.72;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 28ch;
 }
 
 .call-chip__timer {
@@ -177,37 +181,5 @@
 
   .call-chip[data-pressed] {
     transform: none;
-  }
-}
-
-.call-chip {
-  max-width: 100%;
-  vertical-align: middle;
-}
-.call-chip__arg {
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.call-chip__name,
-.call-chip__timer {
-  flex-shrink: 0;
-}
-.call-chip[data-indeterminate] .call-chip__fill {
-  width: 45%;
-  transform: none !important;
-  animation: cc-wait 1.8s ease-in-out infinite;
-}
-@keyframes cc-wait {
-  from {
-    translate: -110% 0;
-  }
-  to {
-    translate: 240% 0;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .call-chip[data-indeterminate] .call-chip__fill {
-    animation: none;
-    width: 100%;
   }
 }

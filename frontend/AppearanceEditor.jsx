@@ -262,7 +262,11 @@ export default function AppearanceEditor({ profile, onSaved }) {
   return (
     <section className="appearance-editor" aria-busy={busy}>
       <h2>{tx("主页与装扮", "Profile appearance")}</h2>
-      <div className="appearance-banner">
+      <div
+        className="appearance-banner"
+        data-manual-width={settings.bannerWidth > 0 ? "" : undefined}
+        style={{ "--cover-width": `${settings.bannerWidth || 100}%` }}
+      >
         {settings.banner && <img src={settings.banner} alt={tx("主页封面", "Profile cover")} />}
       </div>
       <div className="appearance-banner-actions">
@@ -281,6 +285,41 @@ export default function AppearanceEditor({ profile, onSaved }) {
           />
         </label>
       </div>
+      {settings.banner && (
+        <div className="appearance-cover-sizing">
+          <label htmlFor="profile-cover-width">
+            {tx("封面宽度", "Cover width")}
+            <output>
+              {settings.bannerWidth > 0 ? `${settings.bannerWidth}%` : tx("自动适配", "Auto fit")}
+            </output>
+          </label>
+          <div className="appearance-cover-sizing-controls">
+            <input
+              id="profile-cover-width"
+              type="range"
+              min="30"
+              max="100"
+              step="1"
+              value={settings.bannerWidth || 100}
+              disabled={busy}
+              onChange={(e) => edit({ bannerWidth: Number(e.target.value) })}
+            />
+            <button
+              type="button"
+              disabled={busy || !settings.bannerWidth}
+              onClick={() => edit({ bannerWidth: 0 })}
+            >
+              {tx("恢复自动适配", "Reset to auto")}
+            </button>
+          </div>
+          <p>
+            {tx(
+              "拖动调整宽度，图片保持原比例。点击“保存装扮”后生效。",
+              "Adjust the width without stretching the image. Click Save appearance to apply.",
+            )}
+          </p>
+        </div>
+      )}
       {uploadPhase !== "idle" && (
         <CallChip
           icon="file"

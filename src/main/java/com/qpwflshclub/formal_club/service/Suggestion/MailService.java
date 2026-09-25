@@ -130,7 +130,11 @@ public class MailService {
         String text
     ) throws MessagingException, UnsupportedEncodingException {
         MimeMessage mime = sender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(mime, false, StandardCharsets.UTF_8.name());
+        MimeMessageHelper helper = new MimeMessageHelper(
+            mime,
+            false,
+            StandardCharsets.UTF_8.name()
+        );
         helper.setFrom(new InternetAddress(smtpUser, FROM_NAME, StandardCharsets.UTF_8.name()));
         helper.setTo(to);
         helper.setSubject(subject);

@@ -2,8 +2,6 @@ package com.qpwflshclub.formal_club.social.controller;
 
 import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
 import com.qpwflshclub.formal_club.social.service.TeacherDayGifts;
-import com.qpwflshclub.formal_club.social.service.TeacherDayGifts;
-import com.qpwflshclub.formal_club.social.service.SchoolAccounts;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Map;
 import org.springframework.web.bind.annotation.*;

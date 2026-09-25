@@ -46,8 +46,9 @@ class StudentRosterTest {
         assertThatThrownBy(() ->
             roster.requireMatchingStudent("20260104", "朱兆禾错", "Any English")
         ).hasMessageContaining("不一致");
-        assertThatThrownBy(() -> roster.requireMatchingStudent("20260104", "", "Any English"))
-            .hasMessageContaining("不一致");
+        assertThatThrownBy(() ->
+            roster.requireMatchingStudent("20260104", "", "Any English")
+        ).hasMessageContaining("不一致");
     }
 
     @Test

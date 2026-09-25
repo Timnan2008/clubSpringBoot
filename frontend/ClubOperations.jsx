@@ -1,3 +1,4 @@
+import { nearestActivity } from "./nearest-activity.mjs";
 import ActivityFeedbackEditor from "./ActivityFeedbackEditor";
 import CallChip from "./CallChip";
 import GlideSelect from "./GlideSelect";
@@ -207,7 +208,7 @@ export default function ClubOperations({
   }, [term, section]);
   useEffect(() => {
     if (events.length && !events.some((a) => a.id === activity))
-      setActivity((events.at(-1) || events[0]).id);
+      setActivity(nearestActivity(events).id);
   }, [term, activities, activity, data?.terms]);
   useEffect(() => {
     setAttendanceConfirm(false);

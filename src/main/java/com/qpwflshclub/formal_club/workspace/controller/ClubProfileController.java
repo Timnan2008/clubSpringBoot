@@ -5,8 +5,15 @@ import com.qpwflshclub.formal_club.Clubs.repository.ClubLikeDeviceRepository;
 import com.qpwflshclub.formal_club.Clubs.repository.ClubRepository;
 import com.qpwflshclub.formal_club.workspace.service.WorkspaceAccess;
 import com.qpwflshclub.formal_club.workspace.service.WorkspaceStore;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
+import jakarta.persistence.PersistenceContext;
 import jakarta.servlet.http.HttpServletRequest;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.*;
+import java.util.function.UnaryOperator;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -34,6 +41,9 @@ public class ClubProfileController {
 
     @org.springframework.beans.factory.annotation.Autowired
     private ClubLikeDeviceRepository likes;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     public record Profile(
         String name,
@@ -109,9 +119,64 @@ public class ClubProfileController {
         return view(require(club, r, false));
     }
 
+    /** Fresh profile for an assistant read, even when this request already loaded the club. */
+    public Profile freshForAgent(int club, HttpServletRequest r) {
+        require(club, r, false);
+        Club current = clubs.findById(club).orElseThrow(() -> WorkspaceStore.bad("社团不存在"));
+        entityManager.refresh(current);
+        return view(current);
+    }
+
+    public static String revision(Profile profile) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            for (String value : List.of(
+                Objects.toString(profile.name(), ""),
+                Objects.toString(profile.slogan(), ""),
+                Objects.toString(profile.description(), ""),
+                Objects.toString(profile.nameEn(), ""),
+                Objects.toString(profile.sloganEn(), ""),
+                Objects.toString(profile.descriptionEn(), "")
+            )) {
+                byte[] bytes = value.getBytes(StandardCharsets.UTF_8);
+                digest.update(ByteBuffer.allocate(4).putInt(bytes.length).array());
+                digest.update(bytes);
+            }
+            return HexFormat.of().formatHex(digest.digest());
+        } catch (java.security.NoSuchAlgorithmException error) {
+            throw new IllegalStateException(error);
+        }
+    }
+
+    public record AgentUpdate(Profile before, Profile after) {}
+
+    /** Lock and refresh the shared club row before comparing the assistant's read version. */
+    public AgentUpdate updateIfRevision(
+        int club,
+        String expectedRevision,
+        UnaryOperator<Profile> edit,
+        HttpServletRequest r
+    ) {
+        require(club, r, true);
+        Club current = clubs.findById(club).orElseThrow(() -> WorkspaceStore.bad("社团不存在"));
+        entityManager.refresh(current, LockModeType.PESSIMISTIC_WRITE);
+        Profile before = view(current);
+        if (expectedRevision == null || !revision(before).equals(expectedRevision)) {
+            throw new ResponseStatusException(
+                org.springframework.http.HttpStatus.CONFLICT,
+                "社团资料已变化，请重新读取并重新确认；这次没有完成 / Club profile changed. Read it again and confirm the new version; this action did not finish."
+            );
+        }
+        return new AgentUpdate(before, apply(current, edit.apply(before), r));
+    }
+
     @PutMapping
     public Profile update(@PathVariable int club, @RequestBody Profile body, HttpServletRequest r) {
         Club c = require(club, r, true);
+        return apply(c, body, r);
+    }
+
+    private Profile apply(Club c, Profile body, HttpServletRequest r) {
         guardProfileText(r, body);
         String nameEn = text(body.nameEn(), 100, true);
         var existing = clubs.findByClubNameEn(nameEn);

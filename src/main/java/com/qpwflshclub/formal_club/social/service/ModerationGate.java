@@ -33,6 +33,20 @@ public class ModerationGate {
 
     private final ModerationPenalty penalties;
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private com.qpwflshclub.formal_club.social.ContentDiscipline discipline;
+
+    /** A moderation suspension limits speech, never authentication or account access. */
+    public void requireCanSpeak(String account) {
+        if (penalties.banned(account)) throw SchoolAccounts.error(
+            403,
+            "账号已禁言，暂时不能发言或发送私信；其他功能仍可使用。解除时间：" +
+                ModerationPenalty.untilText(penalties.state(account).banUntil()) +
+                " / This account is muted. Other account features remain available."
+        );
+        if (discipline != null) discipline.requireOpen(account);
+    }
+
     public ModerationGate(ModerationPenalty penalties) {
         this.penalties = penalties;
     }
@@ -49,6 +63,12 @@ public class ModerationGate {
      * @param where   违规位置，用上面的常量
      */
     public void inspect(String account, String where, String... texts) {
+        if (
+            CHAT.equals(where) ||
+            POST.equals(where) ||
+            REPLY.equals(where) ||
+            SUGGESTION.equals(where)
+        ) requireCanSpeak(account);
         String hit = ContentModeration.findAny(texts);
         if (hit == null) return;
         throw com.qpwflshclub.formal_club.social.service.SchoolAccounts.error(
@@ -69,6 +89,12 @@ public class ModerationGate {
      * @return 命中的词；没命中返回 null
      */
     public String inspectQuietly(String account, String where, String... texts) {
+        if (
+            CHAT.equals(where) ||
+            POST.equals(where) ||
+            REPLY.equals(where) ||
+            SUGGESTION.equals(where)
+        ) requireCanSpeak(account);
         String hit = ContentModeration.findAny(texts);
         if (hit != null && account != null && !account.isBlank()) penalties.strike(
             account,
