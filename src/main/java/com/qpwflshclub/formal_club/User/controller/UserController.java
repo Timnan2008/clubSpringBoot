@@ -106,8 +106,7 @@ public class UserController {
         ) {
             if (roster != null) roster.requireMatchingStudent(
                 body.studentNumber(),
-                body.username(),
-                body.usernameEn()
+                body.username()
             );
             if (profiles != null) profiles.requireStudentNumberAvailable(
                 body.email() == null ? "" : body.email(),
@@ -231,8 +230,7 @@ public class UserController {
         );
         if (roster != null) roster.requireMatchingStudent(
             userDTO.getStudentNumber(),
-            userDTO.getUsername(),
-            userDTO.getUsernameEn()
+            userDTO.getUsername()
         );
         RegistrationVerification.require(
             request,

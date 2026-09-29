@@ -287,7 +287,7 @@ class UserControllerTest {
             )
         )
             .when(controller.roster)
-            .requireMatchingStudent("20260001", "测试乙", "Alice");
+            .requireMatchingStudent("20260001", "测试乙");
         org.assertj.core.api.Assertions.assertThatThrownBy(() ->
             controller.availability(
                 new UserController.SignupAvailability(null, "20260001", "user", "测试乙", "Alice")
