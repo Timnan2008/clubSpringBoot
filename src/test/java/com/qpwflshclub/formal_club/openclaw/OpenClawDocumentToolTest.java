@@ -5,7 +5,7 @@ import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.qpwflshclub.formal_club.Clubs.pojo.Club;
-import com.qpwflshclub.formal_club.User.pojo.Teacher;
+import com.qpwflshclub.formal_club.User.pojo.Admin;
 import com.qpwflshclub.formal_club.workspace.service.WorkspaceAccess;
 import com.qpwflshclub.formal_club.workspace.service.WorkspaceStore;
 import java.nio.charset.StandardCharsets;
@@ -39,7 +39,7 @@ class OpenClawDocumentToolTest {
             null,
             null
         );
-        var user = new Teacher();
+        var user = new Admin();
         user.setId(7);
         var club = new Club();
         club.setId(28);
@@ -88,7 +88,7 @@ class OpenClawDocumentToolTest {
             null,
             null
         );
-        var user = new Teacher();
+        var user = new Admin();
         user.setId(7);
         var a = new Club();
         a.setId(1);
@@ -159,7 +159,7 @@ class OpenClawDocumentToolTest {
             null,
             null
         );
-        var user = new Teacher();
+        var user = new Admin();
         user.setId(7);
         var clubs = new ArrayList<Club>();
         for (int id = 1; id <= 51; id++) {

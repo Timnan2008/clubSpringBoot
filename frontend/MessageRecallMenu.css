@@ -1,0 +1,76 @@
+.social-message .message-recall-menu-trigger {
+  display: inline-grid;
+  place-items: center;
+  align-self: flex-end;
+  width: 28px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted, #777);
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity 0.15s,
+    background 0.15s;
+}
+.social-message:hover .message-recall-menu-trigger,
+.social-message:focus-within .message-recall-menu-trigger {
+  opacity: 1;
+}
+.social-message .message-recall-menu-trigger:hover {
+  background: #8882;
+}
+.message-recall-menu {
+  position: fixed;
+  z-index: 200;
+  width: 160px;
+  padding: 5px;
+  border: 1px solid #ffffff16;
+  border-radius: 12px;
+  background: #252529;
+  box-shadow: 0 8px 30px #0005;
+  box-sizing: border-box;
+}
+.message-recall-menu button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 38px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #eee;
+  font:
+    13px/1.4 system-ui,
+    sans-serif;
+  cursor: pointer;
+}
+.message-recall-menu button:hover,
+.message-recall-menu button:focus-visible {
+  background: #ffffff10;
+  outline: none;
+}
+.message-recall-menu button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.message-recall-menu-trigger:focus-visible {
+  outline: 2px solid #a98dd7;
+  outline-offset: 2px;
+}
+@media (hover: none) {
+  .social-message .message-recall-menu-trigger {
+    opacity: 0.75;
+    width: 36px;
+    height: 32px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .social-message .message-recall-menu-trigger {
+    transition: none;
+  }
+}

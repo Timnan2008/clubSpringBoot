@@ -177,7 +177,7 @@ public class PasswordRecoveryController {
         }
         boolean english = Arrays.stream(
             Optional.ofNullable(r.getCookies()).orElse(new Cookie[0])
-        ).anyMatch(c -> c.getName().equals("club_language") && c.getValue().equals("en"));
+        ).noneMatch(c -> c.getName().equals("club_language") && c.getValue().startsWith("zh"));
         try {
             delivery.execute(() -> {
                 if (user == null) return;

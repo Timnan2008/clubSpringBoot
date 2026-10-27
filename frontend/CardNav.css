@@ -13,6 +13,8 @@
   box-sizing: border-box;
 }
 .campus-top {
+  position: relative;
+  z-index: 70;
   max-width: 1120px;
   margin: 28px auto 0;
   padding: 0 24px;
@@ -674,3 +676,6 @@ body.social-network-theme :is(.social-discover-search, .social-people-search) {
   color: #8b98a5;
   border-color: #2f3336;
 }
+
+/* Expanded navigation overlays the page instead of resizing its content/canvas. */
+.card-nav-slot { position: relative; height: 60px; flex: none; z-index: 2; }

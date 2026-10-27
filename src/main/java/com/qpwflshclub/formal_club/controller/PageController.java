@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.*;
  * <p>本类负责的地址一览：
  * <ul>
  *   <li><code>/page/index</code>、<code>/page/index-en</code>：首页（中/英）</li>
+ *   <li><code>/page/launch</code>：网站发布宣传片（英文全屏动画）</li>
  *   <li><code>/page/club-watch/{社团名}</code>、<code>/page/clubs/{id}</code>：社团详情</li>
  *   <li><code>/page/club-type/{分类}</code>：某一类社团列表</li>
  *   <li><code>/page/search</code>、<code>/page/clubs</code>：搜索 / 社团目录</li>
@@ -112,6 +113,12 @@ public class PageController {
     @GetMapping("/index-en")
     public String indexPageEn(Model model) {
         return "page/En/index-en";
+    }
+
+    /** 网站发布宣传片：全屏英文动画，公开访问，只读取公开的社团列表。 */
+    @GetMapping("/launch")
+    public String launchFilm() {
+        return "page/launch";
     }
 
     /** 分类页（中文）：/page/club-type/creativity 这类地址，看某一类社团。 */

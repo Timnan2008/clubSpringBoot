@@ -1,0 +1,27 @@
+#workspace-feedback {
+  position: fixed;
+  z-index: 12000;
+  top: max(20px, env(safe-area-inset-top));
+  right: max(20px, env(safe-area-inset-right));
+  width: min(420px, calc(100vw - 32px));
+  display: grid;
+  gap: 10px;
+  pointer-events: none;
+}
+.workspace-feedback {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 14px 16px;
+  border: 1px solid #cbe5d8;
+  border-radius: 14px;
+  background: #effaf4;
+  color: #28684b;
+  box-shadow: 0 8px 32px #182d2024;
+  font: 500 14px/1.5 system-ui, sans-serif;
+  pointer-events: auto;
+}
+.workspace-feedback--error { background: #fff3f3; color: #a33446; border-color: #f1cbd2; }
+.workspace-feedback__body { flex: 1; min-width: 0; max-height: 35vh; overflow: auto; overflow-wrap: anywhere; }
+.workspace-feedback button { cursor: pointer; font: inherit; color: inherit; }
+.workspace-feedback__close { flex: none; border: 0; background: none; padding: 0 4px; font-size: 20px !important; line-height: 1.2 !important; }

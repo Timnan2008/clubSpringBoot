@@ -136,6 +136,7 @@ class x {
       e = window.innerWidth;
       t = window.innerHeight;
     }
+    if (e <= 0 || t <= 0) return;
     this.size.width = e;
     this.size.height = t;
     this.size.ratio = e / t;
@@ -301,9 +302,13 @@ function M(e) {
 }
 
 function processInteraction() {
+  // Body-level tracking must not interact through an expanded menu or dialog.
+  const blocked = document.elementFromPoint(A.x, A.y)?.closest(
+    ".campus-top, .sm-panel, [role='dialog'], [role='menu']",
+  );
   for (const [elem, t] of b) {
     const i = elem.getBoundingClientRect();
-    if (D(i)) {
+    if (!blocked && D(i)) {
       P(t, i);
       if (!t.hover) {
         t.hover = true;

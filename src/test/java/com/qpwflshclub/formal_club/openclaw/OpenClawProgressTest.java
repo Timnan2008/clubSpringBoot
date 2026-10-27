@@ -5,7 +5,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.qpwflshclub.formal_club.User.pojo.Teacher;
+import com.qpwflshclub.formal_club.User.pojo.Admin;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -100,7 +100,7 @@ class OpenClawProgressTest {
             );
             return new OpenClawGateway.Round("已核实", List.of(), null, "");
         });
-        var user = new Teacher();
+        var user = new Admin();
         user.setId(7);
         var out = new ByteArrayOutputStream();
         new OpenClawAgent(gateway, tools, materials, new ObjectMapper()).reply(

@@ -1,3 +1,4 @@
+import WorkspaceFeedback from "./WorkspaceFeedback";
 import CallChip from "./CallChip";
 import PersonIdentity, { realNames, postName } from "./PersonIdentity";
 import { compressImage } from "./compress-image";
@@ -157,14 +158,14 @@ export default function ClubProfile({ club, token, onSaved }) {
   return (
     <div className="ws-profile-layout">
       {error && (
-        <p className="ws-error" role="alert">
+        <WorkspaceFeedback key={error} kind="error">
           {error}
-        </p>
+        </WorkspaceFeedback>
       )}
       {notice && (
-        <p className="ws-notice" role="status">
+        <WorkspaceFeedback key={notice}>
           {notice}
-        </p>
+        </WorkspaceFeedback>
       )}
       <section className="ws-panel">
         <div className="ws-section-head">

@@ -121,7 +121,7 @@ function Auth() {
       if (form.role === "user" && !/^[A-Za-z0-9-]{1,32}$/.test(form.studentNumber.trim()))
         return t("请填写学生号。", "Enter your student number.");
       if (!passwordChecks(form.password).every(Boolean))
-        return t("请满足下方全部密码要求。", "Meet all password requirements below.");
+        return t("密码至少 8 位。", "Use at least 8 characters.");
       if (form.password !== form.confirm)
         return t("两次输入的密码不一致。", "The passwords do not match.");
     }

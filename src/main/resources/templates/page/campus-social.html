@@ -2,8 +2,9 @@
 <html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
   <head>
     <meta charset="UTF-8" />
+    <style>html,body{background:#000;color:#e7e9ea;color-scheme:dark}</style>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#f6f5f3" />
+    <meta name="theme-color" content="#000000" />
     <title
       th:text="${#locale.language == 'en' ? (socialMode == 'wall' ? 'Campus wall · QPWFLHS' : 'Messages · QPWFLHS') : (socialMode == 'wall' ? '校园墙 · 青浦世外' : '站内私信 · 青浦世外')}"
     >
@@ -14,7 +15,7 @@
     <!-- ui-module-preloads -->
     <!-- /ui-module-preloads -->
   </head>
-  <body class="social-page">
+  <body class="social-page social-network-theme">
     <div id="campus-social" th:attr="data-mode=${socialMode}">
       <p
         style="padding:60px;text-align:center"
@@ -23,26 +24,28 @@
         正在载入校园生活…
       </p>
     </div>
+    <link rel="modulepreload" href="/javascript/ui/chunks/chunk-22JPWEVM.js" />
     <link rel="modulepreload" href="/javascript/ui/chunks/chunk-24CHGMSW.js" />
-    <link rel="modulepreload" href="/javascript/ui/chunks/chunk-35PBW7T7.js" />
+    <link rel="modulepreload" href="/javascript/ui/chunks/chunk-3DAXUUKH.js" />
     <link rel="modulepreload" href="/javascript/ui/chunks/chunk-4YD4SK3U.js" />
-    <link rel="modulepreload" href="/javascript/ui/chunks/chunk-5GX47WKF.js" />
+    <link rel="modulepreload" href="/javascript/ui/chunks/chunk-5PEIEP6X.js" />
+    <link rel="modulepreload" href="/javascript/ui/chunks/chunk-5RYBHHHH.js" />
     <link rel="modulepreload" href="/javascript/ui/chunks/chunk-6ZXZKDUM.js" />
+    <link rel="modulepreload" href="/javascript/ui/chunks/chunk-ARMWH5SH.js" />
     <link rel="modulepreload" href="/javascript/ui/chunks/chunk-ES5TRPYG.js" />
+    <link rel="modulepreload" href="/javascript/ui/chunks/chunk-FF27VGYJ.js" />
     <link rel="modulepreload" href="/javascript/ui/chunks/chunk-HGQKKUMR.js" />
     <link rel="modulepreload" href="/javascript/ui/chunks/chunk-JJGE7CVW.js" />
-    <link rel="modulepreload" href="/javascript/ui/chunks/chunk-JQIVNWIT.js" />
-    <link rel="modulepreload" href="/javascript/ui/chunks/chunk-LOX6EW5D.js" />
+    <link rel="modulepreload" href="/javascript/ui/chunks/chunk-JSMOIA6H.js" />
     <link rel="modulepreload" href="/javascript/ui/chunks/chunk-ODXETYXX.js" />
     <link rel="modulepreload" href="/javascript/ui/chunks/chunk-OE4LXL62.js" />
-    <link rel="modulepreload" href="/javascript/ui/chunks/chunk-OWNZCGF6.js" />
-    <link rel="modulepreload" href="/javascript/ui/chunks/chunk-SITS6O53.js" />
-    <link rel="modulepreload" href="/javascript/ui/chunks/chunk-TBJHJEEB.js" />
-    <link rel="modulepreload" href="/javascript/ui/chunks/chunk-VMCHYDCG.js" />
+    <link rel="modulepreload" href="/javascript/ui/chunks/chunk-OIP3XZ3E.js" />
+    <link rel="modulepreload" href="/javascript/ui/chunks/chunk-QZ3KLFPA.js" />
     <link rel="modulepreload" href="/javascript/ui/chunks/chunk-VSPEK7VJ.js" />
-    <link rel="modulepreload" href="/javascript/ui/chunks/chunk-X4I4UH25.js" />
+    <link rel="modulepreload" href="/javascript/ui/chunks/chunk-X5OBYND5.js" />
     <link rel="modulepreload" href="/javascript/ui/chunks/chunk-YMN3KVQI.js" />
     <link rel="modulepreload" href="/javascript/ui/chunks/chunk-Z2V4WLMF.js" />
+    <link rel="modulepreload" href="/javascript/ui/chunks/chunk-ZFJI3VNM.js" />
     <link rel="modulepreload" href="/javascript/ui/chunks/message-crypto-OCSF7ROO.js" />
     <script type="module" src="/javascript/ui/social.js?v=20260924-agent-research"></script>
   </body>

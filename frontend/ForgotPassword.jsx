@@ -76,7 +76,7 @@ export default function ForgotPassword({ initialEmail = "", onBack }) {
       }
       if (current === 2) {
         if (!passwordChecks(password).every(Boolean)) {
-          setError(tx("请满足下方密码要求", "Meet the password requirements below"));
+          setError(tx("密码至少 8 位", "Use at least 8 characters"));
           return false;
         }
         if (password !== confirm) {

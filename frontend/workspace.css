@@ -1034,6 +1034,20 @@
   }
 }
 
+.ws-member-link {
+  display: inline-flex;
+  align-items: center;
+  color: inherit;
+  text-decoration: none;
+  border-radius: 8px;
+}
+.ws-member-link:hover {
+  color: #5b21b6;
+}
+.ws-member-link:focus-visible {
+  outline: 2px solid #7c3aed;
+  outline-offset: 3px;
+}
 .ws-shell .ws-member-avatar {
   width: 28px;
   height: 28px;

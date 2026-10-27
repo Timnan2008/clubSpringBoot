@@ -14,15 +14,15 @@ const upstream = new URL("https://qpwflhsclub.com");
 const root = path.resolve(import.meta.dirname, "../src/main/resources/static");
 const port = Number(process.env.PORT || 8088);
 // Explicit, loopback-only UI identity. It never grants access to production data.
-const previewAccount =
-  process.env.PREVIEW_ACCOUNT === "teacher"
-    ? {
-        id: "local-ui-teacher",
-        name: "本地测试老师",
-        nameEn: "Local test teacher",
-        role: "teacher",
-      }
-    : null;
+const previewAccount = ["teacher", "admin"].includes(process.env.PREVIEW_ACCOUNT)
+  ? {
+      id: "local-ui-" + process.env.PREVIEW_ACCOUNT,
+      name: process.env.PREVIEW_ACCOUNT === "admin" ? "本地测试管理员" : "本地测试老师",
+      nameEn:
+        process.env.PREVIEW_ACCOUNT === "admin" ? "Local test administrator" : "Local test teacher",
+      role: process.env.PREVIEW_ACCOUNT,
+    }
+  : null;
 const hopHeaders = [
   "connection",
   "keep-alive",

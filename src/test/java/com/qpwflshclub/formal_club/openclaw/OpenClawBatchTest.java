@@ -5,7 +5,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.qpwflshclub.formal_club.User.pojo.Teacher;
+import com.qpwflshclub.formal_club.User.pojo.Admin;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -52,7 +52,7 @@ class OpenClawBatchTest {
             text.write("检查完成。");
             return new OpenClawGateway.Round("检查完成。", List.of(), null, "");
         });
-        var user = new Teacher();
+        var user = new Admin();
         user.setId(7);
         var out = new ByteArrayOutputStream();
         new OpenClawAgent(gateway, tools, materials, new ObjectMapper()).reply(
@@ -100,7 +100,7 @@ class OpenClawBatchTest {
                 ""
             );
         });
-        var user = new Teacher();
+        var user = new Admin();
         user.setId(7);
         var out = new ByteArrayOutputStream();
         new OpenClawAgent(gateway, tools, materials, new ObjectMapper()).reply(
@@ -155,7 +155,7 @@ class OpenClawBatchTest {
                 ""
             );
         });
-        var user = new Teacher();
+        var user = new Admin();
         user.setId(7);
         var out = new ByteArrayOutputStream();
         new OpenClawAgent(gateway, tools, materials, new ObjectMapper()).reply(

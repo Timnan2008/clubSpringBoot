@@ -1,3 +1,4 @@
+import WorkspaceFeedback from "./WorkspaceFeedback";
 import { nearestActivity } from "./nearest-activity.mjs";
 import ActivityFeedbackEditor from "./ActivityFeedbackEditor";
 import CallChip from "./CallChip";
@@ -220,6 +221,10 @@ export default function ClubOperations({
   useEffect(() => {
     setMarks(Object.fromEntries((attendance?.marks || []).map((m) => [m.member, m.status])));
   }, [activity, attendance]);
+  const savedMarks = Object.fromEntries((attendance?.marks || []).map((m) => [m.member, m.status]));
+  const attendanceSaved = Boolean(attendance) && [...new Set([...Object.keys(savedMarks), ...Object.keys(marks)])].every(
+    (id) => (savedMarks[id] || "") === (marks[id] || ""),
+  );
   const report = (kind, id = "") =>
     data?.reports.find((r) => r.term === term && r.kind === kind && r.activity === id);
   const due = (a) => events.find((next) => next.start > a.start)?.start || current?.end + "T23:59";
@@ -440,9 +445,9 @@ export default function ClubOperations({
   return (
     <div className="ops-root">
       {error && editor?.kind !== "feedback" && (
-        <p className="ws-error" role="alert">
+        <WorkspaceFeedback key={error} kind="error">
           {error}
-        </p>
+        </WorkspaceFeedback>
       )}
       {busy && editor?.kind !== "feedback" && (
         <div className="ops-working">
@@ -460,9 +465,9 @@ export default function ClubOperations({
         />
       )}
       {notice && editor?.kind !== "feedback" && (
-        <p className="ws-notice" role="status">
+        <WorkspaceFeedback key={notice}>
           {notice}
-        </p>
+        </WorkspaceFeedback>
       )}
       {!data ? (
         <p className="ws-help">
@@ -1034,7 +1039,7 @@ export default function ClubOperations({
                         <form
                           onSubmit={(e) => {
                             e.preventDefault();
-                            if (!rows.size) return;
+                            if (!rows.size || attendanceSaved || busy) return;
                             setAttendanceConfirm(true);
                           }}
                         >
@@ -1084,9 +1089,9 @@ export default function ClubOperations({
                             </span>
                             <button
                               className="ws-primary"
-                              disabled={busy || !rows.size || attendanceConfirm}
+                              disabled={busy || !rows.size || attendanceConfirm || attendanceSaved}
                             >
-                              {tr("确认提交签到")}
+                              {busy ? tx("正在提交…", "Submitting…") : attendanceSaved ? tx("已保存", "Saved") : tr("确认提交签到")}
                             </button>
                           </div>
                           {attendanceConfirm && (

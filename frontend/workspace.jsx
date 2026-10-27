@@ -1,3 +1,4 @@
+import WorkspaceFeedback from "./WorkspaceFeedback";
 import HoldButton from "./HoldButton";
 import BranchedMenu from "./BranchedMenu";
 import LineSidebar from "./LineSidebar";
@@ -488,7 +489,7 @@ function Workspace() {
             />
           )}
           {error && (
-            <div role="alert" className="ws-error">
+            <WorkspaceFeedback key={error} kind="error">
               {error}{" "}
               <button
                 onClick={() =>
@@ -501,12 +502,12 @@ function Workspace() {
               >
                 {tr("重试")}
               </button>
-            </div>
+            </WorkspaceFeedback>
           )}
           {notice && (
-            <p role="status" className="ws-notice">
+            <WorkspaceFeedback key={notice}>
               ✓ {notice}
-            </p>
+            </WorkspaceFeedback>
           )}
           {!profile ? (
             <Empty>{tr("正在载入工作台…")}</Empty>
@@ -833,9 +834,12 @@ function Workspace() {
                               <tbody>
                                 {members
                                   .filter((m) => memberGroup === "all" || m.role === memberGroup)
-                                  .map((m) => (
-                                    <tr key={m.type + m.id}>
-                                      <td>
+                                  .map((m) => {
+                                    const home = m.account
+                                      ? "/page/user/home?account=" + encodeURIComponent(m.account)
+                                      : "";
+                                    const person = (
+                                      <>
                                         <Avatar
                                           person={{
                                             name: m.name,
@@ -844,38 +848,66 @@ function Workspace() {
                                           className="ws-member-avatar"
                                         />
                                         {m.name}
-                                      </td>
-                                      <td>{m.nameEn || "—"}</td>
-                                      <td>
-                                        <span className="ws-badge">
-                                          {m.type === "admin"
-                                            ? tx(
-                                                "管理员 · 学生 · 社员",
-                                                "Administrator · Student · Member",
-                                              )
-                                            : roleNames[m.role] || tr("社员")}
-                                        </span>
-                                      </td>
-                                      <td>
-                                        {m.role === "member" ? (
-                                          <button
-                                            className="ws-danger-text"
-                                            disabled={busy}
-                                            onClick={() =>
-                                              open({
-                                                kind: "removeMember",
-                                                member: m,
-                                              })
-                                            }
-                                          >
-                                            {tr("移出社团")}
-                                          </button>
-                                        ) : (
-                                          <span className="ws-muted">{tr("管理员任免")}</span>
-                                        )}
-                                      </td>
-                                    </tr>
-                                  ))}
+                                      </>
+                                    );
+                                    return (
+                                      <tr key={m.type + m.id}>
+                                        <td>
+                                          {home ? (
+                                            <a
+                                              className="ws-member-link"
+                                              href={home}
+                                              aria-label={tx(
+                                                "查看" + m.name + "的个人主页",
+                                                "Open " + m.name + "'s profile",
+                                              )}
+                                            >
+                                              {person}
+                                            </a>
+                                          ) : (
+                                            person
+                                          )}
+                                        </td>
+                                        <td>
+                                          {home ? (
+                                            <a className="ws-member-link" href={home}>
+                                              {m.nameEn || "—"}
+                                            </a>
+                                          ) : (
+                                            m.nameEn || "—"
+                                          )}
+                                        </td>
+                                        <td>
+                                          <span className="ws-badge">
+                                            {m.type === "admin"
+                                              ? tx(
+                                                  "管理员 · 学生 · 社员",
+                                                  "Administrator · Student · Member",
+                                                )
+                                              : roleNames[m.role] || tr("社员")}
+                                          </span>
+                                        </td>
+                                        <td>
+                                          {m.role === "member" ? (
+                                            <button
+                                              className="ws-danger-text"
+                                              disabled={busy}
+                                              onClick={() =>
+                                                open({
+                                                  kind: "removeMember",
+                                                  member: m,
+                                                })
+                                              }
+                                            >
+                                              {tr("移出社团")}
+                                            </button>
+                                          ) : (
+                                            <span className="ws-muted">{tr("管理员任免")}</span>
+                                          )}
+                                        </td>
+                                      </tr>
+                                    );
+                                  })}
                               </tbody>
                             </table>
                           </div>

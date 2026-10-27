@@ -39,6 +39,7 @@ public class OpenClawMaterials {
         return search(user, query, request, false);
     }
 
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public String search(UserBase user, String query, HttpServletRequest request, boolean english) {
         List<Passage> passages = new ArrayList<>();
         for (Club club : access.clubs(user)) {

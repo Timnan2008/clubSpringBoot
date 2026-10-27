@@ -46,6 +46,9 @@ public class OpenClawTools {
     private final OpenClawWebSearch web;
     private final OpenClawFiles files;
 
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private OpenClawToolContext toolContext;
+
     public OpenClawTools(
         WorkspaceAccess access,
         WorkspaceStore store,
@@ -481,7 +484,22 @@ public class OpenClawTools {
         HttpServletRequest request,
         boolean english
     ) {
-        OpenClawAccess.requireEnabled();
+        return toolContext == null
+            ? callWithContext(name, args, user, request, english)
+            : toolContext.run(() -> callWithContext(name, args, user, request, english));
+    }
+
+    private String callWithContext(
+        String name,
+        JsonNode args,
+        UserBase user,
+        HttpServletRequest request,
+        boolean english
+    ) {
+        if (
+            request != null && Boolean.TRUE.equals(request.getAttribute("openclaw.background"))
+        ) user = access.current(request);
+        OpenClawAccess.requireAdministrator(user);
         access.beginAgentRead(user);
         try {
             return invoke(name, args, user, request, english);
@@ -1257,6 +1275,7 @@ public class OpenClawTools {
         List<JsonNode> effects,
         boolean english
     ) {
+        OpenClawAccess.requireAdministrator(user);
         List<Map<String, String>> results = new ArrayList<>();
         if (effects == null) return results;
         for (JsonNode effect : effects) {

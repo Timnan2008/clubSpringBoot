@@ -4,7 +4,8 @@ const cookie = document.cookie
   .split("; ")
   .find((v) => v.startsWith("club_language="))
   ?.split("=")[1];
-export const language = ["en", "zh"].includes(param) ? param : cookie === "en" ? "en" : "zh";
+// English unless the visitor chose Chinese; matches the server default locale.
+export const language = ["en", "zh"].includes(param) ? param : cookie?.startsWith("zh") ? "zh" : "en";
 export const en = language === "en";
 if (["en", "zh"].includes(param))
   document.cookie = `club_language=${language}; Path=/; Max-Age=31536000; SameSite=Lax`;

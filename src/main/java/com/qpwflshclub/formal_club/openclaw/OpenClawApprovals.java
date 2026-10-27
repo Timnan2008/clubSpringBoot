@@ -56,6 +56,9 @@ public class OpenClawApprovals {
         if (wait == null) return false;
         try {
             return Boolean.TRUE.equals(wait.future.get(timeout.toMillis(), TimeUnit.MILLISECONDS));
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return false;
         } catch (Exception e) {
             return false;
         } finally {

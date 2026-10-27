@@ -53,7 +53,7 @@ class OpenClawAgentTest {
                 materials,
                 new ObjectMapper()
             );
-            Teacher teacher = new Teacher();
+            Admin teacher = new Admin();
             teacher.setId(7);
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             agent.reply(
@@ -130,7 +130,7 @@ class OpenClawAgentTest {
                 "test-token"
             );
             var agent = new OpenClawAgent(gateway, tools, materials, new ObjectMapper());
-            Teacher teacher = new Teacher();
+            Admin teacher = new Admin();
             teacher.setId(7);
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             agent.reply(
@@ -268,7 +268,7 @@ class OpenClawAgentTest {
             materials,
             new ObjectMapper()
         );
-        var user = new Teacher();
+        var user = new Admin();
         user.setId(7);
         var out = new ByteArrayOutputStream();
         agent.reply(

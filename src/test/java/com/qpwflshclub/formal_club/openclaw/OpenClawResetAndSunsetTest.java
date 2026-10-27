@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.time.Instant;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -13,10 +12,24 @@ import org.springframework.web.server.ResponseStatusException;
 class OpenClawResetAndSunsetTest {
 
     @Test
-    void cutoffIsMondayMidnightShanghaiForEveryone() {
-        assertTrue(OpenClawAccess.enabledAt(Instant.parse("2026-09-27T15:59:59Z")));
-        assertFalse(OpenClawAccess.enabledAt(Instant.parse("2026-09-27T16:00:00Z")));
-        assertFalse(OpenClawAccess.enabledAt(Instant.parse("2026-10-01T00:00:00Z")));
+    void reopenedServiceAllowsOnlyAuthenticatedAdministratorTypes() {
+        assertDoesNotThrow(() ->
+            OpenClawAccess.requireAdministrator(new com.qpwflshclub.formal_club.User.pojo.Admin())
+        );
+        for (var user : new com.qpwflshclub.formal_club.User.pojo.UserBase[] {
+            null,
+            new com.qpwflshclub.formal_club.User.pojo.User(),
+            new com.qpwflshclub.formal_club.User.pojo.Teacher(),
+            new com.qpwflshclub.formal_club.User.pojo.ClubPresident(),
+        })
+            assertEquals(
+                403,
+                assertThrows(ResponseStatusException.class, () ->
+                    OpenClawAccess.requireAdministrator(user)
+                )
+                    .getStatusCode()
+                    .value()
+            );
     }
 
     @Test

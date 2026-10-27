@@ -171,14 +171,22 @@ public class OpenClawGateway {
         JsonNode reportedUsage = null;
         try (
             BufferedReader lines = new BufferedReader(
-                new InputStreamReader(response.body(), StandardCharsets.UTF_8)
+                new InputStreamReader(
+                    new OpenClawStreamDeadline(
+                        response.body(),
+                        Duration.ofSeconds(120),
+                        Duration.ofMinutes(10)
+                    ),
+                    StandardCharsets.UTF_8
+                )
             )
         ) {
             String line;
             while ((line = lines.readLine()) != null) {
                 if (!line.startsWith("data:")) continue;
                 String data = line.substring(5).trim();
-                if (data.isEmpty() || "[DONE]".equals(data)) continue;
+                if ("[DONE]".equals(data)) break;
+                if (data.isEmpty()) continue;
                 JsonNode event = json.readTree(data);
                 if (event.has("error")) throw new IOException("upstream");
                 JsonNode delta = event.path("choices").path(0).path("delta");

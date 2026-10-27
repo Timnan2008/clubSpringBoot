@@ -60,7 +60,7 @@ function HomeMenu({ language, initialItems, socialItems }) {
 
 const navbar = document.querySelector(".navbar");
 if (navbar) {
-  const language = navbar.dataset.language || "zh",
+  const language = navbar.dataset.language || "en",
     en = language === "en";
   const items = [
     { label: en ? "Home" : "首页", link: "/" },

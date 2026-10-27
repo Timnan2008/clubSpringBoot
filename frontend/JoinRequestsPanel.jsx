@@ -1,3 +1,4 @@
+import WorkspaceFeedback from "./WorkspaceFeedback";
 import React, { useEffect, useRef, useState } from "react";
 import { tx, en } from "./language";
 export default function JoinRequestsPanel({ club, token, onChanged }) {
@@ -56,9 +57,9 @@ export default function JoinRequestsPanel({ club, token, onChanged }) {
         </div>
       </div>
       {error && (
-        <p role="alert" className="ws-error">
+        <WorkspaceFeedback key={error} kind="error">
           {error} <button onClick={() => setRetry((n) => n + 1)}>{tx("重试", "Retry")}</button>
-        </p>
+        </WorkspaceFeedback>
       )}
       {items === null ? (
         <p>{tx("正在载入…", "Loading…")}</p>

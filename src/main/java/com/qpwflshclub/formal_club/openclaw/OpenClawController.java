@@ -40,6 +40,7 @@ public class OpenClawController {
     private final OpenClawFiles files;
     private final OpenClawApprovals approvals;
     private final OpenClawTools tools;
+    private final OpenClawRuns runs;
 
     public OpenClawController(
         OpenClawAccess access,
@@ -51,7 +52,8 @@ public class OpenClawController {
         OpenClawQuota quota,
         OpenClawFiles files,
         OpenClawApprovals approvals,
-        OpenClawTools tools
+        OpenClawTools tools,
+        OpenClawRuns runs
     ) {
         this.access = access;
         this.accounts = accounts;
@@ -63,13 +65,14 @@ public class OpenClawController {
         this.files = files;
         this.approvals = approvals;
         this.tools = tools;
+        this.runs = runs;
     }
 
     @GetMapping("/page/openclaw")
     public String page(HttpServletRequest request, HttpServletResponse response, Model model) {
         response.setHeader("Cache-Control", "no-store");
         try {
-            model.addAttribute("loginUser", access.require(request));
+            model.addAttribute("loginUser", access.requirePage(request));
             return "page/openclaw";
         } catch (ResponseStatusException error) {
             if (
@@ -85,8 +88,8 @@ public class OpenClawController {
         response.setHeader("Cache-Control", "no-store");
         var user = access.require(request);
         return Map.of(
-            "disabledAt",
-            OpenClawAccess.DISABLED_AT.toEpochMilli(),
+            "background",
+            true,
             "account",
             accounts.view(user),
             "connected",
@@ -136,12 +139,13 @@ public class OpenClawController {
     ) {}
 
     static boolean english(HttpServletRequest request) {
-        if (request == null) return false;
+        if (request == null) return true;
         String query = request.getParameter("lang");
         if ("en".equals(query)) return true;
         if ("zh".equals(query)) return false;
+        // English is the site default; only an explicit Chinese choice switches.
         String cookie = request.getHeader("Cookie");
-        return cookie != null && cookie.matches("(?:^|.*;\\s*)club_language=en(?:\\s*;.*|$)");
+        return cookie == null || !cookie.matches("(?:^|.*;\\s*)club_language=zh[^;]*(?:;.*|$)");
     }
 
     static boolean english(String requested, HttpServletRequest request) {
@@ -158,6 +162,35 @@ public class OpenClawController {
     ) throws IOException {
         response.setHeader("Cache-Control", "no-store");
         response.setHeader("X-Accel-Buffering", "no");
+        Prepared turn = prepare(body, request);
+        var user = turn.user();
+        boolean english = turn.english();
+        String modelRef = turn.modelRef(),
+            combined = turn.combined();
+        response.setBufferSize(128);
+        response.setContentType("text/event-stream;charset=UTF-8");
+        agent.reply(
+            user,
+            body.conversationId(),
+            modelRef,
+            body.reasoning() == null || body.reasoning(),
+            combined,
+            OpenClawCatalog.ids(),
+            english,
+            body.history(),
+            request,
+            response.getOutputStream()
+        );
+    }
+
+    private record Prepared(
+        com.qpwflshclub.formal_club.User.pojo.UserBase user,
+        String modelRef,
+        String combined,
+        boolean english
+    ) {}
+
+    private Prepared prepare(ChatRequest body, HttpServletRequest request) {
         var user = access.require(request);
         boolean english = body != null && english(body.language(), request);
         if (body == null || body.conversationId() == null || body.text() == null) {
@@ -197,36 +230,102 @@ public class OpenClawController {
         }
         String combined = OpenClawUploads.merge(text, body.attachments(), english);
         OpenClawContext.messages(body.history());
-        response.setBufferSize(128);
-        response.setContentType("text/event-stream;charset=UTF-8");
-        agent.reply(
-            user,
-            body.conversationId(),
-            modelRef,
-            body.reasoning() == null || body.reasoning(),
-            combined,
-            OpenClawCatalog.ids(),
-            english,
-            body.history(),
-            request,
-            response.getOutputStream()
+        return new Prepared(user, modelRef, combined, english);
+    }
+
+    public record BackgroundRequest(ChatRequest request, JsonNode messages, String runId) {}
+
+    @PostMapping("/api/openclaw/runs")
+    @ResponseBody
+    public JsonNode startRun(
+        @RequestBody BackgroundRequest body,
+        HttpServletRequest request,
+        HttpServletResponse response
+    ) throws IOException {
+        response.setHeader("Cache-Control", "no-store");
+        if (body == null) throw new ResponseStatusException(HttpStatus.BAD_REQUEST);
+        Prepared turn = prepare(body.request(), request);
+        workspace.mutation(request);
+        return runs.start(
+            turn.user(),
+            body.request(),
+            body.messages(),
+            body.runId(),
+            turn.modelRef(),
+            turn.combined(),
+            turn.english(),
+            request
         );
+    }
+
+    @GetMapping("/api/openclaw/runs")
+    @ResponseBody
+    public Map<String, Object> backgroundRuns(
+        HttpServletRequest request,
+        HttpServletResponse response
+    ) throws IOException {
+        response.setHeader("Cache-Control", "no-store");
+        return Map.of("runs", runs.list(OpenClawIdentity.id(access.require(request))));
+    }
+
+    public record StopRequest(String runId) {}
+
+    @GetMapping(value = "/api/openclaw/runs/stream", produces = "text/event-stream")
+    @ResponseBody
+    public org.springframework.web.servlet.mvc.method.annotation.SseEmitter streamRuns(
+        HttpServletRequest request,
+        HttpServletResponse response
+    ) {
+        long account = OpenClawIdentity.id(access.require(request));
+        response.setHeader("Cache-Control", "no-cache, no-store");
+        response.setHeader("X-Accel-Buffering", "no");
+        return OpenClawRunStream.open(runs, account);
+    }
+
+    @PostMapping("/api/openclaw/runs/{id}/stop")
+    @ResponseBody
+    public JsonNode stopRun(
+        @PathVariable String id,
+        @RequestBody StopRequest body,
+        HttpServletRequest request
+    ) {
+        var user = access.require(request);
+        workspace.mutation(request);
+        return runs.stop(OpenClawIdentity.id(user), id, body.runId() == null ? "" : body.runId());
+    }
+
+    @DeleteMapping("/api/openclaw/runs/{id}")
+    @ResponseBody
+    public Map<String, Object> deleteRun(@PathVariable String id, HttpServletRequest request)
+        throws IOException {
+        var user = access.require(request);
+        workspace.mutation(request);
+        runs.delete(OpenClawIdentity.id(user), id);
+        return Map.of("ok", true);
     }
 
     public record Decision(String id, Boolean approved) {}
 
     @PostMapping("/api/openclaw/approve")
     @ResponseBody
-    public Map<String, Object> approve(@RequestBody Decision body, HttpServletRequest request) {
+    public Map<String, Object> approve(@RequestBody Decision body, HttpServletRequest request)
+        throws IOException {
         var user = access.require(request);
         if (body == null || body.id() == null || !body.id().matches("[0-9a-fA-F-]{36}")) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "批准无效");
         }
-        boolean ok = approvals.decide(
-            OpenClawIdentity.id(user),
-            body.id(),
-            Boolean.TRUE.equals(body.approved())
-        );
+        workspace.mutation(request);
+        boolean ok =
+            runs.decide(
+                OpenClawIdentity.id(user),
+                body.id(),
+                Boolean.TRUE.equals(body.approved())
+            ) ||
+            approvals.decide(
+                OpenClawIdentity.id(user),
+                body.id(),
+                Boolean.TRUE.equals(body.approved())
+            );
         return Map.of("ok", ok);
     }
 

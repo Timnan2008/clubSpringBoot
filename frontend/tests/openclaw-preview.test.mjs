@@ -41,18 +41,21 @@ test("main-site preview requires the real school session", async () => {
   assert.equal(page.status, 302);
   assert.equal(page.headers.Location, "/page/user/login?next=%2Fpage%2Fopenclaw");
   assert.equal((await request("/api/openclaw/bootstrap", 401)).status, 401);
-  for (const account of [{ role: "student" }, { role: "user" }, {}, null]) {
+  for (const account of [
+    { role: "student" },
+    { role: "user" },
+    { role: "teacher" },
+    { role: "president" },
+    { role: "president", position: "vice_president" },
+    {},
+    null,
+  ]) {
     assert.equal((await request("/page/openclaw", 200, account)).status, 403);
     assert.equal((await request("/api/openclaw/bootstrap", 200, account)).status, 403);
   }
 });
-test("allowed roles get the main application template and sanitized bootstrap", async () => {
-  for (const account of [
-    { role: "president" },
-    { role: "president", position: "vice_president" },
-    { role: "teacher" },
-    { role: "admin" },
-  ]) {
+test("administrators get the main application template and sanitized bootstrap", async () => {
+  for (const account of [{ role: "admin" }]) {
     const page = await request("/page/openclaw", 200, account);
     assert.equal(page.status, 200);
     assert.match(page.body, /\/javascript\/ui\/openclaw.js/);

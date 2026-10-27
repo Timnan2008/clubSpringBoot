@@ -9,6 +9,8 @@ import AssistantText from "./AssistantText";
 
 export default function ThoughtLine({
   working = true,
+  startedAt = 0,
+  endedAt = 0,
   steps = [],
   label = "Thinking…",
   doneLabel = "Thought for",
@@ -28,7 +30,7 @@ export default function ThoughtLine({
 }) {
   const reduce = useReducedMotion();
   const [elapsed, setElapsed] = useState(0);
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(working || !collapseOnSettle);
   const seconds = useRef(0),
     started = useRef(null),
     callback = useRef(onSettle);
@@ -40,19 +42,21 @@ export default function ThoughtLine({
         callback.current?.(seconds.current);
         started.current = null;
       }
+      if (startedAt && endedAt) setElapsed(Math.max(0, (endedAt - startedAt) / 1000));
       if (collapseOnSettle) setOpen(false);
       return;
     }
     started.current = performance.now();
-    seconds.current = 0;
-    setElapsed(0);
+    const offset = startedAt ? Math.max(0, (Date.now() - startedAt) / 1000) : 0;
+    seconds.current = offset;
+    setElapsed(offset);
     setOpen(true);
     const clock = setInterval(() => {
-      seconds.current = (performance.now() - started.current) / 1000;
+      seconds.current = offset + (performance.now() - started.current) / 1000;
       setElapsed(seconds.current);
     }, 100);
     return () => clearInterval(clock);
-  }, [working, collapseOnSettle]);
+  }, [working, collapseOnSettle, startedAt, endedAt]);
   const toggle = collapsible && steps.length > 0;
   const Head = toggle ? "button" : "div";
   return (

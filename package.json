@@ -14,7 +14,9 @@
     "test:controls": "node frontend/tests/controls.browser.mjs",
     "test:feedback": "node frontend/tests/feedback.browser.mjs",
     "test:club-effects": "node frontend/tests/club-effects.browser.mjs",
-    "test:new-controls": "node frontend/tests/new-controls.browser.mjs"
+    "test:new-controls": "node frontend/tests/new-controls.browser.mjs",
+    "test:launch": "node frontend/tests/launch.browser.mjs",
+    "render:launch": "node frontend/dev/launch-render.mjs"
   },
   "dependencies": {
     "@hugeicons/core-free-icons": "^4.3.4",

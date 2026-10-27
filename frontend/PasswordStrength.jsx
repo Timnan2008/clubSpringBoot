@@ -1,32 +1,21 @@
 import React from "react";
 import { tx } from "./language";
 import "./PasswordStrength.css";
+
 export function passwordChecks(value) {
-  return [
-    value.length >= 12 && value.length <= 128,
-    /[A-Z]/.test(value),
-    /[a-z]/.test(value),
-    /[0-9]/.test(value),
-    /[^\p{L}\p{N}\s]/u.test(value),
-  ];
+  return [value.length >= 8 && value.length <= 128];
 }
+
 export default function PasswordStrength({ value }) {
-  const checks = passwordChecks(value),
-    score = checks.filter(Boolean).length;
-  const labels = [
-    tx("12–128 位", "12–128 characters"),
-    tx("大写字母", "Uppercase"),
-    tx("小写字母", "Lowercase"),
-    tx("数字", "Number"),
-    tx("特殊符号", "Symbol"),
-  ];
+  const checks = passwordChecks(value);
+  const score = checks.filter(Boolean).length;
   return (
     <div className="password-strength">
       <div
         role="meter"
-        aria-label={tx("密码安全性", "Password strength")}
+        aria-label={tx("密码长度", "Password length")}
         aria-valuemin={0}
-        aria-valuemax={5}
+        aria-valuemax={1}
         aria-valuenow={score}
         className="password-strength-bars"
       >
@@ -35,11 +24,9 @@ export default function PasswordStrength({ value }) {
         ))}
       </div>
       <div className="password-strength-checks">
-        {labels.map((label, i) => (
-          <span key={i} data-met={checks[i]}>
-            {checks[i] ? "✓" : "○"} {label}
-          </span>
-        ))}
+        <span data-met={checks[0]}>
+          {checks[0] ? "✓" : "○"} {tx("8–128 位", "8–128 characters")}
+        </span>
       </div>
     </div>
   );

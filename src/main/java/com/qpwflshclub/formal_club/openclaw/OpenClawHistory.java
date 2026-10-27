@@ -74,6 +74,12 @@ public class OpenClawHistory implements ApplicationRunner {
             JsonNode stored = json.readTree(gunzip(open(body)));
             Map<String, Object> payload = new LinkedHashMap<>();
             payload.put("saved", true);
+            payload.put(
+                "backgroundRuns",
+                stored.path("backgroundRuns").isArray()
+                    ? stored.path("backgroundRuns")
+                    : json.createArrayNode()
+            );
             payload.put("resetAt", stored.path("resetAt").asLong(0));
             payload.put("updatedAt", stored.path("updatedAt").asLong(0));
             payload.put("activeId", stored.path("activeId").asText(""));
@@ -113,7 +119,17 @@ public class OpenClawHistory implements ApplicationRunner {
 
     public synchronized void write(long accountId, JsonNode body) throws IOException {
         requireCurrentReset(accountId, body == null ? 0L : body.path("resetAt").asLong(0L));
-        byte[] raw = json.writeValueAsBytes(sanitize(body));
+        ObjectNode clean = sanitize(body);
+        // Runs are server-owned. A stale page snapshot must never overwrite running work.
+        clean.set(
+            "backgroundRuns",
+            json.valueToTree(read(accountId).getOrDefault("backgroundRuns", List.of()))
+        );
+        store(accountId, clean);
+    }
+
+    private void store(long accountId, ObjectNode clean) throws IOException {
+        byte[] raw = json.writeValueAsBytes(clean);
         if (raw.length > MAX_JSON_BYTES) {
             throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE, "对话记录太大");
         }
@@ -127,6 +143,37 @@ public class OpenClawHistory implements ApplicationRunner {
             Instant.now().toString(),
             seal(gzip(raw))
         );
+    }
+
+    synchronized void saveRun(long accountId, long resetAt, ObjectNode run) throws IOException {
+        requireCurrentReset(accountId, resetAt);
+        ObjectNode root = json.valueToTree(read(accountId));
+        ArrayNode runs = json.createArrayNode();
+        runs.add(run.deepCopy());
+        for (JsonNode item : root.path("backgroundRuns")) {
+            if (
+                !item.path("id").asText().equals(run.path("id").asText()) && runs.size() < 30
+            ) runs.add(item);
+        }
+        root.set("backgroundRuns", runs);
+        root.put("updatedAt", System.currentTimeMillis());
+        store(accountId, root);
+    }
+
+    synchronized void deleteRun(long accountId, String id) throws IOException {
+        ObjectNode root = json.valueToTree(read(accountId));
+        ArrayNode runs = json.createArrayNode();
+        for (JsonNode run : root.path("backgroundRuns"))
+            if (!id.equals(run.path("id").asText())) runs.add(run);
+        root.set("backgroundRuns", runs);
+        store(accountId, root);
+    }
+
+    List<ObjectNode> runs(long accountId) {
+        JsonNode runs = json.valueToTree(read(accountId).getOrDefault("backgroundRuns", List.of()));
+        java.util.ArrayList<ObjectNode> result = new java.util.ArrayList<>();
+        for (JsonNode run : runs) if (run.isObject()) result.add((ObjectNode) run);
+        return result;
     }
 
     private void sealExisting() {
@@ -185,6 +232,11 @@ public class OpenClawHistory implements ApplicationRunner {
                 if (!id.matches("[0-9a-fA-F-]{36}")) continue;
                 ObjectNode saved = history.addObject();
                 saved.put("id", id);
+                saved.put("runId", clip(entry.path("runId").asText(""), 36));
+                saved.put("runVersion", entry.path("runVersion").asLong(0));
+                saved.put("startedAt", entry.path("startedAt").asLong(0));
+                saved.put("endedAt", entry.path("endedAt").asLong(0));
+                saved.put("working", entry.path("working").asBoolean(false));
                 saved.put("title", clip(entry.path("title").asText(""), 80));
                 saved.put("draft", clip(entry.path("draft").asText(""), 4000));
                 saved.put("stopped", entry.path("stopped").asBoolean(false));
@@ -246,6 +298,7 @@ public class OpenClawHistory implements ApplicationRunner {
                         copyPlans(message, row);
                         copySources(message, row);
                         copyFiles(message, row);
+                        copyApprovals(message, row);
                         copyNames(message, row);
                         copyEffects(message, row);
                     }
@@ -285,6 +338,25 @@ public class OpenClawHistory implements ApplicationRunner {
             if (!text.isBlank()) plans.add(text);
         }
         if (plans.isEmpty()) row.remove("plans");
+    }
+
+    // Display-only receipts. Approval execution still requires the authenticated approve endpoint.
+    private void copyApprovals(JsonNode message, ObjectNode row) {
+        if (
+            !"assistant".equals(row.path("role").asText()) || !message.path("approvals").isArray()
+        ) return;
+        ArrayNode approvals = row.putArray("approvals");
+        for (JsonNode approval : message.path("approvals")) {
+            if (approvals.size() >= 8) break;
+            String status = approval.path("status").asText("");
+            if (!List.of("approved", "denied").contains(status)) continue;
+            ObjectNode item = approvals.addObject();
+            item.put("id", clip(approval.path("id").asText(""), 80));
+            item.put("name", clip(approval.path("name").asText(""), 80));
+            item.put("argument", clip(approval.path("argument").asText(""), 1000));
+            item.put("status", status);
+        }
+        if (approvals.isEmpty()) row.remove("approvals");
     }
 
     private void copyFiles(JsonNode message, ObjectNode row) {

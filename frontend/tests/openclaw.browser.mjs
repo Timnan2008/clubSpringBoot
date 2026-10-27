@@ -27,10 +27,9 @@ const server = createServer((req, res) => {
         connected: false,
         account: {
           id: "fixture",
-          name: "测试社长",
-          nameEn: "Test President",
-          role: "president",
-          position: "vice_president",
+          name: "测试管理员",
+          nameEn: "Test Administrator",
+          role: "admin",
         },
       }),
     );
@@ -70,7 +69,7 @@ const base = `http://127.0.0.1:${server.address().port}`;
 const screenshots = path.resolve("../../work/qa/openclaw");
 await mkdir(screenshots, { recursive: true });
 try {
-  await page.goto(base);
+  await page.goto(base + "/?lang=zh");
   await page.getByRole("heading", { name: /有什么想一起完成/ }).waitFor();
   await page.screenshot({ path: path.join(screenshots, "desktop-welcome.png") });
   await page.getByRole("button", { name: /策划一场活动/ }).click();
@@ -130,7 +129,7 @@ try {
         status === 401
           ? "请先登录校园账号。"
           : status === 403
-            ? "此入口仅向社长、副社长、老师和管理员开放。"
+            ? "此入口仅向管理员开放。"
             : "暂时无法加载，请重试。",
         { exact: true },
       )

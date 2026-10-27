@@ -1,0 +1,183 @@
+/* Typographic club covers: tinted paper, one large serif glyph, a vermilion seal.
+   Shared by the club directory (React) and the homepage carousel (DOM). */
+.club-cover {
+  --cover-serif:
+    "Iowan Old Style", "Palatino Linotype", Palatino, "Songti SC", "STSong", "Noto Serif SC",
+    "Source Han Serif SC", "Noto Serif CJK SC", SimSun, Georgia, serif;
+  --h: var(--cover-hue, 290);
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  container-type: size;
+  width: 100%;
+  height: 100%;
+  color: hsl(var(--h) 45% 20%);
+  background:
+    radial-gradient(110% 90% at 100% 100%, hsl(var(--h) 52% 68% / 0.85), transparent 64%),
+    radial-gradient(70% 60% at 0% 0%, hsl(calc(var(--h) - 14) 80% 97% / 0.9), transparent 70%),
+    linear-gradient(158deg, hsl(var(--h) 44% 90%), hsl(calc(var(--h) + 14) 46% 79%));
+}
+
+/* Quiet print texture: one of three engraved patterns, fading toward the glyph. */
+.club-cover::before,
+.club-cover::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.club-cover::before {
+  z-index: -1;
+  -webkit-mask-image: linear-gradient(125deg, #000 0%, transparent 72%);
+  mask-image: linear-gradient(125deg, #000 0%, transparent 72%);
+}
+.club-cover[data-pattern="0"]::before {
+  background: repeating-radial-gradient(
+    circle at 0 0,
+    transparent 0 15px,
+    hsl(var(--h) 45% 30% / 0.14) 15px 16px
+  );
+}
+.club-cover[data-pattern="1"]::before {
+  background: repeating-linear-gradient(
+    135deg,
+    transparent 0 8px,
+    hsl(var(--h) 45% 30% / 0.12) 8px 9px
+  );
+}
+.club-cover[data-pattern="2"]::before {
+  background: radial-gradient(hsl(var(--h) 45% 26% / 0.26) 1px, transparent 1.6px) 0 0 / 12px 12px;
+}
+.club-cover::after {
+  z-index: 2;
+  opacity: 0.22;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .6 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.club-cover-glyph {
+  position: absolute;
+  right: 5%;
+  bottom: -13%;
+  font-family: var(--cover-serif);
+  font-weight: 400;
+  font-size: 150px;
+  font-size: min(92cqh, 90cqw);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: hsl(var(--h) 50% 20% / 0.92);
+  text-shadow: 0 1px 0 hsl(var(--h) 60% 96% / 0.4);
+  user-select: none;
+  transition: translate 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.club-cover[data-script="cjk"] .club-cover-glyph {
+  font-weight: 300;
+}
+/* Latin monograms are set in italic capitals, sized by letter count. */
+.club-cover[data-script="latin"] .club-cover-glyph {
+  right: 6%;
+  bottom: -15%;
+  font-style: italic;
+  font-size: min(118cqh, 72cqw);
+  letter-spacing: -0.03em;
+}
+.club-cover[data-script="latin"][data-length="2"] .club-cover-glyph {
+  font-size: min(92cqh, 46cqw);
+  bottom: -17%;
+}
+.club-cover[data-script="latin"][data-length="3"] .club-cover-glyph {
+  font-size: min(72cqh, 32cqw);
+  bottom: -12%;
+}
+
+.club-cover-seal {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 4px;
+  background: #b4432e;
+  color: #fff4ea;
+  font: 500 15px/1 var(--cover-serif);
+  box-shadow:
+    inset 0 0 0 2px #b4432e,
+    inset 0 0 0 3px #fff1e470,
+    0 4px 10px -4px #7a2a1c80;
+}
+
+.club-cover-number {
+  position: absolute;
+  top: 19px;
+  right: 18px;
+  font: italic 400 12px/1 var(--cover-serif);
+  letter-spacing: 0.06em;
+  color: hsl(var(--h) 40% 22% / 0.62);
+  font-variant-numeric: lining-nums;
+}
+
+.club-cover-vertical {
+  position: absolute;
+  writing-mode: vertical-rl;
+  font: 400 17px/1 var(--cover-serif);
+  letter-spacing: 0.42em;
+  color: hsl(var(--h) 40% 20% / 0.78);
+}
+
+/* Large cover on a club's own page. */
+.club-cover-hero .club-cover-seal {
+  top: 30px;
+  left: 30px;
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  font-size: 23px;
+}
+.club-cover-hero .club-cover-number {
+  top: 38px;
+  right: 32px;
+  font-size: 15px;
+}
+.club-cover-hero .club-cover-vertical {
+  top: 92px;
+  left: 39px;
+  max-height: 46%;
+}
+.club-cover-hero .club-cover-glyph {
+  right: 8%;
+  bottom: -10%;
+  font-size: min(70cqh, 78cqw);
+}
+.club-cover-hero[data-script="latin"] .club-cover-glyph {
+  bottom: -13%;
+  font-size: min(96cqh, 74cqw);
+}
+
+@container (max-width: 170px) {
+  .club-cover-number {
+    display: none;
+  }
+  .club-cover-seal {
+    top: 10px;
+    left: 10px;
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+  }
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  a:hover .club-cover .club-cover-glyph,
+  a:focus-visible .club-cover .club-cover-glyph,
+  .pixelated-image-card:hover .club-cover .club-cover-glyph {
+    translate: 0 -4%;
+  }
+}
+@media (forced-colors: active) {
+  .club-cover::before,
+  .club-cover::after {
+    display: none;
+  }
+}

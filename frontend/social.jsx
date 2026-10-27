@@ -1,4 +1,4 @@
-import HoldButton from "./HoldButton";
+import MessageRecallMenu from "./MessageRecallMenu";
 import CallChip from "./CallChip";
 import { ChatComposer, ChatMessageFiles, chatPreview } from "./ChatAttachments";
 import { appendChatFiles, prepareChatFiles, parseChatFiles } from "./chat-attachments.mjs";
@@ -1269,13 +1269,31 @@ function Conversation({ peer, profile, write, onBack, onChange }) {
               </Empty>
             )}
             {data.messages.map((m) => (
-              <div
+              <MessageRecallMenu
                 className={
                   "social-message " +
                   (m.sender === profile.account.id ? "own" : "") +
                   (arrivingMessages.current.has(m.id) ? " message-arriving" : "")
                 }
                 key={m.id}
+                canRecall={m.sender === profile.account.id && !m.recalled}
+                busy={busy}
+                onRecall={async () => {
+                  if (lock.current) return;
+                  lock.current = true;
+                  setBusy(true);
+                  try {
+                    await write("/conversations/" + peer.id + "/messages/" + m.id, "DELETE");
+                    await load();
+                    window.dispatchEvent(new Event("campus-notifications-changed"));
+                  } catch (e) {
+                    setError(tr(e.message));
+                    return false;
+                  } finally {
+                    lock.current = false;
+                    setBusy(false);
+                  }
+                }}
               >
                 <MessageContent message={m} cryptoState={cryptoState} me={profile.account.id} />
                 <small>
@@ -1284,34 +1302,7 @@ function Conversation({ peer, profile, write, onBack, onChange }) {
                     ? " · " + (m.read ? tr("已读") : tx("未读", "Unread"))
                     : ""}
                 </small>
-                {m.sender === profile.account.id && !m.recalled && (
-                  <HoldButton
-                    size="sm"
-                    doneLabel={tx("已撤回", "Recalled")}
-                    className="recall-message"
-                    type="button"
-                    disabled={busy}
-                    onHold={async () => {
-                      if (lock.current) return;
-                      lock.current = true;
-                      setBusy(true);
-                      try {
-                        await write("/conversations/" + peer.id + "/messages/" + m.id, "DELETE");
-                        await load();
-                        window.dispatchEvent(new Event("campus-notifications-changed"));
-                      } catch (e) {
-                        setError(tr(e.message));
-                        return false;
-                      } finally {
-                        lock.current = false;
-                        setBusy(false);
-                      }
-                    }}
-                  >
-                    {tx("长按撤回", "Hold to recall")}
-                  </HoldButton>
-                )}
-              </div>
+              </MessageRecallMenu>
             ))}
           </>
         )}

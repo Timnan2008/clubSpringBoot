@@ -209,6 +209,7 @@ export default function CardNav({
         onFocusCapture={restore}
         onPointerEnter={restore}
       >
+        <div className="card-nav-slot">
         <nav ref={root} className={"card-nav " + (open ? "open" : "")} aria-label={tr("校园导航")}>
           <div className="card-nav-top">
             <button
@@ -329,6 +330,7 @@ export default function CardNav({
             ))}
           </div>
         </nav>
+        </div>
         <div className="campus-subnav" inert={tucked && !open} aria-hidden={tucked && !open}>
           {homeBack ? (
             <a

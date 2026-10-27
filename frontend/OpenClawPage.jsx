@@ -1,3 +1,5 @@
+import useBackgroundRuns from "./useBackgroundRuns";
+import { waitForStreamStep } from "./stream-deadline.mjs";
 import { lazy, memo, Suspense, useEffect, useRef, useState } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -22,6 +24,7 @@ import CardNav from "./CardNav";
 import PromptBar from "./PromptBar";
 import CallChip from "./CallChip";
 import AssistantText from "./AssistantText";
+import { ApprovalCard, AgentFileCard } from "./AgentArtifacts";
 import AutoFollowFeed from "./AutoFollowFeed";
 import {
   mergeTasks,
@@ -198,6 +201,11 @@ const effectOf = (call) =>
 const packHistory = (items) =>
   items.slice(0, 30).map((entry) => ({
     id: entry.id,
+    runId: entry.runId || "",
+    runVersion: Number(entry.runVersion) || 0,
+    startedAt: Number(entry.startedAt) || 0,
+    endedAt: Number(entry.endedAt) || 0,
+    working: Boolean(entry.working),
     draft: entry.draft || "",
     title: entry.title || "",
     stopped: Boolean(entry.stopped),
@@ -228,6 +236,15 @@ const packHistory = (items) =>
         tasks: assistant ? mergeTasks([], message.tasks) : [],
         outcome: message.outcome,
         delivered: Boolean(message.delivered),
+        approvals: (message.approvals || [])
+          .filter((a) => ["approved", "denied"].includes(a.status))
+          .slice(-8)
+          .map((a) => ({
+            id: String(a.id || "").slice(0, 80),
+            name: String(a.name || "").slice(0, 80),
+            argument: String(a.argument || "").slice(0, 1000),
+            status: a.status,
+          })),
         plans: assistant ? messagePlans(message).map((plan) => String(plan).slice(0, 200)) : [],
         sources: (message.sources || [])
           .filter((source) => /^https?:\/\/\S+$/i.test(source?.url || ""))
@@ -359,6 +376,11 @@ export default function OpenClawPage() {
     { id: "v4", label: "DeepSeek V4 Pro" },
     { id: "mimo", label: "MiMo V2.6" },
   ]);
+  const [background, setBackground] = useState(false);
+  const [historyReady, setHistoryReady] = useState(false);
+  const backgroundKnown = useRef(new Map());
+  const restoreBackgroundView = useRef(false);
+  const [backgroundDisconnected, setBackgroundDisconnected] = useState(false);
   const [mimoReady, setMimoReady] = useState(false);
   const [quotaText, setQuotaText] = useState("");
   const [reasoning, setReasoning] = useState(true);
@@ -408,6 +430,8 @@ export default function OpenClawPage() {
     if (!account?.id) return;
     let cancel = false;
     persistReady.current = false;
+    setHistoryReady(false);
+    backgroundKnown.current.clear();
     (async () => {
       let remote = null;
       let serverOk = false;
@@ -467,6 +491,9 @@ export default function OpenClawPage() {
           setEnabled(withSkills.slice(0, 12));
         }
         const packed = packHistory(source.history || []);
+        for (const entry of packed)
+          if (entry.runId)
+            backgroundKnown.current.set(entry.id, `${entry.runId}:${entry.runVersion}`);
         setHistory(packed);
         const active = packed.find((item) => item.id === source.activeId);
         if (active) {
@@ -477,6 +504,7 @@ export default function OpenClawPage() {
           setStopped(Boolean(active.stopped));
         }
       }
+      restoreBackgroundView.current = !source?.history?.length;
       lastSent.current = JSON.stringify({
         activeId: source?.activeId || "",
         model: knownModel(source?.model),
@@ -488,6 +516,7 @@ export default function OpenClawPage() {
       });
       serverSync.current = serverOk;
       persistReady.current = true;
+      setHistoryReady(true);
       if ((serverOk && remote && !remote.saved && local?.history?.length) || preferLocal)
         lastSent.current = "";
     })();
@@ -614,6 +643,67 @@ export default function OpenClawPage() {
       window.removeEventListener("pagehide", onHide);
     };
   }, [account?.id]);
+  const applyBackground = (entry) => {
+    const version = `${entry.runId}:${entry.runVersion}`;
+    if (!entry.working && backgroundKnown.current.get(entry.id) === version) return;
+    backgroundKnown.current.set(entry.id, version);
+    if (restoreBackgroundView.current) {
+      restoreBackgroundView.current = false;
+      viewRef.current = entry.id;
+      setConversationId(entry.id);
+    }
+    const current = viewRef.current === entry.id;
+    setHistory((items) => {
+      const old = items.find((item) => item.id === entry.id);
+      const next = {
+        ...old,
+        ...entry,
+        title: old?.title || entry.title,
+        draft: old?.draft || "",
+        pinned: Boolean(old?.pinned),
+        archived: Boolean(old?.archived),
+        unread: !current && !entry.working,
+      };
+      return old ? items.map((item) => (item.id === entry.id ? next : item)) : [next, ...items];
+    });
+    if (entry.quota) setQuotaText(entry.quota);
+    if (current) {
+      liveRef.current = { ...entry, approval: entry.approval || null };
+      setMessages(entry.messages || []);
+      setCalls(entry.calls || []);
+      setBusy(Boolean(entry.working));
+      setStopped(Boolean(entry.stopped));
+      setApproval(entry.approval || null);
+      setStatusLine(entry.status || "");
+      if (entry.error) setFeedback(entry.error);
+    }
+  };
+  const backgroundRuns = useBackgroundRuns({
+    enabled: background,
+    ready: historyReady,
+    accountId: account?.id,
+    token,
+    onSnapshot: applyBackground,
+    onConnection: (ok) => setBackgroundDisconnected(!ok),
+  });
+  const decideBackground = async (approved) => {
+    if (!approval?.id) return;
+    const response = await fetch("/api/openclaw/approve", {
+      method: "POST",
+      credentials: "same-origin",
+      signal: AbortSignal.timeout(15000),
+      headers: { "Content-Type": "application/json", "X-Workspace-Token": token },
+      body: JSON.stringify({ id: approval.id, approved }),
+    });
+    if (!response.ok || !(await response.json()).ok)
+      throw Error(
+        tx(
+          "批准已过期或未提交成功，请刷新状态。",
+          "Could not confirm approval. Refresh the task status.",
+        ),
+      );
+    await backgroundRuns.refresh();
+  };
   const input = useRef(),
     timer = useRef(),
     frame = useRef(),
@@ -659,6 +749,7 @@ export default function OpenClawPage() {
           setLoadState("forbidden");
           return;
         }
+        setBackground(data.background === true);
         setAccount(data.account);
         setConnected(data.connected === true);
         setMimoReady(data.mimo === true);
@@ -698,7 +789,22 @@ export default function OpenClawPage() {
     const panel = transcript.current;
     if (panel) panel.scrollTop = panel.scrollHeight;
   }, [busy, messages, calls, statusLine]);
-  const stop = () => {
+  const stop = async () => {
+    if (background) {
+      const entry = backgroundRuns.latest.current.get(viewRef.current);
+      if (!entry?.runId) return;
+      try {
+        await backgroundRuns.stop(entry.id, entry.runId);
+      } catch {
+        notice(
+          tx(
+            "停止操作未确认，任务可能仍在后台运行，请重试。",
+            "Stop was not confirmed. The task may still be running.",
+          ),
+        );
+      }
+      return;
+    }
     approvalWait.current?.(false);
     runToken.current += 1;
     const id = liveRef.current.id;
@@ -823,7 +929,21 @@ export default function OpenClawPage() {
     setStatusLine("");
     input.current?.focus();
   };
-  const deleteConversation = (id) => {
+  const deleteConversation = async (id) => {
+    if (background) {
+      try {
+        await backgroundRuns.remove(id);
+        backgroundKnown.current.delete(id);
+      } catch {
+        notice(
+          tx(
+            "删除失败，后台任务未确认停止。",
+            "Deletion failed; the background task may still be running.",
+          ),
+        );
+        return;
+      }
+    }
     setHistoryMenu(null);
     if (liveRef.current.id === id) {
       approvalWait.current?.(false);
@@ -862,6 +982,63 @@ export default function OpenClawPage() {
     const body =
       typed || (uploads.length ? tx("请根据我附上的文件处理。", "Use the attached files.") : "");
     if (!body) return;
+    if (background) {
+      const prior = priorMessages || messages;
+      const seeded = [
+        ...prior,
+        { role: "user", content: typed || body, attachments: uploads.map((file) => file.name) },
+        { role: "assistant", content: "", thinking: "", sources: [], files: [] },
+      ].slice(-40);
+      const runId = crypto.randomUUID();
+      setDraft("");
+      setFiles([]);
+      setFeedback("");
+      setApproval(null);
+      setStopped(false);
+      setBusy(true);
+      setCalls([]);
+      setMessages(seeded);
+      liveRef.current = {
+        id: chatId,
+        runId,
+        messages: seeded,
+        calls: [],
+        working: true,
+        approval: null,
+      };
+      if (!reduceMotion) {
+        if (!prior.length) setWelcomeExit(true);
+        setEnteringMessage({ chatId, index: seeded.length - 2 });
+      }
+      followOutput.current = true;
+      try {
+        await backgroundRuns.start({
+          runId,
+          messages: seeded,
+          request: {
+            conversationId: chatId,
+            history: conversationContext(prior),
+            resetAt: historyReset.current,
+            text: body,
+            model: requestSettings.model,
+            reasoning: requestSettings.reasoning,
+            language: en ? "en" : "zh",
+            attachments: uploads,
+          },
+        });
+      } catch (error) {
+        if (viewRef.current === chatId) {
+          setBusy(false);
+          setFeedback(
+            tx(
+              "未能确认任务提交结果，正在同步后台状态。请不要重复发送。",
+              "Could not confirm submission. Checking server state; do not send again.",
+            ),
+          );
+        }
+      }
+      return;
+    }
     const previousId = liveRef.current.id;
     approvalWait.current?.(false);
     const generation = ++runToken.current;
@@ -939,6 +1116,8 @@ export default function OpenClawPage() {
       );
       live.messages = completedMessages;
       if (viewRef.current === chatId) setMessages(completedMessages);
+      live.calls = stopTasks(live.calls);
+      if (viewRef.current === chatId) setCalls(live.calls);
       liveRef.current = { ...live, working: false, approval: null };
       setHistory((items) =>
         items.map((item) =>
@@ -966,6 +1145,12 @@ export default function OpenClawPage() {
     cancel();
     const controller = new AbortController();
     chatAbort.current = controller;
+    const waitStep = (promise, timeoutMs) =>
+      waitForStreamStep(promise, {
+        signal: controller.signal,
+        timeoutMs,
+        onTimeout: (error) => controller.abort(error),
+      });
     const prior =
       priorMessages || (liveRef.current.id === chatId ? liveRef.current.messages : messages);
     const seeded = [
@@ -1010,26 +1195,28 @@ export default function OpenClawPage() {
     }
     followOutput.current = true;
     try {
-      const response = await fetch("/api/openclaw/chat", {
-        method: "POST",
-        credentials: "same-origin",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "text/event-stream",
-          ...(token ? { "X-Workspace-Token": token } : {}),
-        },
-        body: JSON.stringify({
-          conversationId: chatId,
-          history: conversationContext(prior),
-          resetAt: historyReset.current,
-          text: body,
-          model: requestSettings.model,
-          reasoning: requestSettings.reasoning,
-          language: en ? "en" : "zh",
-          attachments: uploads,
+      const response = await waitStep(
+        fetch("/api/openclaw/chat", {
+          method: "POST",
+          credentials: "same-origin",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "text/event-stream",
+            ...(token ? { "X-Workspace-Token": token } : {}),
+          },
+          body: JSON.stringify({
+            conversationId: chatId,
+            history: conversationContext(prior),
+            resetAt: historyReset.current,
+            text: body,
+            model: requestSettings.model,
+            reasoning: requestSettings.reasoning,
+            language: en ? "en" : "zh",
+            attachments: uploads,
+          }),
+          signal: controller.signal,
         }),
-        signal: controller.signal,
-      });
+      );
       if (!response.ok || !response.body) {
         const status = response.status;
         throw Error(
@@ -1045,11 +1232,11 @@ export default function OpenClawPage() {
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = "";
-      for (;;) {
+      streamLoop: for (;;) {
         if (!alive()) return;
-        const chunk = await reader.read();
+        const chunk = await waitStep(reader.read());
         if (!alive()) return;
-        if (chunk.done) break;
+        if (chunk.done) throw Error("stream-disconnected");
         buffer += decoder.decode(chunk.value, { stream: true });
         const parts = buffer.split("\n");
         buffer = parts.pop() || "";
@@ -1057,7 +1244,8 @@ export default function OpenClawPage() {
           if (!alive()) return;
           if (!line.startsWith("data:")) continue;
           const data = line.slice(5).trim();
-          if (!data || data === "[DONE]") continue;
+          if (data === "[DONE]") break streamLoop;
+          if (!data) continue;
           const event = JSON.parse(data);
           if (typeof event.quota === "string") setQuotaText(event.quota);
           if (event.replace) {
@@ -1110,26 +1298,57 @@ export default function OpenClawPage() {
             };
             markAwaiting(true);
             pauseRunning(true);
-            const approved = await new Promise((resolve) => {
-              approvalWait.current = resolve;
-              liveRef.current = { ...liveRef.current, approval: event.approval };
-              if (onScreen()) setApproval(event.approval);
-            });
+            const approved = await waitStep(
+              new Promise((resolve) => {
+                approvalWait.current = resolve;
+                liveRef.current = { ...liveRef.current, approval: event.approval };
+                if (onScreen()) setApproval(event.approval);
+              }),
+              90000,
+            );
             if (!alive()) return;
             approvalWait.current = null;
+            const decisionResponse = await waitStep(
+              fetch("/api/openclaw/approve", {
+                method: "POST",
+                credentials: "same-origin",
+                headers: {
+                  "Content-Type": "application/json",
+                  ...(token ? { "X-Workspace-Token": token } : {}),
+                },
+                body: JSON.stringify({ id: event.approval.id, approved: Boolean(approved) }),
+                signal: controller.signal,
+              }),
+              15000,
+            );
+            const decisionResult = decisionResponse.ok
+              ? await waitStep(decisionResponse.json(), 15000)
+              : null;
+            if (!decisionResponse.ok || decisionResult?.ok !== true)
+              throw Error(
+                tx(
+                  "批准结果未提交成功，请重试。",
+                  "Could not submit your decision. Please try again.",
+                ),
+              );
+            if (!alive()) return;
             liveRef.current = { ...liveRef.current, approval: null };
             markAwaiting(false);
             pauseRunning(false);
+            publishMessages((items) =>
+              items.map((message, index) =>
+                index === items.length - 1 && message.role === "assistant"
+                  ? {
+                      ...message,
+                      approvals: [
+                        ...(message.approvals || []),
+                        { ...event.approval, status: approved ? "approved" : "denied" },
+                      ].slice(-8),
+                    }
+                  : message,
+              ),
+            );
             if (onScreen()) setApproval(null);
-            await fetch("/api/openclaw/approve", {
-              method: "POST",
-              credentials: "same-origin",
-              headers: {
-                "Content-Type": "application/json",
-                ...(token ? { "X-Workspace-Token": token } : {}),
-              },
-              body: JSON.stringify({ id: event.approval.id, approved: Boolean(approved) }),
-            }).catch(() => {});
             continue;
           }
           if (Array.isArray(event.tasks)) {
@@ -1238,7 +1457,7 @@ export default function OpenClawPage() {
             });
           }
           if ((event.delta || event.reasoning) && onScreen()) {
-            await new Promise((resolve) => requestAnimationFrame(resolve));
+            await new Promise((resolve) => setTimeout(resolve, 0));
           }
         }
       }
@@ -1248,13 +1467,29 @@ export default function OpenClawPage() {
       finish(true);
       if (viewRef.current !== chatId) return;
       notice(
-        error instanceof TypeError
-          ? tx("网络错误", "Network Error")
-          : error.message && error.message !== "unavailable"
-            ? error.message
-            : tx("网络错误", "Network Error"),
+        error.message === "stream-timeout"
+          ? tx(
+              "等待响应已超时，本次任务已停止。请重试；如涉及写入，请先确认是否已完成。",
+              "The response timed out and this turn stopped. Before retrying a write, check whether it completed.",
+            )
+          : error.message === "stream-disconnected"
+            ? tx(
+                "连接在回复完成前中断，本次任务已停止。",
+                "The connection ended before the reply completed.",
+              )
+            : error instanceof TypeError
+              ? tx("网络错误", "Network Error")
+              : error.message && error.message !== "unavailable"
+                ? error.message
+                : tx("网络错误", "Network Error"),
         tx("无法连接", "Network Error"),
       );
+    } finally {
+      controller.abort();
+      if (chatAbort.current === controller) {
+        chatAbort.current = null;
+        approvalWait.current = null;
+      }
     }
   };
   const copyText = async (text) => {
@@ -1372,7 +1607,14 @@ export default function OpenClawPage() {
     flushLive();
     viewRef.current = entry.id;
     cancel();
-    const live = liveRef.current.id === entry.id ? liveRef.current : null;
+    const cached = backgroundRuns.latest.current.get(entry.id);
+    const live = background
+      ? cached?.working || (cached?.runVersion || 0) > (entry.runVersion || 0)
+        ? cached
+        : null
+      : liveRef.current.id === entry.id
+        ? liveRef.current
+        : null;
     const shownMessages = live?.messages?.length ? live.messages : entry.messages || [];
     setConversationId(entry.id);
     setDraft(entry.draft || "");
@@ -1384,6 +1626,7 @@ export default function OpenClawPage() {
     );
     setStopped(Boolean(entry.stopped));
     setBusy(Boolean(live?.working || entry.working));
+    if (background && live) liveRef.current = live;
     setApproval(live?.approval || null);
     setStatusLine("");
     setSidebar(false);
@@ -1485,8 +1728,8 @@ export default function OpenClawPage() {
             ? tx("正在验证访问权限…", "Checking access…")
             : loadState === "forbidden"
               ? tx(
-                  "此入口仅向社长、副社长、老师和管理员开放。",
-                  "This workspace is available to club presidents, vice presidents, teachers and administrators.",
+                  "此入口仅向管理员开放。",
+                  "This workspace is available to administrators only.",
                 )
               : loadState === "signed-out"
                 ? tx("请先登录校园账号。", "Sign in with your school account.")
@@ -1722,10 +1965,29 @@ export default function OpenClawPage() {
                       </div>
                     ) : (
                       <div className="openclaw-response" key={`${item.role}-${index}`}>
+                        {(item.approvals || []).map((decision) => (
+                          <ApprovalCard
+                            key={decision.id}
+                            title={toolLabel(decision.name)}
+                            detail={decision.argument}
+                            status={decision.status}
+                          />
+                        ))}
                         {(splitPlans(item.thinking || "").text ||
                           (index === messages.length - 1 && (busy || calls.length > 0))) && (
                           <div className="openclaw-thought">
                             <ThoughtLine
+                              startedAt={
+                                background && index === messages.length - 1
+                                  ? backgroundRuns.latest.current.get(conversationId)?.startedAt ||
+                                    0
+                                  : 0
+                              }
+                              endedAt={
+                                background && index === messages.length - 1
+                                  ? backgroundRuns.latest.current.get(conversationId)?.endedAt || 0
+                                  : 0
+                              }
                               working={busy && index === messages.length - 1}
                               glyph={
                                 <LatticeLoader
@@ -1772,7 +2034,7 @@ export default function OpenClawPage() {
                               }
                               fontSize={14}
                               showTimer
-                              collapseOnSettle={false}
+                              collapseOnSettle
                             />
                           </div>
                         )}
@@ -1845,19 +2107,18 @@ export default function OpenClawPage() {
                             ))}
                           </div>
                         )}
-                        {(item.files || []).map((file) => (
-                          <span className="openclaw-file" key={file.href}>
-                            <a href={file.href}>{file.name}</a>
-                            <button
-                              type="button"
-                              disabled={busy}
-                              aria-label={tx(`删除文件 ${file.name}`, `Delete file ${file.name}`)}
-                              onClick={() => setFileToDelete(file)}
-                            >
-                              <Icon icon={Delete02Icon} size={14} />
-                            </button>
-                          </span>
-                        ))}
+                        {!!item.files?.length && (
+                          <div className="agent-file-list">
+                            {item.files.map((file) => (
+                              <AgentFileCard
+                                key={file.href}
+                                file={file}
+                                disabled={busy}
+                                onDelete={setFileToDelete}
+                              />
+                            ))}
+                          </div>
+                        )}
                         {answerText(item) && !(busy && index === messages.length - 1) && (
                           <div className="openclaw-message-actions">
                             <button
@@ -1899,26 +2160,23 @@ export default function OpenClawPage() {
               layoutDependency={!!messages.length}
               transition={{ layout: { duration: 0.55, ease: [0.22, 1, 0.36, 1] } }}
             >
+              {background && backgroundDisconnected && (
+                <p role="status">
+                  {tx(
+                    "正在重连进度，任务仍由服务器执行。",
+                    "Reconnecting to progress. The task runs on the server.",
+                  )}
+                </p>
+              )}
               {approval && (
-                <div
-                  className="openclaw-approval"
-                  role="dialog"
-                  aria-label={tx("需要批准", "Approval needed")}
-                >
-                  <strong>{tx("需要你批准", "Approval needed")}</strong>
-                  <p>
-                    {toolLabel(approval.name)}
-                    {approval.argument ? ` · ${approval.argument}` : ""}
-                  </p>
-                  <div>
-                    <button type="button" onClick={() => approvalWait.current?.(false)}>
-                      {tx("拒绝", "Decline")}
-                    </button>
-                    <button type="button" onClick={() => approvalWait.current?.(true)}>
-                      {tx("批准", "Approve")}
-                    </button>
-                  </div>
-                </div>
+                <ApprovalCard
+                  key={approval.id}
+                  title={toolLabel(approval.name)}
+                  detail={approval.argument}
+                  onDecision={(approved) =>
+                    background ? decideBackground(approved) : approvalWait.current?.(approved)
+                  }
+                />
               )}
               <div className="openclaw-prompt-wrap">
                 {feedback && (

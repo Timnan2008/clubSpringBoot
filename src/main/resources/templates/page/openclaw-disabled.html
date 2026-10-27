@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org" th:lang="${#locale.language}">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Agent Ollie</title>
+    <style>
+      :root { color-scheme: dark; background: #0a0a0a; color: #ededed; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      * { box-sizing: border-box; }
+      body { margin: 0; min-height: 100svh; }
+      header { padding: 28px clamp(24px, 5vw, 64px); }
+      a { color: #a6a6a6; text-decoration: none; }
+      a:hover { color: #fff; }
+      a:focus-visible { outline: 2px solid #80c799; outline-offset: 6px; border-radius: 4px; }
+      main { min-height: calc(100svh - 82px); display: grid; place-content: center; padding: 32px 24px 110px; text-align: center; }
+      .agent-mark { width: 34px; height: 34px; color: #74bd86; margin: 0 auto 26px; }
+      h1 { font-size: clamp(34px, 6vw, 48px); font-weight: 550; letter-spacing: -.045em; margin: 0 0 20px; }
+      .status { display: inline-flex; justify-self: center; align-items: center; gap: 7px; margin: 0 0 24px; border: 1px solid #373737; border-radius: 999px; padding: 7px 12px; font-size: 13px; color: #bdbdbd; }
+      .status::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #929292; }
+      .description { max-width: 34em; margin: 0 auto; font-size: 16px; line-height: 1.85; color: #9c9c9c; }
+      @media (max-width: 480px) { main { padding-bottom: 90px; } }
+    </style>
+  </head>
+  <body>
+    <header>
+      <a
+        th:href="@{/(lang=${#locale.language})}"
+        href="/"
+        th:text="${#locale.language == 'en' ? '← Back home' : '← 返回首页'}"
+        >← 返回首页</a
+      >
+    </header>
+    <main aria-labelledby="agent-title">
+      <svg class="agent-mark" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+        <circle cx="4" cy="4" r="2" />
+        <circle cx="12" cy="4" r="2" />
+        <circle cx="20" cy="4" r="2" />
+        <circle cx="4" cy="12" r="2" />
+        <circle cx="12" cy="12" r="2" />
+        <circle cx="20" cy="12" r="2" />
+        <circle cx="4" cy="20" r="2" />
+        <circle cx="12" cy="20" r="2" />
+        <circle cx="20" cy="20" r="2" />
+      </svg>
+      <h1 id="agent-title">Agent Ollie</h1>
+      <p
+        class="status"
+        role="status"
+        th:text="${#locale.language == 'en' ? 'Currently unavailable' : '暂未开放'}"
+      >
+        暂未开放
+      </p>
+      <p
+        class="description"
+        th:text="${#locale.language == 'en' ? 'The Agent service is paused. Messages and tasks are unavailable for now.' : 'Agent 服务暂停使用，暂不支持发送消息或执行任务。'}"
+      >
+        Agent 服务暂停使用，暂不支持发送消息或执行任务。
+      </p>
+    </main>
+  </body>
+</html>

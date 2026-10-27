@@ -18,7 +18,7 @@ Spring Boot / Thymeleaf 后端与 React 前端。包含 Agent Ollie、社团目�
 | `deploy/` | Nginx、systemd、环境变量示例及主站发布脚本 |
 | `src/test/`、`frontend/tests/*.test.mjs`、`tests/e2e/` | 后端、前端及浏览器回归测试 |
 
-Agent 的请求流程、联网限制和历史存储边界见 [Agent 维护说明](docs/Agent维护.md)。
+Agent Ollie 当前仅管理员可见和使用。请求流程、联网限制和历史存储边界见 [Agent 维护说明](docs/Agent维护.md)。
 
 ## 构建
 

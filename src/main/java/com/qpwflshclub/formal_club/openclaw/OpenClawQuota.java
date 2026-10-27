@@ -11,6 +11,8 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import com.qpwflshclub.formal_club.User.pojo.Admin;
+import com.qpwflshclub.formal_club.User.pojo.UserBase;
 
 /** One account may spend at most 2 RMB of model usage each Shanghai week. */
 @Component
@@ -35,21 +37,17 @@ public class OpenClawQuota implements ApplicationRunner {
     @org.springframework.beans.factory.annotation.Value("${club.openclaw.unlimited-accounts:}")
     private String unlimitedAccounts = "";
 
-    boolean unlimited(com.qpwflshclub.formal_club.User.pojo.UserBase user) {
-        return false; // All accounts share the allowance, including former exemptions.
+    boolean unlimited(UserBase user) {
+        return user instanceof Admin admin
+            && "李毅睿".equals(admin.getUsername())
+            && "Jason".equals(admin.getUsernameEn());
     }
 
-    public String blockReason(
-        com.qpwflshclub.formal_club.User.pojo.UserBase user,
-        boolean english
-    ) {
+    public String blockReason(UserBase user, boolean english) {
         return unlimited(user) ? null : blockReason(OpenClawIdentity.id(user), english);
     }
 
-    public String remainingText(
-        com.qpwflshclub.formal_club.User.pojo.UserBase user,
-        boolean english
-    ) {
+    public String remainingText(UserBase user, boolean english) {
         return unlimited(user)
             ? english
                 ? "Unlimited allowance"

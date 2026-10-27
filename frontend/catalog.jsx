@@ -12,6 +12,8 @@ import RotatingText from "./RotatingText";
 import ClubJoin from "./ClubJoin";
 import { AnimatedNumber, TextMorph } from "./MotionPrimitives";
 import ClubLikes from "./ClubLikes";
+import ClubCover from "./ClubCover";
+import { categoryHue, isPlaceholderLogo } from "./club-cover.mjs";
 import { en, tx } from "./language";
 import "./catalog.css";
 
@@ -49,8 +51,14 @@ async function read(url, signal) {
     throw new Error(tx("加载失败，请重试。", "Unable to load. Please try again."));
   return d.data ?? d;
 }
-function Logo({ src, name, large = false, priority = false }) {
+function Logo({ club, src, name, large = false, priority = false }) {
   const [failed, setFailed] = useState(false);
+  if (club && (failed || isPlaceholderLogo(src)))
+    return (
+      <div className={"club-art club-art-cover" + (large ? " club-art-large" : "")}>
+        <ClubCover club={club} name={name} />
+      </div>
+    );
   return (
     <div className={"club-art" + (large ? " club-art-large" : "")}>
       {src && !failed ? (
@@ -219,7 +227,11 @@ function Catalog() {
                 QPWFLHS CLUBS <span>/ {label(club.clubClass)}</span>
               </div>
               <h1>{name}</h1>
-              {!en && club.clubNameEn && <p className="club-english-name">{club.clubNameEn}</p>}
+              {(en ? club.clubName : club.clubNameEn) && (
+                <p className="club-english-name" lang={en ? "zh-CN" : "en"}>
+                  {en ? club.clubName : club.clubNameEn}
+                </p>
+              )}
               <p className="club-slogan">
                 {localized(club.sortDescription, club.sortDescriptionEn)}
               </p>
@@ -248,6 +260,7 @@ function Catalog() {
                 gap={8}
               >
                 <Logo
+                  club={club}
                   src={club.clubItem || "/other%20photo/WFL-crest.svg"}
                   name={name}
                   large
@@ -258,14 +271,18 @@ function Catalog() {
               <PixelTransition
                 className="club-logo-card"
                 firstContent={
-                  <div className="club-pixel-front">
-                    <span>QPWFLHS CLUBS</span>
-                    <img
-                      src={media(club.clubItem) || "/other%20photo/WFL-crest.svg"}
-                      alt={name}
-                      decoding="async"
-                    />
-                  </div>
+                  isPlaceholderLogo(club.clubItem) ? (
+                    <ClubCover club={club} name={name} variant="hero" />
+                  ) : (
+                    <div className="club-pixel-front">
+                      <span>QPWFLHS CLUBS</span>
+                      <img
+                        src={media(club.clubItem) || "/other%20photo/WFL-crest.svg"}
+                        alt={name}
+                        decoding="async"
+                      />
+                    </div>
+                  )
                 }
                 onActivate={nextMeme}
                 secondContent={
@@ -351,18 +368,30 @@ function Catalog() {
       ) : (
         <>
           <header className="catalog-heading">
-            <div className="club-eyebrow">QPWFLHS / CLUB DIRECTORY</div>
-            <h1>
-              {host.dataset.mode === "search"
-                ? tx("找到你的社团", "Find your club")
-                : tx("社团，在这里相遇", "Meet your next club")}
-            </h1>
-            <p>
-              {tx(
-                "从兴趣出发，看看同学们正在做什么。",
-                "Start with an interest. See what others are creating.",
-              )}
-            </p>
+            <div>
+              <div className="club-eyebrow">QPWFLHS / CLUB DIRECTORY</div>
+              <h1>
+                {host.dataset.mode === "search"
+                  ? tx("找到你的社团", "Find your club")
+                  : tx("社团，在这里相遇", "Meet your next club")}
+              </h1>
+              <p>
+                {tx(
+                  "从兴趣出发，看看同学们正在做什么。",
+                  "Start with an interest. See what others are creating.",
+                )}
+              </p>
+            </div>
+            <dl className="catalog-tally">
+              <div>
+                <dt>{tx("个社团", "Clubs")}</dt>
+                <dd>{items.length}</dd>
+              </div>
+              <div>
+                <dt>{tx("个方向", "Directions")}</dt>
+                <dd>{categories.length - 1}</dd>
+              </div>
+            </dl>
           </header>
           <form
             className="catalog-search"
@@ -391,8 +420,15 @@ function Catalog() {
           </form>
           <div className="catalog-filters" aria-label={tx("社团类别", "Club category")}>
             {categories.map(([id, zh, english]) => (
-              <button key={id} aria-pressed={category === id} onClick={() => setCategory(id)}>
+              <button
+                key={id}
+                aria-pressed={category === id}
+                onClick={() => setCategory(id)}
+                data-category={id || undefined}
+                style={id ? { "--category-hue": categoryHue(id) } : undefined}
+              >
                 <TextMorph>{en ? english : zh}</TextMorph>
+                <small>{id ? items.filter((c) => c.clubClass === id).length : items.length}</small>
               </button>
             ))}
             <span aria-live="polite">
@@ -433,15 +469,19 @@ function Catalog() {
             {filtered.map((c, i) => (
               <a className="club-tile" href={`/page/clubs/${c.id}`} key={c.id}>
                 <Logo
+                  club={c}
                   src={c.clubItem}
                   name={localized(c.clubName, c.clubNameEn)}
                   priority={i < 6}
                 />
-                <div className="club-tile-copy">
+                <div
+                  className="club-tile-copy"
+                  style={{ "--category-hue": categoryHue(c.clubClass) }}
+                >
                   <small>{label(c.clubClass)}</small>
                   <h2>
                     {localized(c.clubName, c.clubNameEn)}
-                    <span>↗</span>
+                    <ArrowUpRight aria-hidden="true" />
                   </h2>
                   <p>{localized(c.sortDescription, c.sortDescriptionEn)}</p>
                 </div>

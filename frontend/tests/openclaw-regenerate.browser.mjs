@@ -72,7 +72,7 @@ const server = createServer(async (req, res) => {
           ? {
               connected: true,
               token: "fixture",
-              account: { id: "fixture", name: "测试老师", role: "teacher" },
+              account: { id: "fixture", name: "测试管理员", role: "admin" },
             }
           : url.pathname === "/api/openclaw/history"
             ? { saved: true, resetAt: 1234, updatedAt: 1234, history: [] }

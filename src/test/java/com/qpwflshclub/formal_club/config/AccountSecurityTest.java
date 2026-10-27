@@ -24,16 +24,9 @@ class AccountSecurityTest {
 
     @Test
     void passwordRequirementsAreServerEnforced() {
-        for (String p : new String[] {
-            "weak",
-            "lowercaseonly123!",
-            "UPPERCASEONLY123!",
-            "NoNumberPassword!",
-            "NoSymbolPassword123",
-            "Aa1!short",
-            "Aa1 " + "a".repeat(20),
-        })
-            assertThat(PasswordPolicy.valid(p)).as(p).isFalse();
+        for (String p : new String[] { null, "", "short", "seven77", "a".repeat(129) })
+            assertThat(PasswordPolicy.valid(p)).as(String.valueOf(p)).isFalse();
+        assertThat(PasswordPolicy.valid("club2026")).isTrue();
         assertThat(PasswordPolicy.valid("StrongPassword7!")).isTrue();
         assertThat(PasswordPolicy.valid("Strong密码Password7。")).isTrue();
     }

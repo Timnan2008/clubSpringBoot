@@ -5,7 +5,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.qpwflshclub.formal_club.User.pojo.Teacher;
+import com.qpwflshclub.formal_club.User.pojo.Admin;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -42,7 +42,7 @@ class OpenClawContextTest {
             materials,
             new ObjectMapper()
         );
-        var user = new Teacher();
+        var user = new Admin();
         user.setId(7);
         var history = List.of(
             new OpenClawContext.Message("user", "我负责机器人社团"),
@@ -109,7 +109,7 @@ class OpenClawContextTest {
             );
             return new OpenClawGateway.Round("已查询", List.of(), null, "");
         });
-        var user = new Teacher();
+        var user = new Admin();
         user.setId(7);
         new OpenClawAgent(gateway, tools, materials, new ObjectMapper()).reply(
             user,

@@ -16,7 +16,7 @@ const assets = new Map(
   bundle.outputFiles.map((file) => ["/" + path.basename(file.path), file.contents]),
 );
 const crest = await readFile("src/main/resources/static/other photo/WFL-crest.svg");
-const account = { id: "ui-preview", name: "界面预览", nameEn: "UI preview", role: "teacher" };
+const account = { id: "ui-preview", name: "界面预览", nameEn: "UI preview", role: "admin" };
 const html = `<!doctype html><html><head><meta charset="UTF-8"><title>OpenClaw · 本地界面预览</title><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/openclaw.css"></head><body class="openclaw-page"><div id="openclaw-root"></div><script src="/openclaw.js"></script></body></html>`;
 const simulateChat = process.env.OPENCLAW_PREVIEW_CHAT === "1";
 const server = createServer(async (req, res) => {

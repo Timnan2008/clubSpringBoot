@@ -5,7 +5,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.qpwflshclub.formal_club.User.pojo.Teacher;
+import com.qpwflshclub.formal_club.User.pojo.Admin;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -45,7 +45,7 @@ class OpenClawConcurrencyTest {
                 int id = i + 1;
                 replies.add(
                     pool.submit(() -> {
-                        Teacher person = new Teacher();
+                        Admin person = new Admin();
                         person.setId(id);
                         ByteArrayOutputStream out = new ByteArrayOutputStream();
                         agent.reply(
@@ -117,7 +117,7 @@ class OpenClawConcurrencyTest {
         OpenClawMaterials materials = mock(OpenClawMaterials.class);
         when(materials.search(any(), any(), isNull(), anyBoolean())).thenReturn("");
         var agent = new OpenClawAgent(gateway, tools, materials, new ObjectMapper());
-        Teacher person = new Teacher();
+        Admin person = new Admin();
         person.setId(3);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         agent.reply(

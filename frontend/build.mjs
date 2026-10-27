@@ -36,6 +36,7 @@ const uiBuild = await build({
     "frontend/calendar.jsx",
     "frontend/booking.jsx",
     "frontend/openclaw.jsx",
+    "frontend/launch.jsx",
   ],
   outdir: "src/main/resources/static/javascript/ui",
 });

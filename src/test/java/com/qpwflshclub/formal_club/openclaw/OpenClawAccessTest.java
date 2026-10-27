@@ -23,13 +23,16 @@ class OpenClawAccessTest {
     SchoolAccounts accounts;
     WorkspaceAccess workspace;
     OpenClawFiles files;
+    OpenClawRuns runs;
     MockMvc mvc;
 
     @BeforeEach
-    void setup() {
+    void setup() throws Exception {
         accounts = mock(SchoolAccounts.class);
         workspace = mock(WorkspaceAccess.class);
         files = mock(OpenClawFiles.class);
+        runs = mock(OpenClawRuns.class);
+        when(runs.list(anyLong())).thenReturn(java.util.List.of());
         when(workspace.token(any())).thenReturn("workspace-token");
         OpenClawQuota quota = mock(OpenClawQuota.class);
         when(quota.remainingText(anyLong())).thenReturn("本周剩余 3.00 元");
@@ -50,7 +53,8 @@ class OpenClawAccessTest {
                 quota,
                 files,
                 new OpenClawApprovals(),
-                mock(OpenClawTools.class)
+                mock(OpenClawTools.class),
+                runs
             )
         ).build();
     }
@@ -64,11 +68,13 @@ class OpenClawAccessTest {
             .andExpect(status().is3xxRedirection())
             .andExpect(redirectedUrl("/page/user/login?next=%2Fpage%2Fopenclaw"));
         mvc.perform(get("/api/openclaw/bootstrap")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/openclaw/runs")).andExpect(status().isUnauthorized());
+        mvc.perform(get("/api/openclaw/runs/stream")).andExpect(status().isUnauthorized());
     }
 
     @Test
-    void studentsCannotBypassHiddenNavigation() throws Exception {
-        for (UserBase user : new UserBase[] { new User() }) {
+    void nonAdministratorsCannotBypassHiddenNavigation() throws Exception {
+        for (UserBase user : new UserBase[] { new User(), new Teacher(), new ClubPresident() }) {
             when(accounts.current(any())).thenReturn(user);
             mvc.perform(get("/page/openclaw")).andExpect(status().isForbidden());
             mvc.perform(get("/api/openclaw/bootstrap")).andExpect(status().isForbidden());
@@ -84,30 +90,22 @@ class OpenClawAccessTest {
     }
 
     @Test
-    void presidentsVicePresidentsTeachersAndAdminsCanOpenTheDisconnectedPage() throws Exception {
-        ClubPresident vice = new ClubPresident();
-        vice.setVicePresident(true);
-        for (UserBase user : new UserBase[] {
-            new ClubPresident(),
-            vice,
-            new Teacher(),
-            new Admin(),
-        }) {
-            user.setId(7L);
-            when(accounts.current(any())).thenReturn(user);
-            when(accounts.view(user)).thenReturn(
-                new SchoolAccounts.Account("test", "Name", "Name", "teacher")
-            );
-            mvc.perform(get("/page/openclaw"))
-                .andExpect(status().isOk())
-                .andExpect(view().name("page/openclaw"))
-                .andExpect(header().string("Cache-Control", "no-store"));
-            mvc.perform(get("/api/openclaw/bootstrap"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.connected").value(false))
-                .andExpect(jsonPath("$.account.name").value("Name"))
-                .andExpect(header().string("Cache-Control", "no-store"));
-        }
+    void administratorsCanOpenTheAgentPageAndBootstrap() throws Exception {
+        Admin user = new Admin();
+        user.setId(7L);
+        when(accounts.current(any())).thenReturn(user);
+        when(accounts.view(user)).thenReturn(
+            new SchoolAccounts.Account("test", "Name", "Name", "admin")
+        );
+        mvc.perform(get("/page/openclaw"))
+            .andExpect(status().isOk())
+            .andExpect(view().name("page/openclaw"))
+            .andExpect(header().string("Cache-Control", "no-store"));
+        mvc.perform(get("/api/openclaw/bootstrap"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.connected").value(false))
+            .andExpect(jsonPath("$.account.role").value("admin"))
+            .andExpect(header().string("Cache-Control", "no-store"));
     }
 
     @Test
@@ -140,5 +138,24 @@ class OpenClawAccessTest {
             .andExpect(jsonPath("$.deleted").value(true));
         verify(workspace, times(2)).mutation(any());
         verify(files).remove(OpenClawIdentity.id(admin), id);
+    }
+
+    @Test
+    void backgroundEndpointsUseAuthenticatedOwnerAndNeverAnAccountQueryParameter()
+        throws Exception {
+        Admin admin = new Admin();
+        admin.setId(7L);
+        when(accounts.current(any())).thenReturn(admin);
+        mvc.perform(get("/api/openclaw/runs").param("accountId", "9999"))
+            .andExpect(status().isOk())
+            .andExpect(header().string("Cache-Control", "no-store"));
+        verify(runs).list(OpenClawIdentity.id(admin));
+        verify(runs, never()).list(9999L);
+        when(accounts.current(any())).thenReturn(new User());
+        mvc.perform(get("/api/openclaw/runs")).andExpect(status().isForbidden());
+        mvc.perform(get("/api/openclaw/runs/stream")).andExpect(status().isForbidden());
+        mvc.perform(
+            post("/api/openclaw/runs").contentType(MediaType.APPLICATION_JSON).content("{}")
+        ).andExpect(status().isForbidden());
     }
 }

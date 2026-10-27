@@ -19,7 +19,7 @@ public class I18nConfig implements WebMvcConfigurer {
         CookieLocaleResolver resolver = new CookieLocaleResolver("club_language");
         resolver.setCookieMaxAge(java.time.Duration.ofDays(365));
         resolver.setCookieHttpOnly(false);
-        resolver.setDefaultLocale(Locale.CHINA); // 默认中文
+        resolver.setDefaultLocale(Locale.ENGLISH); // 默认英文，?lang=zh 切换中文
         return resolver;
     }
 

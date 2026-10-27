@@ -19,6 +19,7 @@
 | 清源建议 | `suggestion.jsx` | 建议提交及历史记录 |
 | 主站羽毛球预约 | `booking.jsx` | 主站预约 API、数据库规则、个人预约记录 |
 | 旧预约站共享导航 | `booking-nav.jsx` | 构建输出供独立的 PHP 预约站使用 |
+| 发布影片 `/page/launch` | `launch.jsx` | `LaunchFilm.jsx`、`launch-timeline.js`、`launch-devices.js`（three.js 设备，模型为 `static/models/launch-devices.glb`，CC BY 4.0，署名见影片结尾）、`launch-score.js`；测试 `npm run test:launch`；导出 MP4 `npm run render:launch` |
 
 ## 共享规则
 
@@ -65,4 +66,4 @@ React Bits 与其他组件的许可证见本目录 `REACT-BITS-LICENSE.md`、`MO
 
 后端接口、数据存储和空文件说明见 [代码维护指南](../docs/代码维护指南.md)。
 
-OpenClaw 已接入主站导航，与校园墙复用深色 CardNav。仅查看界面可运行 `PREVIEW_ACCOUNT=teacher npm run preview:site`，使用本地测试老师，阻止生产 API 和写入；不设置该变量时仍使用真实登录。详情见 [OPENCLAW.md](OPENCLAW.md)。
+OpenClaw 已接入主站导航，与校园墙复用深色 CardNav。仅查看界面可运行 `PREVIEW_ACCOUNT=admin npm run preview:site`，使用本地测试管理员，阻止生产 API 和写入；不设置该变量时仍使用真实登录。详情见 [OPENCLAW.md](OPENCLAW.md)。
