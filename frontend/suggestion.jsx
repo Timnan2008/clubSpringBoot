@@ -39,7 +39,9 @@ function Suggestions() {
   const [page, setPage] = useState(1),
     [keyword, setKeyword] = useState(""),
     [token, setToken] = useState(""),
-    [mutedUntil, setMutedUntil] = useState("");
+    [mutedUntil, setMutedUntil] = useState(""),
+    [actingId, setActingId] = useState(null);
+  const reviewer = account?.role === "teacher" || account?.role === "admin";
   useEffect(() => {
     if (document.getElementById("campus-ideas").dataset.authenticated === "false") return;
     fetch("/api/campus-social/me")
@@ -57,7 +59,8 @@ function Suggestions() {
   useEffect(() => {
     if (view !== "history") return;
     setLoading(true);
-    fetch("/api/suggestion/pass_only")
+    // 老师和管理员审核时可以看到待审核条目，普通用户只能看到已公开条目。
+    fetch(reviewer ? "/api/suggestion/all" : "/api/suggestion/pass_only")
       .then((r) => {
         if (!r.ok) throw Error();
         return r.json();
@@ -68,7 +71,7 @@ function Suggestions() {
       })
       .catch(() => setError(tx("暂时无法载入历史建议。", "Unable to load suggestions.")))
       .finally(() => setLoading(false));
-  }, [view]);
+  }, [view, reviewer]);
   async function submit(e) {
     e.preventDefault();
     if (lock.current) return;
@@ -170,6 +173,67 @@ function Suggestions() {
           .includes(keyword.trim().normalize("NFKC").toLowerCase()),
       ),
     );
+  const itemStatus = (p) => {
+    if (reviewer && !p.local) {
+      if (!p.pass) return tx("待审核", "Pending review");
+      return p.title === "bug" ? tx("已修复", "Fixed") : tx("已采纳", "Adopted");
+    }
+    return p.local
+      ? tx("本机记录 · 待审核", "Saved on this device · Awaiting review")
+      : tx("已公开", "Public");
+  };
+  function forgetLocal(id) {
+    if (!account) return;
+    try {
+      localStorage.setItem(
+        "wfl_my_ideas_v2_" + account.id,
+        JSON.stringify(readLocal(account).filter((x) => x.id !== id)),
+      );
+    } catch {}
+  }
+  async function approve(p) {
+    if (!p.id || actingId) return;
+    setActingId(p.id);
+    setError("");
+    try {
+      const r = await fetch("/api/suggestion/pass?id=" + encodeURIComponent(p.id), {
+        method: "PUT",
+      });
+      const d = await r.json();
+      if (!r.ok || d.code !== 200)
+        throw Error(d.message || tx("操作未成功，请重试", "Action failed. Please retry."));
+      setPosts((prev) => prev.map((x) => (x.id === p.id ? { ...x, pass: true } : x)));
+    } catch (e) {
+      setError(e.message || tx("操作未成功，请重试", "Action failed. Please retry."));
+    } finally {
+      setActingId(null);
+    }
+  }
+  async function remove(p) {
+    if (!p.id || actingId) return;
+    if (
+      !confirm(
+        tx("确定删除这条建议吗？删除后无法恢复。", "Delete this idea? This cannot be undone."),
+      )
+    )
+      return;
+    setActingId(p.id);
+    setError("");
+    try {
+      const r = await fetch("/api/suggestion/" + encodeURIComponent(p.id), {
+        method: "DELETE",
+      });
+      const d = await r.json();
+      if (!r.ok || d.code !== 200)
+        throw Error(d.message || tx("操作未成功，请重试", "Action failed. Please retry."));
+      setPosts((prev) => prev.filter((x) => x.id !== p.id));
+      forgetLocal(p.id);
+    } catch (e) {
+      setError(e.message || tx("操作未成功，请重试", "Action failed. Please retry."));
+    } finally {
+      setActingId(null);
+    }
+  }
   return (
     <MotionConfig reducedMotion="user">
       <div className="ideas-shell">
@@ -353,11 +417,32 @@ function Suggestions() {
                               {categories.find((c) => c[0] === p.title)?.[1] ||
                                 tx("校园建议", "Campus ideas")}
                             </span>
-                            <small>
-                              {p.local
-                                ? tx("本机记录 · 待审核", "Saved on this device · Awaiting review")
-                                : tx("已公开", "Public")}
-                            </small>
+                            <span className="ideas-item-side">
+                              <small>{itemStatus(p)}</small>
+                              {reviewer && !p.local && p.id && (
+                                <span className="ideas-review-actions">
+                                  {!p.pass && (
+                                    <button
+                                      type="button"
+                                      disabled={actingId === p.id}
+                                      onClick={() => approve(p)}
+                                    >
+                                      {p.title === "bug"
+                                        ? tx("已修复", "Fixed")
+                                        : tx("已采纳", "Adopted")}
+                                    </button>
+                                  )}
+                                  <button
+                                    type="button"
+                                    className="danger"
+                                    disabled={actingId === p.id}
+                                    onClick={() => remove(p)}
+                                  >
+                                    {tx("删除", "Delete")}
+                                  </button>
+                                </span>
+                              )}
+                            </span>
                           </header>
                           <p>{p.context}</p>
                           <footer>

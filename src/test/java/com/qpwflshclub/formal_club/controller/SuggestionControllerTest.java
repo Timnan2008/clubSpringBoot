@@ -92,6 +92,26 @@ class SuggestionControllerTest {
     }
 
     @Test
+    void allSuggestionsRejectsStudent() {
+        when(request.getAttribute("currentUser")).thenReturn(new User());
+
+        ResponseMessage<java.util.List<Suggestion>> response = controller.getAllSuggestion(request);
+
+        assertThat(response.getCode()).isEqualTo(400);
+        assertThat(response.getMessage()).isEqualTo("无权限：只有老师或管理员可以审核建议");
+        verify(suggestionService, never()).findAll();
+    }
+
+    @Test
+    void teachersCanListAllSuggestionsForReview() {
+        when(request.getAttribute("currentUser")).thenReturn(new Teacher());
+        when(suggestionService.findAll()).thenReturn(java.util.List.of());
+
+        assertThat(controller.getAllSuggestion(request).getCode()).isEqualTo(200);
+        verify(suggestionService).findAll();
+    }
+
+    @Test
     void deleteSuggestionRejectsStudent() {
         when(request.getAttribute("currentUser")).thenReturn(new User());
 

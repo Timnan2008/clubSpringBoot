@@ -58,6 +58,9 @@ public class UserDTO implements UserBaseDTO {
     @Email(message = "邮箱格式不正确")
     private String email;
 
+    @NotNull(message = " 用户学号不能为空")
+    private int studentId;
+
     public static final Integer userRight = 0;
 
     private List<Long> clubs;

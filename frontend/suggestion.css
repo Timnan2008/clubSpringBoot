@@ -254,6 +254,38 @@ button:disabled {
   font-size: 12px;
   color: #8b818f;
 }
+.ideas-item-side {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.ideas-review-actions {
+  display: inline-flex;
+  gap: 6px;
+}
+.ideas-review-actions button {
+  border: 1px solid #dcd4e3;
+  border-radius: 8px;
+  padding: 4px 10px;
+  background: #fff;
+  color: #5b3d74;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.ideas-review-actions button:hover:not(:disabled) {
+  background: #f6f1fb;
+}
+.ideas-review-actions button.danger {
+  border-color: #f0cdc8;
+  color: #93352c;
+}
+.ideas-review-actions button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
 .ideas-history article p {
   line-height: 1.9;
   white-space: pre-wrap;
