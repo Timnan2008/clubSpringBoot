@@ -13,6 +13,7 @@ public class ClubVO {
     private String clubItem;
     private String clubClass;
     private Boolean greatClub;
+    private Integer memberCount;
 
     public String getClubName() {
         return clubName;
@@ -68,5 +69,13 @@ public class ClubVO {
 
     public void setGreatClub(Boolean greatClub) {
         this.greatClub = greatClub;
+    }
+
+    public Integer getMemberCount() {
+        return memberCount;
+    }
+
+    public void setMemberCount(Integer memberCount) {
+        this.memberCount = memberCount;
     }
 }

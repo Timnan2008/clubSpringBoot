@@ -4,51 +4,980 @@
     <meta charset="utf-8" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data:; frame-src https://qpwflhsclub.com https://www.qpwflhsclub.com http://127.0.0.1:8088 http://localhost:8088;"
+      content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data: https:; font-src 'self' data:; frame-src https://qpwflhsclub.com https://www.qpwflhsclub.com http://127.0.0.1:8088 http://localhost:8088;"
     />
     <title>青浦世外社团</title>
+    <script src="theme-boot.js"></script>
     <link rel="stylesheet" href="shell.css" />
+    <style id="webview-theme-source">
+      /* ============================================================
+         桌面端内页主题：默认浅色（白底 + 浅灰边框）
+         深色模式由 html[data-app-theme="dark"] 控制
+         所有规则仅作用于 webview 内页，不影响 Electron 外壳
+         ============================================================ */
+
+      /* ---------------- 浅色（默认） ---------------- */
+      html:not([data-app-theme="dark"]) {
+        background-color: #ffffff;
+        color-scheme: light;
+      }
+
+      html[data-app-theme="dark"] {
+        background-color: #0b0b0f;
+        color-scheme: dark;
+      }
+
+      html:not([data-app-theme="dark"]) body:not(.desktop-shell):not(.dashboard-page) {
+        --bg-body: #ffffff;
+        --bg-card: #ffffff;
+        --bg-white: #ffffff;
+        --text-primary: #1f2430;
+        --text-secondary: #4b5263;
+        --text-muted: #6f7688;
+        --border-light: #e8e9ef;
+        --border-medium: #dcdee6;
+        background-color: #ffffff !important;
+        color: #1f2430;
+      }
+
+      html:not([data-app-theme="dark"]) body:not(.desktop-shell):not(.dashboard-page)::before,
+      html:not([data-app-theme="dark"]) body:not(.desktop-shell):not(.dashboard-page)::after {
+        display: none !important;
+      }
+
+      html:not([data-app-theme="dark"]) body:not(.desktop-shell) .bg-viewport {
+        display: none !important;
+      }
+
+      html:not([data-app-theme="dark"])
+        body:is(.auth-page, .account-page, .social-page, .social-network-theme, .calendar-page, .workspace-page, .catalog-page, .booking-page) {
+        background-color: #ffffff !important;
+        color: #1f2430 !important;
+      }
+
+      /* 登录页 */
+      html:not([data-app-theme="dark"]) body.auth-page .auth-layout {
+        background: #ffffff !important;
+        border: 1px solid #e8e9ef;
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.08);
+      }
+
+      html:not([data-app-theme="dark"]) body.auth-page .auth-intro {
+        border-right: 1px solid #e8e9ef;
+        background: #f8f7fc !important;
+        color: #1f2430 !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.auth-page .auth-intro > .auth-eyebrow {
+        color: #7c3aed !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.auth-page .auth-intro > :is(h1, .auth-intro-copy, .auth-school, .auth-back) {
+        color: #1f2430 !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.auth-page .auth-intro > :is(.auth-intro-copy, .auth-school, .auth-back) {
+        color: #6f7688 !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.auth-page .auth-art {
+        display: none !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.auth-page .auth-card {
+        background: #ffffff !important;
+        color: #1f2430 !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.auth-page .auth-tabs {
+        background: #f3f1f7 !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.auth-page .auth-tabs button {
+        color: #5a5266 !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.auth-page .auth-tabs button[aria-selected="true"] {
+        background: #ffffff !important;
+        color: #1f2430 !important;
+        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08) !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.auth-page :is(.auth-heading h2, .auth-card h3, .auth-success h2, .auth-president-info h4) {
+        color: #1f2430 !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.auth-page .auth-heading > p {
+        color: #7c3aed !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.auth-page :is(.auth-heading > span, .auth-hint, .auth-footnote, .auth-clubs, .auth-success p) {
+        color: #6f7688 !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.auth-page :is(.auth-field > span, .auth-role legend, .auth-role label) {
+        color: #4b5263 !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.auth-page :is(.auth-field input, .auth-card input) {
+        background: #ffffff !important;
+        border-color: #e0e2ea !important;
+        color: #1f2430 !important;
+        color-scheme: light;
+      }
+
+      html:not([data-app-theme="dark"]) body.auth-page .auth-field input:focus {
+        background: #ffffff !important;
+        border-color: #7c3aed !important;
+        box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12) !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.auth-page .auth-field input::placeholder {
+        color: #9aa0b0 !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.auth-page .auth-role label {
+        border-color: #e0e2ea !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.auth-page .auth-role label.selected {
+        border-color: #7c3aed !important;
+        background: rgba(124, 58, 237, 0.08) !important;
+        color: #4c1d95 !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.auth-page :is(.auth-club-list, .auth-president-info) {
+        background: #f8f8fb !important;
+        border-color: #e8e9ef !important;
+        color: #4b5263 !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.auth-page .auth-secondary {
+        background: #ffffff !important;
+        border-color: #e0e2ea !important;
+        color: #4b5263 !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.auth-page .auth-text-button {
+        color: #7c3aed !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.auth-page .auth-error {
+        background: #fef2f2 !important;
+        color: #b91c1c !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.auth-page .auth-info {
+        background: #ecfdf5 !important;
+        color: #047857 !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.auth-page .auth-card .club-stepper .step-circle-container {
+        background: #ffffff !important;
+        border-color: #e8e9ef !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.auth-page .auth-card .club-stepper .step-connector {
+        background: #e5e5eb !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.auth-page .auth-progress-dot {
+        background: #f0eef5 !important;
+        color: #6f7688 !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.auth-page .auth-progress-dot.is-active {
+        background: #7c3aed !important;
+        color: #ffffff !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.auth-page .auth-progress-active-dot {
+        background: #ffffff !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.auth-page .auth-card .club-stepper .back-button {
+        color: #6f7688 !important;
+      }
+
+      /* 账号 / 我的社团 */
+      html:not([data-app-theme="dark"]) body.account-page :is(.account-card, .account-club-card) {
+        background: #ffffff !important;
+        border-color: #e8e9ef !important;
+        color: #1f2430 !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.account-page .account-sidebar nav a {
+        color: #6f7688 !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.account-page :is(.account-sidebar nav a.active, .account-sidebar nav a:hover) {
+        background: #f2eefb !important;
+        color: #4c1d95 !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.account-page :is(.account-identity > .campus-avatar, .account-club-cover) {
+        background: #f2eefb !important;
+        color: #6d28d9 !important;
+        box-shadow: none !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.account-page .account-card button {
+        background: #7c3aed !important;
+        border-color: #7c3aed !important;
+        color: #ffffff !important;
+      }
+
+      html:not([data-app-theme="dark"])
+        body.account-page .account-card :is(.account-secondary, .account-file, .avatar-editor-actions label, .appearance-upload, .account-confirm-actions .account-cancel, .avatar-remove) {
+        background: #ffffff !important;
+        border-color: #dcdee6 !important;
+        color: #4b5263 !important;
+      }
+
+      html:not([data-app-theme="dark"])
+        body.account-page .account-card :is(.account-danger, .account-leave-yes) {
+        background: #dc2626 !important;
+        border-color: #dc2626 !important;
+        color: #ffffff !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.account-page :is(.account-card input, .account-card select, .account-card textarea) {
+        background: #faf8fc !important;
+        border-color: #e5deeb !important;
+        color: #34273e !important;
+        color-scheme: light;
+      }
+
+      html:not([data-app-theme="dark"]) body.account-page .account-card input:read-only {
+        background: #f5f2f8 !important;
+        color: #8a7b95 !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.account-page .account-leave-confirm {
+        background: #ffffff !important;
+        border-color: #e8e9ef !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.account-page .account-leave-confirm p {
+        color: #1f2430 !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.account-page .account-notice {
+        background: #ecfdf5 !important;
+        color: #047857 !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.account-page .account-error {
+        background: #fef2f2 !important;
+        color: #b91c1c !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.account-page .account-club-summary {
+        border-color: #ececf1 !important;
+      }
+
+      html:not([data-app-theme="dark"])
+        body.account-page :is(.account-club-summary > strong, .account-club-info a, .account-empty a, .account-home-link) {
+        color: #7c3aed !important;
+      }
+
+      html:not([data-app-theme="dark"])
+        body.account-page :is(.account-main > header p, .account-identity p, .account-card label, .account-hint, .account-key-status, .account-backup-filename, .verification-label, .avatar-status, .account-club-info p, .account-empty p) {
+        color: #6f7688 !important;
+      }
+
+      /* 校园墙 / 消息 */
+      html:not([data-app-theme="dark"]) body:is(.social-page, .social-network-theme) .social-shell {
+        --line: #e8e9ef;
+        --muted: #6f7688;
+        --blue: #7c3aed;
+        color: #1f2430;
+      }
+
+      html:not([data-app-theme="dark"])
+        body:is(.social-page, .social-network-theme) :is(.social-feed, .social-post, .social-rail-card, .social-composer, .social-search-results, .social-inbox, .social-chat, .social-messenger, .social-chat-placeholder, .social-message-list, .social-page-title, .social-feed-tabs, .social-discover-link, .social-person-result, .social-search-results > button, .social-confirm) {
+        background: #ffffff !important;
+        border-color: #e8e9ef !important;
+        color: #1f2430 !important;
+        box-shadow: none !important;
+      }
+
+      html:not([data-app-theme="dark"])
+        body:is(.social-page, .social-network-theme) :is(.social-post:hover, .social-conversations > button.selected, .social-rail-card a:hover, .social-person-result:hover, .social-search-results > button:hover, .social-conversations > button:hover) {
+        background: #f7f7fa !important;
+        color: #1f2430 !important;
+      }
+
+      html:not([data-app-theme="dark"])
+        body:is(.social-page, .social-network-theme) :is(.social-post, .social-post-actions, .post-reply-preview, .social-feed-header, .social-chat-header, .social-chat-compose, .social-replies, .message-security, .wall-pagination) {
+        border-color: #e8e9ef !important;
+      }
+
+      html:not([data-app-theme="dark"])
+        body:is(.social-page, .social-network-theme) :is(.social-post-body > header strong, .social-post-text, .post-detail-link, .social-reply, .social-feed-header h1, .social-rail-card h2, .social-chat h2, .social-inbox h1, .social-conversations strong, .social-search-results strong, .social-chat-placeholder h2, .social-empty h2) {
+        color: #1f2430 !important;
+      }
+
+      html:not([data-app-theme="dark"])
+        body:is(.social-page, .social-network-theme) :is(.social-handle, .social-post time, .social-post-actions, .social-post-actions a, .social-post-actions button, .post-view-count, .social-conversations p, .person-nickname, .person-identity-meta, .social-chat-placeholder, .social-icon-button, .social-rail small, .social-empty) {
+        color: #6f7688 !important;
+      }
+
+      html:not([data-app-theme="dark"])
+        body:is(.social-page, .social-network-theme) :is(.social-shell input, .social-shell textarea, .social-chat-compose textarea, .chat-key-sync input, .social-shell select, .category-trigger, .category-panel, .wall-upload-files li, .wall-upload-controls > label, .wall-upload > label) {
+        background: #f7f7fa !important;
+        border-color: #e0e2ea !important;
+        color: #1f2430 !important;
+        color-scheme: light;
+      }
+
+      html:not([data-app-theme="dark"])
+        body:is(.social-page, .social-network-theme) :is(.social-shell input::placeholder, .social-shell textarea::placeholder) {
+        color: #9aa0b0 !important;
+      }
+
+      html:not([data-app-theme="dark"]) body:is(.social-page, .social-network-theme) .social-composer textarea {
+        background: transparent !important;
+      }
+
+      html:not([data-app-theme="dark"]) body:is(.social-page, .social-network-theme) .social-shell button {
+        color: #4b5263 !important;
+      }
+
+      html:not([data-app-theme="dark"]) body:is(.social-page, .social-network-theme) .social-shell button:hover:not(:disabled) {
+        background: #f2f2f6 !important;
+        color: #1f2430 !important;
+      }
+
+      html:not([data-app-theme="dark"]) body:is(.social-page, .social-network-theme) :is(.social-primary, .composer-submit) {
+        background: #7c3aed !important;
+        color: #ffffff !important;
+      }
+
+      html:not([data-app-theme="dark"])
+        body:is(.social-page, .social-network-theme) :is(.social-discover-search, .social-people-search) {
+        background: #f7f7fa !important;
+        border-color: #e8e9ef !important;
+      }
+
+      html:not([data-app-theme="dark"]) body:is(.social-page, .social-network-theme) :is(.chat-info, .chat-key-sync) {
+        background: #f7f7fa !important;
+        color: #6f7688 !important;
+      }
+
+      html:not([data-app-theme="dark"]) body:is(.social-page, .social-network-theme) .social-error {
+        background: #fef2f2 !important;
+        color: #b91c1c !important;
+      }
+
+      html:not([data-app-theme="dark"]) body:is(.social-page, .social-network-theme) .campus-avatar {
+        background: #f2eefb !important;
+        color: #6d28d9 !important;
+      }
+
+      /* 活动日程 */
+      html:not([data-app-theme="dark"]) body.calendar-page .cal-board {
+        background: #ffffff !important;
+        border-color: #e8e9ef !important;
+        color: #1f2430 !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.calendar-page .cal-toolbar {
+        border-color: #ececf1 !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.calendar-page .cal-date-nav h2 {
+        color: #1f2430 !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.calendar-page .cal-board .cal-date-nav button {
+        color: #6f7688 !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.calendar-page .cal-board .cal-date-nav button:nth-child(3) {
+        background: #f2f2f6 !important;
+        color: #1f2430 !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.calendar-page .cal-view {
+        background: #f2f2f6 !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.calendar-page .cal-board .cal-view button {
+        color: #6f7688 !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.calendar-page .cal-board .cal-view button[aria-pressed="true"] {
+        background: #ffffff !important;
+        color: #1f2430 !important;
+        box-shadow: 0 1px 4px rgba(15, 23, 42, 0.1) !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.calendar-page .cal-board .cal-primary {
+        background: #7c3aed !important;
+        border-color: #7c3aed !important;
+        color: #ffffff !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.calendar-page .cal-board .cal-primary:hover {
+        background: #6d28d9 !important;
+        color: #ffffff !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.calendar-page :is(.cal-hour-heading, .cal-day-heading, .cal-hour-rail) {
+        background: #ffffff !important;
+        border-color: #ececf1 !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.calendar-page .cal-day-heading strong {
+        color: #1f2430 !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.calendar-page .cal-day-heading.is-today strong {
+        background: #7c3aed !important;
+        color: #ffffff !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.calendar-page .cal-day {
+        border-color: #ececf1 !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.calendar-page .cal-day:before {
+        background: repeating-linear-gradient(
+          to bottom,
+          transparent 0,
+          transparent calc(var(--hour-height) - 1px),
+          #ececf1 calc(var(--hour-height) - 1px),
+          #ececf1 var(--hour-height)
+        ) !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.calendar-page .cal-board .cal-event {
+        background: #f7f5ff !important;
+        border-color: #e4dcf7 !important;
+        color: #1f2430 !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.calendar-page .cal-board .cal-event:hover {
+        background: #f0eaff !important;
+        border-color: #c9b8ee !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.calendar-page .cal-board .cal-event span:not(.cal-resize) {
+        color: #6f7688 !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.calendar-page .cal-now,
+      html:not([data-app-theme="dark"]) body.calendar-page .cal-now:before {
+        background: #7c3aed !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.calendar-page .cal-drag-preview {
+        border-color: #a78bfa !important;
+        background: rgba(124, 58, 237, 0.08) !important;
+        color: #4c1d95 !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.calendar-page :is(.cal-gesture-hint, .cal-legend) {
+        background: #f8f8fb !important;
+        border-color: #ececf1 !important;
+        color: #6f7688 !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.calendar-page .cal-board .cal-list-entry {
+        background: #ffffff !important;
+        border-color: #e8e9ef !important;
+        color: #1f2430 !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.calendar-page .cal-board .cal-list-entry:hover {
+        background: #f7f7fa !important;
+      }
+
+      html:not([data-app-theme="dark"])
+        body.calendar-page :is(.cal-board .cal-list-entry span, .cal-board .cal-list-entry small, .cal-loading, .cal-board .cal-empty) {
+        color: #6f7688 !important;
+      }
+
+      /* 搜索页 */
+      html:not([data-app-theme="dark"]) body:not(.desktop-shell) :is(.glass-card, .search-results-section) {
+        background: #ffffff !important;
+        border-color: #e8e9ef !important;
+        box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06) !important;
+        color: #1f2430 !important;
+      }
+
+      html:not([data-app-theme="dark"]) body:not(.desktop-shell) :is(.glass-card, .search-results-section) :is(h1, h2, h3, h4, strong) {
+        color: #1f2430 !important;
+      }
+
+      html:not([data-app-theme="dark"]) body:not(.desktop-shell) .page-content :is(p, span, small) {
+        color: #4b5263;
+      }
+
+      html:not([data-app-theme="dark"]) body:not(.desktop-shell) .clubs-grid > .card,
+      html:not([data-app-theme="dark"]) body:not(.desktop-shell) .search-results-section .card {
+        background: #ffffff !important;
+        border: 1px solid #e8e9ef !important;
+        color: #1f2430 !important;
+      }
+
+      html:not([data-app-theme="dark"]) body:not(.desktop-shell) .clubs-grid > .card :is(h2, h3, p, span) {
+        color: #1f2430 !important;
+      }
+
+      html:not([data-app-theme="dark"]) body:not(.desktop-shell) :is(.notice, .notice-important, .notice-critical) {
+        background: #f8f8fb !important;
+        color: #1f2430 !important;
+      }
+
+      /* 社团详情特殊深色配色（OpenSTEAM）在浅色模式下回归白底 */
+      html:not([data-app-theme="dark"]) body.catalog-page:has(#club-catalog[data-mode="detail"][data-id="28"]) {
+        background-color: #ffffff !important;
+        color: #1f2430 !important;
+        color-scheme: light !important;
+      }
+
+      html:not([data-app-theme="dark"]) body.catalog-page:has(#club-catalog[data-mode="detail"][data-id="28"]) .campus-top {
+        --campus-bg: #ffffff;
+        --campus-panel: #ffffff;
+        --campus-line: #e8e9ef;
+        --campus-text: #1f2430;
+        --campus-muted: #6f7688;
+        --campus-accent: #7c3aed;
+        color-scheme: light;
+      }
+
+      /* ---------------- 深色模式 ---------------- */
+      html[data-app-theme="dark"] body:not(.desktop-shell):not(.dashboard-page) {
+        --bg-body: #0b0b0f;
+        --bg-card: #15151b;
+        --bg-white: #15151b;
+        --text-primary: #f2f2f7;
+        --text-secondary: #c8c8d4;
+        --text-muted: #a0a0b0;
+        --border-light: #26262e;
+        --border-medium: #33333d;
+        --primary-bg: rgba(139, 92, 246, 0.14);
+        --primary-border: rgba(139, 92, 246, 0.32);
+        background-color: #0b0b0f !important;
+        color: #e8e8f0;
+      }
+
+      html[data-app-theme="dark"] body:not(.desktop-shell):not(.dashboard-page)::before,
+      html[data-app-theme="dark"] body:not(.desktop-shell):not(.dashboard-page)::after {
+        display: none !important;
+      }
+
+      html[data-app-theme="dark"]
+        body:is(.auth-page, .account-page, .social-page, .social-network-theme, .calendar-page, .workspace-page, .catalog-page, .booking-page, .dashboard-page) {
+        background-color: #0b0b0f !important;
+        color: #e8e8f0 !important;
+      }
+
+      html[data-app-theme="dark"]
+        body:not(.desktop-shell):not(.dashboard-page) :is(
+          [class*="-card"],
+          [class*="-panel"],
+          [class*="-dialog"],
+          [class*="-drawer"],
+          [class*="-popover"],
+          [class*="-dropdown"],
+          [class*="-toolbar"],
+          [class*="-sidebar"],
+          [class*="-shell"],
+          [class*="-board"],
+          [class*="-feed"],
+          [class*="-composer"],
+          [class*="-inbox"],
+          [class*="-chat"],
+          [class*="-modal"],
+          [class*="-list"],
+          [class*="-list-entry"],
+          [class*="-member-item"],
+          [class*="-search-results"],
+          [class*="-empty-state"],
+          [class*="-main"]
+        ):not([class*="error"]):not([class*="alert"]):not([class*="warning"]):not([class*="success"]):not([class*="danger"]):not([class*="notice"]):not([class*="badge"]):not([class*="tag"]):not([class*="pill"]) {
+        background-color: #15151b;
+        border-color: #26262e;
+        color: #e8e8f0;
+      }
+
+      html[data-app-theme="dark"]
+        body:not(.desktop-shell):not(.dashboard-page) :is(
+          .cal-shell button,
+          .cal-dialog button,
+          .ws-shell button,
+          .auth-card button,
+          .account-card button,
+          .booking-page button,
+          .suggestion-page button,
+          .catalog-page button,
+          .workspace-page button,
+          .account-page button,
+          .social-shell button,
+          .btn,
+          .button,
+          [class$="-btn"],
+          [class$="-button"]
+        ):not([class*="primary"]):not([class*="danger"]):not([class*="success"]):not([class*="warning"]):not([class*="info"]):not([class*="join"]):not([class*="leave"]):not([class*="manage"]):not([class*="add"]):not([class*="submit"]):not([class*="liked"]):not([class*="club-button"]):not([aria-pressed="true"]):not([aria-selected="true"]):not([aria-current]) {
+        background-color: #1b1b22;
+        border-color: #33333d;
+        color: #e8e8f0;
+      }
+
+      html[data-app-theme="dark"] body:not(.desktop-shell):not(.dashboard-page) :is(input, textarea, select) {
+        background-color: #1b1b22 !important;
+        border-color: #33333d !important;
+        color: #f2f2f7 !important;
+        color-scheme: dark;
+      }
+
+      html[data-app-theme="dark"] body:not(.desktop-shell):not(.dashboard-page) :is(input, textarea)::placeholder {
+        color: #70707f !important;
+      }
+
+      html[data-app-theme="dark"]
+        body:not(.desktop-shell):not(.dashboard-page) :is(h1, h2, h3, h4, h5, h6, strong, b, th, dt) {
+        color: #f2f2f7;
+      }
+
+      html[data-app-theme="dark"]
+        body:not(.desktop-shell):not(.dashboard-page) :is(p, small, time, label, legend, td, dd, blockquote) {
+        color: #a9a9b8;
+      }
+
+      html[data-app-theme="dark"]
+        body:not(.desktop-shell):not(.dashboard-page) :is(a, span) {
+        color: inherit;
+      }
+
+      html[data-app-theme="dark"]
+        body:not(.desktop-shell):not(.dashboard-page) :is(
+          [class*="muted"],
+          [class*="hint"],
+          [class*="meta"],
+          [class*="subtitle"],
+          [class*="description"],
+          [class*="desc"],
+          [class*="note"],
+          [class*="caption"],
+          [class*="secondary"],
+          [class*="faint"],
+          [class*="handle"],
+          [class*="timestamp"]
+        ) {
+        color: #a0a0b0;
+      }
+
+      html[data-app-theme="dark"]
+        body:not(.desktop-shell):not(.dashboard-page) :is([class*="error"], [class*="danger"]):not(button):not(a) {
+        color: #fca5a5;
+      }
+
+      html[data-app-theme="dark"]
+        body:not(.desktop-shell):not(.dashboard-page) :is([class*="success"]):not(button):not(a) {
+        color: #6ee7b7;
+      }
+
+      html[data-app-theme="dark"]
+        body:not(.desktop-shell):not(.dashboard-page) :is([class*="warning"], [class*="warn"]):not(button):not(a) {
+        color: #fcd34d;
+      }
+
+      html[data-app-theme="dark"]
+        body:not(.desktop-shell):not(.dashboard-page) :is([class*="error"], [class*="danger"]):not(button):not(a):not(input):not(select):not(textarea) {
+        background-color: rgba(248, 113, 113, 0.12);
+        border-color: rgba(248, 113, 113, 0.3);
+      }
+
+      html[data-app-theme="dark"]
+        body:not(.desktop-shell):not(.dashboard-page) :is([class*="success"]):not(button):not(a):not(input):not(select):not(textarea) {
+        background-color: rgba(52, 211, 153, 0.12);
+        border-color: rgba(52, 211, 153, 0.3);
+      }
+
+      html[data-app-theme="dark"]
+        body:not(.desktop-shell):not(.dashboard-page) :is([class*="warning"], [class*="warn"]):not(button):not(a):not(input):not(select):not(textarea) {
+        background-color: rgba(251, 191, 36, 0.12);
+        border-color: rgba(251, 191, 36, 0.3);
+      }
+
+      html[data-app-theme="dark"]
+        body:not(.desktop-shell):not(.dashboard-page) :is([class*="notice"], [class*="alert"], [class*="banner"], [class*="warning-bar"]):not(button):not(a):not(input):not(select):not(textarea) {
+        background-color: rgba(96, 165, 250, 0.12);
+        border-color: rgba(96, 165, 250, 0.3);
+        color: #93c5fd;
+      }
+
+      html[data-app-theme="dark"]
+        body:not(.desktop-shell):not(.dashboard-page) :is([class*="notice"], [class*="alert"], [class*="banner"], [class*="error"], [class*="danger"], [class*="success"], [class*="warning"]) :is(p, span, strong, small) {
+        color: inherit;
+      }
+
+      html[data-app-theme="dark"]
+        body:not(.desktop-shell):not(.dashboard-page) :is(
+          [class*="muted"],
+          [class*="hint"],
+          [class*="meta"],
+          [class*="subtitle"],
+          [class*="description"],
+          [class*="desc"],
+          [class*="note"],
+          [class*="caption"],
+          [class*="secondary"],
+          [class*="faint"]
+        ) {
+        color: #a0a0b0;
+      }
+
+      html[data-app-theme="dark"]
+        body:not(.desktop-shell):not(.dashboard-page) :is(
+          .navbar,
+          .search__input,
+          .search__button,
+          .search-dropdown,
+          .search-dropdown .search-item,
+          .dropdown-content,
+          .site-footer,
+          .card,
+          .top-info,
+          .intro,
+          .video-container,
+          .club-card,
+          .empty-club-state,
+          .modal-content,
+          .student-search-results,
+          .student-search-row,
+          .member-search-panel,
+          .member-item
+        ) {
+        background-color: #15151b !important;
+        border-color: #26262e !important;
+        color: #e8e8f0 !important;
+      }
+
+      html[data-app-theme="dark"] body:not(.desktop-shell) .navbar {
+        background: rgba(11, 11, 15, 0.86) !important;
+        border-bottom-color: #26262e !important;
+      }
+
+      html[data-app-theme="dark"]
+        body:not(.desktop-shell):not(.dashboard-page) :is(
+          .club-title h3,
+          .club-name-cn,
+          .club-name-en,
+          .intro h2,
+          .top-info h2,
+          .modal-header h3,
+          .page-header h1,
+          .page-header h2,
+          .section-title,
+          .auth-heading h2,
+          .auth-card h3
+        ) {
+        color: #f2f2f7 !important;
+      }
+
+      html[data-app-theme="dark"]
+        body:not(.desktop-shell):not(.dashboard-page) :is(
+          .club-title p,
+          .club-info-meta,
+          .leaders p,
+          .intro p,
+          .search-empty,
+          .no-results-message,
+          .auth-hint,
+          .auth-footnote
+        ) {
+        color: #a0a0b0 !important;
+      }
+
+      html[data-app-theme="dark"]
+        body:not(.desktop-shell):not(.dashboard-page) :is(
+          .navbar,
+          .site-footer,
+          .modal-content,
+          .modal-header,
+          .modal-footer,
+          .club-card,
+          .top-info,
+          .intro,
+          .video-container,
+          .member-item,
+          .student-search-row,
+          .dropdown-content,
+          .search__input,
+          .search-dropdown,
+          .search-dropdown .search-item,
+          .cal-toolbar,
+          .cal-day,
+          .cal-day-heading,
+          .cal-hour-heading,
+          .cal-legend,
+          .cal-gesture-hint,
+          .social-post,
+          .social-feed-header,
+          .social-chat-header,
+          .social-chat-compose,
+          .social-post-actions,
+          .post-reply-preview,
+          .wall-pagination,
+          .message-security,
+          .ws-sidebar,
+          .account-club-summary,
+          .account-card,
+          .account-club-card
+        ) {
+        border-color: #26262e !important;
+      }
+
+      html[data-app-theme="dark"] body.social-network-theme :is(.social-post-text, .post-detail-link, .social-reply) {
+        color: #e8e8f0 !important;
+      }
+
+      /* 社团目录 / 社团详情 */
+      html[data-app-theme="dark"] body:not(.desktop-shell) .catalog-search {
+        background: #15151b !important;
+        border-color: #26262e !important;
+      }
+
+      html[data-app-theme="dark"] body:not(.desktop-shell) .catalog-search input {
+        background: transparent !important;
+        border: 0 !important;
+        color: #f2f2f7 !important;
+      }
+
+      html[data-app-theme="dark"] body:not(.desktop-shell) .catalog-search :is(svg, button) {
+        color: #a0a0b0 !important;
+      }
+
+      html[data-app-theme="dark"] body:not(.desktop-shell) .club-tile {
+        background: #15151b !important;
+        border-color: #26262e !important;
+        color: #e8e8f0 !important;
+      }
+
+      html[data-app-theme="dark"] body:not(.desktop-shell) .club-tile:hover {
+        border-color: #453b57 !important;
+      }
+
+      html[data-app-theme="dark"] body:not(.desktop-shell) :is(.club-art, .club-art-large) {
+        background: #1b1b22 !important;
+        color: #8f85a0 !important;
+      }
+
+      html[data-app-theme="dark"] body:not(.desktop-shell) :is(.club-art img, .club-art-large img) {
+        mix-blend-mode: normal;
+      }
+
+      html[data-app-theme="dark"] body:not(.desktop-shell) .catalog-filters button {
+        color: #a0a0b0 !important;
+      }
+
+      html[data-app-theme="dark"] body:not(.desktop-shell) .catalog-filters button[aria-pressed="true"] {
+        background: #7c3aed !important;
+        color: #ffffff !important;
+      }
+
+      html[data-app-theme="dark"]
+        body:not(.desktop-shell) :is(.catalog-heading p, .club-slogan, .club-membership-note p, .club-tile small, .club-tile p, .catalog-filters > span) {
+        color: #a0a0b0 !important;
+      }
+
+      html[data-app-theme="dark"] body.catalog-page .robot-motto {
+        color: #a0a0b0 !important;
+      }
+
+      html[data-app-theme="dark"] body.catalog-page .catalog-post-results > a {
+        color: #c4b5fd !important;
+      }
+
+      /* 账号侧栏 */
+      html[data-app-theme="dark"] body.account-page .account-sidebar nav a {
+        color: #a0a0b0 !important;
+      }
+
+      html[data-app-theme="dark"] body.account-page .account-sidebar nav :is(a:hover, a.active) {
+        background: #211b2c !important;
+        color: #e8e8f0 !important;
+      }
+
+      /* 日历补充 */
+      html[data-app-theme="dark"] body.calendar-page .cal-grid-scroll {
+        color: #a0a0b0 !important;
+      }
+
+      html[data-app-theme="dark"] body.calendar-page .cal-task-row {
+        background: #1b1b22 !important;
+        border-color: #26262e !important;
+        color: #e8e8f0 !important;
+      }
+
+      html[data-app-theme="dark"] body.calendar-page .cal-view button[aria-pressed="true"] {
+        background: #2b2b36 !important;
+        color: #f2f2f7 !important;
+      }
+
+      html[data-app-theme="dark"] body.calendar-page .cal-board .cal-primary {
+        background: #7c3aed !important;
+        border-color: #7c3aed !important;
+        color: #ffffff !important;
+      }
+
+      html[data-app-theme="dark"] body.calendar-page .cal-day-heading.is-today strong {
+        background: #7c3aed !important;
+        color: #ffffff !important;
+      }
+
+      /* 弹层 / 编辑器 / 欢迎区 */
+      html[data-app-theme="dark"]
+        body:not(.desktop-shell):not(.dashboard-page) :is(.date-jump-popup, .category-popup, .mention-options, .feedback-editor, .personal-welcome, .teacher-day-welcome) {
+        background-color: #15151b !important;
+        border-color: #26262e !important;
+        color: #e8e8f0 !important;
+      }
+
+      html[data-app-theme="dark"]
+        body:not(.desktop-shell):not(.dashboard-page) .date-jump-popup :is(input, select, textarea) {
+        background-color: #1b1b22 !important;
+        border-color: #33333d !important;
+        color: #f2f2f7 !important;
+      }
+
+      html[data-app-theme="dark"] body.booking-page .booking-tabs button[aria-pressed="true"] {
+        background: #7c3aed !important;
+        color: #ffffff !important;
+      }
+
+      html[data-app-theme="dark"] .ideas-tabs [aria-selected="true"] {
+        background: #7c3aed !important;
+        color: #ffffff !important;
+      }
+
+      /* 社团列表 / 成员列表 */
+      html[data-app-theme="dark"] body:not(.desktop-shell) :is(.page-header, .club-name-cn, .student-search-name, .member-name) {
+        color: #e8e8f0 !important;
+      }
+
+      html[data-app-theme="dark"] body:not(.desktop-shell) :is(.club-status-bar, .club-inline-search-title) {
+        color: #a0a0b0 !important;
+      }
+
+      html[data-app-theme="dark"] body:not(.desktop-shell) ::-webkit-scrollbar-thumb {
+        background: #33333d;
+        background-clip: content-box;
+      }
+    </style>
   </head>
-  <body>
+  <body class="desktop-shell">
     <div class="app">
       <header class="titlebar">
-        <div class="brand">
+        <div class="titlebar-brand">
           <span class="brand-mark">W</span>
-          <span class="brand-name">青浦世外社团</span>
-          <span class="brand-tag">DESKTOP</span>
+          <span class="brand-name">上海青浦世外高级中学 · 社团管理平台</span>
         </div>
-        <div class="toolbar">
-          <button id="nav-back" class="icon-btn" type="button" title="后退 (Alt+←)" disabled>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="m15 18-6-6 6-6" />
-            </svg>
-          </button>
-          <button id="nav-forward" class="icon-btn" type="button" title="前进 (Alt+→)" disabled>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="m9 18 6-6-6-6" />
-            </svg>
-          </button>
-          <button id="nav-reload" class="icon-btn" type="button" title="刷新 (F5)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M21 12a9 9 0 1 1-2.64-6.36" />
-              <path d="M21 3v6h-6" />
-            </svg>
-          </button>
-        </div>
-        <form class="app-search" id="app-search">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
-            <circle cx="11" cy="11" r="7" />
-            <path d="m20 20-3.5-3.5" />
-          </svg>
-          <input
-            id="app-search-input"
-            type="search"
-            placeholder="搜索社团、姓名、昵称或帖子"
-            autocomplete="off"
-          />
-        </form>
-
-        <div class="page-label" id="page-label">首页</div>
 
         <div class="window-controls">
           <button id="win-min" class="win-btn" type="button" title="最小化">
@@ -73,13 +1002,21 @@
         </div>
       </header>
 
-      <div class="body">
-        <aside class="sidebar">
-          <nav id="sidebar-nav">
-            <section class="nav-group">
-              <div class="group-label">探索</div>
+      <div class="app-body">
+        <aside class="sidebar" id="sidebar">
+          <div class="sidebar-brand">
+            <span class="sidebar-logo">W</span>
+            <div class="sidebar-brand-copy">
+              <strong>青浦世外</strong>
+              <span>QINGPU WFL CLUBS</span>
+            </div>
+          </div>
 
-              <button class="nav-item" type="button" data-path="/page/index" data-match="/page/index" data-label="首页">
+          <nav id="sidebar-nav" aria-label="主导航">
+            <section class="nav-group">
+              <div class="group-label">应用</div>
+
+              <button class="nav-item" type="button" data-path="/page/dashboard" data-match="/page/dashboard /page/index /" data-label="首页" title="首页">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <path d="M3 10.5 12 3l9 7.5" />
                   <path d="M5 9.5V21h14V9.5" />
@@ -87,17 +1024,66 @@
                 <span>首页</span>
               </button>
 
-              <button class="nav-item" type="button" data-path="/page/clubs" data-match="/page/clubs /page/search /page/club-type /page/club-watch" data-label="全部社团">
+              <button class="nav-item" type="button" data-path="/page/clubs" data-match="/page/clubs /page/search /page/club-type /page/club-watch" data-label="发现社团" title="发现社团">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <rect x="3" y="3" width="7" height="7" rx="1.5" />
-                  <rect x="14" y="3" width="7" height="7" rx="1.5" />
-                  <rect x="3" y="14" width="7" height="7" rx="1.5" />
-                  <rect x="14" y="14" width="7" height="7" rx="1.5" />
+                  <circle cx="12" cy="12" r="9" />
+                  <path d="m15.5 8.5-2.2 4.8-4.8 2.2 2.2-4.8Z" />
                 </svg>
-                <span>全部社团</span>
+                <span>发现社团</span>
               </button>
 
-              <button class="nav-item" type="button" data-path="/page/wall" data-match="/page/wall" data-label="校园墙">
+              <button class="nav-item" type="button" data-path="/page/my-clubs" data-match="/page/my-clubs" data-label="我的社团" title="我的社团">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="9" cy="8" r="3.5" />
+                  <path d="M2 21a7 7 0 0 1 14 0" />
+                  <path d="M16 5a3.5 3.5 0 0 1 0 7" />
+                  <path d="M18 15a6 6 0 0 1 4 6" />
+                </svg>
+                <span>我的社团</span>
+                <span class="nav-badge" id="badge-clubs" hidden></span>
+              </button>
+
+              <button class="nav-item" type="button" data-path="/page/calendar" data-match="/page/calendar" data-label="活动日程" title="活动日程">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="3" y="5" width="18" height="16" rx="2" />
+                  <path d="M8 3v4M16 3v4M3 11h18" />
+                </svg>
+                <span>活动日程</span>
+              </button>
+
+              <button class="nav-item" type="button" data-path="/page/messages" data-match="/page/messages" data-label="消息" title="消息">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M21 12a8 8 0 0 1-8 8H7l-4 3V12a8 8 0 0 1 8-8h2a8 8 0 0 1 8 8Z" />
+                  <path d="M8 10h8M8 14h5" />
+                </svg>
+                <span>消息</span>
+                <span class="nav-badge" id="badge-messages" hidden></span>
+              </button>
+
+              <button class="nav-item" type="button" data-path="/page/user/profile" data-match="/page/user/profile /page/user/home" data-label="设置" title="设置">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="3" />
+                  <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-1.8 3.12-.08-.03a1.7 1.7 0 0 0-1.9.2l-.2.16-3.12-1.8.03-.08a1.7 1.7 0 0 0-.2-1.9l-.16-.2 1.8-3.12.08.03a1.7 1.7 0 0 0 1.9-.2l.2-.16 3.12 1.8-.03.08a1.7 1.7 0 0 0-.04.16Z" />
+                  <path d="M4.6 9a1.7 1.7 0 0 0-.34-1.88l-.06-.06 1.8-3.12.08.03a1.7 1.7 0 0 0 1.9-.2l.2-.16 3.12 1.8-.03.08a1.7 1.7 0 0 0 .2 1.9l.16.2-1.8 3.12-.08-.03a1.7 1.7 0 0 0-1.9.2l-.2.16L4.6 9Z" />
+                </svg>
+                <span>设置</span>
+              </button>
+            </section>
+
+            <section class="nav-group nav-group-more">
+              <div class="group-label">更多</div>
+
+              <button class="nav-item" type="button" data-path="/page/club/workspace" data-match="/page/club/workspace" data-label="社团工作台" data-min-role="1" title="社团工作台">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="3" y="7" width="18" height="13" rx="2" />
+                  <path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
+                  <path d="M3 12h18" />
+                </svg>
+                <span>社团工作台</span>
+                <span class="nav-badge" id="badge-pending" hidden></span>
+              </button>
+
+              <button class="nav-item" type="button" data-path="/page/wall" data-match="/page/wall" data-label="校园墙" title="校园墙">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <path d="M21 12a8 8 0 0 1-8 8H7l-4 3V12a8 8 0 0 1 8-8h2a8 8 0 0 1 8 8Z" />
                   <path d="M8 10h8M8 14h5" />
@@ -105,15 +1091,16 @@
                 <span>校园墙</span>
               </button>
 
-              <button class="nav-item" type="button" data-path="/page/messages" data-match="/page/messages" data-label="我的私信">
+              <button class="nav-item" type="button" data-path="/page/booking" data-match="/page/booking /booking" data-label="场地预约" title="场地预约">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <rect x="3" y="5" width="18" height="14" rx="2" />
-                  <path d="m3 7 9 6 9-6" />
+                  <rect x="3" y="5" width="18" height="16" rx="2" />
+                  <path d="M8 3v4M16 3v4M3 11h18" />
+                  <path d="M8 15h2M14 15h2M8 18h2" />
                 </svg>
-                <span>我的私信</span>
+                <span>场地预约</span>
               </button>
 
-              <button class="nav-item" type="button" data-path="/page/suggestion" data-match="/page/suggestion" data-label="青源智造">
+              <button class="nav-item" type="button" data-path="/page/suggestion" data-match="/page/suggestion" data-label="青源智造" title="青源智造">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <path d="M9 18h6" />
                   <path d="M10 21h4" />
@@ -122,68 +1109,7 @@
                 <span>青源智造</span>
               </button>
 
-              <button class="nav-item" type="button" data-path="/page/booking" data-match="/page/booking /booking" data-label="场地预约">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <rect x="3" y="5" width="18" height="16" rx="2" />
-                  <path d="M8 3v4M16 3v4M3 11h18" />
-                  <path d="M8 15h2M14 15h2M8 18h2" />
-                </svg>
-                <span>场地预约</span>
-              </button>
-            </section>
-
-            <section class="nav-group">
-              <div class="group-label">我的</div>
-
-              <button class="nav-item" type="button" data-path="/page/user/profile" data-match="/page/user/profile /page/user/home" data-label="个人资料">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <circle cx="12" cy="8" r="4" />
-                  <path d="M4 21a8 8 0 0 1 16 0" />
-                </svg>
-                <span>个人资料</span>
-              </button>
-
-              <button class="nav-item" type="button" data-path="/page/my-clubs" data-match="/page/my-clubs" data-label="我的社团">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <circle cx="9" cy="8" r="3.5" />
-                  <path d="M2 21a7 7 0 0 1 14 0" />
-                  <path d="M16 5a3.5 3.5 0 0 1 0 7" />
-                  <path d="M18 15a6 6 0 0 1 4 6" />
-                </svg>
-                <span>我的社团</span>
-              </button>
-
-              <button class="nav-item" type="button" data-path="/page/calendar" data-match="/page/calendar" data-label="我的日历">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <rect x="3" y="5" width="18" height="16" rx="2" />
-                  <path d="M8 3v4M16 3v4M3 11h18" />
-                </svg>
-                <span>我的日历</span>
-              </button>
-
-              <button class="nav-item" type="button" data-path="/page/suggestion/history" data-match="/page/suggestion/history" data-label="建议历史">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M3 12a9 9 0 1 0 3-6.7" />
-                  <path d="M3 4v5h5" />
-                  <path d="M12 8v4l3 2" />
-                </svg>
-                <span>建议历史</span>
-              </button>
-            </section>
-
-            <section class="nav-group">
-              <div class="group-label">管理</div>
-
-              <button class="nav-item" type="button" data-path="/page/club/workspace" data-match="/page/club/workspace" data-label="社团工作台" data-min-role="1">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <rect x="3" y="7" width="18" height="13" rx="2" />
-                  <path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
-                  <path d="M3 12h18" />
-                </svg>
-                <span>社团工作台</span>
-              </button>
-
-              <button class="nav-item" type="button" data-path="/page/club/add" data-match="/page/club/add" data-label="添加社团" data-min-role="2">
+              <button class="nav-item" type="button" data-path="/page/club/add" data-match="/page/club/add" data-label="添加社团" data-min-role="2" title="添加社团">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <rect x="3" y="3" width="18" height="18" rx="3" />
                   <path d="M12 8v8M8 12h8" />
@@ -191,7 +1117,7 @@
                 <span>添加社团</span>
               </button>
 
-              <button class="nav-item" type="button" data-path="/page/user-edit" data-match="/page/user-edit" data-label="账号管理" data-min-role="2">
+              <button class="nav-item" type="button" data-path="/page/user-edit" data-match="/page/user-edit" data-label="账号管理" data-min-role="2" title="账号管理">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <circle cx="10" cy="8" r="4" />
                   <path d="M2 21a8 8 0 0 1 13-6.2" />
@@ -200,7 +1126,7 @@
                 <span>账号管理</span>
               </button>
 
-              <button class="nav-item" type="button" data-path="/page/admin/moderation" data-match="/page/admin/moderation" data-label="违禁词管理" data-min-role="2">
+              <button class="nav-item" type="button" data-path="/page/admin/moderation" data-match="/page/admin/moderation" data-label="违禁词管理" data-min-role="2" title="违禁词管理">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6l-8-3Z" />
                   <path d="m9 12 2 2 4-4" />
@@ -208,7 +1134,7 @@
                 <span>违禁词管理</span>
               </button>
 
-              <button class="nav-item" type="button" data-path="/page/suggestion/manage" data-match="/page/suggestion/manage" data-label="建议管理" data-min-role="2">
+              <button class="nav-item" type="button" data-path="/page/suggestion/manage" data-match="/page/suggestion/manage" data-label="建议管理" data-min-role="2" title="建议管理">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <rect x="5" y="4" width="14" height="17" rx="2" />
                   <path d="M9 4V3h6v1" />
@@ -220,32 +1146,108 @@
           </nav>
 
           <div class="sidebar-footer">
-            <button class="account-action" id="account-action" type="button">
-              登录 / 注册
+            <button class="sidebar-toggle" id="sidebar-toggle" type="button" title="收起侧栏">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="m15 18-6-6 6-6" />
+              </svg>
+              <span>收起侧栏</span>
             </button>
             <div class="sidebar-meta">
               <span>青浦世外社团</span>
-              <span>v1.1.2</span>
+              <span>v1.1.5</span>
             </div>
           </div>
         </aside>
 
-        <main class="content">
-          <div class="progress" id="progress"></div>
-          <webview
-            id="club-view"
-            webpreferences="contextIsolation=yes, nodeIntegration=no, sandbox=yes"
-          ></webview>
+        <div class="workspace">
+          <header class="workspace-header">
+            <form class="workspace-search" id="app-search" role="search">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="7" />
+                <path d="m20 20-3.5-3.5" />
+              </svg>
+              <input
+                id="app-search-input"
+                type="search"
+                placeholder="搜索社团、活动、成员或公告"
+                autocomplete="off"
+                aria-label="搜索社团、活动、成员或公告"
+              />
+              <kbd id="search-shortcut">Ctrl K</kbd>
+            </form>
 
-          <div class="offline" id="offline" hidden>
-            <div class="offline-card">
-              <h2>暂时无法连接社团网站</h2>
-              <p>请检查网络连接，或确认网站服务是否正常。</p>
-              <p class="offline-url" id="offline-url"></p>
-              <button class="primary" id="retry" type="button">重新加载</button>
+            <div class="workspace-actions">
+              <button class="icon-button theme-button" id="theme-toggle" type="button" aria-label="切换到深色模式" title="切换到深色模式">
+                <svg class="theme-icon theme-icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="4" />
+                  <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+                </svg>
+                <svg class="theme-icon theme-icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5 8.5 8.5 0 1 0 20.5 14.5Z" />
+                </svg>
+              </button>
+
+              <div class="popover-wrap" id="notification-wrap">
+                <button class="icon-button" id="notification-toggle" type="button" aria-label="通知" aria-expanded="false">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9" />
+                    <path d="M10 21h4" />
+                  </svg>
+                  <span class="top-badge" id="notification-badge" hidden></span>
+                </button>
+                <section class="popover notification-panel" id="notification-panel" hidden aria-label="通知">
+                  <header>
+                    <strong>通知</strong>
+                    <button id="notification-read-all" type="button">全部已读</button>
+                  </header>
+                  <div class="notification-list" id="notification-list"></div>
+                </section>
+              </div>
+
+              <div class="popover-wrap" id="user-wrap">
+                <button class="user-button" id="user-toggle" type="button" aria-haspopup="menu" aria-expanded="false">
+                  <span class="user-avatar" id="user-avatar">W</span>
+                  <span class="user-copy">
+                    <strong id="user-name">未登录</strong>
+                    <span id="user-role">点击登录</span>
+                  </span>
+                  <svg class="user-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
+                </button>
+                <div class="popover user-menu" id="user-menu" hidden role="menu">
+                  <div class="user-menu-head">
+                    <strong id="menu-name">未登录</strong>
+                    <span id="menu-email">登录后同步你的社团数据</span>
+                  </div>
+                  <a href="/page/user/profile" data-nav role="menuitem">个人资料</a>
+                  <a href="/page/my-clubs" data-nav role="menuitem">我的社团</a>
+                  <a href="/page/club/workspace" data-nav data-min-role="1" role="menuitem">社团工作台</a>
+                  <a href="/page/user-edit" data-nav data-min-role="2" role="menuitem">账号管理</a>
+                  <button id="user-login" type="button" role="menuitem">登录 / 注册</button>
+                  <button id="user-logout" type="button" role="menuitem" hidden>退出登录</button>
+                </div>
+              </div>
             </div>
-          </div>
-        </main>
+          </header>
+
+          <main class="content">
+            <div class="progress" id="progress"></div>
+            <webview
+              id="club-view"
+              webpreferences="contextIsolation=yes, nodeIntegration=no, sandbox=yes"
+            ></webview>
+
+            <div class="offline" id="offline" hidden>
+              <div class="offline-card">
+                <h2>暂时无法连接社团网站</h2>
+                <p>请检查网络连接，或确认网站服务是否正常。</p>
+                <p class="offline-url" id="offline-url"></p>
+                <button class="primary" id="retry" type="button">重新加载</button>
+              </div>
+            </div>
+          </main>
+        </div>
       </div>
     </div>
 
