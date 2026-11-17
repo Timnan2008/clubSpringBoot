@@ -564,6 +564,9 @@ function GuestState({ clubs, onOpenClub }) {
         >
           登录 / 注册
         </a>
+        <a className="dash-button dash-button-secondary" href="/download/desktop">
+          下载桌面客户端
+        </a>
       </div>
       {clubs.length ? (
         <section className="dash-card">
@@ -839,6 +842,9 @@ function App() {
               上海青浦世外高级中学 · 社团管理平台
               <span className="dash-welcome-role">{roleLabel}</span>
               {silentLoading ? <span className="dash-syncing">同步中…</span> : null}
+              <a className="dash-welcome-download" href="/download/desktop">
+                下载桌面客户端
+              </a>
             </p>
           </div>
           {canCreate ? (

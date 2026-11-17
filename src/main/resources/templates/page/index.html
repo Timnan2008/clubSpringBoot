@@ -33,7 +33,15 @@
         <p class="hero-subtitle" th:text="#{index.subtitle}">
           加入喜欢的社团，遇见同频的伙伴，一起创造课堂之外的精彩。
         </p>
-        <a href="/page/search" class="hero-btn" th:text="#{index.btn}">浏览全部社团</a>
+        <div class="hero-actions">
+          <a href="/page/search" class="hero-btn" th:text="#{index.btn}">浏览全部社团</a>
+          <a
+            href="/download/desktop"
+            class="hero-btn hero-btn-secondary"
+            th:text="#{index.download}"
+            >下载桌面客户端</a
+          >
+        </div>
       </section>
 
       <!-- Notice Board -->
@@ -74,6 +82,8 @@
 
       <footer class="site-footer">
         <a href="https://beian.miit.gov.cn">沪ICP备2025137067号</a>
+        <span> · </span>
+        <a href="/download/desktop" th:text="#{nav.download}">下载社团软件</a>
       </footer>
     </div>
 

@@ -12,7 +12,7 @@
       <link rel="modulepreload" href="/javascript/ui/chunks/chunk-YMN3KVQI.js" />
       <link rel="modulepreload" href="/javascript/ui/chunks/chunk-ZO2X2SVS.js" />
       <link rel="modulepreload" href="/javascript/ui/chunks/chunk-ZPVJVPU6.js" />
-      <script type="module" src="/javascript/ui/navigation.js?v=20260920-release"></script>
+      <script type="module" src="/javascript/ui/navigation.js?v=20261117-1"></script>
       <header class="navbar" th:attr="data-language=${#locale.language}">
         <!-- 左侧：学校名 -->
         <div class="navbar-left">
@@ -139,6 +139,8 @@
           </div>
 
           <a th:href="@{/page/suggestion}" th:text="#{nav.suggestion}"></a>
+
+          <a th:href="@{/download/desktop}" th:text="#{nav.download}"></a>
 
           <th:block th:if="${#locale.language} != 'en'">
             <!-- 语言切换 -->
