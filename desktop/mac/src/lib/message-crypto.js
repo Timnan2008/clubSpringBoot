@@ -17,7 +17,11 @@ export async function makeIdentity() {
   };
 }
 let scope = "production";
-export function setCryptoScope(value) { scope = value; starting.clear(); }
+export function setCryptoScope(value) {
+  if (scope === value) return;
+  scope = value;
+  starting.clear();
+}
 function db() {
   return new Promise((resolve, reject) => {
     const r = indexedDB.open("qpwfl-desktop-keys-" + scope, 1);

@@ -30,7 +30,7 @@ import {
   Lightbulb,
 } from "@phosphor-icons/react";
 import { categories, imageURL, eventStatus } from "./data";
-import {useUI} from "./ui";
+import { useUI } from "./ui";
 export const icons = {
   home: House,
   discover: Compass,
@@ -81,7 +81,7 @@ export function Action({
   );
 }
 export function Sidebar({ page, navigate, data }) {
-const ui=useUI();
+  const ui = useUI();
   return (
     <aside className="sidebar">
       <div className="school-brand">
@@ -132,7 +132,7 @@ const ui=useUI();
   );
 }
 export function WorkspaceHeader({ data, onSearch, navigate, onAction }) {
-const ui=useUI();
+  const ui = useUI();
   return (
     <header className="workspace-header">
       <div className="breadcrumb">
@@ -166,7 +166,7 @@ const ui=useUI();
       <button
         className="account-trigger"
         aria-label={data.user ? "打开个人资料" : "登录"}
-        onClick={() => data.user ? navigate("profile") : ui.login()}
+        onClick={() => (data.user ? navigate("profile") : ui.login())}
       >
         <span className="avatar small">{(data.user?.name || "访").slice(0, 1)}</span>
         <span>{data.user?.name || "登录"}</span>
@@ -251,13 +251,7 @@ export function AnnouncementList({ items, onOpen, loading }) {
         <i />
       </div>
     );
-  if (!items.length)
-    return (
-      <Empty
-        title="暂无可读取的公告"
-        detail="校园公告发布后会显示在这里"
-      />
-    );
+  if (!items.length) return <Empty title="暂无可读取的公告" detail="校园公告发布后会显示在这里" />;
   return (
     <div className="announcement-list">
       {items.slice(0, 3).map((item, i) => (
@@ -278,7 +272,7 @@ export function AnnouncementList({ items, onOpen, loading }) {
   );
 }
 export function Timeline({ events, limit = 3, onOpen, user }) {
-const ui=useUI();
+  const ui = useUI();
   if (!user)
     return (
       <Empty
