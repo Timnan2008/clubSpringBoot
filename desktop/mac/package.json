@@ -1,0 +1,62 @@
+{
+  "name": "qpwfl-club-desktop",
+  "version": "0.2.0",
+  "description": "青浦世外社团 · Mac 客户端",
+  "author": "QPWFL Club",
+  "private": true,
+  "main": "electron/main.cjs",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "start": "npm run build && electron .",
+    "dev": "npm start",
+    "test": "node --test tests/*.test.cjs",
+    "test:app": "node tests/app-smoke.cjs",
+    "pack:mac": "npm run build && electron-builder --mac --dir",
+    "dist:mac": "npm run build && electron-builder --mac dmg zip",
+    "dist:mac:intel": "npm run build && electron-builder --mac dmg zip --x64"
+  },
+  "dependencies": {
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
+    "@phosphor-icons/react": "2.1.10"
+  },
+  "devDependencies": {
+    "electron": "45.3.3",
+    "electron-builder": "26.18.0",
+    "esbuild": "0.25.9",
+    "playwright-core": "1.63.0"
+  },
+  "build": {
+    "appId": "cn.qpwfl.club.desktop",
+    "productName": "青浦世外社团",
+    "artifactName": "QPWFL-Club-${version}-${arch}.${ext}",
+    "directories": {
+      "output": "release",
+      "buildResources": "assets"
+    },
+    "files": [
+      "electron/**/*",
+      "dist/**/*",
+      "assets/**/*",
+      "package.json"
+    ],
+    "asar": true,
+    "mac": {
+      "category": "public.app-category.education",
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "icon": "assets/icon.icns",
+      "darkModeSupport": true,
+      "identity": null
+    },
+    "dmg": {
+      "title": "青浦世外社团",
+      "window": {
+        "width": 540,
+        "height": 360
+      }
+    }
+  }
+}
