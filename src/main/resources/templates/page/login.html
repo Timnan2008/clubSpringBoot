@@ -13,6 +13,7 @@
     <!-- /ui-module-preloads -->
   </head>
   <body class="auth-page">
+    <div th:replace="~{fragments/desktop-frame :: frame}"></div>
     <div th:replace="~{fragments/navbar :: navbar}"></div>
     <div id="club-auth" th:attr="data-language=${#locale.language}">
       <p

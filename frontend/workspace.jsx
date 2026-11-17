@@ -237,6 +237,7 @@ function Workspace() {
     [searching, setSearching] = useState(false);
   const lock = useRef(false),
     searchRequest = useRef(null),
+    createRequested = useRef(pageQuery().get("action") === "create-event"),
     currentClub = useRef(club);
   currentClub.current = club;
   useEffect(() => {
@@ -301,6 +302,22 @@ function Workspace() {
     setUploadName("");
     setModal(value);
   };
+  useEffect(() => {
+    if (
+      !createRequested.current ||
+      !profile ||
+      !data ||
+      loading ||
+      tab !== "calendar" ||
+      !profile.clubs.some((item) => String(item.id) === club)
+    )
+      return;
+    createRequested.current = false;
+    const url = new URL(location.href);
+    url.searchParams.delete("action");
+    history.replaceState(history.state, "", url);
+    setModal({ kind: "event" });
+  }, [profile, data, loading, tab, club]);
   const perform = async (path, method, body, isFile = false) => {
     if (lock.current) return;
     lock.current = true;

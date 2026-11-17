@@ -1,0 +1,22 @@
+<!doctype html>
+<html xmlns:th="http://www.thymeleaf.org">
+  <body>
+    <div th:fragment="frame" id="desktop-shell">
+      <template th:replace="~{fragments/desktop-frame :: announcements}"></template>
+      <script type="module">
+        if (window.clubDesktop) {
+          const link = document.createElement("link");
+          link.rel = "stylesheet";
+          link.href = "/javascript/desktop/desktop-entry.css?v=1";
+          document.head.append(link);
+          import("/javascript/desktop/desktop-entry.js?v=1");
+        }
+      </script>
+    </div>
+    <template th:fragment="announcements" id="desktop-announcements">
+      <p data-notice="platform-release" th:text="#{index.notice.1}"></p>
+      <p data-notice="account-access" th:text="#{index.notice.2}"></p>
+      <p data-notice="club-editing" th:text="#{index.notice.3}"></p>
+    </template>
+  </body>
+</html>

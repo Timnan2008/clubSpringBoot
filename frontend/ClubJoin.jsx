@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useId, useRef, useState } from "react";
 import { tx, en } from "./language";
 async function request(url, options) {
   const r = await fetch(url, options);
@@ -7,25 +7,31 @@ async function request(url, options) {
     throw Error(d.message || tx("操作未成功，请重试。", "Unable to complete this request."));
   return d;
 }
-export default function ClubJoin({ club, authenticated, account }) {
+export default function ClubJoin({ club, authenticated, account, compact = false }) {
   const [state, setState] = useState(null),
     [error, setError] = useState(""),
     [open, setOpen] = useState(false),
     [busy, setBusy] = useState(false),
+    [attempt, setAttempt] = useState(0),
     [note, setNote] = useState("");
   const dialog = useRef(),
     lock = useRef(false);
+  const dialogTitle = useId();
   const path = `/api/campus-social/clubs/${club.id}/join`;
   useEffect(() => {
-    if (!authenticated) return;
+    if (!authenticated || account?.role === "teacher") return;
     const c = new AbortController();
+    setState(null);
+    setError("");
     request(path, { signal: c.signal })
-      .then(setState)
+      .then((result) => {
+        if (!c.signal.aborted) setState(result);
+      })
       .catch((e) => {
-        if (e.name !== "AbortError") setError(e.message);
+        if (!c.signal.aborted) setError(e.message);
       });
     return () => c.abort();
-  }, [club.id, authenticated]);
+  }, [path, authenticated, account?.role, attempt]);
   useEffect(() => {
     if (open) dialog.current?.showModal();
     else dialog.current?.close();
@@ -53,37 +59,58 @@ export default function ClubJoin({ club, authenticated, account }) {
   }
   if (account?.role === "teacher")
     return (
-      <a className="club-button" href="/page/club/workspace">
-        {tx("管理我的社团", "Manage my clubs")} ↗
+      <a
+        className="club-button"
+        href="/page/club/workspace"
+        title={tx("管理我的社团", "Manage my clubs")}
+      >
+        {compact ? tx("管理", "Manage") : tx("管理我的社团", "Manage my clubs")} ↗
       </a>
     );
   const member = state?.status === "member",
     pending = state?.status === "pending";
+  const loading = authenticated && !state && !error;
+  const retry = authenticated && !state && !!error;
+  let label = tx("申请加入社团", "Apply to join");
+  if (member) label = tx("已加入社团", "Already a member");
+  else if (pending) label = tx("申请已提交 · 等待审核", "Application pending");
+  else if (loading) label = tx("正在加载申请状态", "Checking application status");
+  else if (retry) label = tx("重试加载申请状态", "Retry loading application status");
+  let compactLabel = tx("加入", "Join");
+  if (member) compactLabel = tx("已加入", "Joined");
+  else if (pending) compactLabel = tx("待审核", "Pending");
+  else if (loading) compactLabel = tx("加载中…", "Loading…");
+  else if (retry) compactLabel = tx("重试", "Retry");
   return (
     <div className="club-join">
       <button
         className="club-button"
-        disabled={busy || member || pending || (authenticated && !state && !error)}
+        type="button"
+        disabled={busy || member || pending || loading}
+        title={label}
+        aria-busy={busy || loading}
         onClick={() => {
           if (!authenticated) {
-            location.assign("/page/user/login?next=" + encodeURIComponent(location.pathname));
+            location.assign(
+              "/page/user/login?next=" + encodeURIComponent(location.pathname + location.search),
+            );
+            return;
+          }
+          if (retry) {
+            setAttempt((value) => value + 1);
             return;
           }
           setOpen(true);
         }}
       >
-        {member
-          ? tx("已加入社团", "Already a member")
-          : pending
-            ? tx("申请已提交 · 等待审核", "Application pending")
-            : tx("申请加入社团", "Apply to join")}{" "}
-        <span>↗</span>
+        {compact && !member && !pending && !loading && !retry && <span aria-hidden="true">+</span>}
+        {compact ? compactLabel : label} {!compact && <span aria-hidden="true">↗</span>}
       </button>
       {error && !open && <p role="alert">{error}</p>}
       <dialog
         ref={dialog}
         className="club-join-dialog"
-        aria-labelledby="club-join-title"
+        aria-labelledby={dialogTitle}
         onCancel={(e) => {
           if (busy) e.preventDefault();
           else setOpen(false);
@@ -94,7 +121,7 @@ export default function ClubJoin({ club, authenticated, account }) {
       >
         <form onSubmit={submit}>
           <header>
-            <h2 id="club-join-title">
+            <h2 id={dialogTitle}>
               {tx("申请加入", "Apply to join")}{" "}
               {en && club.clubNameEn ? club.clubNameEn : club.clubName}
             </h2>

@@ -18,6 +18,12 @@ await build({
   entryPoints: ["frontend/home.jsx"],
   outdir: "src/main/resources/static/javascript/darkveil",
 });
+await build({
+  ...shared,
+  format: "esm",
+  entryPoints: ["frontend/desktop/desktop-entry.jsx"],
+  outdir: "src/main/resources/static/javascript/desktop",
+});
 const uiBuild = await build({
   ...shared,
   metafile: true,
