@@ -6,12 +6,17 @@
     <meta name="theme-color" content="#ffffff" />
     <link rel="icon" type="image/png" href="/other%20photo/WFL-logo.png" />
     <title>工作台 · 青浦世外社团</title>
-    <link rel="stylesheet" href="/javascript/ui/dashboard.css?v=20261117-3" />
+    <script>
+      if (/Electron/i.test(navigator.userAgent)) {
+        document.documentElement.classList.add("desktop-client");
+      }
+    </script>
+    <link rel="stylesheet" href="/javascript/ui/dashboard.css?v=20261117-4" />
   </head>
   <body class="dashboard-page">
     <div id="dashboard-root">
       <div class="dash-boot" role="status">正在载入工作台…</div>
     </div>
-    <script defer src="/javascript/ui/dashboard.js?v=20261117-5"></script>
+    <script defer src="/javascript/ui/dashboard.js?v=20261117-6"></script>
   </body>
 </html>

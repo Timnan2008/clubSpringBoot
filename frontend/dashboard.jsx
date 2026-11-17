@@ -3,6 +3,8 @@ import { createRoot } from "react-dom/client";
 import "./dashboard.css";
 
 const FALLBACK_IMAGE = "/other%20photo/WFL-crest.svg";
+const IS_DESKTOP_APP =
+  typeof navigator !== "undefined" && /Electron/i.test(navigator.userAgent);
 const GREETING = ["早上好", "上午好", "下午好", "晚上好"];
 const ROLE_LABEL = {
   student: "学生",
@@ -564,9 +566,11 @@ function GuestState({ clubs, onOpenClub }) {
         >
           登录 / 注册
         </a>
-        <a className="dash-button dash-button-secondary" href="/download/desktop">
-          下载桌面客户端
-        </a>
+        {IS_DESKTOP_APP ? null : (
+          <a className="dash-button dash-button-secondary" href="/download/desktop">
+            下载桌面客户端
+          </a>
+        )}
       </div>
       {clubs.length ? (
         <section className="dash-card">
@@ -842,9 +846,11 @@ function App() {
               上海青浦世外高级中学 · 社团管理平台
               <span className="dash-welcome-role">{roleLabel}</span>
               {silentLoading ? <span className="dash-syncing">同步中…</span> : null}
-              <a className="dash-welcome-download" href="/download/desktop">
-                下载桌面客户端
-              </a>
+              {IS_DESKTOP_APP ? null : (
+                <a className="dash-welcome-download" href="/download/desktop">
+                  下载桌面客户端
+                </a>
+              )}
             </p>
           </div>
           {canCreate ? (
