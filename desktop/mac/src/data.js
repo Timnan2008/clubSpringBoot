@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 export const bridge = window.clubDesktop;
 export const categories = {
-  study: "学术探索",
-  creativity: "艺术创意",
-  activity: "运动活力",
-  service: "公益服务",
+  study: "学术类社团",
+  creativity: "创造类社团",
+  activity: "活动类社团",
+  service: "服务类社团",
 };
 export function calendarRange() {
   const now = new Date();
@@ -83,6 +83,18 @@ export function useCampus() {
     refresh();
     let timer;
     const unsubscribe = bridge?.onSessionChanged(() => {
+      ++seq.current;
+      setState((s) => ({
+        ...s,
+        user: null,
+        mine: [],
+        events: [],
+        inbox: [],
+        notifications: [],
+        unread: 0,
+        loading: true,
+        privateError: "",
+      }));
       clearTimeout(timer);
       timer = setTimeout(refresh, 800);
     });
@@ -97,6 +109,7 @@ export function useCampus() {
   return { ...state, refresh };
 }
 export function imageURL(path, base) {
+  if (typeof path !== "string" || !path.trim()) return "";
   try {
     const u = new URL(path, base);
     return u.origin === base && !/\.svg$/i.test(u.pathname) ? u.href : "";

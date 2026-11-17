@@ -4,7 +4,7 @@ contextBridge.exposeInMainWorld(
   Object.freeze({
     read: (key, input) => ipcRenderer.invoke("club:read", key, input),
     info: () => ipcRenderer.invoke("club:info"),
-    openPage: (path) => ipcRenderer.invoke("club:open", path),
+    write: (key, input) => ipcRenderer.invoke("club:write", key, input),
     setServer: (name) => ipcRenderer.invoke("club:server", name),
     logout: () => ipcRenderer.invoke("club:logout"),
     onSessionChanged: (callback) => {

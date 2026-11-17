@@ -22,8 +22,15 @@ import {
   CheckCircle,
   Buildings,
   ShieldCheck,
+  Chalkboard,
+  Palette,
+  Heart,
+  GraduationCap,
+  Racquet,
+  Lightbulb,
 } from "@phosphor-icons/react";
-import { bridge, categories, imageURL, eventStatus } from "./data";
+import { categories, imageURL, eventStatus } from "./data";
+import { useUI } from "./ui";
 export const icons = {
   home: House,
   discover: Compass,
@@ -31,13 +38,27 @@ export const icons = {
   calendar: CalendarBlank,
   messages: ChatCircleDots,
   settings: GearSix,
+  wall: Chalkboard,
+  creativity: Palette,
+  activity: CalendarBlank,
+  service: Heart,
+  study: GraduationCap,
+  booking: Racquet,
+  makers: Lightbulb,
 };
 export const labels = {
   home: "首页",
   discover: "发现社团",
   mine: "我的社团",
   calendar: "活动日程",
-  messages: "消息",
+  messages: "站内私信",
+  wall: "校园墙",
+  creativity: "创造类社团",
+  activity: "活动类社团",
+  service: "服务类社团",
+  study: "学术类社团",
+  booking: "羽毛球场预约",
+  makers: "青源智造",
   settings: "设置",
 };
 export function Action({
@@ -60,6 +81,7 @@ export function Action({
   );
 }
 export function Sidebar({ page, navigate, data }) {
+  const ui = useUI();
   return (
     <aside className="sidebar">
       <div className="school-brand">
@@ -96,7 +118,7 @@ export function Sidebar({ page, navigate, data }) {
         </div>
         <button
           className="sidebar-user"
-          onClick={() => (data.user ? navigate("settings") : bridge.openPage("/page/user/login"))}
+          onClick={() => (data.user ? navigate("settings") : ui.login())}
         >
           <span className="avatar">{(data.user?.name || "访").slice(0, 1)}</span>
           <span>
@@ -110,6 +132,7 @@ export function Sidebar({ page, navigate, data }) {
   );
 }
 export function WorkspaceHeader({ data, onSearch, navigate, onAction }) {
+  const ui = useUI();
   return (
     <header className="workspace-header">
       <div className="breadcrumb">
@@ -143,7 +166,7 @@ export function WorkspaceHeader({ data, onSearch, navigate, onAction }) {
       <button
         className="account-trigger"
         aria-label={data.user ? "打开个人资料" : "登录"}
-        onClick={() => onAction(data.user ? "/page/user/profile" : "/page/user/login")}
+        onClick={() => (data.user ? navigate("profile") : ui.login())}
       >
         <span className="avatar small">{(data.user?.name || "访").slice(0, 1)}</span>
         <span>{data.user?.name || "登录"}</span>
@@ -228,15 +251,7 @@ export function AnnouncementList({ items, onOpen, loading }) {
         <i />
       </div>
     );
-  if (!items.length)
-    return (
-      <Empty
-        title="暂无可读取的公告"
-        detail="可在校园服务中查看原站公告"
-        action="打开公告页"
-        onAction={() => bridge.openPage("/page/index")}
-      />
-    );
+  if (!items.length) return <Empty title="暂无可读取的公告" detail="校园公告发布后会显示在这里" />;
   return (
     <div className="announcement-list">
       {items.slice(0, 3).map((item, i) => (
@@ -257,6 +272,7 @@ export function AnnouncementList({ items, onOpen, loading }) {
   );
 }
 export function Timeline({ events, limit = 3, onOpen, user }) {
+  const ui = useUI();
   if (!user)
     return (
       <Empty
@@ -264,7 +280,7 @@ export function Timeline({ events, limit = 3, onOpen, user }) {
         title="你的日程，等你开启"
         detail="登录后同步本月社团活动与个人日历"
         action="登录校园账号"
-        onAction={() => bridge.openPage("/page/user/login")}
+        onAction={() => ui.login()}
       />
     );
   if (!events.length)
@@ -274,7 +290,7 @@ export function Timeline({ events, limit = 3, onOpen, user }) {
         title="本月暂无日程"
         detail="已发布的社团活动和个人安排会出现在这里"
         action="管理我的日历"
-        onAction={() => bridge.openPage("/page/calendar")}
+        onAction={() => ui.navigate("calendar")}
       />
     );
   return (
