@@ -65,6 +65,7 @@ build/
 
 # Dependencies and private data of nested packages
 **/node_modules/
+/desktop/release/
 **/.env
 **/.env.*
 !**/.env.example
