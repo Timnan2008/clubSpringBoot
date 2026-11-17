@@ -1,6 +1,6 @@
 {
   "name": "qingpu-wfl-club-desktop",
-  "version": "1.1.2",
+  "version": "1.1.5",
   "private": true,
   "description": "Qingpu WFL Club Windows desktop client",
   "author": "Qingpu WFL Club",
@@ -23,6 +23,7 @@
       "shell.html",
       "shell.css",
       "shell.js",
+      "theme-boot.js",
       "package.json"
     ],
     "win": {

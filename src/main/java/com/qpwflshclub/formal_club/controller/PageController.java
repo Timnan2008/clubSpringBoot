@@ -181,6 +181,12 @@ public class PageController {
         return "page/club-catalog";
     }
 
+    /** 桌面客户端工作台：不挂网站导航，由 Electron 外壳提供标题栏与侧栏。 */
+    @GetMapping("/dashboard")
+    public String dashboard() {
+        return "page/dashboard";
+    }
+
     /** 个人资料页：未登录会自动跳到登录页，并记住「登录后回到这里」。 */
     @GetMapping({ "/user/profile", "/user/home" })
     public String profile(HttpServletRequest request, Model model) {

@@ -40,6 +40,12 @@ const uiBuild = await build({
 
 await build({
   ...shared,
+  entryPoints: ["frontend/dashboard.jsx"],
+  outdir: "src/main/resources/static/javascript/ui",
+});
+
+await build({
+  ...shared,
   entryPoints: ["frontend/booking-nav.jsx"],
   outfile:
     process.env.BOOKING_ASSET_FILE ||

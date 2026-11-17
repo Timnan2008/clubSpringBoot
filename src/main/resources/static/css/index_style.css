@@ -86,6 +86,19 @@ body::before, body::after { display: none; }
     transform: translateY(-2px);
     box-shadow: 0 16px 36px rgba(0,16,66,0.22);
 }
+.hero-actions {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
+}
+.hero-btn-secondary {
+    background: rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.92);
+    border-color: rgba(255,255,255,0.45);
+    box-shadow: none;
+}
+.hero-btn-secondary:hover {
+    background: rgba(255,255,255,0.16);
+    box-shadow: 0 10px 24px rgba(0,16,66,0.18);
+}
 
 /* ── Glass card base ── */
 .glass-card {

@@ -8,6 +8,7 @@ import com.qpwflshclub.formal_club.Clubs.pojo.dto.ClubDTO;
 import com.qpwflshclub.formal_club.Clubs.repository.ClubLikeDeviceRepository;
 import com.qpwflshclub.formal_club.Clubs.repository.ClubRepository;
 import com.qpwflshclub.formal_club.Clubs.service.ClubLikeService;
+import com.qpwflshclub.formal_club.Clubs.service.ClubMemberCounts;
 import com.qpwflshclub.formal_club.Clubs.service.IClubService;
 import com.qpwflshclub.formal_club.Clubs.service.PublicClubCatalog;
 import com.qpwflshclub.formal_club.User.pojo.Admin;
@@ -376,12 +377,16 @@ public class ClubController {
     @Autowired
     private PublicClubCatalog publicCatalog;
 
+    @Autowired
+    private ClubMemberCounts memberCounts;
+
     @GetMapping("/all")
     public ResponseMessage<List<ClubVO>> findAll() {
         Locale locale = LocaleContextHolder.getLocale();
         boolean isEn = locale.getLanguage().equals("en");
 
         List<Club> clubs = publicCatalog.all();
+        Map<Integer, Integer> counts = memberCounts.all();
 
         List<ClubVO> list = clubs
             .stream()
@@ -396,6 +401,7 @@ public class ClubController {
                 vo.setGreatClub(c.isGreatClub());
                 vo.setClubURL("page/clubs/" + c.getId());
                 vo.setClubClass(c.getClubClass());
+                vo.setMemberCount(counts.getOrDefault(c.getId(), 0));
 
                 return vo;
             })

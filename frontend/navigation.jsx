@@ -66,6 +66,10 @@ if (navbar) {
     { label: en ? "Study" : "学术类社团", link: "/page/club-type/study" },
     { label: en ? "Badminton booking" : "羽毛球场预约", link: "/page/booking" },
     { label: en ? "QingYuan Studio" : "青源智造", link: "/page/suggestion" },
+    {
+      label: en ? "Download Desktop App" : "下载桌面客户端",
+      link: "/download/desktop",
+    },
   ];
   navbar.querySelectorAll(".user-dropdown .dropdown-content a").forEach((a) => {
     const href = a.getAttribute("href");
