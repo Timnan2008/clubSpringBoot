@@ -38,6 +38,9 @@ public class AdminDTO implements UserBaseDTO {
     @Email(message = "邮箱格式不正确")
     public String adminEmail;
 
+    @NotNull(message = " 用户学号不能为空")
+    private int studentId;
+
     public List<Long> clubs;
 
     @Override

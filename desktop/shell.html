@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'; img-src 'self' data:; frame-src https://qpwflhsclub.com https://www.qpwflhsclub.com http://127.0.0.1:8088 http://localhost:8088;"
+    />
+    <title>青浦世外社团</title>
+    <link rel="stylesheet" href="shell.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="titlebar">
+        <div class="brand">
+          <span class="brand-mark">W</span>
+          <span class="brand-name">青浦世外社团</span>
+          <span class="brand-tag">DESKTOP</span>
+        </div>
+        <div class="toolbar">
+          <button id="nav-back" class="icon-btn" type="button" title="后退 (Alt+←)" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m15 18-6-6 6-6" />
+            </svg>
+          </button>
+          <button id="nav-forward" class="icon-btn" type="button" title="前进 (Alt+→)" disabled>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="m9 18 6-6-6-6" />
+            </svg>
+          </button>
+          <button id="nav-reload" class="icon-btn" type="button" title="刷新 (F5)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 12a9 9 0 1 1-2.64-6.36" />
+              <path d="M21 3v6h-6" />
+            </svg>
+          </button>
+        </div>
+        <form class="app-search" id="app-search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="7" />
+            <path d="m20 20-3.5-3.5" />
+          </svg>
+          <input
+            id="app-search-input"
+            type="search"
+            placeholder="搜索社团、姓名、昵称或帖子"
+            autocomplete="off"
+          />
+        </form>
+
+        <div class="page-label" id="page-label">首页</div>
+
+        <div class="window-controls">
+          <button id="win-min" class="win-btn" type="button" title="最小化">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
+              <path d="M5 12h14" />
+            </svg>
+          </button>
+          <button id="win-max" class="win-btn" type="button" title="最大化">
+            <svg class="icon-max" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+              <rect x="5" y="5" width="14" height="14" rx="1.5" />
+            </svg>
+            <svg class="icon-restore" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+              <rect x="4" y="7" width="12" height="12" rx="1.5" />
+              <path d="M8 7V5a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-2" />
+            </svg>
+          </button>
+          <button id="win-close" class="win-btn close" type="button" title="关闭">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
+              <path d="m6 6 12 12M18 6 6 18" />
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <div class="body">
+        <aside class="sidebar">
+          <nav id="sidebar-nav">
+            <section class="nav-group">
+              <div class="group-label">探索</div>
+
+              <button class="nav-item" type="button" data-path="/page/index" data-match="/page/index" data-label="首页">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M3 10.5 12 3l9 7.5" />
+                  <path d="M5 9.5V21h14V9.5" />
+                </svg>
+                <span>首页</span>
+              </button>
+
+              <button class="nav-item" type="button" data-path="/page/clubs" data-match="/page/clubs /page/search /page/club-type /page/club-watch" data-label="全部社团">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="3" y="3" width="7" height="7" rx="1.5" />
+                  <rect x="14" y="3" width="7" height="7" rx="1.5" />
+                  <rect x="3" y="14" width="7" height="7" rx="1.5" />
+                  <rect x="14" y="14" width="7" height="7" rx="1.5" />
+                </svg>
+                <span>全部社团</span>
+              </button>
+
+              <button class="nav-item" type="button" data-path="/page/wall" data-match="/page/wall" data-label="校园墙">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M21 12a8 8 0 0 1-8 8H7l-4 3V12a8 8 0 0 1 8-8h2a8 8 0 0 1 8 8Z" />
+                  <path d="M8 10h8M8 14h5" />
+                </svg>
+                <span>校园墙</span>
+              </button>
+
+              <button class="nav-item" type="button" data-path="/page/messages" data-match="/page/messages" data-label="我的私信">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="3" y="5" width="18" height="14" rx="2" />
+                  <path d="m3 7 9 6 9-6" />
+                </svg>
+                <span>我的私信</span>
+              </button>
+
+              <button class="nav-item" type="button" data-path="/page/suggestion" data-match="/page/suggestion" data-label="青源智造">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M9 18h6" />
+                  <path d="M10 21h4" />
+                  <path d="M12 3a6 6 0 0 0-3 11v2h6v-2a6 6 0 0 0-3-11Z" />
+                </svg>
+                <span>青源智造</span>
+              </button>
+
+              <button class="nav-item" type="button" data-path="/page/booking" data-match="/page/booking /booking" data-label="场地预约">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="3" y="5" width="18" height="16" rx="2" />
+                  <path d="M8 3v4M16 3v4M3 11h18" />
+                  <path d="M8 15h2M14 15h2M8 18h2" />
+                </svg>
+                <span>场地预约</span>
+              </button>
+            </section>
+
+            <section class="nav-group">
+              <div class="group-label">我的</div>
+
+              <button class="nav-item" type="button" data-path="/page/user/profile" data-match="/page/user/profile /page/user/home" data-label="个人资料">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="8" r="4" />
+                  <path d="M4 21a8 8 0 0 1 16 0" />
+                </svg>
+                <span>个人资料</span>
+              </button>
+
+              <button class="nav-item" type="button" data-path="/page/my-clubs" data-match="/page/my-clubs" data-label="我的社团">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="9" cy="8" r="3.5" />
+                  <path d="M2 21a7 7 0 0 1 14 0" />
+                  <path d="M16 5a3.5 3.5 0 0 1 0 7" />
+                  <path d="M18 15a6 6 0 0 1 4 6" />
+                </svg>
+                <span>我的社团</span>
+              </button>
+
+              <button class="nav-item" type="button" data-path="/page/calendar" data-match="/page/calendar" data-label="我的日历">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="3" y="5" width="18" height="16" rx="2" />
+                  <path d="M8 3v4M16 3v4M3 11h18" />
+                </svg>
+                <span>我的日历</span>
+              </button>
+
+              <button class="nav-item" type="button" data-path="/page/suggestion/history" data-match="/page/suggestion/history" data-label="建议历史">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M3 12a9 9 0 1 0 3-6.7" />
+                  <path d="M3 4v5h5" />
+                  <path d="M12 8v4l3 2" />
+                </svg>
+                <span>建议历史</span>
+              </button>
+            </section>
+
+            <section class="nav-group">
+              <div class="group-label">管理</div>
+
+              <button class="nav-item" type="button" data-path="/page/club/workspace" data-match="/page/club/workspace" data-label="社团工作台" data-min-role="1">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="3" y="7" width="18" height="13" rx="2" />
+                  <path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
+                  <path d="M3 12h18" />
+                </svg>
+                <span>社团工作台</span>
+              </button>
+
+              <button class="nav-item" type="button" data-path="/page/club/add" data-match="/page/club/add" data-label="添加社团" data-min-role="2">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="3" y="3" width="18" height="18" rx="3" />
+                  <path d="M12 8v8M8 12h8" />
+                </svg>
+                <span>添加社团</span>
+              </button>
+
+              <button class="nav-item" type="button" data-path="/page/user-edit" data-match="/page/user-edit" data-label="账号管理" data-min-role="2">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="10" cy="8" r="4" />
+                  <path d="M2 21a8 8 0 0 1 13-6.2" />
+                  <path d="m15 19 2 2 4-4" />
+                </svg>
+                <span>账号管理</span>
+              </button>
+
+              <button class="nav-item" type="button" data-path="/page/admin/moderation" data-match="/page/admin/moderation" data-label="违禁词管理" data-min-role="2">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6l-8-3Z" />
+                  <path d="m9 12 2 2 4-4" />
+                </svg>
+                <span>违禁词管理</span>
+              </button>
+
+              <button class="nav-item" type="button" data-path="/page/suggestion/manage" data-match="/page/suggestion/manage" data-label="建议管理" data-min-role="2">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="5" y="4" width="14" height="17" rx="2" />
+                  <path d="M9 4V3h6v1" />
+                  <path d="m9 13 2 2 4-4" />
+                </svg>
+                <span>建议管理</span>
+              </button>
+            </section>
+          </nav>
+
+          <div class="sidebar-footer">
+            <button class="account-action" id="account-action" type="button">
+              登录 / 注册
+            </button>
+            <div class="sidebar-meta">
+              <span>青浦世外社团</span>
+              <span>v1.1.2</span>
+            </div>
+          </div>
+        </aside>
+
+        <main class="content">
+          <div class="progress" id="progress"></div>
+          <webview
+            id="club-view"
+            webpreferences="contextIsolation=yes, nodeIntegration=no, sandbox=yes"
+          ></webview>
+
+          <div class="offline" id="offline" hidden>
+            <div class="offline-card">
+              <h2>暂时无法连接社团网站</h2>
+              <p>请检查网络连接，或确认网站服务是否正常。</p>
+              <p class="offline-url" id="offline-url"></p>
+              <button class="primary" id="retry" type="button">重新加载</button>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <script src="shell.js"></script>
+  </body>
+</html>

@@ -1,0 +1,55 @@
+{
+  "name": "qingpu-wfl-club-desktop",
+  "version": "1.1.2",
+  "private": true,
+  "description": "Qingpu WFL Club Windows desktop client",
+  "author": "Qingpu WFL Club",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win nsis"
+  },
+  "build": {
+    "appId": "com.qpwflshclub.desktop",
+    "productName": "Qingpu WFL Club",
+    "copyright": "Copyright © 2026 QPWFLHS Club",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "shell.html",
+      "shell.css",
+      "shell.js",
+      "package.json"
+    ],
+    "win": {
+      "icon": "build/icon.ico",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "青浦世外社团",
+      "uninstallDisplayName": "青浦世外社团",
+      "artifactName": "QingpuWFL-Club-Setup-${version}.${ext}"
+    }
+  },
+  "devDependencies": {
+    "electron": "^45.3.3",
+    "electron-builder": "^26.18.0"
+  }
+}

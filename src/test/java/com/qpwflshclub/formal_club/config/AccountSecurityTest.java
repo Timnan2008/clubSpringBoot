@@ -8,17 +8,26 @@ import org.junit.jupiter.api.Test;
 class AccountSecurityTest {
 
     @Test
-    void namesAcceptEitherScriptAndAtLeastOne() {
-        assertThatThrownBy(() -> RegistrationNames.validate("傻逼", "")).hasMessageContaining(
+    void namesRequireBothChineseAndEnglish() {
+        assertThatThrownBy(() -> RegistrationNames.validate("张三", "")).hasMessageContaining(
+            "请填写英文名"
+        );
+        assertThatThrownBy(() -> RegistrationNames.validate("", "张三")).hasMessageContaining(
+            "请填写中文名"
+        );
+        assertThatThrownBy(() -> RegistrationNames.validate("张三", null)).hasMessageContaining(
+            "请填写英文名"
+        );
+        assertThatThrownBy(() -> RegistrationNames.validate(null, "李四")).hasMessageContaining(
+            "请填写中文名"
+        );
+        assertThatThrownBy(() -> RegistrationNames.validate(" ", null)).hasMessageContaining("400");
+        RegistrationNames.validate("张三", "Jason Li");
+        assertThatThrownBy(() -> RegistrationNames.validate("傻逼", "Shabi")).hasMessageContaining(
             "不适当"
         );
-        RegistrationNames.validate("Jason Li", "");
-        RegistrationNames.validate("", "张三");
-        RegistrationNames.validate("张三", null);
-        RegistrationNames.validate(null, "李四");
-        assertThatThrownBy(() -> RegistrationNames.validate(" ", null)).hasMessageContaining("400");
         assertThatThrownBy(() ->
-            RegistrationNames.validate("x".repeat(101), "")
+            RegistrationNames.validate("x".repeat(101), "Y")
         ).hasMessageContaining("400");
     }
 

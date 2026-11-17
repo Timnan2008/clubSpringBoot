@@ -16,7 +16,10 @@ import java.util.Objects;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-/** Official student roster. Student sign-up must match name and student number. */
+/**
+ * Official student roster. Student sign-up must match the student number and the Chinese name;
+ * the English name is no longer compared with the roster.
+ */
 @Service
 public class StudentRoster {
 
@@ -64,7 +67,8 @@ public class StudentRoster {
         byNumber = Map.copyOf(next);
     }
 
-    public void requireMatchingStudent(String studentNumber, String name, String nameEn) {
+    /** Only the student number and the Chinese name are checked against the roster. */
+    public void requireMatchingStudent(String studentNumber, String name) {
         if (byNumber.isEmpty()) throw SchoolAccounts.error(
             503,
             "学生名册未配置，暂不能注册 / Student roster is unavailable"
@@ -72,21 +76,12 @@ public class StudentRoster {
         Student student = byNumber.get(number(studentNumber));
         if (student == null) throw SchoolAccounts.error(400, MISMATCH);
         String zh = compactName(name);
-        String english = englishName(nameEn);
-        if (zh.isEmpty() && english.isEmpty()) throw SchoolAccounts.error(
+        if (zh.isEmpty()) throw SchoolAccounts.error(
             400,
-            "中文名和英文名至少填写一项 / Enter at least one name"
+            "请填写中文名，用于与学生名册核对 / Enter your Chinese name to match the roster"
         );
         String rosterZh = compactName(student.name());
-        String rosterEn = englishName(student.nameEn());
-        boolean zhConflicts = !zh.isEmpty() && !rosterZh.isEmpty() && !zh.equals(rosterZh);
-        boolean enConflicts =
-            !english.isEmpty() && !rosterEn.isEmpty() && !english.equals(rosterEn);
-        boolean zhMatches = !zh.isEmpty() && !rosterZh.isEmpty() && zh.equals(rosterZh);
-        boolean enMatches = !english.isEmpty() && !rosterEn.isEmpty() && english.equals(rosterEn);
-        if (zhConflicts || enConflicts || (!zhMatches && !enMatches)) {
-            throw SchoolAccounts.error(400, MISMATCH);
-        }
+        if (rosterZh.isEmpty() || !zh.equals(rosterZh)) throw SchoolAccounts.error(400, MISMATCH);
     }
 
     static String number(String input) {
@@ -102,11 +97,5 @@ public class StudentRoster {
             Objects.toString(input, "").strip(),
             Normalizer.Form.NFKC
         ).replaceAll("\\s+", "");
-    }
-
-    static String englishName(String input) {
-        return Normalizer.normalize(Objects.toString(input, "").strip(), Normalizer.Form.NFKC)
-            .replaceAll("\\s+", " ")
-            .toLowerCase(Locale.ROOT);
     }
 }

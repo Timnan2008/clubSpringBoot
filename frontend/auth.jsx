@@ -113,8 +113,13 @@ function Auth() {
         "Club president accounts are created by an administrator.",
       );
     if (current === 1) {
-      if (!form.name.trim() && !form.nameEn.trim())
-        return t("中文名和英文名至少填写一项。", "Enter at least one of the two names.");
+      if (!form.name.trim())
+        return t(
+          "请填写中文名，学生注册需要与学校名册核对。",
+          "Enter your Chinese name; student sign-up matches it against the school roster.",
+        );
+      if (!form.nameEn.trim())
+        return t("请填写英文名或姓名拼音。", "Enter your English name or Pinyin.");
     }
     if (current === 3) {
       if (form.role === "user" && !/^[A-Za-z0-9-]{1,32}$/.test(form.studentNumber.trim()))
@@ -591,7 +596,11 @@ function Auth() {
                         <div className="auth-two-fields">
                           <Field
                             id="register-name"
-                            label={t("真实姓名（中文）", "Real name (Chinese)")}
+                            label={t(
+                              "真实姓名（中文，需与名册一致）",
+                              "Real name (Chinese, must match the roster)",
+                            )}
+                            required
                             autoComplete="name"
                             value={form.name}
                             onChange={(e) => change("name", e.target.value)}
@@ -600,11 +609,18 @@ function Auth() {
                           <Field
                             id="register-name-en"
                             label={t("真实英文名 / 姓名拼音", "English name / Pinyin")}
+                            required
                             value={form.nameEn}
                             onChange={(e) => change("nameEn", e.target.value)}
                             placeholder={t("真实英文名或姓名拼音", "English name or Pinyin")}
                           />
                         </div>
+                        <p className="auth-help">
+                          {t(
+                            "学生注册只用中文名与学生名册核对，英文名不再参与核对。",
+                            "Student sign-up only matches the Chinese name against the school roster; the English name is not checked.",
+                          )}
+                        </p>
                         <Field
                           id="register-nickname"
                           label={t("昵称（选填）", "Nickname (optional)")}

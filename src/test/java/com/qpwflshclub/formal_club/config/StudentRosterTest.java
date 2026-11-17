@@ -14,50 +14,57 @@ class StudentRosterTest {
     Path root;
 
     @Test
-    void matchingNameAndNumberAreAccepted() throws Exception {
+    void matchingNumberAndChineseNameAreAccepted() throws Exception {
         var roster = roster();
-        roster.requireMatchingStudent("20260001", "测试甲", "Alice");
-        roster.requireMatchingStudent("20260001", "测试甲", "");
-        roster.requireMatchingStudent("20260001", "", "alice");
+        roster.requireMatchingStudent("20260001", "测试甲");
+        roster.requireMatchingStudent("20260001", " 测 试 甲 ");
     }
 
     @Test
     void mismatchedOrUnknownPairsCannotRegister() throws Exception {
         var roster = roster();
-        assertThatThrownBy(() -> roster.requireMatchingStudent("20260001", "测试乙", "Alice"))
+        assertThatThrownBy(() -> roster.requireMatchingStudent("20260001", "测试乙"))
             .hasMessageContaining("400")
             .hasMessageContaining("不一致");
+        // 英文名不再与名册比对，也不能代替中文名通过核对。
         assertThatThrownBy(() ->
-            roster.requireMatchingStudent("20260001", "测试甲", "Bob")
+            roster.requireMatchingStudent("20260001", "Alice")
         ).hasMessageContaining("400");
         assertThatThrownBy(() ->
-            roster.requireMatchingStudent("99999999", "测试甲", "Alice")
+            roster.requireMatchingStudent("99999999", "测试甲")
         ).hasMessageContaining("400");
         assertThatThrownBy(() ->
-            roster.requireMatchingStudent("LOCAL-QA-2026", "CodeTester", "")
+            roster.requireMatchingStudent("LOCAL-QA-2026", "CodeTester")
         ).hasMessageContaining("400");
     }
 
     @Test
-    void blankRosterEnglishDoesNotBlockMatchingChineseName() throws Exception {
+    void blankChineseNameCannotRegister() throws Exception {
         var roster = roster();
-        roster.requireMatchingStudent("20260104", "朱兆禾", "");
-        roster.requireMatchingStudent("20260104", "朱兆禾", "Any English");
         assertThatThrownBy(() ->
-            roster.requireMatchingStudent("20260104", "朱兆禾错", "Any English")
+            roster.requireMatchingStudent("20260001", "")
+        ).hasMessageContaining("请填写中文名");
+        assertThatThrownBy(() ->
+            roster.requireMatchingStudent("20260001", null)
+        ).hasMessageContaining("请填写中文名");
+    }
+
+    @Test
+    void rosterEntryWithoutEnglishNameStillMatches() throws Exception {
+        var roster = roster();
+        roster.requireMatchingStudent("20260104", "朱兆禾");
+        assertThatThrownBy(() ->
+            roster.requireMatchingStudent("20260104", "朱兆禾错")
         ).hasMessageContaining("不一致");
-        assertThatThrownBy(() -> roster.requireMatchingStudent("20260104", "", "Any English"))
-            .hasMessageContaining("不一致");
     }
 
     @Test
     void missingRosterFileBlocksStudentSignup() throws Exception {
         var roster = new StudentRoster(root.resolve("missing.json").toString());
         assertThatThrownBy(() ->
-            roster.requireMatchingStudent("20260001", "测试甲", "Alice")
+            roster.requireMatchingStudent("20260001", "测试甲")
         ).hasMessageContaining("503");
         assertThat(StudentRoster.compactName(" 测 试 甲 ")).isEqualTo("测试甲");
-        assertThat(StudentRoster.englishName(" Mary   Ann ")).isEqualTo("mary ann");
     }
 
     private StudentRoster roster() throws Exception {
