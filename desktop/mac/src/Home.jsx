@@ -1,18 +1,29 @@
 import React from "react";
 import DarkVeil from "./site/DarkVeil";
+import { useAppearance } from "./Appearance";
 import { ArrowUpRight, CaretRight, Megaphone } from "@phosphor-icons/react";
 import { useUI } from "./ui";
 import { Action, ClubCard, AnnouncementList, Timeline, Empty } from "./components";
 
 export default function Home({ onNotice, onNotices, onEvent, reduced }) {
   const { data, navigate, showClub } = useUI();
+  const { value, theme } = useAppearance();
   const featured = data.clubs.filter((c) => c.greatClub).slice(0, 6);
   const recommended = featured.length ? featured : data.clubs.slice(0, 6);
   return (
     <div className="site-home">
       <section className="site-home-hero">
         <div className="site-home-backdrop" aria-hidden="true">
-          {!reduced && <DarkVeil speed={0.4} resolutionScale={0.5} verticalOffset={0.6} />}
+          {!reduced && (
+            <DarkVeil
+              key={`${theme}:${value.accent}`}
+              speed={0.4}
+              resolutionScale={0.5}
+              verticalOffset={0.6}
+              lightMode={theme === "light"}
+              tintColor={value.accent}
+            />
+          )}
         </div>
         <small>QPWFLHS CLUBS</small>
         <h1>让热爱，成为校园日常</h1>

@@ -20,6 +20,7 @@ uniform float uScanFreq;
 uniform float uWarp;
 uniform float uVerticalOffset;
 uniform float uLightMode;
+uniform vec3 uTint;
 #define iTime uTime
 #define iResolution uResolution
 
@@ -75,14 +76,13 @@ void main(){
     col.rgb*=1.-(scanline_val*scanline_val)*uScan;
     col.rgb+=(rand(gl_FragCoord.xy+uTime)-0.5)*uNoise;
     vec3 result=clamp(col.rgb,0.0,1.0);
-    if(uLightMode>0.5){
-      float energy=max(result.r,max(result.g,result.b));
-      vec3 hue=result/max(energy,0.001);
-      float coverage=smoothstep(0.08,0.82,energy);
-      vec3 ink=mix(hue*0.32,hue*0.78,smoothstep(0.0,1.0,energy));
-      result=mix(vec3(1.0),ink,coverage*0.82);
-    }
-    gl_FragColor=vec4(result,1.0);
+    // Keep the website's flowing field; let the app surface show through it.
+    // Light mode uses a faint ink wash instead of an opaque black canvas.
+    float energy=max(result.r,max(result.g,result.b));
+    float coverage=smoothstep(0.04,0.82,energy);
+    vec3 ink=mix(uTint,vec3(1.0),uLightMode>0.5?0.05:0.2);
+    float alpha=coverage*(uLightMode>0.5?0.24:0.48);
+    gl_FragColor=vec4(ink,alpha);
 }
 `;
 
@@ -96,6 +96,7 @@ export default function DarkVeil({
   resolutionScale = 1,
   verticalOffset = 0,
   lightMode = false,
+  tintColor = "#796094",
 }) {
   const ref = useRef(null);
   useEffect(() => {
@@ -175,7 +176,7 @@ export default function DarkVeil({
       renderer = new Renderer({
         dpr: 1,
         canvas,
-        alpha: false,
+        alpha: true,
         antialias: false,
       });
       const gl = renderer.gl;
@@ -193,6 +194,9 @@ export default function DarkVeil({
           uWarp: { value: warpAmount },
           uVerticalOffset: { value: verticalOffset },
           uLightMode: { value: lightMode ? 1 : 0 },
+          uTint: {
+            value: tintColor.slice(1).match(/../g).map((c) => parseInt(c, 16) / 255),
+          },
         },
       });
       // OGL may log shader errors without throwing. Keep CSS visible in that case.
@@ -233,6 +237,7 @@ export default function DarkVeil({
     resolutionScale,
     verticalOffset,
     lightMode,
+    tintColor,
   ]);
 
   return <canvas ref={ref} className="darkveil-canvas" />;

@@ -60,6 +60,7 @@ export function AppearanceProvider({ children }) {
   const current = useRef(value),
     queue = useRef(Promise.resolve());
   const [systemDark, setSystemDark] = useState(matchMedia("(prefers-color-scheme: dark)").matches);
+  const theme = value.mode === "system" ? (systemDark ? "dark" : "light") : value.mode;
   useEffect(() => {
     let active = true;
     bridge.appearance().then((v) => {
@@ -79,8 +80,7 @@ export function AppearanceProvider({ children }) {
   }, []);
   useEffect(() => {
     const root = document.documentElement;
-    const mode = value.mode === "system" ? (systemDark ? "dark" : "light") : value.mode;
-    root.dataset.theme = mode;
+    root.dataset.theme = theme;
     root.dataset.background = value.background;
     const p = palette(value.accent);
     root.style.setProperty("--accent-h", p.hue);
@@ -96,7 +96,7 @@ export function AppearanceProvider({ children }) {
     // The small cache prevents a theme flash. The image lives only in the app profile.
     const { backgroundImage, ...small } = value;
     localStorage.setItem("club-appearance", JSON.stringify(small));
-  }, [value, systemDark]);
+  }, [value, theme]);
   async function update(patch) {
     const next = { ...current.current, ...patch };
     current.current = next;
@@ -125,7 +125,7 @@ export function AppearanceProvider({ children }) {
     setValue(v);
   }
   return (
-    <Context.Provider value={{ value, update, pick, reset, ready }}>{children}</Context.Provider>
+    <Context.Provider value={{ value, theme, update, pick, reset, ready }}>{children}</Context.Provider>
   );
 }
 const accents = [

@@ -1,11 +1,18 @@
-# 青浦世外社团 · Windows / Mac 客户端 1.2.2
+# 青浦世外社团 · Windows / Mac 客户端 1.2.3
 
 Windows 和 Mac 共用 Electron + React 本地页面。原网站的源码和部署没有改。
 
-这次按原网站恢复样式：
+本次修正深浅主题适配：
+
+- 首页保留网站的流动纹理和构图，浅色使用浅底深字，深色使用暗底浅字；动效透明叠加，并跟随自选主题色。
+- 登录左栏的底色、标题、说明和网格也跟随主题，不再写死黑底白字。
+- 跟随系统时无需重启；减少动态和显卡不可用时的静态背景同样适配主题。
+- 界面检查增加实际截图亮度、文字与按钮对比度，覆盖深浅色、绿色主题、系统切换和静态回退。
+
+此前已按原网站恢复的样式：
 
 - 社团分类恢复大图竖版卡片、原来的搜索框、分类按钮、留白和悬停上移。
-- 首页恢复网站标题、原版 DarkVeil 背景、公告栏和优秀社团展示。
+- 首页恢复网站标题、DarkVeil 流动纹理、公告栏和优秀社团展示；背景配色已适配桌面主题。
 - 社团详情接入网站原有的像素切换与猫咪图片；编程社保留 ASCII 鼠标轨迹，机器人社保留像素画布。
 - 私信和登录沿用网站的圆角、排版与组件样式。外观设置仍可切深浅色、主题色和自定义背景，已有选择保留。
 - 清掉空统计、无内容的作品入口、空文档区、不能提交的注册输入框、底部同步栏、重复加密说明和校园墙说明侧栏。
@@ -80,7 +87,7 @@ Windows 在 `desktop` 中运行：
 npm run dist
 ```
 
-安装包：`desktop/release/QingpuWFL-Club-Setup-1.2.2.exe`。需要免安装 ZIP 时运行 `npm run dist:zip`。当前为未签名预览版。
+安装包：`desktop/release/QingpuWFL-Club-Setup-1.2.3.exe`。需要免安装 ZIP 时运行 `npm run dist:zip`。当前为未签名预览版。
 
 Mac 在 `desktop/mac` 中运行：
 
@@ -90,7 +97,7 @@ ELECTRON_CACHE="$PWD/.cache/electron" ELECTRON_BUILDER_CACHE="$PWD/.cache/electr
 
 产物：`desktop/mac/release/mac-arm64/青浦世外社团.app` 及同目录中的 DMG / ZIP。Apple 签名与公证尚未实施。
 
-GitHub Actions 的「Desktop Windows build」会在 main 的 desktop 代码更新后检查并打包；完成后在对应运行页面下载 `QPWFL-Windows-1.2.2` 产物。不会自动发布网站或替换原网站下载文件。
+GitHub Actions 的「Desktop Windows build」会在 main 的 desktop 代码更新后检查并打包；完成后在对应运行页面下载 `QPWFL-Windows-1.2.3` 产物。不会自动发布网站或替换原网站下载文件。
 
 ## 检查
 

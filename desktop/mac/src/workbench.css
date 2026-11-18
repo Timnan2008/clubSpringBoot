@@ -484,26 +484,39 @@ textarea {
   border-radius: 18px;
   min-height: 310px;
   padding: 50px 44px;
-  background: #100c19;
-  color: white;
+  background: color-mix(in srgb, var(--panel) 78%, var(--surface));
+  color: var(--text);
+  border: 1px solid var(--edge);
   margin: 0 0 35px;
 }
 .site-home-backdrop {
   position: absolute;
   inset: 0;
   z-index: -1;
-  opacity: 0.65;
+  pointer-events: none;
+  mask-image: linear-gradient(100deg, transparent, #0004 28%, #000 72%);
   background:
-    radial-gradient(ellipse at 80% 0%, #6024c5, transparent 58%),
-    radial-gradient(ellipse at 85% 100%, #321065, transparent 65%);
+    radial-gradient(
+      ellipse at 80% 0%,
+      color-mix(in srgb, var(--accent) 18%, transparent),
+      transparent 58%
+    ),
+    radial-gradient(
+      ellipse at 85% 100%,
+      color-mix(in srgb, var(--accent) 12%, transparent),
+      transparent 65%
+    );
+}
+.site-home-backdrop[data-renderer="webgl"] {
+  background: none;
 }
 .site-home-hero > small {
   font-size: 11px;
   letter-spacing: 2.5px;
-  color: #c2b1d9;
+  color: var(--text-secondary);
 }
 .site-home-hero h1 {
-  color: #fff;
+  color: var(--text);
   font-size: clamp(30px, 3.5vw, 46px);
   font-weight: 600;
   margin: 23px 0 16px;
@@ -511,18 +524,18 @@ textarea {
 }
 .site-home-hero p {
   font-size: 13px;
-  color: #d1c7df;
+  color: color-mix(in srgb, var(--text-secondary) 75%, var(--text));
   line-height: 1.9;
   margin-bottom: 26px;
   max-width: 650px;
 }
 .site-home-hero .button {
-  background: #eee7f7;
-  color: #251c32;
+  background: var(--site-button);
+  color: var(--site-button-text);
   border: 0;
 }
 .site-home-hero .button:hover {
-  background: #fff;
+  background: color-mix(in srgb, var(--site-button) 80%, var(--accent));
 }
 .site-home-notices {
   margin-bottom: 38px;
@@ -816,7 +829,7 @@ textarea {
 .security-note {
   display: none;
 }
-/* Same paired dark introduction and form as website auth.css. */
+/* Website auth composition, with surfaces and text adapted to the app theme. */
 .modal {
   border-radius: 22px;
   border: 1px solid var(--edge);
@@ -830,8 +843,8 @@ textarea {
   gap: 36px;
 }
 .auth-art {
-  background: #100c19;
-  color: white;
+  background: linear-gradient(145deg, var(--surface), var(--panel));
+  color: var(--text);
   border-radius: 16px;
   padding: 30px;
   min-height: 430px;
@@ -843,10 +856,10 @@ textarea {
   font-size: 32px;
   line-height: 1.5;
   letter-spacing: 0;
-  color: white;
+  color: var(--text);
 }
 .auth-art p {
-  color: #c9c0d5;
+  color: var(--text-secondary);
   font-size: 12px;
   line-height: 1.9;
 }
@@ -855,8 +868,16 @@ textarea {
   inset: 50% -30% -40%;
   z-index: -1;
   background:
-    repeating-linear-gradient(90deg, #79609480 0 1px, transparent 1px 32px),
-    repeating-linear-gradient(0deg, #79609480 0 1px, transparent 1px 32px);
+    repeating-linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--accent) 24%, transparent) 0 1px,
+      transparent 1px 32px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      color-mix(in srgb, var(--accent) 24%, transparent) 0 1px,
+      transparent 1px 32px
+    );
   transform: rotate(-28deg);
   mask-image: linear-gradient(transparent, #000);
 }
