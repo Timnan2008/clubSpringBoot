@@ -79,7 +79,7 @@ function createWindow() {
       ? { titleBarStyle: "hiddenInset", trafficLightPosition: { x: 20, y: 18 } }
       : {}),
     icon: path.join(__dirname, "..", "assets", "icon.png"),
-    backgroundColor: appearance.read().mode === "dark" ? "#10121c" : "#f5f6fa",
+    backgroundColor: appearance.read().mode === "dark" ? "#17191c" : "#fafafa",
     show: false,
     webPreferences: {
       preload: path.join(__dirname, "preload.cjs"),

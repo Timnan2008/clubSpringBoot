@@ -14,8 +14,8 @@ import { bridge } from "./data";
 import { Panel, Action } from "./components";
 const defaults = {
   mode: "light",
-  accent: "#7952d9",
-  background: "glow",
+  accent: "#365d7b",
+  background: "plain",
   strength: 35,
   blur: 0,
   fontSize: 14,
@@ -129,6 +129,7 @@ export function AppearanceProvider({ children }) {
   );
 }
 const accents = [
+  ["校徽蓝", "#365d7b"],
   ["鸢尾紫", "#7952d9"],
   ["晴空蓝", "#3478d4"],
   ["松石绿", "#19826d"],
@@ -157,15 +158,15 @@ export function AppearanceSettings() {
     <section className="appearance-settings" aria-label="自定义界面">
       <Panel title="自定义界面" icon={Palette}>
         <div className="appearance-intro">
-          <p>Windows 和 Mac 用同一套界面，选你喜欢的样子。</p>
+          <p>设置这台电脑上的颜色、字号和背景。</p>
           <span className="version-chip">{ready ? "修改后自动保存" : "正在读取外观"}</span>
         </div>
         <fieldset className="appearance-group">
           <legend>外观模式</legend>
           <div className="theme-options">
             {[
-              [Sun, "light", "浅色", "明亮、清爽"],
-              [Moon, "dark", "深色", "安静、专注"],
+              [Sun, "light", "浅色", "适合白天使用"],
+              [Moon, "dark", "深色", "适合暗光环境"],
               [Desktop, "system", "跟随系统", "自动切换深浅"],
             ].map(([Icon, mode, title, detail]) => (
               <button
@@ -249,9 +250,7 @@ export function AppearanceSettings() {
         </div>
       </Panel>
       <Panel title="工作台背景" icon={ImageSquare}>
-        <p className="appearance-description">
-          选一种氛围，或者放一张自己的图片。背景只保存在这台电脑。
-        </p>
+        <p className="appearance-description">选择背景，或导入自己的图片。图片只保存在本机。</p>
         <div className="background-options">
           {backdrops.map(([background, name]) => (
             <button

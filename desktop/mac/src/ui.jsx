@@ -95,11 +95,10 @@ export function Form({ onSubmit, children, label = "保存", disabled = false })
     </form>
   );
 }
-export function Heading({ tag, title, detail, children }) {
+export function Heading({ title, detail, children }) {
   return (
     <div className="page-heading">
       <div>
-        <div className="eyebrow">{tag || "CAMPUS DESKTOP"}</div>
         <h1>{title}</h1>
         {detail && <p>{detail}</p>}
       </div>

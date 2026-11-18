@@ -73,7 +73,7 @@ const assert = require("node:assert/strict"),
     await page.getByRole("button", { name: "关闭", exact: true }).click();
     for (const name of ["校园墙", "站内私信", "活动日程", "羽毛球场预约"]) {
       await page.getByRole("button", { name, exact: true }).click();
-      await page.getByText("登录，连接你的校园生活", { exact: true }).waitFor();
+      await page.getByText("登录后使用校园服务", { exact: true }).waitFor();
     }
     await page.getByRole("button", { name: "青源智造", exact: true }).click();
     await page.getByText("作品内容准备中", { exact: true }).waitFor();

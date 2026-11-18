@@ -16,7 +16,6 @@ import {
   SignIn,
   Plus,
   WifiSlash,
-  Sparkle,
   Megaphone,
   Star,
   CheckCircle,
@@ -34,6 +33,7 @@ import {
 } from "@phosphor-icons/react";
 import { categories, imageURL, eventStatus } from "./data";
 import { useUI } from "./ui";
+import { usePointerSurface } from "./interaction";
 export const icons = {
   home: House,
   discover: Compass,
@@ -101,11 +101,10 @@ export function Sidebar({ page, navigate, data }) {
         <img src="../assets/crest.svg" alt="学校校徽" />
         <div>
           <strong>青浦世外</strong>
-          <small>QPWFL · CLUBS</small>
+          <small>校园社团管理</small>
         </div>
       </div>
-      <div className="sidebar-label">校园工作台</div>
-      <nav>
+      <nav aria-label="主导航">
         {Object.entries(labels).map(([key, label]) => {
           if (
             key === "workspace" &&
@@ -120,26 +119,30 @@ export function Sidebar({ page, navigate, data }) {
           if (key === "addClub" && data.user?.role !== "admin") return null;
           const Icon = icons[key];
           const count = key === "mine" ? data.mine.length : key === "messages" ? data.unread : 0;
+          const group = {
+            home: "校园",
+            creativity: "社团分类",
+            booking: "校园服务",
+            accounts: "管理",
+          }[key];
           return (
-            <button
-              key={key}
-              className={`nav-item ${["creativity", "booking", "accounts"].includes(key) ? "nav-section" : ""} ${page === key ? "selected" : ""}`}
-              onClick={() => navigate(key)}
-              aria-current={page === key ? "page" : undefined}
-              title={label}
-            >
-              <Icon size={22} weight={page === key ? "fill" : "regular"} />
-              <span>{label}</span>
-              {count > 0 && <b className="badge">{count}</b>}
-            </button>
+            <React.Fragment key={key}>
+              {group && <div className="sidebar-label">{group}</div>}
+              <button
+                className={`nav-item ${page === key ? "selected" : ""}`}
+                onClick={() => navigate(key)}
+                aria-current={page === key ? "page" : undefined}
+                title={label}
+              >
+                <Icon size={18} weight="regular" />
+                <span>{label}</span>
+                {count > 0 && <b className="badge">{count}</b>}
+              </button>
+            </React.Fragment>
           );
         })}
       </nav>
       <div className="sidebar-bottom">
-        <div className="term">
-          <span className="live-dot" />
-          校园生活，保持连接<small>SHANGHAI QINGPU WFLHS</small>
-        </div>
         <button
           className="sidebar-user"
           onClick={() => (data.user ? navigate("settings") : ui.login())}
@@ -147,7 +150,7 @@ export function Sidebar({ page, navigate, data }) {
           <span className="avatar">{(data.user?.name || "访").slice(0, 1)}</span>
           <span>
             <strong>{data.user?.name || "访客浏览"}</strong>
-            <small>{data.user ? "校园账号已连接" : "登录，开启你的校园日常"}</small>
+            <small>{data.user ? "个人资料与设置" : "使用校园账号登录"}</small>
           </span>
           <CaretRight size={14} />
         </button>
@@ -155,13 +158,13 @@ export function Sidebar({ page, navigate, data }) {
     </aside>
   );
 }
-export function WorkspaceHeader({ data, onSearch, navigate, onAction }) {
+export function WorkspaceHeader({ page, data, onSearch, navigate }) {
   const ui = useUI();
   return (
     <header className="workspace-header">
       <div className="breadcrumb">
-        校园工作台<span>/</span>
-        <b>青浦世外</b>
+        青浦世外<span>/</span>
+        <b>{page === "club" ? "社团详情" : labels[page] || "首页"}</b>
       </div>
       <button className="search-trigger" onClick={onSearch}>
         <MagnifyingGlass size={18} />
@@ -217,7 +220,7 @@ export function Panel({ title, icon: Icon, action, onAction, children, className
     </section>
   );
 }
-export function Empty({ title, detail, icon: Icon = Sparkle, action, onAction }) {
+export function Empty({ title, detail, icon: Icon = Buildings, action, onAction }) {
   return (
     <div className="empty">
       <span className="empty-icon">
@@ -236,17 +239,17 @@ export function Empty({ title, detail, icon: Icon = Sparkle, action, onAction })
 }
 export function ClubCard({ club, base, onOpen }) {
   const [failed, setFailed] = useState(false);
+  const pointer = usePointerSurface();
   const source = imageURL(club.clubItem, base);
   return (
-    <button className="club-card" onClick={() => onOpen(club)}>
+    <button className="club-card" {...pointer} onClick={() => onOpen(club)}>
+      <span className="card-pixels" aria-hidden="true" />
       <div className="club-cover">
         {source && !failed ? (
           <img src={source} alt="" onError={() => setFailed(true)} />
         ) : (
           <Buildings size={40} weight="duotone" />
         )}
-        <span className="cover-shade" />
-        <span className="category-chip">{categories[club.clubClass] || "校园社团"}</span>
         {club.greatClub && (
           <span className="featured-star" title="优秀社团">
             <Star size={15} weight="fill" />
@@ -254,10 +257,11 @@ export function ClubCard({ club, base, onOpen }) {
         )}
       </div>
       <div className="club-card-body">
+        <span className="club-category">{categories[club.clubClass] || "校园社团"}</span>
         <h3>{club.clubName || club.name}</h3>
-        <p>{club.sortDescription || club.slogan || "在这里，找到与你同频的伙伴。"}</p>
+        <p>{club.sortDescription || club.slogan || "查看社团介绍、成员和活动安排。"}</p>
         <div className="club-card-footer">
-          <span>探索社团</span>
+          <span>查看社团</span>
           <span className="arrow-square">
             <ArrowUpRight size={17} />
           </span>
@@ -301,7 +305,7 @@ export function Timeline({ events, limit = 3, onOpen, user }) {
     return (
       <Empty
         icon={CalendarBlank}
-        title="你的日程，等你开启"
+        title="登录后查看日程"
         detail="登录后同步本月社团活动与个人日历"
         action="登录校园账号"
         onAction={() => ui.login()}
@@ -379,8 +383,7 @@ export function StatusFooter({ data }) {
         {data.loading ? "正在同步校园数据" : data.connected ? "校园服务已连接" : "连接暂不可用"}
       </span>
       <span>
-        {data.info.server === "local" ? "本机开发服务" : "QPWFL CAMPUS"}
-        <i />
+        {data.info.server === "local" ? "本机服务 · " : ""}
         {data.lastSync
           ? `同步于 ${data.lastSync.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}`
           : "等待同步"}

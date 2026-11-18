@@ -2,16 +2,9 @@ import React, { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
   CalendarBlank,
-  Stack,
-  CheckSquare,
-  Plus,
-  Megaphone,
-  Star,
-  CaretRight,
   MagnifyingGlass,
   Buildings,
   ArrowUpRight,
-  ShieldCheck,
   Minus,
   Square,
   Copy,
@@ -23,16 +16,14 @@ import {
   Action,
   Sidebar,
   WorkspaceHeader,
-  Panel,
   Empty,
-  ClubCard,
   AnnouncementList,
-  Timeline,
   Modal,
   StatusFooter,
 } from "./components";
-import { UI, Heading } from "./ui";
+import { UI } from "./ui";
 import Auth from "./Auth";
+import Home from "./Home";
 import { setCryptoScope } from "./lib/message-crypto";
 import { ClubList, ClubDetail, Makers, Workspace } from "./ClubPages";
 import { Wall, Messages } from "./SocialPages";
@@ -40,6 +31,7 @@ import { Calendar, Profile, Settings, Booking } from "./PersonalPages";
 import { AdminPages } from "./AdminPages";
 import "./styles.css";
 import "./theme.css";
+import "./workbench.css";
 function App() {
   const [maximized, setMaximized] = useState(false);
   useEffect(() => {
@@ -55,6 +47,9 @@ function App() {
     [toast, setToast] = useState("");
   const [compact, setCompact] = useState(localStorage.getItem("club-compact") === "true"),
     [reduced, setReduced] = useState(localStorage.getItem("club-reduced") === "true");
+  const recommended = [...data.clubs]
+    .sort((a, b) => Number(b.greatClub) - Number(a.greatClub))
+    .slice(0, 5);
   useEffect(() => setCryptoScope(data.info.server || "production"), [data.info.server]);
   const navigate = (p) => {
     setPage(p);
@@ -87,9 +82,6 @@ function App() {
     localStorage.setItem("club-compact", compact);
     localStorage.setItem("club-reduced", reduced);
   }, [compact, reduced]);
-  const recommended = [...data.clubs]
-    .sort((a, b) => Number(b.greatClub) - Number(a.greatClub))
-    .slice(0, 4);
   return (
     <UI.Provider value={ui}>
       <div
@@ -98,7 +90,7 @@ function App() {
         <div className="app-background" aria-hidden="true" />
         <div className="titlebar" onDoubleClick={() => window.clubDesktop.windowAction("maximize")}>
           <span>上海青浦世外高级中学 · 社团管理平台</span>
-          <span className="titlebar-tag">CAMPUS DESKTOP</span>
+
           {data.info.platform === "win32" && (
             <div className="window-controls">
               <button
@@ -126,8 +118,16 @@ function App() {
         <div className="app-layout">
           <Sidebar page={page} navigate={navigate} data={data} />
           <div className="workspace">
-            <WorkspaceHeader data={data} onSearch={() => setSearch("")} navigate={navigate} />
-            <main className={`content page-${page}`} key={data.info.server || "production"}>
+            <WorkspaceHeader
+              page={page}
+              data={data}
+              onSearch={() => setSearch("")}
+              navigate={navigate}
+            />
+            <main
+              className={`content page-${page}`}
+              key={`${data.info.server || "production"}:${page}`}
+            >
               {data.error && (
                 <div className="error-banner" role="alert">
                   {data.error}
@@ -141,122 +141,11 @@ function App() {
                 </div>
               )}
               {page === "home" && (
-                <>
-                  <div className="welcome">
-                    <div>
-                      <div className="eyebrow">YOUR CAMPUS, CONNECTED</div>
-                      <h1>
-                        {new Date().getHours() < 12
-                          ? "上午好"
-                          : new Date().getHours() < 18
-                            ? "下午好"
-                            : "晚上好"}
-                        {data.user ? "，" + data.user.name : ""}
-                        <span className="wave">✦</span>
-                      </h1>
-                      <p>在这里，找到热爱，也找到同频的人。</p>
-                    </div>
-                    <div className="today">
-                      <span>
-                        {new Intl.DateTimeFormat("zh-CN", {
-                          month: "long",
-                          day: "numeric",
-                          weekday: "long",
-                        }).format(new Date())}
-                      </span>
-                      <small>每一份热爱，都值得被看见</small>
-                    </div>
-                  </div>
-                  <div className="summary-row">
-                    {[
-                      [Stack, "加入的社团", data.mine.length, "个", "mine"],
-                      [CalendarBlank, "本月日程", data.events.length, "项", "calendar"],
-                      [CheckSquare, "未读通知", data.unread, "条", "messages"],
-                    ].map(([Icon, title, count, unit, target]) => (
-                      <button className="summary-card" key={title} onClick={() => navigate(target)}>
-                        <span className="summary-icon">
-                          <Icon size={25} />
-                        </span>
-                        <div>
-                          <span>{title}</span>
-                          <strong>
-                            {data.user ? count : "—"}
-                            <small>{unit}</small>
-                          </strong>
-                        </div>
-                        <CaretRight size={17} />
-                      </button>
-                    ))}
-                    <Action
-                      className="create-button"
-                      onClick={() => (data.user ? navigate("workspace") : login())}
-                    >
-                      <Plus size={21} />
-                      创建活动
-                    </Action>
-                  </div>
-                  <div className="dashboard-middle">
-                    <Panel
-                      title="校园公告"
-                      icon={Megaphone}
-                      action="查看全部"
-                      onAction={() => setModal({ type: "notices" })}
-                    >
-                      <AnnouncementList
-                        items={data.notices}
-                        loading={data.loading}
-                        onOpen={(n) => setModal({ type: "notice", value: n })}
-                      />
-                    </Panel>
-                    <Panel
-                      title="近期日程"
-                      icon={CalendarBlank}
-                      action="查看日历"
-                      onAction={() => navigate("calendar")}
-                    >
-                      <Timeline
-                        events={data.events}
-                        user={data.user}
-                        onOpen={(e) => setModal({ type: "event", value: e })}
-                      />
-                    </Panel>
-                  </div>
-                  <Panel
-                    title="推荐社团"
-                    icon={Star}
-                    action="浏览全部"
-                    onAction={() => navigate("discover")}
-                    className="recommended"
-                  >
-                    {recommended.length ? (
-                      <div className="club-grid">
-                        {recommended.map((c) => (
-                          <ClubCard
-                            key={c.id}
-                            club={c}
-                            base={data.info.baseURL}
-                            onOpen={showClub}
-                          />
-                        ))}
-                      </div>
-                    ) : (
-                      <Empty title={data.loading ? "正在同步校园社团" : "暂无可显示的社团"} />
-                    )}
-                  </Panel>
-                  <div className="home-shortcuts">
-                    {[
-                      ["creativity", "创造 · 让想法发光"],
-                      ["activity", "活动 · 让校园生动"],
-                      ["service", "服务 · 让善意发生"],
-                      ["study", "学术 · 让好奇延续"],
-                    ].map(([p, title]) => (
-                      <button key={p} onClick={() => navigate(p)}>
-                        <span>{title}</span>
-                        <ArrowUpRight size={17} />
-                      </button>
-                    ))}
-                  </div>
-                </>
+                <Home
+                  onNotice={(value) => setModal({ type: "notice", value })}
+                  onNotices={() => setModal({ type: "notices" })}
+                  onEvent={(value) => setModal({ type: "event", value })}
+                />
               )}
               {(page === "discover" || page === "mine" || categories[page]) && (
                 <ClubList

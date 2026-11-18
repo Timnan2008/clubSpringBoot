@@ -17,7 +17,7 @@ export function AdminPages({ kind }) {
   }[kind];
   return (
     <>
-      <Heading title={title} tag="CAMPUS OPERATIONS" detail="校园事务，在这里有序处理。" />
+      <Heading title={title} detail="查看并处理校园管理事项。" />
       {!data.user ? (
         <Gate />
       ) : !staff || (kind === "addClub" && !admin) ? (

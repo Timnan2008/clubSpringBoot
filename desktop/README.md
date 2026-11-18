@@ -1,6 +1,17 @@
-# 青浦世外社团 · Windows / Mac 客户端 1.2.0
+# 青浦世外社团 · Windows / Mac 客户端 1.2.1
 
 两端现在使用同一套 Electron + React 本地界面。默认浅色，可以在「设置 → 自定义界面」切换深色 / 跟随系统、选主题色、调整字号、更换背景。原网站代码不修改。
+
+本次 1.2.1 调整了显示界面：
+
+- 首页改成社团主栏、日程侧栏和公告列表，缩小重复的统计框。
+- 保留真实校徽和社团标志，减少大圆角、彩色阴影、英文小标题和空泛口号。
+- 社团卡片增加局部鼠标点阵、边框和箭头反馈；键盘能打开详情，减少动态模式会关闭动效。
+- 浅色、深色和自定义背景继续共用同一套页面。已有外观设置保留；新用户默认使用校徽蓝和纯色背景。
+
+页面布局在 `desktop/mac/src/workbench.css`，首页在 `Home.jsx`，卡片交互在 `interaction.jsx`。改软件界面时继续使用这些共享文件。
+
+参考了 [原网站](https://qpwflhsclub.com) 的社团标识和卡片反馈，并对照 [Linear](https://linear.app/features)、[Notion Calendar](https://www.notion.com/product/calendar) 和 [Raycast](https://www.raycast.com/) 的信息层级、间距和操作入口。没有使用它们的产品图片或源码。
 
 ## 从 main 开始
 
@@ -69,7 +80,7 @@ Windows 在 `desktop` 中运行：
 npm run dist
 ```
 
-安装包：`desktop/release/QingpuWFL-Club-Setup-1.2.0.exe`。需要免安装 ZIP 时运行 `npm run dist:zip`。当前为未签名预览版。
+安装包：`desktop/release/QingpuWFL-Club-Setup-1.2.1.exe`。需要免安装 ZIP 时运行 `npm run dist:zip`。当前为未签名预览版。
 
 Mac 在 `desktop/mac` 中运行：
 
@@ -79,7 +90,7 @@ ELECTRON_CACHE="$PWD/.cache/electron" ELECTRON_BUILDER_CACHE="$PWD/.cache/electr
 
 产物：`desktop/mac/release/mac-arm64/青浦世外社团.app` 及同目录中的 DMG / ZIP。Apple 签名与公证尚未实施。
 
-GitHub Actions 的「Desktop Windows build」会在 main 的 desktop 代码更新后检查并打包；完成后在对应运行页面下载 `QPWFL-Windows-1.2.0` 产物。不会自动发布网站或替换原网站下载文件。
+GitHub Actions 的「Desktop Windows build」会在 main 的 desktop 代码更新后检查并打包；完成后在对应运行页面下载 `QPWFL-Windows-1.2.1` 产物。不会自动发布网站或替换原网站下载文件。
 
 ## 检查
 
@@ -92,6 +103,8 @@ npm run test:unified
 ```
 
 9 项规则检查；统一版检查包括外观、背景导入、重启保存、三种窗口尺寸、Windows 窗口按钮和管理页面。Mac 的 `npm run test:app` 另检查公开数据与主要业务表单。真实校园公开数据只读；需要写入的流程使用隔离进程内的测试资料，不操作真实账号。
+
+`npm run test:interface` 检查新界面的真实社团数据、快捷搜索、键盘打开详情、鼠标反馈、减少动态、浅深色和三种窗口尺寸。截图保存在 `desktop/mac/qa/refinement/`。
 
 本机 Mac 的打包 App 已通过启动检查。GitHub 的 Windows 机器也已通过统一版操作检查，并生成 EXE 安装包和免安装 ZIP，可在 [Windows 构建记录](https://github.com/Timnan2008/clubSpringBoot/actions/workflows/desktop.yml) 查看结果及下载产物。自动检查不包含真实账号写入和安装向导；这两项仍需账号持有人在自己的电脑验收。
 

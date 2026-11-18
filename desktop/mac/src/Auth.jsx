@@ -20,19 +20,17 @@ export default function Auth({ onClose }) {
       <div className="auth-layout">
         <aside className="auth-art">
           <img src="../assets/crest.svg" alt="校徽" />
-          <span className="eyebrow">QPWFL CAMPUS</span>
           <h3>
-            热爱，让我们
+            青浦世外
             <br />
-            相遇。
+            社团管理
           </h3>
           <p>
-            你的社团、伙伴与校园日常，
+            使用校园账号登录，
             <br />
-            现在都在这里。
+            查看活动、管理社团和联系同学。
           </p>
-          <div className="orb orb-one" />
-          <div className="orb orb-two" />
+          <div className="auth-grid" aria-hidden="true" />
           <span className="auth-security">
             <ShieldCheck size={16} />
             校园账号 · 安全连接

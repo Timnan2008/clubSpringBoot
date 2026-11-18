@@ -76,13 +76,6 @@ button:active:not(:disabled) {
   font-size: calc(12px * var(--font-scale, 1));
   letter-spacing: 0.5px;
 }
-.titlebar-tag {
-  position: absolute;
-  right: 22px;
-  font-size: calc(9px * var(--font-scale, 1));
-  letter-spacing: 2px;
-  color: var(--muted);
-}
 .app-layout {
   display: flex;
   min-height: 0;
@@ -180,18 +173,6 @@ button:active:not(:disabled) {
 }
 .sidebar-bottom {
   margin-top: auto;
-}
-.term {
-  margin: 24px 12px 22px;
-  font-size: calc(10px * var(--font-scale, 1));
-  color: var(--text-secondary);
-}
-.term small {
-  display: block;
-  font-size: calc(8px * var(--font-scale, 1));
-  letter-spacing: 1.4px;
-  margin-top: 10px;
-  color: var(--muted);
 }
 .live-dot {
   display: inline-block;
@@ -350,13 +331,6 @@ button:active:not(:disabled) {
   justify-content: space-between;
   margin-bottom: 24px;
 }
-.eyebrow {
-  font-size: calc(9px * var(--font-scale, 1));
-  letter-spacing: 2.4px;
-  color: var(--text-secondary);
-  margin-bottom: 9px;
-  font-weight: 500;
-}
 h1 {
   font-size: calc(29px * var(--font-scale, 1));
   line-height: 1.2;
@@ -368,83 +342,6 @@ h1 {
   font-size: calc(12px * var(--font-scale, 1));
   color: var(--muted);
   margin-top: 9px;
-}
-.wave {
-  display: inline-block;
-  color: var(--accent-ink);
-  font-size: calc(25px * var(--font-scale, 1));
-  margin-left: 12px;
-}
-.today {
-  text-align: right;
-}
-.today > span {
-  font-size: calc(12px * var(--font-scale, 1));
-  color: var(--text-secondary);
-}
-.today small {
-  display: block;
-  color: var(--muted);
-  font-size: calc(10px * var(--font-scale, 1));
-  margin-top: 8px;
-}
-.summary-row {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) 152px;
-  gap: 14px;
-  margin-bottom: 23px;
-}
-.summary-card {
-  height: 89px;
-  padding: 17px 20px;
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  border: 1px solid var(--edge);
-  background: linear-gradient(
-    125deg,
-    color-mix(in srgb, var(--accent) 22%, transparent),
-    var(--surface)
-  );
-  border-radius: var(--radius);
-  text-align: left;
-  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--accent) 1%, transparent);
-}
-.summary-card:hover {
-  border-color: var(--edge);
-  background: var(--surface-raised);
-}
-.summary-card > svg {
-  margin-left: auto;
-  color: var(--muted);
-}
-.summary-icon {
-  height: 45px;
-  width: 45px;
-  background: color-mix(in srgb, var(--accent) 8%, transparent);
-  color: var(--accent-ink);
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.summary-card div > span {
-  font-size: calc(12px * var(--font-scale, 1));
-  color: var(--text-secondary);
-}
-.summary-card strong {
-  font-size: calc(26px * var(--font-scale, 1));
-  font-weight: 550;
-  display: block;
-  margin-top: 4px;
-  line-height: 1.1;
-}
-.summary-card strong small {
-  font-size: calc(11px * var(--font-scale, 1));
-  margin-left: 7px;
-  font-weight: 400;
-  color: var(--text-secondary);
 }
 .button {
   display: inline-flex;
@@ -469,16 +366,6 @@ h1 {
   border: 1px solid var(--edge);
   color: var(--text);
   box-shadow: none;
-}
-.button.create-button {
-  height: 45px;
-  align-self: center;
-}
-.dashboard-middle {
-  display: grid;
-  grid-template-columns: 1.05fr 1fr;
-  gap: 20px;
-  margin-bottom: 22px;
 }
 .panel {
   min-width: 0;
@@ -680,13 +567,6 @@ h1 {
   margin: 7px 0 8px;
   max-width: 370px;
 }
-.recommended .panel-heading {
-  border-bottom: 0;
-  height: 51px;
-}
-.recommended h2 svg {
-  color: var(--warning);
-}
 .section-note {
   font-size: calc(10px * var(--font-scale, 1));
   color: var(--muted);
@@ -732,27 +612,6 @@ h1 {
 .club-cover img[src*="WFL-logo"] {
   object-fit: contain;
   padding: 12px;
-}
-.cover-shade {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    0deg,
-    color-mix(in srgb, var(--accent) 22%, transparent),
-    transparent 65%
-  );
-}
-.category-chip {
-  position: absolute;
-  bottom: 9px;
-  left: 11px;
-  background: color-mix(in srgb, var(--accent) 22%, transparent);
-  border: 1px solid var(--edge);
-  color: var(--text);
-  font-size: calc(8px * var(--font-scale, 1));
-  padding: 4px 7px;
-  border-radius: 4px;
-  backdrop-filter: blur(8px);
 }
 .featured-star {
   position: absolute;
@@ -1186,9 +1045,6 @@ h1 {
   animation: none !important;
   transition: none !important;
 }
-.compact .summary-card {
-  height: 77px;
-}
 .compact .panel-heading {
   height: 46px;
 }
@@ -1197,12 +1053,6 @@ h1 {
 }
 .compact .content {
   padding-top: 18px;
-}
-.compact .welcome {
-  margin-bottom: 18px;
-}
-.compact .summary-row {
-  margin-bottom: 18px;
 }
 .compact .announcement {
   min-height: 52px;
@@ -1246,29 +1096,8 @@ h1 {
     font-size: calc(10px * var(--font-scale, 1));
     gap: 8px;
   }
-  .summary-row {
-    gap: 10px;
-    grid-template-columns: repeat(3, minmax(0, 1fr)) 120px;
-  }
-  .summary-card {
-    padding: 14px 12px;
-    gap: 10px;
-  }
-  .summary-icon {
-    width: 36px;
-    height: 40px;
-  }
-  .summary-card div > span {
-    font-size: calc(11px * var(--font-scale, 1));
-  }
-  .summary-card strong {
-    font-size: calc(23px * var(--font-scale, 1));
-  }
   .club-grid {
     gap: 10px;
-  }
-  .dashboard-middle {
-    gap: 15px;
   }
   .club-card h3 {
     font-size: calc(13px * var(--font-scale, 1));
@@ -1278,9 +1107,6 @@ h1 {
   }
   .search-trigger {
     width: 280px;
-  }
-  .today small {
-    display: none;
   }
   .club-cover {
     height: 90px;
@@ -1325,14 +1151,8 @@ h1 {
     flex: 1;
     max-width: 450px;
   }
-  .today {
-    display: block;
-  }
   .content {
     padding: 22px 26px;
-  }
-  .titlebar-tag {
-    display: none;
   }
   .message-columns,
   .settings-layout {
@@ -1358,17 +1178,8 @@ h1 {
   .welcome p {
     margin-top: 6px;
   }
-  .summary-row {
-    margin-bottom: 18px;
-  }
-  .summary-card {
-    height: 77px;
-  }
   .panel-heading {
     height: 47px;
-  }
-  .dashboard-middle {
-    margin-bottom: 18px;
   }
   .empty {
     min-height: 162px;
@@ -1396,56 +1207,6 @@ h1 {
   }
 }
 
-/* Compact recommendations keep the home dashboard readable in a native window. */
-.recommended .club-card {
-  display: grid;
-  grid-template-columns: 64px minmax(0, 1fr);
-  gap: 12px;
-  padding: 12px;
-  align-items: start;
-}
-.recommended .club-cover {
-  width: 64px;
-  height: 76px;
-  border-radius: 7px;
-  overflow: hidden;
-}
-.recommended .club-cover img {
-  object-fit: contain;
-  background: var(--on-accent);
-}
-.recommended .category-chip,
-.recommended .featured-star,
-.recommended .cover-shade {
-  display: none;
-}
-.recommended .club-card-body {
-  padding: 0;
-  min-width: 0;
-}
-.recommended .club-card h3 {
-  font-size: calc(13px * var(--font-scale, 1));
-  line-height: 1.5;
-}
-.recommended .club-card p {
-  margin: 5px 0 7px;
-  font-size: calc(10px * var(--font-scale, 1));
-  height: 32px;
-  -webkit-line-clamp: 2;
-}
-.recommended .club-card-footer {
-  padding-top: 5px;
-}
-.recommended .club-card-footer .arrow-square {
-  width: 21px;
-  height: 21px;
-}
-.page-home .recommended .section-note {
-  margin: 13px 0;
-}
-.recommended .club-card:hover {
-  transform: translateY(-2px);
-}
 /* Desktop-only forms and full-page campus services. */
 textarea {
   font: inherit;
@@ -1505,17 +1266,9 @@ button:disabled {
   font-size: calc(13px * var(--font-scale, 1));
   gap: 12px;
 }
-.nav-item.nav-section {
-  margin-top: 13px;
-  border-top: 1px solid var(--edge);
-  padding-top: 16px;
-}
 .sidebar-bottom {
   margin-top: 12px;
   flex-shrink: 0;
-}
-.term {
-  padding-top: 12px;
 }
 .muted {
   color: var(--muted);
@@ -1669,9 +1422,6 @@ button:disabled {
   font-size: calc(13px * var(--font-scale, 1));
   z-index: 1;
 }
-.auth-art .eyebrow {
-  font-size: calc(9px * var(--font-scale, 1));
-}
 .auth-security {
   margin-top: auto;
   color: var(--text-secondary);
@@ -1680,27 +1430,6 @@ button:disabled {
   align-items: center;
   gap: 7px;
   z-index: 1;
-}
-.orb {
-  position: absolute;
-  border: 1px solid var(--edge);
-  border-radius: 50%;
-  width: 230px;
-  height: 230px;
-  z-index: 0;
-}
-.orb-one {
-  bottom: 48px;
-  right: -120px;
-  box-shadow:
-    0 0 50px color-mix(in srgb, var(--accent) 16%, transparent),
-    inset 0 0 40px color-mix(in srgb, var(--accent) 13%, transparent);
-}
-.orb-two {
-  bottom: -100px;
-  right: -40px;
-  width: 280px;
-  height: 280px;
 }
 .auth-form {
   padding: 0 5px 10px 0;
@@ -2575,9 +2304,6 @@ button:disabled {
     padding: 11px;
     justify-content: center;
   }
-  .nav-item.nav-section {
-    padding-top: 17px;
-  }
   .sidebar-bottom {
     margin-top: 4px;
   }
@@ -2657,18 +2383,6 @@ button:disabled {
 }
 .filter-tabs button:hover {
   color: var(--accent-ink);
-}
-.recommended .club-grid {
-  margin-top: 12px;
-}
-.recommended .club-card p {
-  min-height: 0;
-}
-.recommended .club-card-footer {
-  margin-top: 10px;
-}
-.recommended {
-  margin-bottom: 0;
 }
 .home-shortcuts {
   margin-top: 18px;

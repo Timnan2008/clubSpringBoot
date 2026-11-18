@@ -27,6 +27,8 @@ jobs:
         run: npm --prefix desktop run build
       - name: Exercise Windows app, custom appearance and staff forms
         run: npm --prefix desktop run test:unified
+      - name: Check desktop layout, keyboard and pointer feedback
+        run: npm --prefix desktop run test:interface
       - name: Build installer with Windows application icon
         run: npm --prefix desktop run dist
       - name: Build ZIP
@@ -34,10 +36,12 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: QPWFL-Windows-1.2.0
+          name: QPWFL-Windows-1.2.1
           path: |
             desktop/release/*.exe
             desktop/release/*.zip
             desktop/mac/qa/unified/*.png
             desktop/mac/qa/unified/result.json
+            desktop/mac/qa/refinement/*.png
+            desktop/mac/qa/refinement/result.json
           retention-days: 14

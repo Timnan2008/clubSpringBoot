@@ -40,7 +40,7 @@ export function Wall() {
     <WallInside />
   ) : (
     <>
-      <Heading title="校园墙" tag="CAMPUS MOMENTS" detail="分享日常，让校园里的故事被看见。" />
+      <Heading title="校园墙" detail="查看校园动态和同学分享。" />
       <Gate />
     </>
   );
@@ -56,7 +56,7 @@ function WallInside() {
     social = useResource("social");
   return (
     <>
-      <Heading title="校园墙" tag="CAMPUS MOMENTS" detail="想法、发现，和属于我们的校园日常。">
+      <Heading title="校园墙" detail="发布动态、查看评论和社团消息。">
         <Action disabled={!social.data?.canPost} onClick={() => setCompose(true)}>
           <Plus size={18} />
           发布动态
@@ -115,7 +115,7 @@ function WallInside() {
               <Empty
                 icon={Chalkboard}
                 title={query ? "没有找到动态" : "校园墙还很安静"}
-                detail="下一段校园故事，也许就从你开始。"
+                detail="暂时没有动态，点击“发布动态”添加内容。"
               />
             )}
           </ResourceState>
@@ -139,7 +139,7 @@ function WallInside() {
         </section>
         <aside className="wall-aside">
           <Panel title="校园，一起发生" icon={Chalkboard}>
-            <p className="long-copy">分享值得记录的日常，也认真回应别人的热爱。</p>
+            <p className="long-copy">发布校园动态，参与评论和讨论。</p>
             <span className="muted">友善交流，尊重每一个人。</span>
           </Panel>
           {social.error && <Feedback error={social.error} />}
@@ -254,7 +254,7 @@ export function Messages() {
     <MessagesInside />
   ) : (
     <>
-      <Heading title="站内私信" tag="STAY CONNECTED" detail="和同学、老师与社团伙伴保持联系。" />
+      <Heading title="站内私信" detail="和同学、老师与社团伙伴保持联系。" />
       <Gate />
     </>
   );
@@ -266,7 +266,7 @@ function MessagesInside() {
     [finding, setFinding] = useState(false);
   return (
     <>
-      <Heading title="站内私信" tag="STAY CONNECTED" detail="熟悉的伙伴，更靠近的连接。">
+      <Heading title="站内私信" detail="查看最近会话和校园通知。">
         <Action secondary onClick={() => setFinding(true)}>
           <Plus size={18} />
           发起会话
@@ -307,7 +307,7 @@ function MessagesInside() {
                 </button>
               ))
             ) : (
-              <Empty title="暂无最近会话" detail="点右上角，找一位校园伙伴。" />
+              <Empty title="暂无最近会话" detail="点击“新私信”开始聊天。" />
             )}
           </aside>
           {peer ? (

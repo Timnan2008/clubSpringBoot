@@ -32,11 +32,7 @@ export function Calendar() {
     <CalendarInside />
   ) : (
     <>
-      <Heading
-        title="活动日程"
-        tag="MAKE TIME FOR WHAT MATTERS"
-        detail="社团活动与自己的安排，都在一个地方。"
-      />
+      <Heading title="活动日程" detail="社团活动与自己的安排，都在一个地方。" />
       <Gate />
     </>
   );
@@ -66,11 +62,7 @@ function CalendarInside() {
   };
   return (
     <>
-      <Heading
-        title="活动日程"
-        tag="MAKE TIME FOR WHAT MATTERS"
-        detail="留出时间，给重要的人和事。"
-      >
+      <Heading title="活动日程" detail="查看社团活动，添加个人日程。">
         <Action onClick={() => setModal({ type: "new" })}>
           <Plus size={18} />
           添加个人日程
@@ -176,7 +168,7 @@ function CalendarInside() {
               </button>
             ))
           ) : (
-            <Empty title="这段时间没有日程" detail="留一点空白，也可以安排一点新的热爱。" />
+            <Empty title="这段时间没有日程" detail="点击“添加日程”安排活动。" />
           )}
         </Panel>
       </ResourceState>
@@ -242,7 +234,7 @@ export function Profile() {
   if (!ui.data.user) return <Gate />;
   return (
     <>
-      <Heading title="个人资料" tag="YOUR CAMPUS IDENTITY" detail="让伙伴们认识你。" />
+      <Heading title="个人资料" detail="查看和修改个人资料。" />
       <div className="profile-layout">
         <Panel title="我的校园账号" icon={UserCircle}>
           <div className="profile-avatar">
@@ -292,7 +284,7 @@ export function Settings({ compact, setCompact, reduced, setReduced }) {
   const [logout, setLogout] = useState(false);
   return (
     <>
-      <Heading title="设置" tag="MAKE IT YOURS" detail="让校园工作台，更适合你的习惯。" />
+      <Heading title="设置" detail="管理账号、外观和显示设置。" />
       <AppearanceSettings />
       <div className="settings-layout">
         <Panel title="账号与连接" icon={ShieldCheck}>
@@ -336,7 +328,10 @@ export function Settings({ compact, setCompact, reduced, setReduced }) {
           <Setting title="减少动态效果" detail="关闭装饰动画。">
             <Toggle label="减少动态效果" value={reduced} onChange={setReduced} />
           </Setting>
-          <Setting title="青浦世外社团" detail={`${data.info.platform === "win32" ? "Windows" : "Mac"} 客户端 · v${data.info.version || "1.2.0"}`}>
+          <Setting
+            title="青浦世外社团"
+            detail={`${data.info.platform === "win32" ? "Windows" : "Mac"} 客户端 · v${data.info.version || "1.2.1"}`}
+          >
             <span className="version-chip">预览版</span>
           </Setting>
         </Panel>
@@ -388,7 +383,7 @@ export function Booking() {
     <BookingInside />
   ) : (
     <>
-      <Heading title="羽毛球场预约" tag="LET’S PLAY" detail="约好一场运动，把热爱带上球场。" />
+      <Heading title="羽毛球场预约" detail="查看场地空闲时间和预约记录。" />
       <Gate />
     </>
   );
@@ -427,11 +422,7 @@ function BookingInside() {
   const selectedCourt = court || String(calendar?.courts?.[0]?.id || "");
   return (
     <>
-      <Heading
-        title="羽毛球场预约"
-        tag="LET’S PLAY"
-        detail="给运动留一点时间，和伙伴打一场好球。"
-      />
+      <Heading title="羽毛球场预约" detail="选择日期和时段，预约羽毛球场。" />
       <div className="tabs section-tabs">
         <button className={tab === "slots" ? "active" : ""} onClick={() => setTab("slots")}>
           预约场地

@@ -52,15 +52,8 @@ export function ClubList({ category = "all", mine = false }) {
   return (
     <>
       <Heading
-        tag={
-          mine
-            ? "YOUR PEOPLE, YOUR PASSION"
-            : effective === "all"
-              ? "FIND YOUR NEXT PASSION"
-              : "EXPLORE / " + effective.toUpperCase()
-        }
         title={mine ? "我的社团" : categories[effective] || "发现社团"}
-        detail={mine ? "与同频的人，一起把热爱变成日常。" : "每一种热爱，都能在校园找到回响。"}
+        detail={mine ? "查看已加入的社团和最新活动。" : "按类别查找社团，查看介绍和活动。"}
       >
         {mine && (
           <Action secondary onClick={() => ui.navigate("workspace")}>
@@ -96,7 +89,7 @@ export function ClubList({ category = "all", mine = false }) {
           </div>
           <p className="result-count">{data.loading ? "正在同步社团…" : `${list.length} 个社团`}</p>
           {list.length ? (
-            <div className="club-grid">
+            <div className="catalog-grid">
               {list.map((c) => (
                 <ClubCard key={c.id} club={c} base={data.info.baseURL} onOpen={ui.showClub} />
               ))}
@@ -114,7 +107,7 @@ export function ClubList({ category = "all", mine = false }) {
     </>
   );
 }
-export function Gate({ title = "登录，连接你的校园生活" }) {
+export function Gate({ title = "登录后使用校园服务" }) {
   const ui = useUI();
   return (
     <div className="full-empty">
@@ -160,7 +153,7 @@ export function ClubDetail({ club }) {
           </span>
           <h1>{c.clubName}</h1>
           <p>{c.clubNameEn}</p>
-          <p className="hero-slogan">{c.sortDescription || "相遇于热爱，一起探索更多可能。"}</p>
+          <p className="hero-slogan">{c.sortDescription || "查看社团介绍、成员与活动。"}</p>
         </div>
         <div className="club-hero-action">
           <Action
@@ -286,29 +279,7 @@ export function ClubDetail({ club }) {
 export function Makers() {
   return (
     <>
-      <Heading
-        tag="QINGYUAN / MAKE SOMETHING"
-        title="青源智造"
-        detail="把校园里的好点子，变成看得见的作品。"
-      />
-      <section className="maker-hero">
-        <span className="eyebrow">IDEAS INTO REALITY</span>
-        <h2>
-          让想法，有一个
-          <br />
-          <em>开始的地方。</em>
-        </h2>
-        <p>
-          探索、协作、创造。
-          <br />
-          这里将记录属于青源智造的项目与作品。
-        </p>
-        <div className="maker-shape">
-          <i />
-          <i />
-          <i />
-        </div>
-      </section>
+      <Heading title="青源智造" detail="查看学生项目和作品。" />
       <Panel title="项目与作品" icon={Buildings}>
         <Empty title="作品内容准备中" detail="这个页面已搬进软件，后续会在这里补充项目。" />
       </Panel>
@@ -335,11 +306,7 @@ function WorkspaceInside() {
   );
   return (
     <>
-      <Heading
-        tag="CLUB WORKSPACE"
-        title="社团工作台"
-        detail="在这里管理社团成员、活动和加入申请。"
-      >
+      <Heading title="社团工作台" detail="在这里管理社团成员、活动和加入申请。">
         {id && (
           <select value={id} aria-label="选择管理社团" onChange={(e) => setClub(e.target.value)}>
             {clubs.map((c) => (
@@ -392,7 +359,7 @@ function WorkspaceInside() {
                         </div>
                       ))
                     ) : (
-                      <Empty title="还没有活动" detail="从一次新的活动开始，把伙伴们聚在一起。" />
+                      <Empty title="还没有活动" detail="点击“创建活动”安排社团活动。" />
                     )}
                   </Panel>
                   <Panel title="社团文档" icon={Buildings}>
