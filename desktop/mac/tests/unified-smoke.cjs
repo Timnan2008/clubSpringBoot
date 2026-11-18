@@ -237,7 +237,10 @@ const launch = () =>
       JSON.stringify(
         {
           passed: true,
-          platform: "Windows controls on macOS Electron; Windows machine not available",
+          platform:
+            process.platform === "win32"
+              ? "Native Windows Electron"
+              : "Windows controls on macOS Electron; Windows machine not available",
           themes: ["light", "dark", "system"],
           appearancePersistence: true,
           customImagePersistence: true,

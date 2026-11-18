@@ -57,7 +57,7 @@ for s in ['1. “外观模式”选浅色、深色，或跟随系统。','2. “
  y=paragraph(s,40,y,W-80,10,18)-3
 text('文件与检查',40,y-3,11,'#7952D9');y-=24
 y=paragraph('安装包：Windows 在 desktop/release，Mac 在 desktop/mac/release。安装后直接打开，无需 Java 或 SSH。',40,y,W-80,9.2,16)-6
-y=paragraph('本机检查通过：公开社团读取、主要表单、三种窗口大小、外观重启保存、图片导入、管理页权限。Windows 安装包在 Mac 交叉构建，仍需在 Windows 安装验收。',40,y,W-80,9.2,16)-6
+y=paragraph('Mac App 已检查启动。GitHub 的 Windows 机器也通过了换肤、重启保存、图片导入、管理表单和权限检查，并生成 EXE / ZIP。仍需在自己的电脑安装验收。',40,y,W-80,9.2,16)-6
 y=paragraph('未完成：新账号注册、附件与工作台文档、任职邀请、旧聊天记录加载、预约 Excel 导出和青源作品内容。真实账号操作还需本人验收。',40,y,W-80,9.2,16)
 assert y>48,y
 c.showPage();c.save();print(out/'Windows与Mac统一版-说明与操作.pdf')

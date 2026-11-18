@@ -93,7 +93,7 @@ npm run test:unified
 
 9 项规则检查；统一版检查包括外观、背景导入、重启保存、三种窗口尺寸、Windows 窗口按钮和管理页面。Mac 的 `npm run test:app` 另检查公开数据与主要业务表单。真实校园公开数据只读；需要写入的流程使用隔离进程内的测试资料，不操作真实账号。
 
-本机是 Mac，Windows 控件在 Mac 的 Electron 中检查，不能替代 Windows 安装后的实际验收。真实账号业务仍需要账号持有人确认。
+本机 Mac 的打包 App 已通过启动检查。GitHub 的 Windows 机器也已通过统一版操作检查，并生成 EXE 安装包和免安装 ZIP，可在 [Windows 构建记录](https://github.com/Timnan2008/clubSpringBoot/actions/workflows/desktop.yml) 查看结果及下载产物。自动检查不包含真实账号写入和安装向导；这两项仍需账号持有人在自己的电脑验收。
 
 ## 队友可直接转发的话
 
