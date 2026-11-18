@@ -12,6 +12,11 @@ const fixed = {
   booking: "/api/booking",
   bookings: "/api/booking/mine",
   recovery: "/api/campus-social/keys/recovery",
+  staffAccounts: "/api/user/all",
+  staffClubs: "/api/user/my-clubs",
+  suggestions: "/api/suggestion/all",
+  moderationWords: "/api/campus-social/moderation/words",
+  moderationStrikes: "/api/campus-social/moderation/strikes",
 };
 const positive = (value) => {
   if (!/^[1-9]\d{0,8}$/.test(String(value))) throw Error("无效社团或预约编号");
@@ -104,6 +109,52 @@ function mutation(key, a = {}) {
       route = p + "/me";
       method = "PUT";
       body = { name: body.name, nameEn: body.nameEn };
+      break;
+    case "clubAdd":
+      route = "/api/club";
+      break;
+    case "accountRole":
+      route = "/api/user/change-role";
+      if (![0, 2, 3].includes(body.newRole)) throw Error("无效账号身份");
+      body = { usernameEn: String(body.usernameEn || "").slice(0, 100), newRole: body.newRole };
+      break;
+    case "appointPresident":
+      route = "/api/user/appoint-president";
+      body = {
+        usernameEn: String(body.usernameEn || "").slice(0, 100),
+        clubId: Number(positive(body.clubId)),
+        isVicePresident: !!body.isVicePresident,
+      };
+      break;
+    case "revokePresident":
+      route = "/api/user/revoke-president";
+      body = { userId: Number(positive(body.userId)) };
+      break;
+    case "suggestionPass":
+      route = "/api/suggestion/pass?id=" + positive(a.id);
+      method = "PUT";
+      break;
+    case "suggestionDelete":
+      route = "/api/suggestion/" + positive(a.id);
+      method = "DELETE";
+      break;
+    case "moderationAdd":
+      route = p + "/moderation/words";
+      body = {
+        word: String(body.word || "")
+          .trim()
+          .slice(0, 100),
+      };
+      break;
+    case "moderationDelete":
+      if (typeof a.word !== "string" || !a.word.trim() || a.word.length > 100)
+        throw Error("无效词条");
+      route = p + "/moderation/words/" + encodeURIComponent(a.word);
+      method = "DELETE";
+      break;
+    case "moderationForgive":
+      route = p + "/moderation/forgive";
+      body = { account: account(body.account) };
       break;
     case "join":
       route = p + "/clubs/" + positive(a.id) + "/join";

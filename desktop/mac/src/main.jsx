@@ -12,7 +12,12 @@ import {
   Buildings,
   ArrowUpRight,
   ShieldCheck,
+  Minus,
+  Square,
+  Copy,
+  X,
 } from "@phosphor-icons/react";
+import { AppearanceProvider } from "./Appearance";
 import { useCampus, categories } from "./data";
 import {
   Action,
@@ -32,8 +37,15 @@ import { setCryptoScope } from "./lib/message-crypto";
 import { ClubList, ClubDetail, Makers, Workspace } from "./ClubPages";
 import { Wall, Messages } from "./SocialPages";
 import { Calendar, Profile, Settings, Booking } from "./PersonalPages";
+import { AdminPages } from "./AdminPages";
 import "./styles.css";
+import "./theme.css";
 function App() {
+  const [maximized, setMaximized] = useState(false);
+  useEffect(() => {
+    window.clubDesktop.windowAction("state").then(setMaximized);
+    return window.clubDesktop.onWindowState(setMaximized);
+  }, []);
   const data = useCampus(),
     [page, setPage] = useState("home"),
     [club, setClub] = useState(null),
@@ -80,10 +92,36 @@ function App() {
     .slice(0, 4);
   return (
     <UI.Provider value={ui}>
-      <div className={`app ${compact ? "compact" : ""} ${reduced ? "reduced" : ""}`}>
-        <div className="titlebar">
+      <div
+        className={`app platform-${data.info.platform || "darwin"} ${compact ? "compact" : ""} ${reduced ? "reduced" : ""}`}
+      >
+        <div className="app-background" aria-hidden="true" />
+        <div className="titlebar" onDoubleClick={() => window.clubDesktop.windowAction("maximize")}>
           <span>上海青浦世外高级中学 · 社团管理平台</span>
           <span className="titlebar-tag">CAMPUS DESKTOP</span>
+          {data.info.platform === "win32" && (
+            <div className="window-controls">
+              <button
+                aria-label="最小化窗口"
+                onClick={() => window.clubDesktop.windowAction("minimize")}
+              >
+                <Minus size={16} />
+              </button>
+              <button
+                aria-label={maximized ? "还原窗口" : "最大化窗口"}
+                onClick={() => window.clubDesktop.windowAction("maximize")}
+              >
+                {maximized ? <Copy size={14} /> : <Square size={14} />}
+              </button>
+              <button
+                aria-label="关闭窗口"
+                className="window-close"
+                onClick={() => window.clubDesktop.windowAction("close")}
+              >
+                <X size={18} />
+              </button>
+            </div>
+          )}
         </div>
         <div className="app-layout">
           <Sidebar page={page} navigate={navigate} data={data} />
@@ -235,6 +273,9 @@ function App() {
               {page === "booking" && <Booking />}
               {page === "makers" && <Makers />}
               {page === "profile" && <Profile />}
+              {["accounts", "moderation", "suggestions", "addClub"].includes(page) && (
+                <AdminPages key={page} kind={page} />
+              )}
               {page === "settings" && (
                 <Settings
                   compact={compact}
@@ -356,4 +397,8 @@ function App() {
     </UI.Provider>
   );
 }
-createRoot(document.getElementById("root")).render(<App />);
+createRoot(document.getElementById("root")).render(
+  <AppearanceProvider>
+    <App />
+  </AppearanceProvider>,
+);

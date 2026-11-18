@@ -1,7 +1,7 @@
 {
   "name": "qpwfl-club-desktop",
-  "version": "0.2.0",
-  "description": "青浦世外社团 · Mac 客户端",
+  "version": "1.2.0",
+  "description": "青浦世外社团 · Windows / Mac 统一客户端",
   "author": "QPWFL Club",
   "private": true,
   "main": "electron/main.cjs",
@@ -13,7 +13,8 @@
     "test:app": "node tests/app-smoke.cjs",
     "pack:mac": "npm run build && electron-builder --mac --dir",
     "dist:mac": "npm run build && electron-builder --mac dmg zip",
-    "dist:mac:intel": "npm run build && electron-builder --mac dmg zip --x64"
+    "dist:mac:intel": "npm run build && electron-builder --mac dmg zip --x64",
+    "test:unified": "node tests/unified-smoke.cjs"
   },
   "dependencies": {
     "react": "19.1.1",

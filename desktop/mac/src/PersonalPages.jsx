@@ -23,6 +23,7 @@ import {
 } from "./ui";
 import { bridge, eventStatus } from "./data";
 import { Gate, ActivityForm } from "./ClubPages";
+import { AppearanceSettings } from "./Appearance";
 const iso = (d) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 export function Calendar() {
@@ -292,6 +293,7 @@ export function Settings({ compact, setCompact, reduced, setReduced }) {
   return (
     <>
       <Heading title="设置" tag="MAKE IT YOURS" detail="让校园工作台，更适合你的习惯。" />
+      <AppearanceSettings />
       <div className="settings-layout">
         <Panel title="账号与连接" icon={ShieldCheck}>
           <Setting
@@ -334,7 +336,7 @@ export function Settings({ compact, setCompact, reduced, setReduced }) {
           <Setting title="减少动态效果" detail="关闭装饰动画。">
             <Toggle label="减少动态效果" value={reduced} onChange={setReduced} />
           </Setting>
-          <Setting title="青浦世外社团" detail={`Mac 客户端 · v${data.info.version || "0.2.0"}`}>
+          <Setting title="青浦世外社团" detail={`${data.info.platform === "win32" ? "Windows" : "Mac"} 客户端 · v${data.info.version || "1.2.0"}`}>
             <span className="version-chip">预览版</span>
           </Setting>
         </Panel>

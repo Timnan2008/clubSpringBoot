@@ -5,7 +5,7 @@ const assert = require("node:assert/strict"),
 (async () => {
   fs.mkdirSync("qa", { recursive: true });
   const app = await electron.launch({
-    args: [path.join(__dirname, "..")],
+    args: [process.env.CLUB_APP_ROOT || path.join(__dirname, "..")],
     env: { ...process.env, CLUB_QA: "1" },
   });
   const errors = [],
@@ -349,7 +349,7 @@ const assert = require("node:assert/strict"),
     await page.getByRole("button", { name: "1", exact: true }).waitFor();
     await page.screenshot({ path: "qa/wall-fixture.png" });
     await page.getByRole("button", { name: "我的社团", exact: true }).click();
-    await page.getByRole("button", { name: "社团工作台", exact: true }).click();
+      await page.locator("nav").getByRole("button", { name: "社团工作台", exact: true }).click();
     await page.getByRole("button", { name: "成员", exact: true }).click();
     await page.getByText("测试同学", { exact: true }).last().waitFor();
     await page.getByRole("button", { name: "入社申请", exact: true }).click();

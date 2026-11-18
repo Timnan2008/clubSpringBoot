@@ -28,6 +28,9 @@ import {
   GraduationCap,
   Racquet,
   Lightbulb,
+  Briefcase,
+  UserGear,
+  ChatTeardropText,
 } from "@phosphor-icons/react";
 import { categories, imageURL, eventStatus } from "./data";
 import { useUI } from "./ui";
@@ -45,11 +48,17 @@ export const icons = {
   study: GraduationCap,
   booking: Racquet,
   makers: Lightbulb,
+  workspace: Briefcase,
+  accounts: UserGear,
+  moderation: ShieldCheck,
+  suggestions: ChatTeardropText,
+  addClub: Plus,
 };
 export const labels = {
   home: "首页",
   discover: "发现社团",
   mine: "我的社团",
+  workspace: "社团工作台",
   calendar: "活动日程",
   messages: "站内私信",
   wall: "校园墙",
@@ -59,6 +68,10 @@ export const labels = {
   study: "学术类社团",
   booking: "羽毛球场预约",
   makers: "青源智造",
+  accounts: "账号管理",
+  addClub: "添加社团",
+  moderation: "内容审核",
+  suggestions: "建议管理",
   settings: "设置",
 };
 export function Action({
@@ -94,12 +107,23 @@ export function Sidebar({ page, navigate, data }) {
       <div className="sidebar-label">校园工作台</div>
       <nav>
         {Object.entries(labels).map(([key, label]) => {
+          if (
+            key === "workspace" &&
+            !["president", "vice_president", "teacher", "admin"].includes(data.user?.role)
+          )
+            return null;
+          if (
+            ["accounts", "moderation", "suggestions"].includes(key) &&
+            !["teacher", "admin"].includes(data.user?.role)
+          )
+            return null;
+          if (key === "addClub" && data.user?.role !== "admin") return null;
           const Icon = icons[key];
           const count = key === "mine" ? data.mine.length : key === "messages" ? data.unread : 0;
           return (
             <button
               key={key}
-              className={`nav-item ${page === key ? "selected" : ""}`}
+              className={`nav-item ${["creativity", "booking", "accounts"].includes(key) ? "nav-section" : ""} ${page === key ? "selected" : ""}`}
               onClick={() => navigate(key)}
               aria-current={page === key ? "page" : undefined}
               title={label}
@@ -142,7 +166,7 @@ export function WorkspaceHeader({ data, onSearch, navigate, onAction }) {
       <button className="search-trigger" onClick={onSearch}>
         <MagnifyingGlass size={18} />
         <span>搜索社团、日程或公告</span>
-        <kbd>⌘ K</kbd>
+        <kbd>{data.info.platform === "win32" ? "Ctrl K" : "⌘ K"}</kbd>
       </button>
       <button
         className="icon-button"

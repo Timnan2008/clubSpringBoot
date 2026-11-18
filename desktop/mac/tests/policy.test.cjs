@@ -93,3 +93,32 @@ test("switching server discards an in-flight account and its token", async () =>
   assert.equal(r.ok, false);
   assert.equal(r.data, undefined);
 });
+
+test("staff operations stay on fixed routes and credentials are filtered", async () => {
+  assert.equal(resourcePath("staffAccounts"), "/api/user/all");
+  assert.throws(() => mutation("accountRole", { body: { newRole: 8 } }));
+  assert.throws(() => mutation("appointPresident", { body: { clubId: "../1" } }));
+  assert.throws(() => mutation("moderationForgive", { body: { account: "admin" } }));
+  assert.equal(
+    mutation("moderationDelete", { word: "a/b?#" }).route,
+    "/api/campus-social/moderation/words/a%2Fb%3F%23",
+  );
+  const client = createClient(
+    async () =>
+      new Response(
+        JSON.stringify({
+          code: 200,
+          data: [
+            {
+              username: "同学",
+              password: "private-hash",
+              clubs: [{ token: "private-token", name: "社团" }],
+            },
+          ],
+        }),
+        { headers: { "content-type": "application/json" } },
+      ),
+  );
+  const result = await client.read("staffAccounts");
+  assert.deepEqual(result.data, [{ username: "同学", clubs: [{ name: "社团" }] }]);
+});

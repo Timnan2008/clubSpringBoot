@@ -1,13 +1,18 @@
 {
   "name": "qingpu-wfl-club-desktop",
-  "version": "1.1.5",
+  "version": "1.2.0",
   "private": true,
   "description": "Qingpu WFL Club Windows desktop client",
   "author": "Qingpu WFL Club",
   "main": "main.js",
   "scripts": {
-    "start": "electron .",
-    "dist": "electron-builder --win nsis"
+    "build": "node mac/scripts/build.mjs",
+    "start": "npm run build && electron .",
+    "test": "node --test mac/tests/*.test.cjs",
+    "test:app": "node mac/tests/app-smoke.cjs",
+    "dist": "npm run build && electron-builder --win nsis --x64",
+    "dist:zip": "npm run build && electron-builder --win zip --x64",
+    "test:unified": "node mac/tests/unified-smoke.cjs"
   },
   "build": {
     "appId": "com.qpwflshclub.desktop",
@@ -15,19 +20,16 @@
     "copyright": "Copyright © 2026 QPWFLHS Club",
     "directories": {
       "output": "release",
-      "buildResources": "build"
+      "buildResources": "mac/assets"
     },
     "files": [
       "main.js",
-      "preload.js",
-      "shell.html",
-      "shell.css",
-      "shell.js",
-      "theme-boot.js",
+      "mac/electron/**/*",
+      "mac/dist/**/*",
+      "mac/assets/**/*",
       "package.json"
     ],
     "win": {
-      "icon": "build/icon.ico",
       "target": [
         {
           "target": "nsis",
@@ -35,7 +37,9 @@
             "x64"
           ]
         }
-      ]
+      ],
+      "icon": "mac/assets/icon.ico",
+      "signExecutable": false
     },
     "nsis": {
       "oneClick": false,
@@ -46,11 +50,21 @@
       "createStartMenuShortcut": true,
       "shortcutName": "青浦世外社团",
       "uninstallDisplayName": "青浦世外社团",
-      "artifactName": "QingpuWFL-Club-Setup-${version}.${ext}"
+      "artifactName": "QingpuWFL-Club-Setup-${version}.${ext}",
+      "installerIcon": "mac/assets/icon.ico",
+      "uninstallerIcon": "mac/assets/icon.ico",
+      "installerHeaderIcon": "mac/assets/icon.ico"
     }
   },
   "devDependencies": {
-    "electron": "^45.3.3",
-    "electron-builder": "^26.18.0"
+    "electron": "45.3.3",
+    "electron-builder": "26.18.0",
+    "esbuild": "0.25.9",
+    "playwright-core": "1.63.0"
+  },
+  "dependencies": {
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
+    "@phosphor-icons/react": "2.1.10"
   }
 }

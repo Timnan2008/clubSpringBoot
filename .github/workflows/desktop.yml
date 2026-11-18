@@ -1,0 +1,43 @@
+name: Desktop Windows build
+on:
+  push:
+    branches: [main]
+    paths: ['desktop/**', '.github/workflows/desktop.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    env:
+      ELECTRON_CACHE: ${{ github.workspace }}/desktop/.cache/electron
+      ELECTRON_BUILDER_CACHE: ${{ github.workspace }}/desktop/.cache/electron-builder
+      npm_config_cache: ${{ github.workspace }}/desktop/.cache/npm
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install desktop dependencies
+        run: npm --prefix desktop ci
+      - name: Check API policies and appearance persistence
+        run: npm --prefix desktop test
+      - name: Build shared local interface
+        run: npm --prefix desktop run build
+      - name: Exercise Windows app, custom appearance and staff forms
+        run: npm --prefix desktop run test:unified
+      - name: Build installer with Windows application icon
+        run: npm --prefix desktop run dist
+      - name: Build ZIP
+        run: npm --prefix desktop run dist:zip
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: QPWFL-Windows-1.2.0
+          path: |
+            desktop/release/*.exe
+            desktop/release/*.zip
+            desktop/mac/qa/unified/*.png
+            desktop/mac/qa/unified/result.json
+          retention-days: 14

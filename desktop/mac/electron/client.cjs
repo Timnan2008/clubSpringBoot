@@ -1,4 +1,14 @@
 const { resourcePath, mutation } = require("./policy.cjs");
+// User management endpoints may include nested backend records. Never expose credentials.
+function scrub(value) {
+  if (Array.isArray(value)) return value.map(scrub);
+  if (!value || typeof value !== "object") return value;
+  return Object.fromEntries(
+    Object.entries(value)
+      .filter(([key]) => !/^(password|passwordHash|token|secret|rememberMeToken)$/i.test(key))
+      .map(([key, v]) => [key, scrub(v)]),
+  );
+}
 // A transport-bound client keeps cookies and the workspace token out of the renderer.
 function createClient(fetcher) {
   let token = "",
@@ -60,9 +70,9 @@ function createClient(fetcher) {
       if (data && typeof data === "object" && !Array.isArray(data)) {
         if (data.token) token = data.token;
         const { token: privateToken, ...safe } = data;
-        return { ok: true, data: safe };
+        return { ok: true, data: scrub(safe) };
       }
-      return { ok: true, data };
+      return { ok: true, data: scrub(data) };
     } catch (error) {
       return {
         ok: false,

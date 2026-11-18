@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useRef, useState } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState, useId } from "react";
 import { bridge } from "./data";
 export const UI = createContext(null);
 export const useUI = () => useContext(UI);
@@ -33,10 +33,27 @@ export function useResource(key, input = {}, enabled = true) {
   return { ...state, reload: () => bump((x) => x + 1) };
 }
 export function Field({ label, children, ...props }) {
+  const id = useId();
+  let labelled = false;
+  const connect = (node) => {
+    if (!React.isValidElement(node)) return node;
+    if (!labelled && ["input", "select", "textarea"].includes(node.type)) {
+      labelled = true;
+      return React.cloneElement(node, { id, "aria-labelledby": id + "-label" });
+    }
+    return node.props.children
+      ? React.cloneElement(node, {}, React.Children.map(node.props.children, connect))
+      : node;
+  };
+  const control = children ? (
+    React.Children.map(children, connect)
+  ) : (
+    <input id={id} aria-labelledby={id + "-label"} {...props} />
+  );
   return (
-    <label className="form-field">
-      <span>{label}</span>
-      {children || <input {...props} />}
+    <label className="form-field" htmlFor={id}>
+      <span id={id + "-label"}>{label}</span>
+      {control}
     </label>
   );
 }
