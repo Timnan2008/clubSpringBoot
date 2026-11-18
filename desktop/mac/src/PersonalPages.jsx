@@ -288,10 +288,7 @@ export function Settings({ compact, setCompact, reduced, setReduced }) {
       <AppearanceSettings />
       <div className="settings-layout">
         <Panel title="账号与连接" icon={ShieldCheck}>
-          <Setting
-            title={data.user?.name || "尚未登录"}
-            detail="原有校园账号，所有操作在软件内完成。"
-          >
+          <Setting title={data.user?.name || "尚未登录"}>
             <Action secondary onClick={() => (data.user ? ui.navigate("profile") : ui.login())}>
               {data.user ? "个人资料" : "登录账号"}
             </Action>

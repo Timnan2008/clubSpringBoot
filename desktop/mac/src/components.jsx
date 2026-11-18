@@ -33,7 +33,7 @@ import {
 } from "@phosphor-icons/react";
 import { categories, imageURL, eventStatus } from "./data";
 import { useUI } from "./ui";
-import { usePointerSurface } from "./interaction";
+
 export const icons = {
   home: House,
   discover: Compass,
@@ -67,7 +67,6 @@ export const labels = {
   service: "服务类社团",
   study: "学术类社团",
   booking: "羽毛球场预约",
-  makers: "青源智造",
   accounts: "账号管理",
   addClub: "添加社团",
   moderation: "内容审核",
@@ -239,37 +238,36 @@ export function Empty({ title, detail, icon: Icon = Buildings, action, onAction 
 }
 export function ClubCard({ club, base, onOpen }) {
   const [failed, setFailed] = useState(false);
-  const pointer = usePointerSurface();
   const source = imageURL(club.clubItem, base);
   return (
-    <button className="club-card" {...pointer} onClick={() => onOpen(club)}>
-      <span className="card-pixels" aria-hidden="true" />
+    <button className="club-card" onClick={() => onOpen(club)}>
       <div className="club-cover">
         {source && !failed ? (
-          <img src={source} alt="" onError={() => setFailed(true)} />
+          <img
+            src={source}
+            alt={club.clubName || club.name}
+            loading="lazy"
+            decoding="async"
+            onError={() => setFailed(true)}
+          />
         ) : (
-          <Buildings size={40} weight="duotone" />
-        )}
-        {club.greatClub && (
-          <span className="featured-star" title="优秀社团">
-            <Star size={15} weight="fill" />
-          </span>
+          <span>{(club.clubName || club.name || "社").slice(0, 1)}</span>
         )}
       </div>
       <div className="club-card-body">
-        <span className="club-category">{categories[club.clubClass] || "校园社团"}</span>
-        <h3>{club.clubName || club.name}</h3>
-        <p>{club.sortDescription || club.slogan || "查看社团介绍、成员和活动安排。"}</p>
-        <div className="club-card-footer">
-          <span>查看社团</span>
-          <span className="arrow-square">
-            <ArrowUpRight size={17} />
-          </span>
-        </div>
+        <span className="club-category">
+          {(categories[club.clubClass] || "社团").replace("类社团", "")}
+        </span>
+        <h3>
+          {club.clubName || club.name}
+          <ArrowUpRight size={18} />
+        </h3>
+        {(club.sortDescription || club.slogan) && <p>{club.sortDescription || club.slogan}</p>}
       </div>
     </button>
   );
 }
+
 export function AnnouncementList({ items, onOpen, loading }) {
   if (loading && !items.length)
     return (
@@ -290,7 +288,6 @@ export function AnnouncementList({ items, onOpen, loading }) {
         >
           <span className={`notice-dot dot-${i}`} />
           <div>
-            <small>{i === 0 ? "校园公告" : "平台消息"}</small>
             <p>{item.title}</p>
           </div>
           <ArrowUpRight size={16} />
@@ -373,21 +370,5 @@ export function Modal({ title, children, onClose, wide = false }) {
       </div>
       {children}
     </dialog>
-  );
-}
-export function StatusFooter({ data }) {
-  return (
-    <footer className="status-footer">
-      <span>
-        <i className={`live-dot ${!data.connected ? "offline" : ""}`} />
-        {data.loading ? "正在同步校园数据" : data.connected ? "校园服务已连接" : "连接暂不可用"}
-      </span>
-      <span>
-        {data.info.server === "local" ? "本机服务 · " : ""}
-        {data.lastSync
-          ? `同步于 ${data.lastSync.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}`
-          : "等待同步"}
-      </span>
-    </footer>
   );
 }

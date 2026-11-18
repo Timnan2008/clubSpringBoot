@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 export const bridge = window.clubDesktop;
 export const categories = {
-  study: "学术类社团",
   creativity: "创造类社团",
   activity: "活动类社团",
   service: "服务类社团",
+  study: "学术类社团",
 };
 export function calendarRange() {
   const now = new Date();
@@ -110,6 +110,8 @@ export function useCampus() {
 }
 export function imageURL(path, base) {
   if (typeof path !== "string" || !path.trim()) return "";
+  // Same crest substitution as frontend/catalog.jsx, using the bundled school asset.
+  if (path.includes("WFL-logo.png")) return "../assets/crest.svg";
   try {
     const u = new URL(path, base);
     return u.origin === base && !/\.svg$/i.test(u.pathname) ? u.href : "";

@@ -1,4 +1,4 @@
-# 青浦世外社团 · 统一客户端 1.2.1
+# 青浦世外社团 · 统一客户端 1.2.2
 
 当前目录中的 React 页面与 Electron 接口已由 **Windows、Mac 共用**。Windows 启动入口在上一层 `desktop/main.js`，Mac 启动入口在 `electron/main.cjs`。
 
@@ -13,7 +13,7 @@ npm start
 完整的文件位置、协作方式、外观操作、Windows 与 Mac 打包和功能限制，请看上一层 [统一客户端说明](../README.md)。
 
 - 页面：`src/`。
-- 外观：`src/Appearance.jsx`、`src/theme.css`；布局与交互：`src/workbench.css`、`src/Home.jsx`、`src/interaction.jsx`。本机保存：`electron/appearance.cjs`。
+- 外观：`src/Appearance.jsx`、`src/theme.css`；布局与交互：`src/workbench.css`、`src/Home.jsx`、`src/site/`。本机保存：`electron/appearance.cjs`。
 - 业务接口：`electron/client.cjs`、`electron/policy.cjs`。
 - Mac 打包：`npm run dist:mac`。
 - 规则检查：`npm test`；主要页面检查：`npm run test:app`；统一版检查：`npm run test:unified`；新界面检查：`npm run test:interface`。

@@ -1,6 +1,6 @@
 {
   "name": "qpwfl-club-desktop",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "青浦世外社团 · Windows / Mac 统一客户端",
   "author": "QPWFL Club",
   "private": true,
@@ -18,9 +18,11 @@
     "test:interface": "node tests/interface-smoke.cjs"
   },
   "dependencies": {
+    "@phosphor-icons/react": "2.1.10",
+    "gsap": "3.13.0",
+    "ogl": "1.0.11",
     "react": "19.1.1",
-    "react-dom": "19.1.1",
-    "@phosphor-icons/react": "2.1.10"
+    "react-dom": "19.1.1"
   },
   "devDependencies": {
     "electron": "45.3.3",

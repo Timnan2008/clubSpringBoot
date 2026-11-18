@@ -7,10 +7,14 @@ import {
   Users,
   Star,
   CalendarBlank,
+  MagnifyingGlass,
   ShieldCheck,
 } from "@phosphor-icons/react";
 import { categories, imageURL } from "./data";
 import { Action, Panel, Empty, ClubCard, Modal } from "./components";
+import PixelTransition from "./site/PixelTransition";
+import PixelCard from "./site/PixelCard";
+import AsciiCursor from "./site/AsciiCursor";
 import {
   Heading,
   Field,
@@ -53,7 +57,7 @@ export function ClubList({ category = "all", mine = false }) {
     <>
       <Heading
         title={mine ? "我的社团" : categories[effective] || "发现社团"}
-        detail={mine ? "查看已加入的社团和最新活动。" : "按类别查找社团，查看介绍和活动。"}
+        detail={mine ? undefined : "从兴趣出发，看看同学们正在做什么。"}
       >
         {mine && (
           <Action secondary onClick={() => ui.navigate("workspace")}>
@@ -66,28 +70,36 @@ export function ClubList({ category = "all", mine = false }) {
         <Gate />
       ) : (
         <>
-          <div className="discovery-toolbar">
-            <div className="filter-tabs">
-              {category === "all" &&
-                [["all", "全部"], ...Object.entries(categories)].map(([key, label]) => (
-                  <button
-                    key={key}
-                    className={effective === key ? "active" : ""}
-                    onClick={() => setFilter(key)}
-                  >
-                    {label}
-                  </button>
-                ))}
-            </div>
+          <div className="catalog-search">
+            <MagnifyingGlass size={20} />
             <input
-              className="native-search"
               aria-label="搜索社团"
-              placeholder="搜索社团名称或简介"
+              placeholder="搜索名称、关键词…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
+            {query && (
+              <button aria-label="清空搜索" onClick={() => setQuery("")}>
+                ×
+              </button>
+            )}
           </div>
-          <p className="result-count">{data.loading ? "正在同步社团…" : `${list.length} 个社团`}</p>
+          <div className="catalog-filters" aria-label="社团类别">
+            {[["all", "全部社团"], ...Object.entries(categories)].map(([key, label]) => (
+              <button
+                key={key}
+                aria-pressed={effective === key}
+                onClick={() =>
+                  category === "all"
+                    ? setFilter(key)
+                    : ui.navigate(key === "all" ? "discover" : key)
+                }
+              >
+                {label.replace("类社团", "")}
+              </button>
+            ))}
+            <span>{data.loading ? "加载中…" : `${list.length} 个社团`}</span>
+          </div>
           {list.length ? (
             <div className="catalog-grid">
               {list.map((c) => (
@@ -126,7 +138,8 @@ export function ClubDetail({ club }) {
     r = useResource("club", { id: club.id }),
     status = useResource("join", { id: club.id }, !!ui.data.user);
   const [applying, setApplying] = useState(false),
-    [tab, setTab] = useState("intro");
+    [tab, setTab] = useState("intro"),
+    [meme, setMeme] = useState(1);
   const c = { ...club, ...(r.data || {}) };
   const joined =
     status.data?.status === "member" || ui.data.mine.some((m) => String(m.id) === String(c.id));
@@ -139,11 +152,36 @@ export function ClubDetail({ club }) {
         返回社团
       </button>
       <section className="club-hero">
+        {Number(c.id) === 1 && <AsciiCursor />}
         <div className="club-emblem">
-          {picture ? (
-            <img src={picture} alt="" onError={(e) => (e.target.style.display = "none")} />
+          {Number(c.id) === 28 ? (
+            <PixelCard
+              variant="blue"
+              className="site-logo-card"
+              noFocus
+              colors="#7dd3fc,#38bdf8,#796094"
+              speed={25}
+              gap={8}
+            >
+              <img src={picture || "../assets/crest.svg"} alt={c.clubName} />
+            </PixelCard>
           ) : (
-            <Buildings size={50} />
+            <PixelTransition
+              className="site-logo-card"
+              gridSize={10}
+              onActivate={() => setMeme((n) => (n % 3) + 1)}
+              firstContent={
+                <div className="club-pixel-front">
+                  <span>QPWFLHS CLUBS</span>
+                  <img src={picture || "../assets/crest.svg"} alt={c.clubName} />
+                </div>
+              }
+              secondContent={
+                <div className="club-pixel-meme">
+                  <img src={`../assets/club-memes/cat-${meme}.png`} alt="猫咪表情包" />
+                </div>
+              }
+            />
           )}
         </div>
         <div className="club-hero-copy">
@@ -153,7 +191,7 @@ export function ClubDetail({ club }) {
           </span>
           <h1>{c.clubName}</h1>
           <p>{c.clubNameEn}</p>
-          <p className="hero-slogan">{c.sortDescription || "查看社团介绍、成员与活动。"}</p>
+          {c.sortDescription && <p className="hero-slogan">{c.sortDescription}</p>}
         </div>
         <div className="club-hero-action">
           <Action
@@ -213,8 +251,12 @@ export function ClubDetail({ club }) {
                 <dd>{categories[c.clubClass] || "未分类"}</dd>
                 <dt>社长</dt>
                 <dd>{c.president || "暂未公布"}</dd>
-                <dt>副社长</dt>
-                <dd>{c.vicePresident || "暂未公布"}</dd>
+                {c.vicePresident && (
+                  <>
+                    <dt>副社长</dt>
+                    <dd>{c.vicePresident}</dd>
+                  </>
+                )}
                 <dt>指导老师</dt>
                 <dd>{c.teacher || "暂未公布"}</dd>
                 <dt>我的状态</dt>
@@ -237,14 +279,16 @@ export function ClubDetail({ club }) {
                 ["社长", c.president, c.presidentEn],
                 ["副社长", c.vicePresident, c.vicePresidentEn],
                 ["指导老师", c.teacher, c.teacherEn],
-              ].map(([role, name, en]) => (
-                <div className="leader-card" key={role}>
-                  <span className="avatar">{(name || "—").slice(0, 1)}</span>
-                  <small>{role}</small>
-                  <h3>{name || "暂未公布"}</h3>
-                  <p>{en || ""}</p>
-                </div>
-              ))}
+              ]
+                .filter(([, name]) => name)
+                .map(([role, name, en]) => (
+                  <div className="leader-card" key={role}>
+                    <span className="avatar">{(name || "—").slice(0, 1)}</span>
+                    <small>{role}</small>
+                    <h3>{name || "暂未公布"}</h3>
+                    <p>{en || ""}</p>
+                  </div>
+                ))}
             </div>
           </Panel>
         )}
@@ -273,16 +317,6 @@ export function ClubDetail({ club }) {
           </Form>
         </Modal>
       )}
-    </>
-  );
-}
-export function Makers() {
-  return (
-    <>
-      <Heading title="青源智造" detail="查看学生项目和作品。" />
-      <Panel title="项目与作品" icon={Buildings}>
-        <Empty title="作品内容准备中" detail="这个页面已搬进软件，后续会在这里补充项目。" />
-      </Panel>
     </>
   );
 }
@@ -362,18 +396,15 @@ function WorkspaceInside() {
                       <Empty title="还没有活动" detail="点击“创建活动”安排社团活动。" />
                     )}
                   </Panel>
-                  <Panel title="社团文档" icon={Buildings}>
-                    {content.data?.documents?.length ? (
-                      content.data.documents.map((d) => (
+                  {!!content.data?.documents?.length && (
+                    <Panel title="社团文档" icon={Buildings}>
+                      {content.data.documents.map((d) => (
                         <div className="native-row" key={d.id}>
                           <strong>{d.title || d.name || "社团文档"}</strong>
-                          <span className="muted">附件查看暂未接入</span>
                         </div>
-                      ))
-                    ) : (
-                      <Empty title="暂无社团文档" />
-                    )}
-                  </Panel>
+                      ))}
+                    </Panel>
+                  )}
                 </>
               ) : tab === "members" ? (
                 <Panel title="社团成员" icon={Users}>

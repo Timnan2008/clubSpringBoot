@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { ShieldCheck, ArrowLeft, GraduationCap, Eye, EyeSlash } from "@phosphor-icons/react";
+import { ArrowLeft, Eye, EyeSlash } from "@phosphor-icons/react";
 import { Modal } from "./components";
 import { Field, Feedback, Form, write, useUI } from "./ui";
 import { exportIdentity } from "./lib/message-crypto";
@@ -31,10 +31,6 @@ export default function Auth({ onClose }) {
             查看活动、管理社团和联系同学。
           </p>
           <div className="auth-grid" aria-hidden="true" />
-          <span className="auth-security">
-            <ShieldCheck size={16} />
-            校园账号 · 安全连接
-          </span>
         </aside>
         <div className="auth-form">
           <div className="tabs">
@@ -60,7 +56,6 @@ export default function Auth({ onClose }) {
           {mode === "login" ? (
             <>
               <h3>欢迎回来</h3>
-              <p className="muted">使用你原来的校园网站账号。</p>
               <Form
                 label="登录"
                 onSubmit={async (f) => {
@@ -125,34 +120,11 @@ export default function Auth({ onClose }) {
             </>
           ) : mode === "register" ? (
             <>
-              <h3>加入校园社区</h3>
-              <p className="muted">为你的热爱，留一个位置。</p>
-              <div className="registration-notice">
-                <GraduationCap size={23} />
-                <p>
-                  桌面端新账号注册暂未开放。已有账号可以直接登录；以下资料可以先填写，暂不会提交。
-                </p>
-              </div>
-              <div className="native-form">
-                <div className="form-grid">
-                  <Field label="中文姓名" placeholder="姓名" />
-                  <Field label="英文姓名" placeholder="English name" />
-                </div>
-                <Field label="校园邮箱" type="email" placeholder="你的邮箱" />
-                <Field label="学号" placeholder="学校分配的学号" />
-                <Field
-                  label="密码"
-                  type="password"
-                  autoComplete="new-password"
-                  placeholder="设置密码"
-                />
-                <button className="button" disabled>
-                  注册暂未开放
-                </button>
-                <button className="text-button accent" onClick={() => setMode("login")}>
-                  已有账号，返回登录
-                </button>
-              </div>
+              <h3>注册</h3>
+              <p className="registration-notice">新账号注册暂未开放，请联系学校管理员。</p>
+              <button className="text-button" onClick={() => setMode("login")}>
+                返回登录
+              </button>
             </>
           ) : (
             <>
@@ -160,7 +132,7 @@ export default function Auth({ onClose }) {
                 <ArrowLeft />
                 返回登录
               </button>
-              <h3>重新找回连接</h3>
+              <h3>找回密码</h3>
               <p className="muted">
                 {
                   [

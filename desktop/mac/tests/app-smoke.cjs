@@ -16,7 +16,7 @@ const assert = require("node:assert/strict"),
     page.on("request", (r) => {
       if (r.isNavigationRequest()) documents.push(r.url());
     });
-    await page.getByText("校园服务已连接", { exact: true }).waitFor({ timeout: 60000 });
+    await page.locator(".club-card").first().waitFor({ timeout: 60000 });
     const catalog = await page.evaluate(() => window.clubDesktop.read("clubs"));
     assert.ok(catalog.ok && catalog.data.length > 0);
     assert.equal(await page.evaluate(() => typeof window.clubDesktop.openPage), "undefined");
@@ -65,7 +65,8 @@ const assert = require("node:assert/strict"),
     );
     assert.ok(page.url().startsWith("file://"));
     await page.getByRole("button", { name: "注册", exact: true }).click();
-    await page.getByRole("button", { name: "注册暂未开放", exact: true }).waitFor();
+    await page.getByText("新账号注册暂未开放，请联系学校管理员。", { exact: true }).waitFor();
+    assert.equal(await page.getByRole("dialog").locator("input").count(), 0);
     await page.screenshot({ path: "qa/register.png" });
     await page.getByRole("button", { name: "登录", exact: true }).last().click();
     await page.getByRole("button", { name: "忘记密码？", exact: true }).click();
@@ -75,9 +76,7 @@ const assert = require("node:assert/strict"),
       await page.getByRole("button", { name, exact: true }).click();
       await page.getByText("登录后使用校园服务", { exact: true }).waitFor();
     }
-    await page.getByRole("button", { name: "青源智造", exact: true }).click();
-    await page.getByText("作品内容准备中", { exact: true }).waitFor();
-    await page.screenshot({ path: "qa/makers.png" });
+    assert.equal(await page.getByRole("button", { name: "青源智造", exact: true }).count(), 0);
     await page.getByRole("button", { name: "设置", exact: true }).click();
     await page.screenshot({ path: "qa/settings.png" });
     await page.getByRole("switch", { name: "紧凑模式" }).click();
@@ -349,7 +348,7 @@ const assert = require("node:assert/strict"),
     await page.getByRole("button", { name: "1", exact: true }).waitFor();
     await page.screenshot({ path: "qa/wall-fixture.png" });
     await page.getByRole("button", { name: "我的社团", exact: true }).click();
-      await page.locator("nav").getByRole("button", { name: "社团工作台", exact: true }).click();
+    await page.locator("nav").getByRole("button", { name: "社团工作台", exact: true }).click();
     await page.getByRole("button", { name: "成员", exact: true }).click();
     await page.getByText("测试同学", { exact: true }).last().waitFor();
     await page.getByRole("button", { name: "入社申请", exact: true }).click();

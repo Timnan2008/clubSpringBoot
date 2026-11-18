@@ -1,6 +1,6 @@
 {
   "name": "qingpu-wfl-club-desktop",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "private": true,
   "description": "Qingpu WFL Club Windows desktop client",
   "author": "Qingpu WFL Club",
@@ -64,8 +64,10 @@
     "playwright-core": "1.63.0"
   },
   "dependencies": {
+    "@phosphor-icons/react": "2.1.10",
+    "gsap": "3.13.0",
+    "ogl": "1.0.11",
     "react": "19.1.1",
-    "react-dom": "19.1.1",
-    "@phosphor-icons/react": "2.1.10"
+    "react-dom": "19.1.1"
   }
 }

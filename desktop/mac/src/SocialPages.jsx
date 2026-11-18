@@ -56,12 +56,13 @@ function WallInside() {
     social = useResource("social");
   return (
     <>
-      <Heading title="校园墙" detail="发布动态、查看评论和社团消息。">
+      <Heading title="校园墙">
         <Action disabled={!social.data?.canPost} onClick={() => setCompose(true)}>
           <Plus size={18} />
           发布动态
         </Action>
       </Heading>
+      <Feedback error={social.error} />
       <div className="wall-layout">
         <section>
           <form
@@ -137,17 +138,6 @@ function WallInside() {
             </Action>
           </div>
         </section>
-        <aside className="wall-aside">
-          <Panel title="校园，一起发生" icon={Chalkboard}>
-            <p className="long-copy">发布校园动态，参与评论和讨论。</p>
-            <span className="muted">友善交流，尊重每一个人。</span>
-          </Panel>
-          {social.error && <Feedback error={social.error} />}
-          <div className="security-note">
-            <ShieldCheck size={18} />
-            {social.data?.canPost ? "你可以发布校园动态" : "当前账号暂时只能浏览与回复"}
-          </div>
-        </aside>
       </div>
       {compose && (
         <Modal title="分享校园日常" onClose={() => setCompose(false)}>
@@ -266,7 +256,7 @@ function MessagesInside() {
     [finding, setFinding] = useState(false);
   return (
     <>
-      <Heading title="站内私信" detail="查看最近会话和校园通知。">
+      <Heading title="站内私信">
         <Action secondary onClick={() => setFinding(true)}>
           <Plus size={18} />
           发起会话
@@ -301,24 +291,20 @@ function MessagesInside() {
                   <span className="avatar">{(item.account.name || "同").slice(0, 1)}</span>
                   <div>
                     <strong>{item.account.name}</strong>
-                    <p>{item.preview || "开始聊天"}</p>
+                    {item.preview && !/端到端|加密消息/.test(item.preview) && <p>{item.preview}</p>}
                   </div>
                   {item.unread > 0 && <span className="badge">{item.unread}</span>}
                 </button>
               ))
             ) : (
-              <Empty title="暂无最近会话" detail="点击“新私信”开始聊天。" />
+              <Empty title="暂无私信" />
             )}
           </aside>
           {peer ? (
             <Conversation key={ui.data.info.server + ":" + peer.id} peer={peer} />
           ) : (
             <div className="chat-idle">
-              <Empty
-                icon={ChatCircleDots}
-                title="把想说的话，送到对方身边"
-                detail="选择一个会话，或发起新的聊天。"
-              />
+              <Empty icon={ChatCircleDots} title="选择一个会话" />
             </div>
           )}
         </div>
@@ -379,10 +365,13 @@ function Conversation({ peer }) {
   const ui = useUI(),
     r = useResource("conversation", { peer: peer.id });
   const [keys, setKeys] = useState(null),
-    [error, setError] = useState("");
+    [error, setError] = useState(""),
+    [attempt, setAttempt] = useState(0);
   const end = useRef();
   useEffect(() => {
     let active = true;
+    setError("");
+    setKeys(null);
     setCryptoScope(ui.data.info.server || "production");
     Promise.all([
       ensureIdentity(ui.data.user.id, cryptoRead, cryptoWrite),
@@ -396,7 +385,7 @@ function Conversation({ peer }) {
     return () => {
       active = false;
     };
-  }, [peer.id, ui.data.user.id, ui.data.info.server]);
+  }, [peer.id, ui.data.user.id, ui.data.info.server, attempt]);
   useEffect(() => {
     const timer = setInterval(r.reload, 12000);
     return () => clearInterval(timer);
@@ -415,34 +404,45 @@ function Conversation({ peer }) {
         <span className="avatar">{(peer.name || "同").slice(0, 1)}</span>
         <div>
           <strong>{peer.name}</strong>
-          <small>校园私信 · 使用原有加密协议</small>
         </div>
-        <button className="icon-button" aria-label="刷新会话" onClick={r.reload}>
+        <button
+          className="icon-button"
+          aria-label="刷新会话"
+          onClick={() => {
+            setAttempt((n) => n + 1);
+            r.reload();
+          }}
+        >
           <ArrowClockwise size={19} />
         </button>
       </div>
       <div className="chat-history">
         <ResourceState resource={r}>
+          {!keys && !error && r.data?.messages?.some((m) => m.text?.startsWith("e2ee:v1:")) && (
+            <p className="muted center">正在读取消息…</p>
+          )}
           {r.data?.older && <p className="muted center">当前显示最近消息；更早记录暂未加载。</p>}
           {r.data?.messages?.length ? (
-            r.data.messages.map((m) => (
-              <div
-                className={`message-line ${m.sender === ui.data.user.id ? "own" : ""}`}
-                key={m.id}
-              >
-                <div className="message-bubble">
-                  <MessageContent
-                    message={{ ...m, recalled: m.recalled || r.data.recalledIds?.includes(m.id) }}
-                    keys={keys}
-                    me={ui.data.user.id}
-                  />
-                  <small>
-                    {dateText(m.createdAt)}
-                    {m.sender === ui.data.user.id ? (m.read ? " · 已读" : " · 已发送") : ""}
-                  </small>
+            r.data.messages
+              .filter((m) => keys || !m.text?.startsWith("e2ee:v1:"))
+              .map((m) => (
+                <div
+                  className={`message-line ${m.sender === ui.data.user.id ? "own" : ""}`}
+                  key={m.id}
+                >
+                  <div className="message-bubble">
+                    <MessageContent
+                      message={{ ...m, recalled: m.recalled || r.data.recalledIds?.includes(m.id) }}
+                      keys={keys}
+                      me={ui.data.user.id}
+                    />
+                    <small>
+                      {dateText(m.createdAt)}
+                      {m.sender === ui.data.user.id ? (m.read ? " · 已读" : " · 已发送") : ""}
+                    </small>
+                  </div>
                 </div>
-              </div>
-            ))
+              ))
           ) : (
             <Empty title="从一句问候开始" />
           )}
@@ -481,7 +481,7 @@ function Conversation({ peer }) {
               name="message"
               maxLength={2000}
               rows={3}
-              placeholder={keys ? "说点什么…" : "正在准备加密会话…"}
+              placeholder={keys ? "说点什么…" : error ? "会话暂不可用" : "正在连接…"}
               required
             />
           </Field>
@@ -491,7 +491,7 @@ function Conversation({ peer }) {
   );
 }
 function MessageContent({ message, keys, me }) {
-  const [text, setText] = useState("加密消息 · 等待本机密钥");
+  const [text, setText] = useState("正在读取…");
   useEffect(() => {
     let active = true;
     if (message.text?.startsWith("e2ee:v1:") && keys)

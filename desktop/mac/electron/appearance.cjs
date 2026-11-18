@@ -2,7 +2,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const DEFAULTS = Object.freeze({
   mode: "light",
-  accent: "#365d7b",
+  accent: "#796094",
   background: "plain",
   strength: 35,
   blur: 0,

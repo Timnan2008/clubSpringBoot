@@ -14,7 +14,7 @@ import { bridge } from "./data";
 import { Panel, Action } from "./components";
 const defaults = {
   mode: "light",
-  accent: "#365d7b",
+  accent: "#796094",
   background: "plain",
   strength: 35,
   blur: 0,
@@ -129,6 +129,7 @@ export function AppearanceProvider({ children }) {
   );
 }
 const accents = [
+  ["网站紫", "#796094"],
   ["校徽蓝", "#365d7b"],
   ["鸢尾紫", "#7952d9"],
   ["晴空蓝", "#3478d4"],

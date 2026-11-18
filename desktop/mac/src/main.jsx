@@ -12,20 +12,12 @@ import {
 } from "@phosphor-icons/react";
 import { AppearanceProvider } from "./Appearance";
 import { useCampus, categories } from "./data";
-import {
-  Action,
-  Sidebar,
-  WorkspaceHeader,
-  Empty,
-  AnnouncementList,
-  Modal,
-  StatusFooter,
-} from "./components";
+import { Action, Sidebar, WorkspaceHeader, Empty, AnnouncementList, Modal } from "./components";
 import { UI } from "./ui";
 import Auth from "./Auth";
 import Home from "./Home";
 import { setCryptoScope } from "./lib/message-crypto";
-import { ClubList, ClubDetail, Makers, Workspace } from "./ClubPages";
+import { ClubList, ClubDetail, Workspace } from "./ClubPages";
 import { Wall, Messages } from "./SocialPages";
 import { Calendar, Profile, Settings, Booking } from "./PersonalPages";
 import { AdminPages } from "./AdminPages";
@@ -142,6 +134,7 @@ function App() {
               )}
               {page === "home" && (
                 <Home
+                  reduced={reduced}
                   onNotice={(value) => setModal({ type: "notice", value })}
                   onNotices={() => setModal({ type: "notices" })}
                   onEvent={(value) => setModal({ type: "event", value })}
@@ -160,7 +153,6 @@ function App() {
               {page === "messages" && <Messages />}
               {page === "workspace" && <Workspace />}
               {page === "booking" && <Booking />}
-              {page === "makers" && <Makers />}
               {page === "profile" && <Profile />}
               {["accounts", "moderation", "suggestions", "addClub"].includes(page) && (
                 <AdminPages key={page} kind={page} />
@@ -174,7 +166,6 @@ function App() {
                 />
               )}
             </main>
-            <StatusFooter data={data} />
           </div>
         </div>
         {auth && <Auth onClose={() => setAuth(false)} />}{" "}

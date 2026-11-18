@@ -29,8 +29,7 @@ const launch = () =>
     await page.waitForTimeout(350);
     await page.screenshot({ path: path.join(qa, name + ".png"), scale: "css" });
   };
-  const connected = () =>
-    page.getByText("校园服务已连接", { exact: true }).waitFor({ timeout: 60000 });
+  const connected = () => page.locator(".club-card").first().waitFor({ timeout: 60000 });
   try {
     await connected();
     await page.evaluate(() => window.clubDesktop.resetAppearance());

@@ -14,6 +14,7 @@ const path = require("node:path"),
 const { pathToFileURL } = require("node:url");
 const { PRODUCTION, LOCAL } = require("./policy.cjs");
 const { createClient } = require("./client.cjs");
+const { createCampusTransport } = require("./transport.cjs");
 const { createAppearanceStore } = require("./appearance.cjs");
 const isWindows = process.platform === "win32";
 const platform =
@@ -46,7 +47,7 @@ const remoteSession = () =>
     : session.fromPartition(`persist:club-${serverName}`);
 const indexPath = path.join(__dirname, "..", "dist", "index.html");
 const localURL = pathToFileURL(indexPath).href;
-const client = createClient((route, options) => remoteSession().fetch(base() + route, options));
+const client = createClient(createCampusTransport(remoteSession, base));
 function trusted(event) {
   if (
     !mainWindow ||
@@ -176,8 +177,7 @@ app.whenReady().then(() => {
     else if (command === "close") {
       mainWindow.close();
       return false;
-    }
-    else if (command !== "state") throw Error("无效窗口操作");
+    } else if (command !== "state") throw Error("无效窗口操作");
     return mainWindow.isMaximized();
   });
   nativeTheme.themeSource = appearance.read().mode;

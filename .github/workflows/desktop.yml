@@ -36,12 +36,12 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: QPWFL-Windows-1.2.1
+          name: QPWFL-Windows-1.2.2
           path: |
             desktop/release/*.exe
             desktop/release/*.zip
             desktop/mac/qa/unified/*.png
             desktop/mac/qa/unified/result.json
-            desktop/mac/qa/refinement/*.png
-            desktop/mac/qa/refinement/result.json
+            desktop/mac/qa/site-alignment/*.png
+            desktop/mac/qa/site-alignment/result.json
           retention-days: 14
