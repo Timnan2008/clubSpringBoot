@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useId, useRef, useState } from "react";
 import {
   ChatCircleDots,
   Plus,
@@ -55,7 +55,7 @@ function WallInside() {
   const posts = useResource("posts", { keyword: query, page }),
     social = useResource("social");
   return (
-    <>
+    <section className="wall-page" aria-label="校园墙动态">
       <Heading title="校园墙">
         <Action disabled={!social.data?.canPost} onClick={() => setCompose(true)}>
           <Plus size={18} />
@@ -69,7 +69,7 @@ function WallInside() {
             className="wall-search"
             onSubmit={(e) => {
               e.preventDefault();
-              setQuery(keyword);
+              setQuery(keyword.trim());
               setPage(1);
             }}
           >
@@ -82,61 +82,87 @@ function WallInside() {
             />
             <button className="text-button accent">搜索</button>
           </form>
+          {query && (
+            <div className="wall-search-summary" role="status">
+              <span>“{query}” 的搜索结果</span>
+              <button
+                className="text-button accent"
+                onClick={() => {
+                  setKeyword("");
+                  setQuery("");
+                  setPage(1);
+                }}
+              >
+                清除搜索
+              </button>
+            </div>
+          )}
           <ResourceState resource={posts}>
             {posts.data?.items?.length ? (
-              posts.data.items.map((p) => (
-                <article className="post-card" key={p.id}>
-                  <div className="post-author">
-                    <span className="avatar">{(p.author?.name || "同").slice(0, 1)}</span>
-                    <div>
-                      <strong>{p.author?.name || "校园同学"}</strong>
-                      <small>
-                        {dateText(p.createdAt)}
-                        {p.clubName ? " · " + p.clubName : ""}
-                      </small>
+              <div className="wall-posts">
+                {posts.data.items.map((p) => (
+                  <article className="post-card" key={p.id}>
+                    <span className="avatar post-avatar" aria-hidden="true">
+                      {(p.author?.name || "同").slice(0, 1)}
+                    </span>
+                    <div className="post-body">
+                      <div className="post-author">
+                        <strong>{p.author?.name || "校园同学"}</strong>
+                        <time dateTime={p.createdAt}>
+                          {dateText(p.createdAt)}
+                          {p.clubName ? " · " + p.clubName : ""}
+                        </time>
+                      </div>
+                      <PostText text={p.text} preview />
+                      {p.attachments?.length > 0 && (
+                        <p className="muted">
+                          此动态含 {p.attachments.length} 个附件，附件预览暂未接入。
+                        </p>
+                      )}
+                      <div className="post-actions">
+                        <Like post={p} reload={posts.reload} />
+                        <button className="text-button" onClick={() => setReply(p)}>
+                          <ChatCircleDots size={19} />
+                          {p.replies || 0} 条回复
+                        </button>
+                      </div>
                     </div>
-                    <span className="category-chip">校园动态</span>
-                  </div>
-                  <p className="post-copy">{p.text}</p>
-                  {p.attachments?.length > 0 && (
-                    <p className="muted">
-                      此动态含 {p.attachments.length} 个附件，附件预览暂未接入。
-                    </p>
-                  )}
-                  <div className="post-actions">
-                    <Like post={p} reload={posts.reload} />
-                    <button className="text-button" onClick={() => setReply(p)}>
-                      <ChatCircleDots size={19} />
-                      {p.replies || 0} 条回复
-                    </button>
-                  </div>
-                </article>
-              ))
+                  </article>
+                ))}
+              </div>
             ) : (
               <Empty
                 icon={Chalkboard}
                 title={query ? "没有找到动态" : "校园墙还很安静"}
-                detail="暂时没有动态，点击“发布动态”添加内容。"
+                detail={
+                  query
+                    ? "换个关键词试试，或清除搜索查看全部动态。"
+                    : social.data?.canPost
+                      ? "点击“发布动态”，分享你的校园日常。"
+                      : undefined
+                }
               />
             )}
           </ResourceState>
-          <div className="pagination">
-            <Action
-              secondary
-              disabled={page <= 1 || posts.loading}
-              onClick={() => setPage(page - 1)}
-            >
-              上一页
-            </Action>
-            <span>第 {page} 页</span>
-            <Action
-              secondary
-              disabled={posts.loading || !posts.data?.next}
-              onClick={() => setPage(page + 1)}
-            >
-              下一页
-            </Action>
-          </div>
+          {(page > 1 || posts.data?.next) && (
+            <div className="pagination">
+              <Action
+                secondary
+                disabled={page <= 1 || posts.loading}
+                onClick={() => setPage(page - 1)}
+              >
+                上一页
+              </Action>
+              <span>第 {page} 页</span>
+              <Action
+                secondary
+                disabled={posts.loading || !posts.data?.next}
+                onClick={() => setPage(page + 1)}
+              >
+                下一页
+              </Action>
+            </div>
+          )}
         </section>
       </div>
       {compose && (
@@ -173,7 +199,74 @@ function WallInside() {
         </Modal>
       )}
       {reply && <Replies post={reply} onClose={() => setReply(null)} onChanged={posts.reload} />}
-    </>
+    </section>
+  );
+}
+// Keep the stored text intact; repeated blank lines become paragraph spacing for reading.
+function PostText({ text: source, preview = false }) {
+  const text = typeof source === "string" ? source : "";
+  const [expanded, setExpanded] = useState(false),
+    [overflows, setOverflows] = useState(false),
+    [previewHeight, setPreviewHeight] = useState(null),
+    body = useRef(),
+    id = useId();
+  useLayoutEffect(() => {
+    if (!preview || !body.current) return;
+    const measure = () => {
+      const element = body.current;
+      const limit = parseFloat(getComputedStyle(element).lineHeight) * 10;
+      const overflows = element.scrollHeight > limit + 1;
+      setOverflows(overflows);
+      if (!overflows) {
+        setPreviewHeight(null);
+        return;
+      }
+      // End the preview at a complete text line, including paragraph margins.
+      const top = element.getBoundingClientRect().top,
+        range = document.createRange();
+      let bottom = 0;
+      for (const paragraph of element.children) {
+        range.selectNodeContents(paragraph);
+        for (const rect of range.getClientRects()) {
+          if (rect.bottom - top <= limit) bottom = Math.max(bottom, rect.bottom - top);
+        }
+      }
+      setPreviewHeight(Math.ceil(bottom || limit) + 1);
+    };
+    const observer = new ResizeObserver(measure);
+    observer.observe(body.current);
+    measure();
+    return () => observer.disconnect();
+  }, [text, preview]);
+  if (!text.trim()) return null;
+  return (
+    <div className="post-text">
+      <div
+        id={id}
+        className={`post-copy ${preview && !expanded ? "post-preview" : ""}`}
+        style={previewHeight ? { "--post-preview-height": `${previewHeight}px` } : undefined}
+      >
+        <div className="post-paragraphs" ref={body}>
+          {text
+            .trim()
+            .replace(/\r\n?/g, "\n")
+            .split(/\n[\t ]*\n+/)
+            .map((paragraph, i) => (
+              <p key={i}>{paragraph.trim()}</p>
+            ))}
+        </div>
+      </div>
+      {preview && overflows && (
+        <button
+          className="text-button accent post-expand"
+          aria-expanded={expanded}
+          aria-controls={id}
+          onClick={() => setExpanded(!expanded)}
+        >
+          {expanded ? "收起全文" : "展开全文"}
+        </button>
+      )}
+    </div>
   );
 }
 function Like({ post, reload }) {
@@ -204,7 +297,7 @@ function Replies({ post, onClose, onChanged }) {
   const r = useResource("replies", { id: post.id });
   return (
     <Modal title="动态与回复" onClose={onClose}>
-      <p className="post-copy">{post.text}</p>
+      <PostText text={post.text} />
       <div className="replies">
         <ResourceState resource={r}>
           {r.data?.length ? (

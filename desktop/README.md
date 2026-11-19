@@ -1,8 +1,17 @@
-# 青浦世外社团 · Windows / Mac 客户端 1.2.3
+# 青浦世外社团 · Windows / Mac 客户端 1.2.4
 
 Windows 和 Mac 共用 Electron + React 本地页面。原网站的源码和部署没有改。
 
-本次修正深浅主题适配：
+本次整理校园墙与常用页面排版：
+
+- 校园墙按网站的信息流整理：标题、发布、搜索和正文同宽对齐，头像在左，姓名与日期紧凑排列；去掉重复的“校园动态”标签。
+- 正文合并连续空行的显示间距，长文可展开和收起，预览在完整文字行结束；服务端原文保留。
+- 搜索支持清除关键词，空结果给出对应提示；只有需要翻页时才显示分页。
+- 私信列表与聊天记录各自滚动，输入框和发送按钮固定在同一行；修正深色气泡的文字配色。
+- 常用页面收紧标题和留白，设置、个人资料统一内容宽度；日历空白日期跟随主题，文本框使用软件统一字体。
+- 新增 `npm run test:layout`，检查上述排版、长文、搜索、回复、分页、聊天滚动和大字号，覆盖浅深色与 1440 / 1280 / 1000px 窗口。测试账号与消息均为内存样例。
+
+此前已完成的深浅主题适配：
 
 - 首页保留网站的流动纹理和构图，浅色使用浅底深字，深色使用暗底浅字；动效透明叠加，并跟随自选主题色。
 - 登录左栏的底色、标题、说明和网格也跟随主题，不再写死黑底白字。
@@ -19,6 +28,8 @@ Windows 和 Mac 共用 Electron + React 本地页面。原网站的源码和部�
 - 桌面请求补上固定校园地址的来源信息，修复私信“请求来源无效”。保留登录、会话令牌、固定接口和请求来源校验。
 
 页面布局在 `desktop/mac/src/workbench.css`。从网站复制并适配的动效在 `desktop/mac/src/site`，保留了原组件许可。后续同步样式以仓库的 `frontend/catalog.css`、`auth.css`、`social.css` 和对应 React 组件为依据。
+
+校园墙的信息流结构还对照了 `frontend/SocialPost.jsx`、`frontend/SocialTheme.css`：头像在左，姓名与日期并排，正文和操作栏在右；底色、文字、边框使用桌面的主题变量，适配浅色、深色与自定义背景。
 
 ## 从 main 开始
 
@@ -44,16 +55,16 @@ npm start
 
 ## 大家具体改哪里
 
-| 内容 | 位置（从仓库根目录开始） |
-| --- | --- |
-| Windows 启动和打包 | `desktop/main.js`、`desktop/package.json` |
-| 两端共同的页面 | `desktop/mac/src/` |
-| 两端共同的颜色与外观 | `desktop/mac/src/theme.css`、`Appearance.jsx` |
-| 共同的布局和尺寸 | `desktop/mac/src/styles.css` |
-| 导航、卡片、弹窗 | `desktop/mac/src/components.jsx` |
-| 软件窗口、接口连接 | `desktop/mac/electron/` |
-| 外观保存和图片导入 | `desktop/mac/electron/appearance.cjs` |
-| 新增的账号、内容审核、建议、添加社团页面 | `desktop/mac/src/AdminPages.jsx` |
+| 内容                                     | 位置（从仓库根目录开始）                      |
+| ---------------------------------------- | --------------------------------------------- |
+| Windows 启动和打包                       | `desktop/main.js`、`desktop/package.json`     |
+| 两端共同的页面                           | `desktop/mac/src/`                            |
+| 两端共同的颜色与外观                     | `desktop/mac/src/theme.css`、`Appearance.jsx` |
+| 共同的布局和尺寸                         | `desktop/mac/src/styles.css`                  |
+| 导航、卡片、弹窗                         | `desktop/mac/src/components.jsx`              |
+| 软件窗口、接口连接                       | `desktop/mac/electron/`                       |
+| 外观保存和图片导入                       | `desktop/mac/electron/appearance.cjs`         |
+| 新增的账号、内容审核、建议、添加社团页面 | `desktop/mac/src/AdminPages.jsx`              |
 
 **`mac` 这个名字暂时保留，里面的页面已由 Windows 和 Mac 共用。改一份，两端生效。** 不再分别维护一套黑色和一套白色。
 
@@ -87,7 +98,7 @@ Windows 在 `desktop` 中运行：
 npm run dist
 ```
 
-安装包：`desktop/release/QingpuWFL-Club-Setup-1.2.3.exe`。需要免安装 ZIP 时运行 `npm run dist:zip`。当前为未签名预览版。
+安装包：`desktop/release/QingpuWFL-Club-Setup-1.2.4.exe`。需要免安装 ZIP 时运行 `npm run dist:zip`。当前为未签名预览版。
 
 Mac 在 `desktop/mac` 中运行：
 
@@ -97,7 +108,7 @@ ELECTRON_CACHE="$PWD/.cache/electron" ELECTRON_BUILDER_CACHE="$PWD/.cache/electr
 
 产物：`desktop/mac/release/mac-arm64/青浦世外社团.app` 及同目录中的 DMG / ZIP。Apple 签名与公证尚未实施。
 
-GitHub Actions 的「Desktop Windows build」会在 main 的 desktop 代码更新后检查并打包；完成后在对应运行页面下载 `QPWFL-Windows-1.2.3` 产物。不会自动发布网站或替换原网站下载文件。
+GitHub Actions 的「Desktop Windows build」会在 main 的 desktop 代码更新后检查并打包；完成后在对应运行页面下载 `QPWFL-Windows-1.2.4` 产物。不会自动发布网站或替换原网站下载文件。
 
 ## 检查
 
@@ -112,6 +123,8 @@ npm run test:unified
 10 项规则检查；统一版检查包括外观、背景导入、重启保存、三种窗口尺寸、Windows 窗口按钮和管理页面。Mac 的 `npm run test:app` 另检查公开数据与主要业务表单。真实校园公开数据只读；需要写入的流程使用隔离进程内的测试资料，不操作真实账号。
 
 `npm run test:interface` 检查新界面的真实社团数据、快捷搜索、键盘打开详情、鼠标反馈、减少动态、浅深色和三种窗口尺寸。截图保存在 `desktop/mac/qa/site-alignment/`。
+
+`npm run test:layout` 检查校园墙、私信、日程和设置的排版与交互，截图和结果保存在 `desktop/mac/qa/layout/`。
 
 本机 Mac 的打包 App 已通过启动检查。GitHub 的 Windows 机器也已通过统一版操作检查，并生成 EXE 安装包和免安装 ZIP，可在 [Windows 构建记录](https://github.com/Timnan2008/clubSpringBoot/actions/workflows/desktop.yml) 查看结果及下载产物。自动检查不包含真实账号写入和安装向导；这两项仍需账号持有人在自己的电脑验收。
 

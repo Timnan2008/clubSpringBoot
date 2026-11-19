@@ -2,7 +2,7 @@ name: Desktop Windows build
 on:
   push:
     branches: [main]
-    paths: ['desktop/**', '.github/workflows/desktop.yml']
+    paths: ["desktop/**", ".github/workflows/desktop.yml"]
   workflow_dispatch:
 permissions:
   contents: read
@@ -18,7 +18,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: "22"
       - name: Install desktop dependencies
         run: npm --prefix desktop ci
       - name: Check API policies and appearance persistence
@@ -29,6 +29,8 @@ jobs:
         run: npm --prefix desktop run test:unified
       - name: Check desktop layout, keyboard and pointer feedback
         run: npm --prefix desktop run test:interface
+      - name: Check wall, chat, calendar and large-text layout
+        run: npm --prefix desktop run test:layout
       - name: Build installer with Windows application icon
         run: npm --prefix desktop run dist
       - name: Build ZIP
@@ -36,7 +38,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: QPWFL-Windows-1.2.3
+          name: QPWFL-Windows-1.2.4
           path: |
             desktop/release/*.exe
             desktop/release/*.zip
@@ -44,4 +46,6 @@ jobs:
             desktop/mac/qa/unified/result.json
             desktop/mac/qa/site-alignment/*.png
             desktop/mac/qa/site-alignment/result.json
+            desktop/mac/qa/layout/*.png
+            desktop/mac/qa/layout/result.json
           retention-days: 14

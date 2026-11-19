@@ -7,7 +7,8 @@ body {
 }
 button,
 input,
-select {
+select,
+textarea {
   font: inherit;
 }
 button {
@@ -21,7 +22,8 @@ button:disabled {
 }
 button,
 input,
-select {
+select,
+textarea {
   -webkit-app-region: no-drag;
 }
 button:focus-visible,
@@ -2105,7 +2107,7 @@ button:disabled {
   background: var(--surface-raised);
 }
 .calendar-day.blank {
-  background: var(--scrim);
+  background: var(--bg);
 }
 .calendar-day small {
   font-size: calc(9px * var(--font-scale, 1));

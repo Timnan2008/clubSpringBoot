@@ -1,6 +1,6 @@
 {
   "name": "qingpu-wfl-club-desktop",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "private": true,
   "description": "Qingpu WFL Club Windows desktop client",
   "author": "Qingpu WFL Club",
@@ -13,7 +13,8 @@
     "dist": "npm run build && electron-builder --win nsis --x64",
     "dist:zip": "npm run build && electron-builder --win zip --x64",
     "test:unified": "node mac/tests/unified-smoke.cjs",
-    "test:interface": "node mac/tests/interface-smoke.cjs"
+    "test:interface": "node mac/tests/interface-smoke.cjs",
+    "test:layout": "node mac/tests/layout-smoke.cjs"
   },
   "build": {
     "appId": "com.qpwflshclub.desktop",
