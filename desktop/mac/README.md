@@ -1,4 +1,4 @@
-# 青浦世外社团 · 统一客户端 1.2.4
+# 青浦世外社团 · 统一客户端 1.2.5
 
 当前目录中的 React 页面与 Electron 接口已由 **Windows、Mac 共用**。Windows 启动入口在上一层 `desktop/main.js`，Mac 启动入口在 `electron/main.cjs`。
 

@@ -1,8 +1,15 @@
-# 青浦世外社团 · Windows / Mac 客户端 1.2.4
+# 青浦世外社团 · Windows / Mac 客户端 1.2.5
 
 Windows 和 Mac 共用 Electron + React 本地页面。原网站的源码和部署没有改。
 
-本次整理校园墙与常用页面排版：
+本次同步网站的校园墙身份头衔：
+
+- 帖子、帖子详情和回复的姓名后显示服务器返回的身份：超级管理员使用网站的金色皇冠，教师、社长、副社长、学生使用对应称呼；社团负责人附社团名。
+- 同步网站的 2026 教师节限定、男闺蜜限定徽章，只显示后台实际发放的标识。
+- 匿名帖子和匿名楼主回复隐藏身份、徽章和真实姓名；缺少或未知身份时不猜测头衔。
+- 标识支持浅深色、大字号和窄窗口换行；金色流光遵循减少动态设置。
+
+此前整理的校园墙与常用页面排版：
 
 - 校园墙按网站的信息流整理：标题、发布、搜索和正文同宽对齐，头像在左，姓名与日期紧凑排列；去掉重复的“校园动态”标签。
 - 正文合并连续空行的显示间距，长文可展开和收起，预览在完整文字行结束；服务端原文保留。
@@ -98,7 +105,7 @@ Windows 在 `desktop` 中运行：
 npm run dist
 ```
 
-安装包：`desktop/release/QingpuWFL-Club-Setup-1.2.4.exe`。需要免安装 ZIP 时运行 `npm run dist:zip`。当前为未签名预览版。
+安装包：`desktop/release/QingpuWFL-Club-Setup-1.2.5.exe`。需要免安装 ZIP 时运行 `npm run dist:zip`。当前为未签名预览版。
 
 Mac 在 `desktop/mac` 中运行：
 
@@ -108,7 +115,7 @@ ELECTRON_CACHE="$PWD/.cache/electron" ELECTRON_BUILDER_CACHE="$PWD/.cache/electr
 
 产物：`desktop/mac/release/mac-arm64/青浦世外社团.app` 及同目录中的 DMG / ZIP。Apple 签名与公证尚未实施。
 
-GitHub Actions 的「Desktop Windows build」会在 main 的 desktop 代码更新后检查并打包；完成后在对应运行页面下载 `QPWFL-Windows-1.2.4` 产物。不会自动发布网站或替换原网站下载文件。
+GitHub Actions 的「Desktop Windows build」会在 main 的 desktop 代码更新后检查并打包；完成后在对应运行页面下载 `QPWFL-Windows-1.2.5` 产物。不会自动发布网站或替换原网站下载文件。
 
 ## 检查
 

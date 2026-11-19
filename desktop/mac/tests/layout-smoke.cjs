@@ -51,8 +51,19 @@ async function keys() {
     // Replace both IPC routes before signing in; every private read/write stays in memory.
     await app.evaluate(
       ({ ipcMain }, { own, peerKey }) => {
-        const me = { id: own.fingerprint, name: "测试同学", role: "president" },
-          peer = { id: peerKey.fingerprint, name: "校园伙伴" };
+        const me = { id: own.fingerprint, name: "测试同学", role: "president", clubName: "编程社" },
+          peer = {
+            id: peerKey.fingerprint,
+            name: "校园伙伴",
+            role: "admin",
+            badges: ["male-bestie"],
+          },
+          vice = {
+            name: "测试副社长",
+            role: "president",
+            position: "vice_president",
+            clubName: "校园阅读与交流社",
+          };
         const month = new Date().toISOString().slice(0, 7);
         const long = [
           "大家好，周五一起分享最近的校园生活。",
@@ -82,11 +93,44 @@ async function keys() {
           },
           {
             id: "safe",
-            author: { name: "很长的社团名称与同学姓名用于检查窄窗口排版" },
+            author: {
+              name: "很长的社团名称与同学姓名用于检查窄窗口排版",
+              role: "teacher",
+              badges: ["teacher-day-2026"],
+            },
             clubName: "校园阅读与交流社",
             text: "<img src=x onerror=alert(1)>\n保留原文，不执行 HTML。",
             likes: 0,
             replies: 0,
+            createdAt: "2026-11-18T18:00:00",
+          },
+          {
+            id: "vice",
+            author: vice,
+            text: "本周社团阅读交流照常进行。",
+            createdAt: "2026-11-18T18:00:00",
+          },
+          {
+            id: "anonymous",
+            anonymous: true,
+            author: {
+              name: "不应公开的姓名",
+              role: "admin",
+              badges: ["teacher-day-2026", "male-bestie"],
+            },
+            text: "匿名内容",
+            createdAt: "2026-11-18T18:00:00",
+          },
+          {
+            id: "unknown",
+            author: { name: "未提供身份的同学", role: "future-role", badges: ["unknown-badge"] },
+            text: "没有身份资料时不猜测头衔。",
+            createdAt: "2026-11-18T18:00:00",
+          },
+          {
+            id: "student",
+            author: { name: "普通同学", role: "student" },
+            text: "欢迎加入校园交流。",
             createdAt: "2026-11-18T18:00:00",
           },
         ];
@@ -138,6 +182,18 @@ async function keys() {
             case "replies":
               return ok([
                 { id: "reply", author: peer, text: "期待见面！", createdAt: "2026-11-18T18:01:00" },
+                {
+                  id: "vice-reply",
+                  author: vice,
+                  text: "活动准备好了。",
+                  createdAt: "2026-11-18T18:02:00",
+                },
+                {
+                  id: "anon-reply",
+                  author: { role: "anonymous", name: "匿名楼主", badges: ["male-bestie"] },
+                  text: "谢谢大家。",
+                  createdAt: "2026-11-18T18:03:00",
+                },
               ]);
             case "recovery":
               return ok(own);
@@ -173,6 +229,30 @@ async function keys() {
     await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].setSize(1440, 940));
     const card = page.locator(".post-card").first();
     await button("展开全文").waitFor();
+    const identities = page.locator(".post-card .author-identity");
+    assert.equal(await identities.nth(0).locator(".author-role").textContent(), "编程社 · 社长");
+    assert.equal(
+      await identities.nth(1).locator(".author-admin-badge").textContent(),
+      "超级管理员",
+    );
+    assert.equal(await identities.nth(1).locator(".author-exclusive-badge").count(), 1);
+    assert.equal(await identities.nth(2).locator(".author-role").textContent(), "教师");
+    assert.equal(await identities.nth(2).locator(".author-holiday-badge").count(), 1);
+    assert.equal(
+      await identities.nth(3).locator(".author-role").textContent(),
+      "校园阅读与交流社 · 副社长",
+    );
+    assert.equal(await identities.nth(4).textContent(), "匿名同学");
+    assert.equal(await identities.nth(5).textContent(), "未提供身份的同学");
+    assert.equal(await identities.nth(6).locator(".author-role").textContent(), "学生");
+    assert.equal(await page.getByText("不应公开的姓名", { exact: true }).count(), 0);
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    assert.equal(
+      await page
+        .locator(".author-admin-badge")
+        .evaluate((e) => getComputedStyle(e, "::before").animationName),
+      "none",
+    );
     const before = await card.boundingBox();
     assert.ok(before.height < 410, `long preview height: ${before.height}`);
     assert.equal(await page.locator(".post-card img").count(), 0);
@@ -292,6 +372,25 @@ async function keys() {
     await button("3 条回复").click();
     await page.getByText("期待见面！", { exact: true }).waitFor();
     assert.equal(await page.getByRole("dialog").locator(".post-paragraphs p").count(), 15);
+    assert.equal(await page.getByRole("dialog").locator(".author-admin-badge").count(), 1);
+    assert.equal(
+      await page
+        .getByRole("dialog")
+        .getByText("校园阅读与交流社 · 副社长", { exact: true })
+        .count(),
+      1,
+    );
+    assert.equal(
+      await page
+        .getByRole("dialog")
+        .locator(".reply")
+        .last()
+        .locator(".author-identity")
+        .textContent(),
+      "匿名楼主",
+    );
+    await page.getByRole("dialog").locator(".reply").last().scrollIntoViewIfNeeded();
+    await shot("author-replies");
     await button("关闭").click();
     await app.evaluate(() => {
       global.__layoutFixture.next = true;
@@ -320,6 +419,8 @@ async function keys() {
           passed: true,
           checks,
           scenarios: [
+            "website roles, admin crown and assigned badges in posts and replies",
+            "anonymous identity privacy and unknown-role fallback",
             "paragraphs and safe text",
             "long post expand/collapse",
             "empty search and reset",

@@ -24,6 +24,7 @@ import {
   dateText,
 } from "./ui";
 import { Gate } from "./ClubPages";
+import AuthorIdentity from "./AuthorIdentity";
 import {
   ensureIdentity,
   encryptMessage,
@@ -103,11 +104,14 @@ function WallInside() {
                 {posts.data.items.map((p) => (
                   <article className="post-card" key={p.id}>
                     <span className="avatar post-avatar" aria-hidden="true">
-                      {(p.author?.name || "同").slice(0, 1)}
+                      {(p.anonymous || p.author?.role === "anonymous"
+                        ? "匿"
+                        : p.author?.name || "同"
+                      ).slice(0, 1)}
                     </span>
                     <div className="post-body">
                       <div className="post-author">
-                        <strong>{p.author?.name || "校园同学"}</strong>
+                        <AuthorIdentity person={p.author} anonymous={p.anonymous} />
                         <time dateTime={p.createdAt}>
                           {dateText(p.createdAt)}
                           {p.clubName ? " · " + p.clubName : ""}
@@ -297,13 +301,17 @@ function Replies({ post, onClose, onChanged }) {
   const r = useResource("replies", { id: post.id });
   return (
     <Modal title="动态与回复" onClose={onClose}>
+      <div className="post-author">
+        <AuthorIdentity person={post.author} anonymous={post.anonymous} />
+        <time dateTime={post.createdAt}>{dateText(post.createdAt)}</time>
+      </div>
       <PostText text={post.text} />
       <div className="replies">
         <ResourceState resource={r}>
           {r.data?.length ? (
             r.data.map((m) => (
               <div className="reply" key={m.id}>
-                <strong>{m.author?.name || "校园同学"}</strong>
+                <AuthorIdentity person={m.author} anonymousLabel="匿名楼主" />
                 <p>{m.text}</p>
                 <small>{dateText(m.createdAt)}</small>
               </div>
