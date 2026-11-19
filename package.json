@@ -3,6 +3,8 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
+    "design:unslop:verify": "node tools/design/verify-unslop.mjs",
+    "design:unslop:snapshot": "node .agents/skills/unslop/scripts/snapshot.mjs",
     "build:home": "node frontend/build.mjs",
     "build": "node frontend/build.mjs",
     "format": "prettier --write \"frontend/**/*.{js,jsx,mjs,css,json}\" \"src/{main,test}/java/**/*.java\" \"src/main/resources/templates/**/*.html\"",

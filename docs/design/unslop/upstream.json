@@ -1,0 +1,112 @@
+{
+  "repository": "https://github.com/heydamir/unslop",
+  "commit": "620163eedb3529d9cd23a3994ed8d287d06f760d",
+  "upstreamPath": "skills/unslop",
+  "installedAt": "2026-11-19",
+  "destination": ".agents/skills/unslop",
+  "author": "Damir Sokolovsky (@heydamir)",
+  "license": "CC-BY-4.0",
+  "modifiedUpstreamFiles": false,
+  "licenseFile": {
+    "path": "docs/design/unslop/LICENSE",
+    "sha256": "9ba9550ad48438d0836ddab3da480b3b69ffa0aac7b7878b5a0039e7ab429411"
+  },
+  "files": [
+    {
+      "path": "SKILL.md",
+      "bytes": 32059,
+      "sha256": "54e74d73afedb70dd556495f03a13ab7a5724b948cad20c3c7452684f3cb65e9",
+      "gitBlobSha": "93eed69f2a91b28035e91998a641d6a3faf9b62e"
+    },
+    {
+      "path": "agents/openai.yaml",
+      "bytes": 196,
+      "sha256": "170d0b33a418d9d82beb7d15f8a91e314adef2edf53a81c37155b6f40dd52f06",
+      "gitBlobSha": "cfecf69e9d784ae3b2edee8efc4a20eb4eb89370"
+    },
+    {
+      "path": "references/effects.md",
+      "bytes": 4864,
+      "sha256": "ded4f679e22843a8f68860e6cda0396fa8b8fa27202400e08337143b485c86a4",
+      "gitBlobSha": "621f8ec43153d396d7e2cd7c4309a00d4aa27d32"
+    },
+    {
+      "path": "references/refs/beacon-engraving.webp",
+      "bytes": 569124,
+      "sha256": "44e7680e9c944f03c8fe45df999bdf74077a106925a8189eebf89e751e306e5b",
+      "gitBlobSha": "cf8af41fa080808a3f715e8f3d7d58ea789abd1e"
+    },
+    {
+      "path": "references/refs/meadow-3d.webp",
+      "bytes": 286608,
+      "sha256": "84f526b68021a06fc6d32f162406fab6cc8074da1ef76d2ae4530e1b58219b14",
+      "gitBlobSha": "d8284c8d16fb3fd5f4436adbb04e8119819e36f1"
+    },
+    {
+      "path": "references/refs/story-dashboard-frames.webp",
+      "bytes": 187334,
+      "sha256": "cfbf837e40b7626d5a5789dbce54f5c197aab303aa350d13a042048310717137",
+      "gitBlobSha": "b9a08721f366269b234727d4f6eddc403a85fc21"
+    },
+    {
+      "path": "references/refs/unslop-dashboard-after.webp",
+      "bytes": 74724,
+      "sha256": "48067794f86b43dab20515b3810f245d67bff05d10bfa83c0f5885bee93cea52",
+      "gitBlobSha": "9836639938830aac335963b8d1536178bc107fce"
+    },
+    {
+      "path": "references/refs/unslop-hero-after.webp",
+      "bytes": 223664,
+      "sha256": "92b2d796c5b6116a2039f5ca2b0f3edf700c92b41846b11b9501a4e32f72af6e",
+      "gitBlobSha": "ad9059318bd3ca85b008a622090f495ad42cf12e"
+    },
+    {
+      "path": "references/refs.md",
+      "bytes": 2458,
+      "sha256": "12a70ce17d574914ea69eb0809e5a9605de044df1b66619159c6d0b38d6b8353",
+      "gitBlobSha": "e6c23aa433b9ef191a75f16a65ce1b4b1a2a8505"
+    },
+    {
+      "path": "references/rtl.md",
+      "bytes": 7073,
+      "sha256": "d33ad69324e2b7c27107185f3fc99e50ba0f7f81b7c67c4e4f53e59cd5802be4",
+      "gitBlobSha": "9098e667591ad934d6dfb839a93360a60559a7e0"
+    },
+    {
+      "path": "references/signs.md",
+      "bytes": 8711,
+      "sha256": "ed051b2ed17758145ff5563a3b20fbc9203380f882130b1f25bf6c2e22b69120",
+      "gitBlobSha": "7b6ab40d8684a63c2156ed6910abcc960cf29c42"
+    },
+    {
+      "path": "references/tokens.md",
+      "bytes": 6633,
+      "sha256": "b8beace96055e8097ff5a788b874e290393de56eff946bc1c650cc445e8965c2",
+      "gitBlobSha": "fbb051825c9695151a9757cc3e16bcbc1e9d8a95"
+    },
+    {
+      "path": "references/visuals.md",
+      "bytes": 8306,
+      "sha256": "7247da579d2d95ace1e051b867c757bd1e05aa02f3ab8dea0ead4cd4bf14d7d7",
+      "gitBlobSha": "d7e89c14ddc675def22a46435ef1f2053d8d9362"
+    },
+    {
+      "path": "scripts/snapshot.mjs",
+      "bytes": 8271,
+      "sha256": "4b0c3639bd1c052fa1968c4bbe1b17acb5b108fd22ec70518628d9a4dbd5d6fa",
+      "gitBlobSha": "ef226aa4650fb84d238d434035d73606abdcb88a"
+    },
+    {
+      "path": "scripts/story-path.mjs",
+      "bytes": 1170,
+      "sha256": "319600e594fca2f94cbfef8706b6f1c9f5151ad56d7a27e7f7d28f82f5756c9c",
+      "gitBlobSha": "3e685d7dad034c9f3cff0babc37a50675561bd4d"
+    },
+    {
+      "path": "scripts/story.mjs",
+      "bytes": 25484,
+      "sha256": "349610ab1d829eb727b5033353e0ecc0e3272a50c6f1d9eea94b74dcc6daa517",
+      "gitBlobSha": "daa0695a9df4955555b147ee9e7683f24ea71cae"
+    }
+  ]
+}
