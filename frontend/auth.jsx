@@ -596,11 +596,9 @@ function Auth() {
                         <div className="auth-two-fields">
                           <Field
                             id="register-name"
-                            label={t(
-                              "真实姓名（中文，需与名册一致）",
-                              "Real name (Chinese, must match the roster)",
-                            )}
+                            label={t("中文姓名", "Chinese name")}
                             required
+                            aria-describedby="register-name-help"
                             autoComplete="name"
                             value={form.name}
                             onChange={(e) => change("name", e.target.value)}
@@ -610,15 +608,16 @@ function Auth() {
                             id="register-name-en"
                             label={t("真实英文名 / 姓名拼音", "English name / Pinyin")}
                             required
+                            aria-describedby="register-name-help"
                             value={form.nameEn}
                             onChange={(e) => change("nameEn", e.target.value)}
                             placeholder={t("真实英文名或姓名拼音", "English name or Pinyin")}
                           />
                         </div>
-                        <p className="auth-help">
+                        <p id="register-name-help" className="auth-hint auth-name-hint">
                           {t(
-                            "学生注册只用中文名与学生名册核对，英文名不再参与核对。",
-                            "Student sign-up only matches the Chinese name against the school roster; the English name is not checked.",
+                            "两项均必填。学生名册只核对中文姓名。",
+                            "Both fields are required. The student roster checks only your Chinese name.",
                           )}
                         </p>
                         <Field

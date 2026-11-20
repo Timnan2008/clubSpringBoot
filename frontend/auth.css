@@ -215,8 +215,17 @@ body.auth-page::after {
 }
 .auth-two-fields {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
+}
+.auth-two-fields .auth-field {
+  margin-bottom: 0;
+}
+.auth-two-fields .auth-field > span {
+  flex: 1;
+}
+.auth-name-hint {
+  margin: 8px 0 16px;
 }
 .auth-role {
   border: 0;
@@ -684,8 +693,8 @@ body.auth-page {
     gap: 8px;
   }
   .auth-two-fields {
-    grid-template-columns: 1fr;
-    gap: 0;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
   }
   .auth-role label {
     min-width: 70px;
