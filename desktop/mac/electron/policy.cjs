@@ -11,6 +11,7 @@ const fixed = {
   workspace: "/api/club-workspace",
   booking: "/api/booking",
   bookings: "/api/booking/mine",
+  bookingRoster: "/api/booking/all",
   recovery: "/api/campus-social/keys/recovery",
   staffAccounts: "/api/user/all",
   staffClubs: "/api/user/my-clubs",
@@ -177,6 +178,15 @@ function mutation(key, a = {}) {
     case "calendarDelete":
       route = p + "/calendar/" + uuid(a.id);
       method = "DELETE";
+      break;
+    case "postDelete":
+      route = p + "/posts/" + uuid(a.id);
+      method = "DELETE";
+      break;
+    case "postPin":
+      route = p + "/posts/" + uuid(a.id) + "/pin";
+      method = "PUT";
+      body = { scope: "wall", pinned: !!body.pinned };
       break;
     case "post":
       route = p + "/posts";

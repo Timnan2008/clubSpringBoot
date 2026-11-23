@@ -52,16 +52,34 @@ function WallInside() {
     [query, setQuery] = useState(""),
     [page, setPage] = useState(1),
     [compose, setCompose] = useState(false),
-    [reply, setReply] = useState(null);
+    [reply, setReply] = useState(null),
+    [manage, setManage] = useState(null);
   const posts = useResource("posts", { keyword: query, page }),
     social = useResource("social");
   return (
     <section className="wall-page" aria-label="校园墙动态">
       <Heading title="校园墙">
-        <Action disabled={!social.data?.canPost} onClick={() => setCompose(true)}>
-          <Plus size={18} />
-          发布动态
-        </Action>
+        <div className="service-actions">
+          {["teacher", "admin"].includes(ui.data.user?.role) && (
+            <Action secondary onClick={() => ui.navigate("moderation")}>
+              <ShieldCheck size={18} />
+              内容审核
+            </Action>
+          )}
+          <Action
+            secondary
+            disabled={posts.loading}
+            onClick={posts.reload}
+            aria-label="刷新校园墙"
+          >
+            <ArrowClockwise size={18} />
+            刷新
+          </Action>
+          <Action disabled={!social.data?.canPost} onClick={() => setCompose(true)}>
+            <Plus size={18} />
+            发布动态
+          </Action>
+        </div>
       </Heading>
       <Feedback error={social.error} />
       <div className="wall-layout">
@@ -117,6 +135,7 @@ function WallInside() {
                           {p.clubName ? " · " + p.clubName : ""}
                         </time>
                       </div>
+                      {p.wallPinned && <span className="wall-pin-label">校园墙置顶</span>}
                       <PostText text={p.text} preview />
                       {p.attachments?.length > 0 && (
                         <p className="muted">
@@ -129,6 +148,22 @@ function WallInside() {
                           <ChatCircleDots size={19} />
                           {p.replies || 0} 条回复
                         </button>
+                        {social.data?.admin && (
+                          <button
+                            className="text-button"
+                            onClick={() => setManage({ post: p, kind: "pin" })}
+                          >
+                            {p.wallPinned ? "取消置顶" : "置顶"}
+                          </button>
+                        )}
+                        {(p.own || social.data?.admin) && (
+                          <button
+                            className="text-button service-danger"
+                            onClick={() => setManage({ post: p, kind: "delete" })}
+                          >
+                            删除
+                          </button>
+                        )}
                       </div>
                     </div>
                   </article>
@@ -169,6 +204,37 @@ function WallInside() {
           )}
         </section>
       </div>
+      {manage && (
+        <Modal
+          title={
+            manage.kind === "delete"
+              ? "删除动态"
+              : manage.post.wallPinned
+                ? "取消校园墙置顶"
+                : "置顶到校园墙"
+          }
+          onClose={() => setManage(null)}
+        >
+          <p className="detail-text">
+            {manage.kind === "delete"
+              ? "删除后动态及相关回复将无法恢复，请核对内容。"
+              : "此操作将调整所有用户看到的校园墙置顶状态。"}
+          </p>
+          <blockquote className="service-excerpt">{manage.post.text}</blockquote>
+          <Form
+            label={manage.kind === "delete" ? "确认删除" : "确认调整"}
+            onSubmit={async () => {
+              await write(manage.kind === "delete" ? "postDelete" : "postPin", {
+                id: manage.post.id,
+                body: { pinned: !manage.post.wallPinned },
+              });
+              setManage(null);
+              posts.reload();
+              ui.toast("动态已更新");
+            }}
+          />
+        </Modal>
+      )}
       {compose && (
         <Modal title="分享校园日常" onClose={() => setCompose(false)}>
           <Form
@@ -202,7 +268,9 @@ function WallInside() {
           </Form>
         </Modal>
       )}
-      {reply && <Replies post={reply} onClose={() => setReply(null)} onChanged={posts.reload} />}
+      {reply && (
+        <Replies post={reply} onClose={() => setReply(null)} onChanged={posts.reload} />
+      )}
     </section>
   );
 }
@@ -392,7 +460,9 @@ function MessagesInside() {
                   <span className="avatar">{(item.account.name || "同").slice(0, 1)}</span>
                   <div>
                     <strong>{item.account.name}</strong>
-                    {item.preview && !/端到端|加密消息/.test(item.preview) && <p>{item.preview}</p>}
+                    {item.preview && !/端到端|加密消息/.test(item.preview) && (
+                      <p>{item.preview}</p>
+                    )}
                   </div>
                   {item.unread > 0 && <span className="badge">{item.unread}</span>}
                 </button>
@@ -522,7 +592,9 @@ function Conversation({ peer }) {
           {!keys && !error && r.data?.messages?.some((m) => m.text?.startsWith("e2ee:v1:")) && (
             <p className="muted center">正在读取消息…</p>
           )}
-          {r.data?.older && <p className="muted center">当前显示最近消息；更早记录暂未加载。</p>}
+          {r.data?.older && (
+            <p className="muted center">当前显示最近消息；更早记录暂未加载。</p>
+          )}
           {r.data?.messages?.length ? (
             r.data.messages
               .filter((m) => keys || !m.text?.startsWith("e2ee:v1:"))
@@ -533,7 +605,10 @@ function Conversation({ peer }) {
                 >
                   <div className="message-bubble">
                     <MessageContent
-                      message={{ ...m, recalled: m.recalled || r.data.recalledIds?.includes(m.id) }}
+                      message={{
+                        ...m,
+                        recalled: m.recalled || r.data.recalledIds?.includes(m.id),
+                      }}
                       keys={keys}
                       me={ui.data.user.id}
                     />

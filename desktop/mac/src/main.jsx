@@ -24,6 +24,7 @@ import { AdminPages } from "./AdminPages";
 import "./styles.css";
 import "./theme.css";
 import "./workbench.css";
+import "./campus-services.css";
 function App() {
   const [maximized, setMaximized] = useState(false);
   useEffect(() => {
@@ -42,6 +43,9 @@ function App() {
   const recommended = [...data.clubs]
     .sort((a, b) => Number(b.greatClub) - Number(a.greatClub))
     .slice(0, 5);
+  useEffect(() => {
+    if (data.info.readOnly) setPage("wall");
+  }, [data.info.readOnly]);
   useEffect(() => setCryptoScope(data.info.server || "production"), [data.info.server]);
   const navigate = (p) => {
     setPage(p);
@@ -80,7 +84,10 @@ function App() {
         className={`app platform-${data.info.platform || "darwin"} ${compact ? "compact" : ""} ${reduced ? "reduced" : ""}`}
       >
         <div className="app-background" aria-hidden="true" />
-        <div className="titlebar" onDoubleClick={() => window.clubDesktop.windowAction("maximize")}>
+        <div
+          className="titlebar"
+          onDoubleClick={() => window.clubDesktop.windowAction("maximize")}
+        >
           <span>上海青浦世外高级中学 · 社团管理平台</span>
 
           {data.info.platform === "win32" && (
@@ -120,6 +127,19 @@ function App() {
               className={`content page-${page}`}
               key={`${data.info.server || "production"}:${page}`}
             >
+              {data.info.readOnly && (
+                <div className="preview-banner" role="status">
+                  <strong>
+                    只读预览 ·{" "}
+                    {
+                      { student: "学生", teacher: "教师", admin: "管理员" }[
+                        data.info.previewRole
+                      ]
+                    }
+                  </strong>
+                  <span>本地示例数据 · 不连接校园服务 · 所有提交均被拦截</span>
+                </div>
+              )}
               {data.error && (
                 <div className="error-banner" role="alert">
                   {data.error}

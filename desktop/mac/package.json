@@ -16,7 +16,11 @@
     "dist:mac:intel": "npm run build && electron-builder --mac dmg zip --x64",
     "test:unified": "node tests/unified-smoke.cjs",
     "test:interface": "node tests/interface-smoke.cjs",
-    "test:layout": "node tests/layout-smoke.cjs"
+    "test:layout": "node tests/layout-smoke.cjs",
+    "preview": "npm run build && electron . --club-preview=student",
+    "preview:teacher": "npm run build && electron . --club-preview=teacher",
+    "preview:admin": "npm run build && electron . --club-preview=admin",
+    "test:preview": "node tests/campus-preview-smoke.cjs"
   },
   "dependencies": {
     "@phosphor-icons/react": "2.1.10",

@@ -16,6 +16,11 @@ const { PRODUCTION, LOCAL } = require("./policy.cjs");
 const { createClient } = require("./client.cjs");
 const { createCampusTransport } = require("./transport.cjs");
 const { createAppearanceStore } = require("./appearance.cjs");
+const previewArg = process.argv.find((arg) => arg.startsWith("--club-preview="));
+const previewRole = previewArg?.split("=")[1];
+const preview = Boolean(previewArg);
+if (preview && !["student", "teacher", "admin"].includes(previewRole))
+  throw Error("无效预览身份");
 const isWindows = process.platform === "win32";
 const platform =
   process.env.CLUB_QA && process.env.CLUB_QA_PLATFORM === "win32" ? "win32" : process.platform;
@@ -26,9 +31,14 @@ if (!app.isPackaged)
     "userData",
     path.join(__dirname, "..", ".local", process.env.CLUB_QA ? "qa-profile" : "profile"),
   );
-if (process.env.CLUB_DESKTOP_USER_DATA) app.setPath("userData", process.env.CLUB_DESKTOP_USER_DATA);
+if (process.env.CLUB_DESKTOP_USER_DATA)
+  app.setPath("userData", process.env.CLUB_DESKTOP_USER_DATA);
+if (preview)
+  app.setPath("userData", path.join(__dirname, "..", ".local", "preview-" + previewRole));
 if (isWindows) app.setAppUserModelId("com.qpwflshclub.desktop");
 const appearance = createAppearanceStore(app.getPath("userData"));
+if (preview && !fs.existsSync(path.join(app.getPath("userData"), "appearance.json")))
+  appearance.save({ mode: "dark", accent: "#796094" });
 const primary = process.env.CLUB_QA || app.requestSingleInstanceLock();
 if (!primary) app.quit();
 app.on("second-instance", () => {
@@ -47,7 +57,9 @@ const remoteSession = () =>
     : session.fromPartition(`persist:club-${serverName}`);
 const indexPath = path.join(__dirname, "..", "dist", "index.html");
 const localURL = pathToFileURL(indexPath).href;
-const client = createClient(createCampusTransport(remoteSession, base));
+const client = preview
+  ? require("./preview.cjs").createPreviewClient(previewRole)
+  : createClient(createCampusTransport(remoteSession, base));
 function trusted(event) {
   if (
     !mainWindow ||
@@ -58,16 +70,22 @@ function trusted(event) {
     throw Error("请求来源不受信任");
 }
 function notify() {
-  if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send("club:session-changed");
+  if (mainWindow && !mainWindow.isDestroyed())
+    mainWindow.webContents.send("club:session-changed");
 }
 function createWindow() {
   let state = {};
   try {
-    state = JSON.parse(fs.readFileSync(path.join(app.getPath("userData"), "window-state.json")));
+    state = JSON.parse(
+      fs.readFileSync(path.join(app.getPath("userData"), "window-state.json")),
+    );
   } catch {}
   const area = screen.getPrimaryDisplay().workAreaSize;
   mainWindow = new BrowserWindow({
-    width: Math.min(Number.isFinite(state.width) ? Math.max(920, state.width) : 1440, area.width),
+    width: Math.min(
+      Number.isFinite(state.width) ? Math.max(920, state.width) : 1440,
+      area.width,
+    ),
     height: Math.min(
       Number.isFinite(state.height) ? Math.max(680, state.height) : 940,
       area.height,
@@ -97,7 +115,9 @@ function createWindow() {
   mainWindow.on("maximize", () => mainWindow.webContents.send("club:window-state", true));
   mainWindow.on("unmaximize", () => mainWindow.webContents.send("club:window-state", false));
   mainWindow.on("close", () => {
-    const bounds = mainWindow.isMaximized() ? mainWindow.getNormalBounds() : mainWindow.getBounds();
+    const bounds = mainWindow.isMaximized()
+      ? mainWindow.getNormalBounds()
+      : mainWindow.getBounds();
     fs.mkdirSync(app.getPath("userData"), { recursive: true });
     fs.writeFileSync(
       path.join(app.getPath("userData"), "window-state.json"),
@@ -112,6 +132,19 @@ app.whenReady().then(() => {
   try {
     if (JSON.parse(fs.readFileSync(preferences)).server === "local") serverName = "local";
   } catch {}
+  // Block network before creating any renderer, including image loads and future routes.
+  if (preview) {
+    for (const s of [
+      session.defaultSession,
+      session.fromPartition("persist:club-production"),
+      session.fromPartition("persist:club-local"),
+    ]) {
+      s.webRequest.onBeforeRequest(
+        { urls: ["http://*/*", "https://*/*", "ws://*/*", "wss://*/*"] },
+        (_details, callback) => callback({ cancel: true }),
+      );
+    }
+  }
   for (const name of ["production", "local"]) {
     const s =
       isWindows && name === "production"
@@ -127,7 +160,9 @@ app.whenReady().then(() => {
       version: app.getVersion(),
       platform,
       server: serverName,
-      baseURL: base(),
+      baseURL: preview ? "" : base(),
+      readOnly: preview,
+      previewRole,
     };
   });
   ipcMain.handle("club:appearance", (e) => {
@@ -193,6 +228,7 @@ app.whenReady().then(() => {
   });
   ipcMain.handle("club:server", (e, value) => {
     trusted(e);
+    if (preview) throw Error("只读预览不能切换到校园服务");
     if (!["local", "production"].includes(value)) throw Error("无效服务器");
     client.invalidate();
     serverName = value;
@@ -203,6 +239,7 @@ app.whenReady().then(() => {
   });
   ipcMain.handle("club:logout", async (e) => {
     trusted(e);
+    if (preview) return false;
     await client.logout();
     await remoteSession().clearStorageData();
     notify();

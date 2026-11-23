@@ -1,0 +1,112 @@
+/* Campus services: keep the established theme and shared desktop frame. */
+.preview-banner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  border: 1px solid var(--accent-border);
+  border-radius: 8px;
+  background: var(--accent-soft);
+  color: var(--text);
+  font-size: 13px;
+}
+.preview-banner span {
+  color: var(--text-secondary);
+}
+.service-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.wall-page .page-heading {
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.wall-pin-label {
+  display: inline-block;
+  margin: 8px 0;
+  font-size: 12px;
+  color: var(--accent-ink);
+}
+.service-danger {
+  color: var(--danger);
+}
+.service-excerpt {
+  margin: 16px 0;
+  padding: 16px;
+  max-height: 200px;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  border-left: 2px solid var(--accent-border);
+  background: var(--surface);
+}
+.service-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  padding: 16px;
+  background: var(--panel);
+  border: 1px solid var(--edge);
+  border-radius: 8px;
+}
+.service-toolbar .form-field {
+  margin: 0;
+  flex: 1 1 140px;
+}
+.service-toolbar .form-field:first-child {
+  flex: 2 1 220px;
+}
+.booking-legend {
+  margin: 16px 0;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+.booking-roster {
+  min-width: 720px;
+  font-variant-numeric: tabular-nums;
+}
+.booking-roster td {
+  vertical-align: top;
+}
+.booking-note {
+  max-width: 240px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.page-booking .booking-table th {
+  position: sticky;
+  top: 0;
+  background: var(--panel);
+  z-index: 1;
+}
+.page-booking .booking-table th:first-child {
+  left: 0;
+  z-index: 2;
+}
+.page-booking .booking-table-wrap {
+  max-height: 560px;
+  overflow: auto;
+  border: 1px solid var(--edge);
+  border-radius: 8px;
+}
+.page-booking .slot {
+  min-height: 40px;
+  white-space: nowrap;
+}
+.page-booking .slot:disabled {
+  opacity: 1;
+  color: var(--muted);
+}
+.page-booking .slot.mine:disabled {
+  color: var(--accent-ink);
+  background: var(--accent-soft);
+}
+.page-wall button:focus-visible,
+.page-booking button:focus-visible {
+  outline: 2px solid var(--accent-ink);
+  outline-offset: 3px;
+}
