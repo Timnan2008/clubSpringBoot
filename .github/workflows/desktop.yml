@@ -15,8 +15,8 @@ jobs:
       ELECTRON_BUILDER_CACHE: ${{ github.workspace }}/desktop/.cache/electron-builder
       npm_config_cache: ${{ github.workspace }}/desktop/.cache/npm
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version: "22"
       - name: Install desktop dependencies
@@ -31,21 +31,34 @@ jobs:
         run: npm --prefix desktop run test:interface
       - name: Check wall, chat, calendar and large-text layout
         run: npm --prefix desktop run test:layout
+      - name: Check offline previews and write protection
+        run: npm --prefix desktop run test:preview
       - name: Build installer with Windows application icon
         run: npm --prefix desktop run dist
       - name: Build ZIP
         run: npm --prefix desktop run dist:zip
-      - uses: actions/upload-artifact@v4
-        if: always()
+      - name: Upload Windows installers
+        uses: actions/upload-artifact@v6
+        if: success()
         with:
           name: QPWFL-Windows-1.2.5
+          if-no-files-found: error
           path: |
             desktop/release/*.exe
             desktop/release/*.zip
+          retention-days: 14
+      - name: Upload test screenshots and reports
+        uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: QPWFL-Windows-QA-${{ github.run_number }}
+          path: |
             desktop/mac/qa/unified/*.png
             desktop/mac/qa/unified/result.json
             desktop/mac/qa/site-alignment/*.png
             desktop/mac/qa/site-alignment/result.json
             desktop/mac/qa/layout/*.png
             desktop/mac/qa/layout/result.json
+            desktop/mac/qa/unslop/campus-services/*.png
+            desktop/mac/qa/unslop/campus-services/results.json
           retention-days: 14

@@ -278,18 +278,21 @@ async function keys() {
         await nav("校园墙").click();
         await page.locator(".post-card").first().waitFor();
         await fits();
-        const geometry = await page.locator(".wall-page").evaluate((e) => {
+        // The toolbar also contains refresh/moderation actions. Check the named primary action.
+        const publishRight = await button("发布动态").evaluate(
+          (e) => e.getBoundingClientRect().right,
+        );
+        const geometry = await page.locator(".wall-page").evaluate((e, actionRight) => {
           const rect = (s) => e.querySelector(s).getBoundingClientRect();
           const h = rect(".page-heading"),
             s = rect(".wall-search"),
-            p = rect(".wall-posts"),
-            action = rect(".page-heading .button");
+            p = rect(".wall-posts");
           return {
             left: Math.max(h.left, s.left, p.left) - Math.min(h.left, s.left, p.left),
-            right: Math.abs(action.right - p.right),
+            right: Math.abs(actionRight - p.right),
             title: parseFloat(getComputedStyle(e.querySelector("h1")).fontSize),
           };
-        });
+        }, publishRight);
         assert.ok(
           geometry.left < 1 && geometry.right < 1 && geometry.title <= 30,
           JSON.stringify(geometry),
