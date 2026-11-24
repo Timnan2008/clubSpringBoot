@@ -17,4 +17,9 @@ public class HomeController {
     public String home() {
         return "page/index";
     }
+
+    @GetMapping("/page/desktop")
+    public String desktop() {
+        return "page/desktop-dashboard";
+    }
 }

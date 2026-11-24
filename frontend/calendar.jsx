@@ -742,7 +742,7 @@ function Calendar() {
                   "Reminders appear while this calendar is open. No notifications are sent after closing the page. All times are Beijing time.",
                 )}
               </p>
-              {permission === "default" && (
+              {(permission === "default" || (window.clubDesktop && permission === "denied")) && (
                 <button
                   onClick={async () => {
                     try {
@@ -757,7 +757,9 @@ function Calendar() {
                     }
                   }}
                 >
-                  {tx("启用浏览器通知", "Enable browser notifications")}
+                  {window.clubDesktop
+                    ? tx("启用系统通知", "Enable system notifications")
+                    : tx("启用浏览器通知", "Enable browser notifications")}
                 </button>
               )}
               {permission === "granted" && (

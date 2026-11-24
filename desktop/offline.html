@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="zh-CN" style="--caption-inset: {{CAPTION_INSET}}">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>无法连接 · 青浦世外社团管理平台</title>
+    <style>
+      :root { color-scheme: dark; font: 14px/1.6 system-ui, sans-serif; color: #f4efff; background: #100e1b; }
+      body { margin: 0; }
+      header { box-sizing: border-box; height: 44px; padding: 0 160px 0 var(--caption-inset); display: flex; align-items: center; background: #19162a; border-bottom: 1px solid #302a44; -webkit-app-region: drag; }
+      main { max-width: 432px; margin: 15vh auto 0; padding: 24px; border: 1px solid #302a44; border-radius: 12px; background: #181526; }
+      h1 { font-size: 28px; line-height: 1.25; margin: 0; }
+      p { color: #c7bfd7; }
+      code { overflow-wrap: anywhere; }
+      a { display: inline-block; padding: 8px 16px; border-radius: 8px; color: #fff; text-decoration: none; background: #683ac8; -webkit-app-region: no-drag; }
+      a:hover { background: #7749d6; }
+      a:active { background: #57329e; }
+      a:focus-visible { outline: 2px solid #d0b5ff; outline-offset: 3px; }
+    </style>
+  </head>
+  <body>
+    <header>青浦世外 · 社团管理平台</header>
+    <main>
+      <h1>无法连接社团平台</h1>
+      <p>请检查网络连接，并确认包含桌面工作台的 Spring Boot 服务已启动。</p>
+      <p><code>{{SITE_ORIGIN}}</code></p>
+      <a href="{{HOME_URL}}">重新连接</a>
+    </main>
+  </body>
+</html>

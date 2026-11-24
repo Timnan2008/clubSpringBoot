@@ -14,6 +14,7 @@
     <title th:text="#{nav.home}">首页</title>
   </head>
   <body>
+    <div th:replace="~{fragments/desktop-frame :: frame}"></div>
     <div th:replace="~{fragments/navbar :: navbar}"></div>
     <div th:replace="~{fragments/notice :: notice}"></div>
 
