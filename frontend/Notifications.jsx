@@ -13,9 +13,7 @@ function noticeText(item) {
     case "message":
       return tx("发来一条私信", "sent you a message");
     case "join_request":
-      return (
-        tx("提交了入社申请", "applied to join") + (item.clubName ? " · " + item.clubName : "")
-      );
+      return tx("提交了入社申请", "applied to join") + (item.clubName ? " · " + item.clubName : "");
     case "join_approved":
       return tx("你的入社申请已通过", "Your club application was approved");
     case "join_declined":
@@ -30,21 +28,27 @@ function noticeTitle(item) {
   }
   return item.actor ? postName(item.actor, en) : tx("匿名同学", "Anonymous student");
 }
-export default function Notifications({ enabled }) {
+export default function Notifications({ enabled, desktop = false }) {
   const [data, setData] = useState({ items: [], unread: 0 }),
     [open, setOpen] = useState(false),
     [error, setError] = useState(""),
-    [busy, setBusy] = useState(false);
+    [busy, setBusy] = useState(false),
+    [loadState, setLoadState] = useState("loading");
   const root = useRef(null),
     request = useRef(0);
   async function refresh() {
     const n = ++request.current;
     try {
       const r = await fetch("/api/campus-social/notifications");
-      if (!r.ok) return;
+      if (!r.ok) throw Error();
       const next = await r.json();
-      if (n === request.current) setData(next);
-    } catch {}
+      if (n === request.current) {
+        setData(next);
+        setLoadState("ready");
+      }
+    } catch {
+      if (n === request.current) setLoadState("error");
+    }
   }
   useEffect(() => {
     if (!enabled) return;
@@ -128,6 +132,20 @@ export default function Notifications({ enabled }) {
             </button>
           </header>
           {error && <p role="alert">{error}</p>}
+          {desktop && loadState === "error" && (
+            <p className="notification-empty" role="alert">
+              {tx("通知加载失败。", "Unable to load notifications.")}{" "}
+              <button
+                type="button"
+                onClick={() => {
+                  setLoadState("loading");
+                  refresh();
+                }}
+              >
+                {tx("重试", "Retry")}
+              </button>
+            </p>
+          )}
           {/* 「网管」的提醒/封禁记录（每次命中违禁词都会留一条） */}
           {data.notices?.length ? (
             <div className="notification-notices">
@@ -161,6 +179,12 @@ export default function Notifications({ enabled }) {
                   {item.unread && <i />}
                 </button>
               ))
+            ) : desktop && loadState !== "ready" ? (
+              loadState === "loading" && (
+                <p className="notification-empty" role="status">
+                  {tx("正在加载通知…", "Loading notifications…")}
+                </p>
+              )
             ) : (
               <p className="notification-empty">{tx("暂时没有新消息", "No notifications yet")}</p>
             )}

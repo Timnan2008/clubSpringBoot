@@ -1,0 +1,27 @@
+<!doctype html>
+<html
+  lang="zh-CN"
+  th:lang="${#locale.language == 'en' ? 'en' : 'zh-CN'}"
+  xmlns:th="http://www.thymeleaf.org"
+>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="/other%20photo/WFL-logo.png" />
+    <link rel="stylesheet" href="/javascript/desktop/desktop-entry.css?v=1" />
+    <title th:text="#{school.cn}">上海青浦世外高级中学</title>
+  </head>
+  <body class="desk-home" data-club-desktop-frame>
+    <div id="desktop-shell" data-mode="dashboard">
+      <p
+        class="desk-startup"
+        role="status"
+        th:text="${#locale.language == 'en' ? 'Loading workspace…' : '正在加载工作台…'}"
+      >
+        正在加载工作台…
+      </p>
+    </div>
+    <template th:replace="~{fragments/desktop-frame :: announcements}"></template>
+    <script type="module" src="/javascript/desktop/desktop-entry.js?v=1"></script>
+  </body>
+</html>

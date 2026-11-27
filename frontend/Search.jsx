@@ -1,6 +1,13 @@
 import PersonIdentity, { realNames, postName } from "./PersonIdentity";
 import React, { useState, useEffect, useRef } from "react";
-export default function Search({ en = false }) {
+const noLocalItems = [];
+
+export default function Search({
+  en = false,
+  desktopSearch = false,
+  localItems = noLocalItems,
+  onSelectNotice,
+}) {
   const [query, setQuery] = useState(""),
     [items, setItems] = useState([]),
     [status, setStatus] = useState("idle"),
@@ -35,12 +42,21 @@ export default function Search({ en = false }) {
           fetch("/api/campus-social/users?" + params, options).then((r) => (r.ok ? r.json() : [])),
         ]);
         if (controller.signal.aborted) return;
-        if (clubResult.status !== "fulfilled") throw Error();
+        const term = query.trim().toLocaleLowerCase();
+        const matches = localItems
+          .filter((item) =>
+            [item.name, item.brief, item.keywords].some((value) =>
+              value?.toLocaleLowerCase().includes(term),
+            ),
+          )
+          .slice(0, 4);
+        if (clubResult.status !== "fulfilled" && !matches.length) throw Error();
         const data = clubResult.value,
           posts = postsResult.status === "fulfilled" ? postsResult.value.items || [] : [],
           people = peopleResult.status === "fulfilled" ? peopleResult.value : [];
         setItems([
-          ...(data.data || []).slice(0, 3),
+          ...matches,
+          ...(data?.data || []).slice(0, 3),
           ...people.slice(0, 3).map((p) => ({
             id: "person-" + p.id,
             name: realNames(p),
@@ -66,7 +82,7 @@ export default function Search({ en = false }) {
       clearTimeout(timer);
       controller.abort();
     };
-  }, [query, en]);
+  }, [query, en, localItems]);
   useEffect(() => {
     const close = (e) => {
       if (!box.current?.contains(e.target)) setOpen(false);
@@ -74,10 +90,35 @@ export default function Search({ en = false }) {
     document.addEventListener("pointerdown", close);
     return () => document.removeEventListener("pointerdown", close);
   }, []);
+  useEffect(() => {
+    if (!desktopSearch) return;
+    const shortcut = (event) => {
+      if (
+        !(event.ctrlKey || event.metaKey) ||
+        event.key.toLowerCase() !== "k" ||
+        document.querySelector("dialog[open], [role='dialog'][aria-modal='true']")
+      )
+        return;
+      event.preventDefault();
+      input.current?.focus();
+      setOpen(true);
+    };
+    document.addEventListener("keydown", shortcut);
+    return () => document.removeEventListener("keydown", shortcut);
+  }, [desktopSearch]);
   const path = (item) => item.path || "/page/clubs/" + item.id;
+  const selectNotice = (item) => {
+    setOpen(false);
+    onSelectNotice?.(item.notice);
+  };
   const submit = (e) => {
     e.preventDefault();
     if (!query.trim()) return;
+    const item = items[active];
+    if (item?.notice) {
+      selectNotice(item);
+      return;
+    }
     location.assign(
       active >= 0 && items[active]
         ? path(items[active])
@@ -87,7 +128,7 @@ export default function Search({ en = false }) {
   return (
     <form
       ref={box}
-      className="club-search"
+      className={desktopSearch ? "club-search desk-search" : "club-search"}
       role="search"
       onSubmit={submit}
       onBlur={(e) => {
@@ -100,15 +141,27 @@ export default function Search({ en = false }) {
       </svg>
       <input
         ref={input}
-        id="search-input"
+        id={desktopSearch ? "desk-global-search" : "search-input"}
         role="combobox"
         aria-autocomplete="list"
         aria-expanded={open && !!query.trim()}
         aria-controls="club-search-results"
         aria-activedescendant={active >= 0 ? "club-search-option-" + active : undefined}
-        aria-label={t("搜索社团", "Search clubs")}
+        aria-label={desktopSearch ? t("全局搜索", "Global search") : t("搜索社团", "Search clubs")}
+        aria-keyshortcuts={
+          desktopSearch
+            ? window.clubDesktop?.platform === "darwin"
+              ? "Meta+K"
+              : "Control+K"
+            : undefined
+        }
         value={query}
-        placeholder={t("搜索社团、姓名、昵称或帖子", "Search clubs, people or posts")}
+        maxLength={desktopSearch ? 80 : undefined}
+        placeholder={
+          desktopSearch
+            ? t("搜索社团、活动、成员或公告", "Search clubs, events, members or announcements")
+            : t("搜索社团、姓名、昵称或帖子", "Search clubs, people or posts")
+        }
         onChange={(e) => {
           setQuery(e.target.value);
           setOpen(true);
@@ -145,21 +198,25 @@ export default function Search({ en = false }) {
           ×
         </button>
       )}
-      <button className="club-search-submit" type="submit" aria-label={t("搜索", "Search")}>
-        <svg
-          viewBox="0 0 24 24"
-          width="20"
-          height="20"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <path d="M6 18 18 6M6 6h12v12" />
-        </svg>
-      </button>
+      {desktopSearch ? (
+        <kbd>{window.clubDesktop?.platform === "darwin" ? "⌘ + K" : "Ctrl + K"}</kbd>
+      ) : (
+        <button className="club-search-submit" type="submit" aria-label={t("搜索", "Search")}>
+          <svg
+            viewBox="0 0 24 24"
+            width="20"
+            height="20"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M6 18 18 6M6 6h12v12" />
+          </svg>
+        </button>
+      )}
       {open && query.trim() && (
         <div className="club-search-dropdown">
           <div className="club-search-meta" role="status">
@@ -172,7 +229,12 @@ export default function Search({ en = false }) {
                   )
                 : items.length
                   ? t("搜索结果", "Results")
-                  : t("暂时没有匹配的社团，试试其他关键词", "No clubs found. Try another keyword.")}
+                  : desktopSearch
+                    ? t("没有匹配结果", "No matching results")
+                    : t(
+                        "暂时没有匹配的社团，试试其他关键词",
+                        "No clubs found. Try another keyword.",
+                      )}
           </div>
           <div
             id="club-search-results"
@@ -180,34 +242,41 @@ export default function Search({ en = false }) {
             aria-label={t("匹配的社团", "Matching clubs")}
           >
             {status === "ready" &&
-              items.slice(0, 9).map((item, i) => (
-                <a
-                  id={"club-search-option-" + i}
-                  key={item.id || i}
-                  role="option"
-                  aria-selected={active === i}
-                  className="club-search-result"
-                  href={path(item)}
-                  tabIndex={-1}
-                  onMouseEnter={() => setActive(i)}
-                  onMouseDown={(e) => e.preventDefault()}
-                >
-                  <span className="club-search-monogram">{(item.name || "C").slice(0, 1)}</span>
-                  <span>
-                    {item.person ? (
-                      <PersonIdentity person={item.person} english={en} query={query} />
-                    ) : (
-                      <>
-                        <strong>{en ? item.nameEn || item.name : item.name}</strong>
-                        <small>
-                          {item.brief || item.description || t("查看社团详情", "View club details")}
-                        </small>
-                      </>
-                    )}
-                  </span>
-                  <span>↗</span>
-                </a>
-              ))}
+              items.slice(0, 13).map((item, i) => {
+                const Tag = item.notice ? "button" : "a";
+                return (
+                  <Tag
+                    id={"club-search-option-" + i}
+                    key={item.id || i}
+                    role="option"
+                    aria-selected={active === i}
+                    className="club-search-result"
+                    href={item.notice ? undefined : path(item)}
+                    type={item.notice ? "button" : undefined}
+                    onClick={item.notice ? () => selectNotice(item) : undefined}
+                    tabIndex={-1}
+                    onMouseEnter={() => setActive(i)}
+                    onMouseDown={(e) => e.preventDefault()}
+                  >
+                    <span className="club-search-monogram">{(item.name || "C").slice(0, 1)}</span>
+                    <span>
+                      {item.person ? (
+                        <PersonIdentity person={item.person} english={en} query={query} />
+                      ) : (
+                        <>
+                          <strong>{en ? item.nameEn || item.name : item.name}</strong>
+                          <small>
+                            {item.brief ||
+                              item.description ||
+                              t("查看社团详情", "View club details")}
+                          </small>
+                        </>
+                      )}
+                    </span>
+                    <span>↗</span>
+                  </Tag>
+                );
+              })}
           </div>
           {items.length > 0 && status === "ready" && (
             <a

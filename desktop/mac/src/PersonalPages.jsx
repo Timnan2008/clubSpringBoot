@@ -252,7 +252,9 @@ export function Profile() {
           <Form
             label="保存资料"
             onSubmit={async (f) => {
-              await write("profile", { body: { name: f.get("name"), nameEn: f.get("nameEn") } });
+              await write("profile", {
+                body: { name: f.get("name"), nameEn: f.get("nameEn") },
+              });
               await ui.data.refresh();
               ui.toast("资料已保存");
             }}
@@ -413,6 +415,11 @@ function BookingInside() {
     [slot, setSlot] = useState(null),
     [cancel, setCancel] = useState(null),
     [ack, setAck] = useState(false);
+  const roster = useResource(
+    "bookingRoster",
+    {},
+    tab === "manage" && r.data?.calendar?.overseer === true,
+  );
   const [requestKey, setRequestKey] = useState("");
   const calendar = r.data?.calendar;
   const policy = calendar?.policy?.settings;
@@ -427,8 +434,15 @@ function BookingInside() {
         <button className={tab === "mine" ? "active" : ""} onClick={() => setTab("mine")}>
           我的预约
         </button>
+        {calendar?.overseer === true && (
+          <button className={tab === "manage" ? "active" : ""} onClick={() => setTab("manage")}>
+            预约管理
+          </button>
+        )}
       </div>
-      {tab === "mine" ? (
+      {tab === "manage" && calendar?.overseer === true ? (
+        <BookingRoster resource={roster} onCancel={setCancel} />
+      ) : tab === "mine" ? (
         <ResourceState resource={mine}>
           {mine.data?.length ? (
             mine.data.map((b) => (
@@ -459,7 +473,10 @@ function BookingInside() {
               <div className="booking-banner">
                 <Racquet size={30} />
                 <div>
-                  <strong>选一个时间，把自己交给球场</strong>
+                  <strong>
+                    {calendar.dates?.[0]?.replaceAll("-", "/")} —{" "}
+                    {calendar.dates?.at(-1)?.replaceAll("-", "/")}
+                  </strong>
                   <p>
                     每次 {policy.slotMinutes} 分钟 · 每周最多 {policy.weeklyLimit} 次 ·{" "}
                     {calendar.teacher
@@ -481,6 +498,9 @@ function BookingInside() {
                   </button>
                 ))}
               </div>
+              <p className="booking-legend">
+                时间均为上海时间 · 可预约 / 我的预约 / 已占用 / 暂未开放
+              </p>
               <div className="booking-table-wrap">
                 <table className="booking-table">
                   <thead>
@@ -503,6 +523,7 @@ function BookingInside() {
                           return (
                             <td key={d}>
                               <button
+                                aria-label={`${d} ${t}，${calendar.courts.find((c) => String(c.id) === selectedCourt)?.name}，${cell?.mine ? "我的预约" : cell?.canBook ? "可预约" : cell?.status === "confirmed" ? "已占用" : "暂未开放"}`}
                                 disabled={!cell?.canBook}
                                 className={`slot ${cell?.mine ? "mine" : ""}`}
                                 onClick={() => {
@@ -517,7 +538,7 @@ function BookingInside() {
                                     ? "预约"
                                     : cell?.status === "confirmed"
                                       ? "已占用"
-                                      : "—"}
+                                      : "暂未开放"}
                               </button>
                             </td>
                           );
@@ -583,11 +604,15 @@ function BookingInside() {
       )}
       {cancel && (
         <Modal title="取消预约" onClose={() => setCancel(null)}>
-          <p className="detail-text">确定取消 {time(cancel.start)} 的预约吗？</p>
+          <p className="detail-text">
+            确定取消 {cancel.displayName ? `${cancel.displayName} · ` : ""}
+            {cancel.courtName}（{time(cancel.start)}）的预约吗？
+          </p>
           <Form
             label="确认取消"
             onSubmit={async () => {
               await write("bookingCancel", { id: cancel.id });
+              roster.reload();
               setCancel(null);
               r.reload();
               mine.reload();
@@ -597,5 +622,116 @@ function BookingInside() {
         </Modal>
       )}
     </>
+  );
+}
+
+function BookingRoster({ resource, onCancel }) {
+  const [query, setQuery] = useState(""),
+    [status, setStatus] = useState("all"),
+    [date, setDate] = useState("");
+  const day = (value) =>
+    new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Shanghai" }).format(
+      new Date(value * 1000),
+    );
+  const rows = (Array.isArray(resource.data) ? resource.data : [])
+    .filter(
+      (b) =>
+        (status === "all" || b.status === status) &&
+        (!date || day(b.start) === date) &&
+        `${b.displayName} ${b.email} ${b.courtName} ${b.note || ""}`
+          .toLowerCase()
+          .includes(query.trim().toLowerCase()),
+    )
+    .sort((a, b) => a.start - b.start || a.id - b.id);
+  return (
+    <section className="booking-management" aria-label="预约管理">
+      <div className="service-toolbar">
+        <Field label="查找预约">
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="姓名、邮箱、场地或备注"
+          />
+        </Field>
+        <Field label="预约状态">
+          <select value={status} onChange={(e) => setStatus(e.target.value)}>
+            <option value="all">全部状态</option>
+            {["pending", "confirmed", "cancelled", "unavailable", "expired"].map((s) => (
+              <option key={s} value={s}>
+                {bookingStatus(s)}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="预约日期">
+          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+        </Field>
+        <Action
+          secondary
+          onClick={() => {
+            setQuery("");
+            setStatus("all");
+            setDate("");
+          }}
+        >
+          清除筛选
+        </Action>
+        <Action secondary disabled={resource.loading} onClick={resource.reload}>
+          刷新名单
+        </Action>
+      </div>
+      <ResourceState resource={resource}>
+        <p className="booking-legend">
+          {rows.length} 条预约 · 上海时间 · 仅可取消尚未开始的有效预约
+        </p>
+        {rows.length ? (
+          <div className="admin-table-wrap">
+            <table className="admin-table booking-roster">
+              <thead>
+                <tr>
+                  <th>预约人</th>
+                  <th>场地 / 时间</th>
+                  <th>状态</th>
+                  <th>备注</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((b) => (
+                  <tr key={b.id}>
+                    <td>
+                      {b.displayName}
+                      <small>{b.email}</small>
+                    </td>
+                    <td>
+                      {b.courtName}
+                      <small>
+                        {time(b.start)} — {time(b.end)}
+                      </small>
+                    </td>
+                    <td>
+                      <span className="status">{bookingStatus(b.status)}</span>
+                    </td>
+                    <td className="booking-note">{b.note || "无备注"}</td>
+                    <td>
+                      {["confirmed", "pending"].includes(b.status) &&
+                      b.start > Date.now() / 1000 ? (
+                        <Action secondary onClick={() => onCancel(b)}>
+                          取消预约
+                        </Action>
+                      ) : (
+                        <span className="muted">不可取消</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <Empty title="没有符合条件的预约" detail="尝试清除筛选，或刷新名单。" />
+        )}
+      </ResourceState>
+    </section>
   );
 }
